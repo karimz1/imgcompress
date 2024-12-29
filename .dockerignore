@@ -1,5 +1,4 @@
 # Exclude test-related files and directories
-tests/
 .devcontainer/
 *.pyc
 __pycache__/
@@ -14,5 +13,3 @@ README.md
 LICENSE
 *.log
 *.txt
-
-!requirements.txt
