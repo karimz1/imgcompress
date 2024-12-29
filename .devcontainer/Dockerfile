@@ -2,18 +2,21 @@ FROM docker:27.5.0-rc.1-dind
 
 # Install Python, pip, and system dependencies
 RUN apk add --no-cache \
-    python3 \
     py3-pip \
     py3-setuptools \
     py3-virtualenv \
-    libheif \
     git \
     curl \
     wget \
     gcc \
     musl-dev \
     linux-headers \
-    openssl-dev
+    openssl-dev \
+    python3-dev \
+    libheif-dev \
+    libjpeg-turbo-dev \
+    libpng-dev
+
 
 # Set up a Python virtual environment
 RUN python3 -m venv /usr/src/app/venv \

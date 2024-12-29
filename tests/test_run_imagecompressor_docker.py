@@ -70,7 +70,7 @@ def run_script():
 
     print("Running the Docker container using run.sh...")
     result = subprocess.run(
-        [script_path],
+        ["/bin/sh", "-c", script_path],
         capture_output=True,
         text=True,
         shell=True,
