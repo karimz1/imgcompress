@@ -32,12 +32,21 @@ def build_docker_image():
         raise RuntimeError(f"Docker build failed with output:\n{result.stderr}")
 
 
+@pytest.fixture(scope="module", autouse=True)
+def setup_once_environment():
+    """
+    Fixture to set up the environment once per module.
+    Ensures the script is executable.
+    """
+    script_path = os.path.join(TESTS_DIR, "run_imagecompressor_docker.sh")
+    subprocess.run(["chmod", "u+x", script_path], check=True)
+
+
 @pytest.fixture(scope="function", autouse=True)
 def setup_environment():
     """
     Fixture to set up the test environment before every test.
     """
-    subprocess.run("RUN chmod +755 ./tests/run_imagecompressor_docker.sh")
     # Clean up and set up the environment
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)
