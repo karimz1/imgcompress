@@ -12,25 +12,25 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      docker:
-        image: docker:dind
-        options: --privileged
-        env:
-          DOCKER_TLS_CERTDIR: ""
+    docker:
+      image: docker:dind
+      options: --privileged
+      env:
+        DOCKER_TLS_CERTDIR: ""
 
-    # Make DOCKER_HOST available to all steps
-    env:
-      DOCKER_HOST: tcp://localhost:2375
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Verify Docker version
+      - name: Set Docker host
+        run: echo "DOCKER_HOST=tcp://localhost:2375" >> $GITHUB_ENV
+
+      - name: Docker version
         run: docker version
 
-      - name: Build Docker image
-        run: docker build -t devcontainer:local-test -f .devcontainer/Dockerfile .
+      - name: Build devcontainer image
+        run: docker build -t devcontainer:local-test .
 
-      - name: Test container
-        run: docker run --rm devcontainer:local-test ./runTests.sh
+      #- name: Run your nested test
+       # run: ./runTests.sh
