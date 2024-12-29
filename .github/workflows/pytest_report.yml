@@ -17,6 +17,8 @@ jobs:
         options: --privileged
         env:
           DOCKER_TLS_CERTDIR: ""
+        ports:
+          - 2375:2375
 
     steps:
       - name: Check out code
