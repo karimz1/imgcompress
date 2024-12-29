@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY imgcompress.py /app/imgcompress.py
-COPY requirements.txt /app/requirements.txt
+COPY /imgcompress.py /app/imgcompress.py
+COPY /requirements.txt /app/requirements.txt
 
 # Install Python packages
 RUN pip install -r requirements-dev.txt
