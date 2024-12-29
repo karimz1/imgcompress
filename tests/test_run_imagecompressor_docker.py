@@ -38,9 +38,9 @@ def setup_environment():
     """
     Fixture to set up the test environment before every test.
     """
-    # Clean up and set up the environment
-    if os.path.exists(OUTPUT_DIR):
-       shutil.rmtree(OUTPUT_DIR)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    #if os.path.exists(OUTPUT_DIR):
+       #shutil.rmtree(OUTPUT_DIR)
 
     assert os.path.exists(SAMPLE_IMAGES_DIR), "SAMPLE_IMAGES_DIR directory does not exist."
     create_sample_test_image()
@@ -56,13 +56,15 @@ def run_script():
     Run the Docker container using the image compressor script.
     """
     docker_command = [
-        "docker", "run", "--rm",
-        "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",
-        "-v", f"{OUTPUT_DIR}:/app/output_folder",
-        DOCKER_IMAGE_NAME,
-        "/app/input_folder", "/app/output_folder",
-        "--quality", "90", "--width", str(EXPECTED_IMAGE_WIDTH)
+    "docker", "run", "--rm",
+    "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",
+    "-v", f"{OUTPUT_DIR}:/app/output_folder",
+    DOCKER_IMAGE_NAME,
+    "sh", "-c",
+    f"ls -la /app/input_folder && ls -la /app/output_folder && "
+    f"/app/input_folder /app/output_folder --quality 90 --width {EXPECTED_IMAGE_WIDTH}"
     ]
+
     print("docker command debug:", " ".join(docker_command))
 
     result = subprocess.run(
