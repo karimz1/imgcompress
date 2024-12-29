@@ -13,26 +13,14 @@ RUN apk add --no-cache \
     gcc \
     musl-dev \
     linux-headers \
-    openssl-dev \
-    && pip3 install --no-cache-dir --upgrade pip setuptools
+    openssl-dev
 
-# Install Docker daemon and additional tools (if needed)
-RUN apk add --no-cache \
-    docker \
-    iptables \
-    ip6tables \
-    e2fsprogs \
-    e2fsprogs-extra \
-    btrfs-progs \
-    pigz \
-    xfsprogs \
-    shadow-uidmap \
-    zfs
+# Set up a Python virtual environment
+RUN python3 -m venv /usr/src/app/venv \
+    && /usr/src/app/venv/bin/pip install --no-cache-dir --upgrade pip setuptools
 
-# Install GitHub CLI
-RUN wget -q https://github.com/cli/cli/releases/download/v2.40.0/gh_2.40.0_linux_amd64.tar.gz \
-    && tar -xvzf gh_2.40.0_linux_amd64.tar.gz -C /usr/local/bin --strip-components=1 \
-    && rm gh_2.40.0_linux_amd64.tar.gz
+# Set environment variables for the virtual environment
+ENV PATH="/usr/src/app/venv/bin:$PATH"
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -40,8 +28,8 @@ WORKDIR /usr/src/app
 # Copy the application code
 COPY . .
 
-# Install Python dependencies
-RUN pip3 install --no-cache-dir -r requirements-dev.txt
+# Install Python dependencies inside the virtual environment
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
 # Default command
-CMD ["python3", "imgcompress.py", "--help"]
+CMD ["python", "imgcompress.py", "--help"]
