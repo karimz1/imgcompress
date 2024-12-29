@@ -49,7 +49,8 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install -y wget)) \
 WORKDIR /usr/src/app
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
-
+RUN chmod +755 ./tests/run_imagecompressor_docker.sh
+RUN pip install pytest
 
 # 5) Default command
 # ------------------------------------------------------
