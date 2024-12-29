@@ -1,4 +1,4 @@
-# Exclude test-related files and directories
+# General exclusions
 .devcontainer/
 *.pyc
 __pycache__/
@@ -6,11 +6,13 @@ __pycache__/
 .github/
 .pytest_cache/
 .DS_Store
-
-
-# Exclude other unnecessary files, but allow requirements.txt and requirements-dev.txt
-README.md
-LICENSE
 *.log
+*.txt
+
+# Explicitly include requirements files (override *.txt above)
 !requirements.txt
 !requirements-dev.txt
+
+# Exclude other unnecessary files
+README.md
+LICENSE
