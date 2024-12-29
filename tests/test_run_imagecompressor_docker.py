@@ -68,8 +68,7 @@ def run_script():
     result = subprocess.run(
         [docker_command],
         capture_output=True,
-        text=True,
-        shell=True,
+        text=True
     )
     print("Docker run stdout:\n", result.stdout)
     print("Docker run stderr:\n", result.stderr)
