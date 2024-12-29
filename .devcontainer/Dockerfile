@@ -9,8 +9,6 @@ RUN apk update && apk add --no-cache \
     build-base \
     && rm -rf /var/cache/apk/*
 
-RUN python3 -m pip install --upgrade pip setuptools
-
 WORKDIR /app
 
 COPY . /app
