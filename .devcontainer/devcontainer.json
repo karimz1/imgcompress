@@ -1,7 +1,7 @@
 {
     "name": "Image Compressor DevContainer",
     "build": {
-      "dockerfile": ".devcontainer/Dockerfile",
+      "dockerfile": "Dockerfile",
       "context": "."
     },
     "settings": {},
