@@ -24,12 +24,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-    - name: Wait for Docker daemon to be ready
-      run: |
-        until docker info > /dev/null 2>&1; do
-          echo "Waiting for Docker daemon..."
-          sleep 1
-        done
+      - name: Wait for Docker daemon to be ready
+        run: |
+          until docker info > /dev/null 2>&1; do
+            echo "Waiting for Docker daemon..."
+            sleep 1
+          done
 
       - name: Verify Docker version
         run: docker version
