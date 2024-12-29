@@ -8,7 +8,9 @@ __pycache__/
 .DS_Store
 
 
-# Exclude other unnecessary files, but allow requirements.txt
+# Exclude other unnecessary files, but allow requirements.txt and requirements-dev.txt
 README.md
 LICENSE
 *.log
+!requirements.txt
+!requirements-dev.txt
