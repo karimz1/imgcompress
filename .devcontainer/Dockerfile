@@ -30,7 +30,7 @@ COPY requirements-dev.txt /usr/src/app/requirements-dev.txt
 COPY . .
 
 # Install Python dependencies inside the virtual environment
-RUN pip install --no-cache-dir -r requirements-dev.txt
+#RUN pip install --no-cache-dir -r requirements-dev.txt
 
 # Default command
 CMD ["python", "imgcompress.py", "--help"]
