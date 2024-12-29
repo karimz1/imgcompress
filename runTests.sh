@@ -1,5 +1,8 @@
 # !/bin/bash
 
+# Install Python packages
+RUN pip install -r requirements-dev.txt
+
 pytest tests/ \
   --junitxml=reports/test-results.xml \
   --cov=tests/ \
