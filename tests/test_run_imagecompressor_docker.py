@@ -55,18 +55,18 @@ def run_script():
     """
     Run the Docker container using the image compressor script.
     """
-    docker_command = f"""
-    docker run --rm \
-    -v "{SAMPLE_IMAGES_DIR}:/app/input_folder" \
-    -v "{OUTPUT_DIR}:/app/output_folder" \
-    {DOCKER_IMAGE_NAME} \
-    /app/input_folder /app/output_folder --quality 90 --width {EXPECTED_IMAGE_WIDTH}
-    """
-    print("docker command debug:")
-    print(docker_command)
+    docker_command = [
+        "docker", "run", "--rm",
+        "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",
+        "-v", f"{OUTPUT_DIR}:/app/output_folder",
+        DOCKER_IMAGE_NAME,
+        "/app/input_folder", "/app/output_folder",
+        "--quality", "90", "--width", str(EXPECTED_IMAGE_WIDTH)
+    ]
+    print("docker command debug:", " ".join(docker_command))
 
     result = subprocess.run(
-        [docker_command],
+        docker_command,
         capture_output=True,
         text=True
     )
@@ -74,6 +74,7 @@ def run_script():
     print("Docker run stderr:\n", result.stderr)
     if result.returncode != 0:
         raise RuntimeError(f"Script failed with output:\n{result.stderr}")
+
 
 
 def test_files_created():
