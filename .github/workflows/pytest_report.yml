@@ -10,6 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -17,17 +18,27 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9 
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest pytest-cov
 
+      - name: Ensure permissions for tests
+        run: |
+          chmod -R u+rw tests/
+          find tests/ -type d -exec chmod u+rwx {} \;
+          find tests/ -type f -exec chmod u+rw {} \;
+
+      - name: Debug permissions
+        run: |
+          echo "Verifying permissions:"
+          ls -lR tests/
+
       - name: Run Pytest and Generate Reports
         run: |
-          chmod -R u+r tests/
-          chmod 755 ./runTests.sh
+          chmod +x ./runTests.sh
           ./runTests.sh
 
       - name: Upload Pytest Report
