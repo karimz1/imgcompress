@@ -32,14 +32,14 @@ def build_docker_image():
         raise RuntimeError(f"Docker build failed with output:\n{result.stderr}")
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def setup_environment():
     """
     Fixture to set up the test environment before every test.
     """
     # Clean up and set up the environment
     if os.path.exists(OUTPUT_DIR):
-        shutil.rmtree(OUTPUT_DIR)
+       shutil.rmtree(OUTPUT_DIR)
 
     assert os.path.exists(SAMPLE_IMAGES_DIR), "SAMPLE_IMAGES_DIR directory does not exist."
     create_sample_test_image()
@@ -54,16 +54,18 @@ def run_script():
     """
     Run the Docker container using the image compressor script.
     """
-    docker_command = """
+    docker_command = f"""
     docker run --rm \
-    -v "${SAMPLE_IMAGES_DIR}:/app/input_folder" \
-    -v "${OUTPUT_DIR}:/app/output_folder" \
+    -v "{SAMPLE_IMAGES_DIR}:/app/input_folder" \
+    -v "{OUTPUT_DIR}:/app/output_folder" \
     {DOCKER_IMAGE_NAME} \
     /app/input_folder /app/output_folder --quality 90 --width {EXPECTED_IMAGE_WIDTH}
     """
+    print("docker command debug:")
+    print(docker_command)
 
     result = subprocess.run(
-        ["/bin/bash", "-c", docker_command],
+        [docker_command],
         capture_output=True,
         text=True,
         shell=True,
