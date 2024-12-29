@@ -26,7 +26,7 @@ ENV PATH="/usr/src/app/venv/bin:$PATH"
 WORKDIR /usr/src/app
 
 # Copy the application code
-COPY requirements-dev.txt /usr/src/app/requirements-dev.txt
+#COPY requirements-dev.txt /usr/src/app/requirements-dev.txt
 COPY . .
 
 # Install Python dependencies inside the virtual environment
