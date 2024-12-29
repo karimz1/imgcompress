@@ -29,9 +29,9 @@ jobs:
 
       - name: Ensure permissions for tests
         run: |
-          chmod -R u+rw tests/
-          find tests/ -type d -exec chmod u+rwx {} \;
-          find tests/ -type f -exec chmod u+rw {} \;
+          sudo chmod -R u+rwX tests/
+          sudo chown -R $USER:$USER tests/
+          ls -lR tests/  # Verify permissions
 
       - name: Debug permissions
         run: |
