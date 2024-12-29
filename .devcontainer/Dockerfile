@@ -11,6 +11,6 @@ WORKDIR /app
 COPY ../ /app/
 
 # Install Python packages
-RUN pip install -r requirements-dev.txt
+RUN pip install -r /app/requirements-dev.txt
 
 ENTRYPOINT ["python", "imgcompress.py"]

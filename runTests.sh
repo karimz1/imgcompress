@@ -1,10 +1,4 @@
-# !/bin/sh
-
-
-
-# Install Python dependencies
-pip install --no-cache-dir -r requirements-dev.txt
-
+# !/bin/bash
 
 pytest tests/ \
   --junitxml=reports/test-results.xml \
@@ -13,6 +7,6 @@ pytest tests/ \
 
 
 
-#docker run -it -v /var/run/docker.sock:/var/run/docker.sock devcontainer:local-test /bin/sh
+#docker run -it -v /var/run/docker.sock:/var/run/docker.sock devcontainer:local-test /bin/bash
 #apk add --no-cache libheif-dev
 #pip install --no-cache-dir -r requirements-dev.txt

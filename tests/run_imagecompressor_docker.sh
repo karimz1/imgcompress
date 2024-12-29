@@ -1,4 +1,4 @@
-# !/bin/sh
+# !/bin/bash
 
 TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
