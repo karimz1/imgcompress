@@ -20,17 +20,17 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install dependencies
+      - name: Build Dev Container
         run: |
-          apt update && apt install tree -y
-          tree 
-          python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements-dev.txt
+          docker build -f .devcontainer/Dockerfile -t devcontainer-img .
 
-      - name: Run Pytest and Generate Reports
+      - name: Run tests in Dev Container
         run: |
-          chmod +x ./runTests.sh
-          ./runTests.sh
+          docker run --rm \
+            -v "$(pwd):/workspace" \
+            -w /workspace \
+            devcontainer-img \
+            bash -c "pip install --no-cache-dir -r requirements-dev.txt && ./runTests.sh"
 
       - name: Upload Pytest Report
         uses: actions/upload-artifact@v3
