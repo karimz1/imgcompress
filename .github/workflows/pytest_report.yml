@@ -26,7 +26,8 @@ jobs:
 
       - name: Run Pytest and Generate Reports
         run: |
-          chmod 755 ./runTests.sh && \
+          chmod -R u+r tests/sample-images/
+          chmod 755 ./runTests.sh
           ./runTests.sh
 
       - name: Upload Pytest Report
