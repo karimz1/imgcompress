@@ -18,4 +18,4 @@ COPY . /app
 # RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Set the entry point to run your Python script
-ENTRYPOINT ["bin/sh"]
+ENTRYPOINT ["/bin/sh"]
