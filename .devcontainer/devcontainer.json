@@ -1,0 +1,16 @@
+{
+    "name": "Image Compressor DevContainer",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ],
+    "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker"
+    ],
+    "settings": {},
+    "postCreateCommand": "echo 'Dev container is ready!'"
+}
