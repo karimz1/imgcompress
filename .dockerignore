@@ -1,9 +1,13 @@
 # Exclude test-related files and directories
 tests/
+.devcontainer/
 *.pyc
 __pycache__/
+.git/
+.github/
 .pytest_cache/
 .DS_Store
+
 
 # Exclude other unnecessary files
 README.md
