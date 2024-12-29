@@ -50,7 +50,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN pip install --no-cache-dir -r requirements-dev.txt
+#RUN pip install --no-cache-dir -r requirements-dev.txt
 
 
 # 5) Default command
