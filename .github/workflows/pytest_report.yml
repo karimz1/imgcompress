@@ -25,12 +25,12 @@ jobs:
           apt update && apt install tree -y
           tree 
           python -m pip install --upgrade pip
-          sudo pip install --no-cache-dir -r requirements-dev.txt
+          pip install --no-cache-dir -r requirements-dev.txt
 
       - name: Run Pytest and Generate Reports
         run: |
           chmod +x ./runTests.sh
-          sudo ./runTests.sh
+          ./runTests.sh
 
       - name: Upload Pytest Report
         uses: actions/upload-artifact@v3
