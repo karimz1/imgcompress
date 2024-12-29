@@ -1,7 +1,7 @@
 # ------------------------------------------------------
 # Base Image: Use dnd image and set up dependencies
 # ------------------------------------------------------
-    FROM dnd
+    FROM docker:27.5.0-rc.1-dind
 
     # 1) Install Python and system dependencies
     RUN apt-get update && apt-get install -y --no-install-recommends \
