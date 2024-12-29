@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY ../ /app/
+COPY ../ .
 
 # Install Python packages
-RUN pip install -r /app/requirements-dev.txt
+RUN pip install -r requirements-dev.txt
 
 ENTRYPOINT ["python", "imgcompress.py"]
