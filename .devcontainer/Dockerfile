@@ -44,18 +44,13 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install -y wget)) \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------
-# 4) Copy in requirements.txt and install Python packages
+# 4) Copy application code and install Python dependencies
 # ------------------------------------------------------
 WORKDIR /usr/src/app
-COPY requirements.txt requirements.txt
+COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ------------------------------------------------------
-# 5) Copy your application code into the container
-# ------------------------------------------------------
-COPY . /usr/src/app
 
-# ------------------------------------------------------
-# 6) Default command
+# 5) Default command
 # ------------------------------------------------------
 CMD [ "python", "imgcompress.py", "--help" ]
