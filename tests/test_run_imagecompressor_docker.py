@@ -32,16 +32,6 @@ def build_docker_image():
         raise RuntimeError(f"Docker build failed with output:\n{result.stderr}")
 
 
-@pytest.fixture(scope="module", autouse=True)
-def setup_once_environment():
-    """
-    Fixture to set up the environment once per module.
-    Ensures the script is executable.
-    """
-    script_path = os.path.join(TESTS_DIR, "run_imagecompressor_docker.sh")
-    subprocess.run(["chmod", "u+x", script_path], check=True)
-
-
 @pytest.fixture(scope="function", autouse=True)
 def setup_environment():
     """
@@ -64,13 +54,16 @@ def run_script():
     """
     Run the Docker container using the image compressor script.
     """
-    script_path = os.path.join(TESTS_DIR, "run_imagecompressor_docker.sh")
-    if not os.path.exists(script_path):
-        raise RuntimeError(f"Script not found at path: {script_path}")
+    docker_command = """
+    docker run --rm \
+    -v "${SAMPLE_IMAGES_DIR}:/app/input_folder" \
+    -v "${OUTPUT_DIR}:/app/output_folder" \
+    {DOCKER_IMAGE_NAME} \
+    /app/input_folder /app/output_folder --quality 90 --width {EXPECTED_IMAGE_WIDTH}
+    """
 
-    print("Running the Docker container using run.sh...")
     result = subprocess.run(
-        ["/bin/sh", "-c", script_path],
+        ["/bin/bash", "-c", docker_command],
         capture_output=True,
         text=True,
         shell=True,
