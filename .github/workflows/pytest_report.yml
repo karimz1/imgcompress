@@ -1,4 +1,4 @@
-name: Test and Coverage
+name: Docker in Docker CI
 
 on:
   push:
@@ -10,26 +10,25 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
-  services:
-    docker:
-      image: docker:dind
-      options: --privileged
-      env:
-        DOCKER_TLS_CERTDIR: ""
-    
+
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+        env:
+          DOCKER_TLS_CERTDIR: ""
+
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
       - name: Configure Docker client to talk to the docker:dind service
         run: |
-          export DOCKER_HOST=tcp://localhost:2375
-          # Then test that it works
+          echo "DOCKER_HOST=tcp://localhost:2375" >> $GITHUB_ENV
           docker version
 
       - name: Build Docker image
         run: docker build -t devcontainer:local-test -f .devcontainer/Dockerfile .
 
-      - name: Test the container
+      - name: Run container tests
         run: docker run --rm devcontainer:local-test ./runTests.sh
