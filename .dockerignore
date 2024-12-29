@@ -14,5 +14,5 @@ README.md
 LICENSE
 *.log
 *.txt
+
 !requirements.txt
-!requirements-dev.txt
