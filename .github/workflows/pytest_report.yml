@@ -25,6 +25,10 @@ jobs:
           docker version
           docker info
 
+      - name: Fix Docker permissions
+        run: |
+          sudo chmod 666 /var/run/docker.sock
+
       - name: Build Dev Container
         run: |
           docker build -f .devcontainer/Dockerfile -t devcontainer-img .
