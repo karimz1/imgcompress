@@ -47,8 +47,6 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install -y wget)) \
 # 4) Copy application code and install Python dependencies
 # ------------------------------------------------------
 WORKDIR /usr/src/app
-COPY . .
-
 
 # Conditionally copy tests/ if include_tests is true
 ARG include_tests
@@ -56,6 +54,9 @@ RUN if [ "$include_tests" = "true" ]; then \
     echo "Including tests/ for development"; \
     cp -r ./tests/ /usr/src/app/tests/; \
   fi
+
+
+COPY . .
 
 RUN pip install pytest
 RUN pip install --no-cache-dir -r requirements.txt
