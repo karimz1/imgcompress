@@ -22,8 +22,10 @@ jobs:
 
       - name: Install dependencies
         run: |
+          apt update && apt install tree -y
+          tree 
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest pytest-cov
+          pip install --no-cache-dir -r requirements-dev.txt
 
       - name: Ensure permissions for tests
         run: |
