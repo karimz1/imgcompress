@@ -7,6 +7,7 @@ on:
       - feature/*
   pull_request:
 
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -21,5 +22,11 @@ jobs:
       - name: Build Docker image
         run: docker build -t devcontainer:local-test -f .devcontainer/Dockerfile .
 
-      - name: Test container
-        run: docker run --rm devcontainer:local-test /app/runTests.sh
+      - name: Run Tests
+        run: |
+          docker run \
+            --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \  # Mount Docker socket
+            -v "$(pwd)":/workspace \  # Mount working directory
+            -w /workspace \
+            devcontainer:local-test /app/runTests.sh
