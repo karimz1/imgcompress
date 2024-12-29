@@ -1,0 +1,61 @@
+FROM python:3.9-slim-bullseye
+
+# ------------------------------------------------------
+# 1) Install system dependencies for HEIC support, Git,
+#    plus any prerequisites to install Docker CLI
+# ------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libheif-dev \
+    git \
+    ca-certificates \
+    curl \
+    gnupg \
+    wget \
+    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
+# ------------------------------------------------------
+# 2) Install the Docker CLI (not the full Docker daemon)
+#    (instructions adapted from https://docs.docker.com/engine/install/debian/)
+# ------------------------------------------------------
+RUN mkdir -m 0755 -p /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg \
+       | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && echo \
+       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+       https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
+       | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && apt-get update && apt-get install -y --no-install-recommends docker-ce-cli \
+    && rm -rf /var/lib/apt/lists/*
+
+# ------------------------------------------------------
+# 3) Install GitHub CLI (gh) - NO sudo
+# ------------------------------------------------------
+RUN (type -p wget >/dev/null || (apt-get update && apt-get install -y wget)) \
+    && mkdir -p -m 755 /etc/apt/keyrings \
+    && out=$(mktemp) \
+    && wget -nv -O "$out" https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    && cat "$out" > /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+       > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update \
+    && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
+
+# ------------------------------------------------------
+# 4) Copy in requirements.txt and install Python packages
+# ------------------------------------------------------
+WORKDIR /usr/src/app
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ------------------------------------------------------
+# 5) Copy your application code into the container
+# ------------------------------------------------------
+COPY . /usr/src/app
+
+# ------------------------------------------------------
+# 6) Default command
+# ------------------------------------------------------
+CMD [ "python", "imgcompress.py", "--help" ]
