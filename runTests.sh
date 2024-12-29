@@ -6,6 +6,7 @@ pip install -r requirements-dev.txt
 pytest tests/ \
   --junitxml=reports/test-results.xml \
   --cov=tests/ \
-  --cov-report=xml:reports/test-coverage.xml
+  --cov-report=xml:reports/test-coverage.xml \
+  -s
 
 deactivate
