@@ -27,21 +27,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements-dev.txt
 
-      - name: Ensure permissions for tests
-        run: |
-          sudo chmod -R u+rwX tests/
-          sudo chown -R $USER:$USER tests/
-          ls -lR tests/  # Verify permissions
-
-      - name: Debug permissions
-        run: |
-          echo "Verifying permissions:"
-          ls -lR tests/
-
       - name: Run Pytest and Generate Reports
         run: |
           chmod +x ./runTests.sh
-          ./runTests.sh
+          sudo ./runTests.sh
 
       - name: Upload Pytest Report
         uses: actions/upload-artifact@v3
