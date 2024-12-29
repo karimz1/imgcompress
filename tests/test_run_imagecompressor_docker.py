@@ -8,7 +8,8 @@ import shutil
 # Constants for directories and Docker
 TESTS_DIR = os.path.dirname(__file__)
 DOCKER_IMAGE_NAME = "karimz1/imgcompress:local-test"
-DOCKERFILE_PATH = os.path.abspath(os.path.join(TESTS_DIR, "../Dockerfile"))
+DOCKER_CONTEXT = os.path.abspath(os.path.join(TESTS_DIR, ".."))
+DOCKERFILE_PATH = os.path.abspath(os.path.join(DOCKER_CONTEXT, "Dockerfile"))
 SAMPLE_IMAGES_DIR = os.path.join(TESTS_DIR, "sample-images")
 OUTPUT_DIR = os.path.join(TESTS_DIR, "output")
 EXPECTED_DIR = os.path.join(TESTS_DIR, "expected")
@@ -19,10 +20,10 @@ def build_docker_image():
     """
     Fixture to build the Docker image once before running tests.
     """
-    docker_context = os.path.abspath(os.path.join(TESTS_DIR, ".."))
-    print(f"Building Docker image from context: {docker_context}")
+   
+    print(f"Building Docker image from context: {DOCKER_CONTEXT}")
     result = subprocess.run(
-        ["docker", "build", "-t", DOCKER_IMAGE_NAME, "-f", DOCKERFILE_PATH, docker_context, "--no-cache"],
+        ["docker", "build", "-t", DOCKER_IMAGE_NAME, "-f", DOCKERFILE_PATH, DOCKER_CONTEXT , "--no-cache"],
         capture_output=True,
         text=True,
     )
