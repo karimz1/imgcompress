@@ -37,6 +37,7 @@ def setup_environment():
     """
     Fixture to set up the test environment before every test.
     """
+    subprocess.run("RUN chmod +755 ./tests/run_imagecompressor_docker.sh")
     # Clean up and set up the environment
     if os.path.exists(OUTPUT_DIR):
         shutil.rmtree(OUTPUT_DIR)

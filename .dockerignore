@@ -15,4 +15,3 @@ LICENSE
 *.log
 *.txt
 !requirements.txt
-!tests/
