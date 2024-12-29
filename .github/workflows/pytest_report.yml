@@ -25,7 +25,7 @@ jobs:
           apt update && apt install tree -y
           tree 
           python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements-dev.txt
+          sudo pip install --no-cache-dir -r requirements-dev.txt
 
       - name: Run Pytest and Generate Reports
         run: |
