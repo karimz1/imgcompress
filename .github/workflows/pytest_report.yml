@@ -11,10 +11,12 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     
-    services:
-      docker:
-        image: docker:dind
-        privileged: true
+  services:
+    docker:
+      image: docker:dind
+      options: --privileged
+      env:
+        DOCKER_TLS_CERTDIR: ""
     
     steps:
       - name: Check out code
