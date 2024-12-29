@@ -1,5 +1,4 @@
-# Use the dnd image as the base
-FROM dnd
+FROM docker:27.5.0-rc.1-dind
 
 # Install Python, pip, and system dependencies
 RUN apk add --no-cache \
