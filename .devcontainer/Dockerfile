@@ -1,39 +1,17 @@
-FROM docker:27.5.0-rc.1-dind
+FROM python:3.9-slim-bullseye
 
-# Install Python, pip, and system dependencies
-RUN apk add --no-cache \
-    py3-pip \
-    py3-setuptools \
-    py3-virtualenv \
-    git \
-    curl \
-    wget \
-    gcc \
-    musl-dev \
-    linux-headers \
-    openssl-dev \
-    python3-dev \
+# Install system dependencies needed for HEIC support
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
-    libjpeg-turbo-dev \
-    libpng-dev
+    && rm -rf /var/lib/apt/lists/*
 
 
-# Set up a Python virtual environment
-RUN python3 -m venv /usr/src/app/venv \
-    && /usr/src/app/venv/bin/pip install --no-cache-dir --upgrade pip setuptools
+WORKDIR /app
 
-# Set environment variables for the virtual environment
-ENV PATH="/usr/src/app/venv/bin:$PATH"
+COPY imgcompress.py /app/imgcompress.py
+COPY requirements.txt /app/requirements.txt
 
-# Set the working directory
-WORKDIR /usr/src/app
+# Install Python packages
+RUN pip install -r requirements-dev.txt
 
-# Copy the application code
-#COPY requirements-dev.txt /usr/src/app/requirements-dev.txt
-COPY . .
-
-# Install Python dependencies inside the virtual environment
-#RUN pip install --no-cache-dir -r requirements-dev.txt
-
-# Default command
-CMD ["python", "imgcompress.py", "--help"]
+ENTRYPOINT ["python", "imgcompress.py"]
