@@ -18,17 +18,19 @@ jobs:
         env:
           DOCKER_TLS_CERTDIR: ""
 
+    # Make DOCKER_HOST available to all steps
+    env:
+      DOCKER_HOST: tcp://localhost:2375
+
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Configure Docker client to talk to the docker:dind service
-        run: |
-          echo "DOCKER_HOST=tcp://localhost:2375" >> $GITHUB_ENV
-          docker version
+      - name: Verify Docker version
+        run: docker version
 
       - name: Build Docker image
         run: docker build -t devcontainer:local-test -f .devcontainer/Dockerfile .
 
-      - name: Run container tests
+      - name: Test container
         run: docker run --rm devcontainer:local-test ./runTests.sh
