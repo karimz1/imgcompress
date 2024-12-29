@@ -8,47 +8,26 @@ on:
   pull_request:
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
-
+    
     services:
       docker:
-        image: docker:20.10-dind
-        options: --privileged
-
+        image: docker:dind
+        privileged: true
+    
     steps:
-      - name: Checkout repository
+      - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Set up Docker
+      - name: Configure Docker client to talk to the docker:dind service
         run: |
+          export DOCKER_HOST=tcp://localhost:2375
+          # Then test that it works
           docker version
-          docker info
 
-      - name: Fix Docker permissions
-        run: |
-          sudo chmod 666 /var/run/docker.sock
+      - name: Build Docker image
+        run: docker build -t devcontainer:local-test -f .devcontainer/Dockerfile .
 
-      - name: Build Dev Container
-        run: |
-          docker build -f .devcontainer/Dockerfile -t devcontainer-img .
-
-      - name: Run tests in Dev Container
-        run: |
-          docker run --rm \
-            -v "$(pwd):/workspace" \
-            -w /workspace \
-            devcontainer-img \
-            bash -c "pip install --no-cache-dir -r requirements-dev.txt && ./runTests.sh"
-
-      - name: Upload Pytest Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: pytest-report
-          path: reports/test-results.xml
-
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: reports/test-coverage.xml
+      - name: Test the container
+        run: docker run --rm devcontainer:local-test ./runTests.sh
