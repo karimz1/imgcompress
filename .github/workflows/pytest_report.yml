@@ -24,6 +24,13 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+    - name: Wait for Docker daemon to be ready
+      run: |
+        until docker info > /dev/null 2>&1; do
+          echo "Waiting for Docker daemon..."
+          sleep 1
+        done
+
       - name: Verify Docker version
         run: docker version
 
@@ -31,4 +38,7 @@ jobs:
         run: docker build -t devcontainer:local-test -f .devcontainer/Dockerfile .
 
       - name: Test container
-        run: docker run --rm devcontainer:local-test ./runTests.sh
+        run: |
+          docker run --rm \
+           -e DOCKER_HOST=tcp://localhost:2375 \
+           devcontainer:local-test /app/runTests.sh
