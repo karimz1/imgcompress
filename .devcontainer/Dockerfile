@@ -48,9 +48,18 @@ RUN (type -p wget >/dev/null || (apt-get update && apt-get install -y wget)) \
 # ------------------------------------------------------
 WORKDIR /usr/src/app
 COPY . .
+
+
+# Conditionally copy tests/ if include_tests is true
+ARG include_tests
+RUN if [ "$include_tests" = "true" ]; then \
+    echo "Including tests/ for development"; \
+    cp -r ./tests/ /usr/src/app/tests/; \
+  fi
+
+RUN pip install pytest
 RUN pip install --no-cache-dir -r requirements.txt
 RUN chmod +755 ./tests/run_imagecompressor_docker.sh
-RUN pip install pytest
 
 # 5) Default command
 # ------------------------------------------------------
