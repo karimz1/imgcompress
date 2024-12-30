@@ -53,31 +53,34 @@ def create_sample_test_image():
 
 def run_script():
     """
-    Run the Docker container using the image compressor script.
+    Run the Docker container with a single string command.
     """
-    docker_command = [
-    "docker", "run", "--rm",
-    "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",
-    "-v", f"{OUTPUT_DIR}:/app/output_folder",
-    DOCKER_IMAGE_NAME,
-    "sh", "-c",
-    f"ls -la /app/input_folder && ls -la /app/output_folder && "
-    f"/app/input_folder /app/output_folder --quality 90 --width {EXPECTED_IMAGE_WIDTH}"
-    ]
-
-    print("docker command debug:", " ".join(docker_command))
-
-    result = subprocess.run(
-        docker_command,
-        capture_output=True,
-        text=True
+    docker_command = (
+        f"docker run --rm "
+        f"-v \"{SAMPLE_IMAGES_DIR}:/app/input_folder\" "
+        f"-v \"{OUTPUT_DIR}:/app/output_folder\" "
+        f"{DOCKER_IMAGE_NAME} "
+        f"/app/input_folder /app/output_folder --quality 90 --width {EXPECTED_IMAGE_WIDTH}"
     )
-    print("Docker run stdout:\n", result.stdout)
-    print("Docker run stderr:\n", result.stderr)
-    if result.returncode != 0:
-        raise RuntimeError(f"Script failed with output:\n{result.stderr}")
 
+    print("Docker command debug:")
+    print(docker_command)
 
+    try:
+        result = subprocess.run(
+            docker_command,
+            shell=True,  # Required because the command is a single string
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        print("Docker run stdout:\n", result.stdout)
+        print("Docker run stderr:\n", result.stderr)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running docker command: {e}")
+        print("Docker run stdout:\n", e.stdout)
+        print("Docker run stderr:\n", e.stderr)
+        raise
 
 def test_files_created():
     """
