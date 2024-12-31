@@ -19,7 +19,7 @@ jobs:
       - name: Install tree
         run: sudo apt-get update && sudo apt-get install -y tree
 
-       - name: List Repository Contents
+      - name: List Repository Contents
         run: |
           echo "===== Root Directory ====="
           pwd
@@ -48,11 +48,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: List Input and Output Directories
-        run: |
-          echo "Listing /workspace/tests/sample-images:"
-          ls -la /workspace/tests/sample-images
 
       - name: Build Docker image
         run: docker build --no-cache -t devcontainer:local-test -f .devcontainer/Dockerfile .
