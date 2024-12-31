@@ -95,19 +95,10 @@ jobs:
       - name: Define Tags
         id: define-tags
         run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-
-          # Use metadata output as base tag
-          BASE_TAG="${{ steps.meta.outputs.tags }}"
-
-          # Append "_beta" for non-release branches
-          if [[ "$BRANCH_NAME" != release/* ]]; then
-            echo "ADDITIONAL_TAG=${BASE_TAG}_beta" >> $GITHUB_ENV
-          fi
-
-          # Add "latest" tag for release branches
-          if [[ "$BRANCH_NAME" == release/* ]]; then
+          if [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
+          else
+            echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
           fi
 
       - name: Build Docker Image
@@ -116,6 +107,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ steps.meta.outputs.tags }}
             ${{ env.ADDITIONAL_TAG }}
 
