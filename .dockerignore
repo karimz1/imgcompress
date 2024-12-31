@@ -1,0 +1,18 @@
+# General exclusions
+.devcontainer/
+*.pyc
+__pycache__/
+.git/
+.github/
+.pytest_cache/
+.DS_Store
+*.log
+*.txt
+
+# Explicitly include requirements files (override *.txt above)
+!requirements.txt
+!requirements-dev.txt
+
+# Exclude other unnecessary files
+README.md
+LICENSE
