@@ -46,9 +46,9 @@ jobs:
 
       - name: Run Tests
         run: |
-        docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          devcontainer:local-test /app/runTests.sh 2>&1 | tee docker_run.log
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            devcontainer:local-test /app/runTests.sh 2>&1 | tee docker_run.log
         continue-on-error: true
 
       - name: Upload Docker Run Logs
