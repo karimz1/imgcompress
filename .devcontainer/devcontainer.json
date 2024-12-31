@@ -5,7 +5,7 @@
       "context": "."
     },
     "containerEnv": {
-      "DEVCONTAINER": "true"
+      "IS_RUNNING_IN_DEVCONTAINER": "true"
     },
     "settings": {},
     "extensions": [

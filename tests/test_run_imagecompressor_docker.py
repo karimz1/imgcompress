@@ -64,7 +64,7 @@ def is_github_actions():
     Returns:
         bool: True if running in GitHub Actions, False otherwise.
     """
-    return os.getenv("GITHUB_ACTIONS") == "true"
+    return os.getenv("IS_RUNNING_IN_GITHUB_ACTIONS") == "true"
 
 def run_script():
     """
@@ -82,7 +82,7 @@ def run_script():
                 "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
         ]
     else:
-        print("running within local exec.")
+        print("running within local exec")
         cmd = [
             "docker", "run", "--rm",
                 "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",

@@ -50,9 +50,12 @@ jobs:
             --entrypoint /bin/sh \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
             devcontainer:local-test /app/runTests.sh
         continue-on-error: false
+        env:
+          IS_RUNNING_IN_GITHUB_ACTIONS: true
 
       - name: Upload Pytest Results
         uses: actions/upload-artifact@v3
