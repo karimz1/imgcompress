@@ -9,7 +9,6 @@ on:
       - release/*
   pull_request:
 
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -39,7 +38,6 @@ jobs:
           fi
           echo "===== End tests Directory ====="
 
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -68,7 +66,7 @@ jobs:
           path: reports/test-results.xml
 
   deploy:
-    needs: [ build-and-test ]
+    needs: [build-and-test]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -104,8 +102,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: karimz1/imgcompress:${{ env.version_tag }
-      
+          tags:
+            - karimz1/imgcompress:${{ env.version_tag }}
+
       - name: Log Successful Deployment
         run: echo "Successfully pushed Docker image with tag: ${{ env.version_tag }}"
-
