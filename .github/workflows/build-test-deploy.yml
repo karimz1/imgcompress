@@ -1,12 +1,10 @@
-name: Build and Test Docker Image
+name: Build, Test, and Deploy Docker Image
 
 on:
   push:
     branches:
-      - main
-      - feature/*
+      - '**' 
   pull_request:
-
 
 jobs:
   build-and-test:
@@ -37,11 +35,10 @@ jobs:
           fi
           echo "===== End tests Directory ====="
 
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker image
+      - name: Build Docker image for local testing
         run: |
           cd .devcontainer/
           docker build --no-cache -t devcontainer:local-test .
@@ -55,24 +52,38 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
             devcontainer:local-test /app/runTests.sh
-        continue-on-error: false
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
 
-      - name: Upload Pytest Results
+      - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
-          name: pytest-results
+          name: test-results
           path: reports/test-results.xml
 
   deploy:
-    needs: [ build-and-test ]
+    needs: [build-and-test]
+    if: startsWith(github.ref, 'refs/heads/release/')  # Only run for release/* branches
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
+      - name: Extract version and create tag
+        id: version
+        run: |
+          branch_name=${GITHUB_REF#refs/heads/}
+          version=${branch_name#release/}
+          short_sha=${GITHUB_SHA::7}
+          version_tag="${version}-${short_sha}-${{ github.run_id }}"
+          echo "version=${version}" >> $GITHUB_ENV
+          echo "version_tag=${version_tag}" >> $GITHUB_ENV
+
+      - name: Log Docker Image Tag
+        run: echo "Docker Image Tag: karimz1/imgcompress:${{ env.version_tag }}"
+
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
@@ -84,10 +95,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: karimz1/imgcompress:latest
+          tags: karimz1/imgcompress:${{ env.version_tag }}
 
+      - name: Log Successful Deployment
+        run: echo "Successfully pushed Docker image with tag: ${{ env.version_tag }}"
