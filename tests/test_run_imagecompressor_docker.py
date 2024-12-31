@@ -122,6 +122,13 @@ def test_validate_output_dimensions():
 
     run_script()
 
+    all_files = [file for _, _, files in os.walk(OUTPUT_DIR) for file in files]
+    if all_files:
+        print(f"There are: {len(OUTPUT_DIR)} files in: {OUTPUT_DIR}")
+    else:
+        raise AssertionError(f"Failed to find any files in {OUTPUT_DIR}")
+
+
     for root, _, files in os.walk(OUTPUT_DIR):
         for file in files:
             output_file = os.path.join(root, file)
