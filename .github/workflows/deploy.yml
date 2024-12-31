@@ -7,7 +7,6 @@ on:
       - feature/*
   pull_request:
 
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -37,7 +36,6 @@ jobs:
           fi
           echo "===== End tests Directory ====="
 
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -66,7 +64,7 @@ jobs:
           path: reports/test-results.xml
 
   deploy:
-    needs: [ build-and-test ]
+    needs: [build-and-test]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -84,10 +82,30 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
+      - name: Generate Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: karimz1/imgcompress
+          tags: |
+            type=ref,event=branch,pattern={{branch}}-{{sha}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Define Tags
+        id: define-tags
+        run: |
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
+          else
+            echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
+          fi
+
+      - name: Build Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: karimz1/imgcompress:latest
+          tags: |
+            ${{ env.ADDITIONAL_TAG }}
 
