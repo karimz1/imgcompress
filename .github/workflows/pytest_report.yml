@@ -48,7 +48,7 @@ jobs:
         run: |
          docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$(pwd)":/workspaces/imgcompresse \
+            -v "$(pwd)":/workspaces/imgcompress \
             -w /workspaces/imgcompress \
             devcontainer:local-test /app/runTests.sh 2>&1 | tee docker_run.log
         continue-on-error: true
