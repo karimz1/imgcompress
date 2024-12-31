@@ -6,7 +6,7 @@ from .test_utils import is_image, are_files_identical
 import shutil
 
 
-TESTS_DIR = os.path.dirname(__file__)
+TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCKER_IMAGE_NAME = "karimz1/imgcompress:local-test"
 DOCKER_CONTEXT = os.path.abspath(os.path.join(TESTS_DIR, ".."))
 DOCKERFILE_PATH = os.path.abspath(os.path.join(DOCKER_CONTEXT, "Dockerfile"))
@@ -57,45 +57,40 @@ def create_sample_test_image():
     assert os.path.exists(img_path), f"Failed to create test image at {img_path}"
     print(f"Created test image at {img_path}")
 
+def is_devcontainer():
+    return os.path.exists("/workspace")
+
+
+
 def run_script():
     """
     Run the Docker container with a single string command.
     """
-    docker_command = (
-        f"docker run --rm "
-        f"-v \"{SAMPLE_IMAGES_DIR}:/app/input_folder\" "
-        f"-v \"{OUTPUT_DIR}:/app/output_folder\" "
-        f"{DOCKER_IMAGE_NAME} "
-        f"/app/input_folder /app/output_folder --quality 90 --width {EXPECTED_IMAGE_WIDTH}"
-    )
+    if is_devcontainer():
+            print("in devcontaienr cmd")
+            # Running inside the devcontainer, use --volumes-from
+            container_name = "devcontainer"
+            cmd = [
+                "docker", "run", "--rm",
+                "--volumes-from", container_name,
+                "karimz1/imgcompress:local-test",
+                SAMPLE_IMAGES_DIR, OUTPUT_DIR,
+                "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
+            ]
+    else:
+        print("not in devcontaienr cmd")
+        container_name = "devcontainer"
 
-    print("Docker command debug:")
-    print(docker_command)
+        # Running in CI/CD, use explicit paths
+        cmd = [
+             "docker", "run", "--rm",
+                "--volumes-from", container_name,
+                "karimz1/imgcompress:local-test",
+                SAMPLE_IMAGES_DIR, OUTPUT_DIR,
+                "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
+        ]
 
-    input_files = os.listdir(SAMPLE_IMAGES_DIR)
-    print(f"Host INPUT_FOLDER ({SAMPLE_IMAGES_DIR}) contents before run: {input_files}")
-
-    output_files_before = os.listdir(OUTPUT_DIR)
-    print(f"Host OUTPUT_FOLDER ({OUTPUT_DIR}) contents before run: {output_files_before}")
-
-    try:
-        result = subprocess.run(
-            docker_command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        print("Docker run stdout:\n", result.stdout)
-        print("Docker run stderr:\n", result.stderr)
-    except subprocess.CalledProcessError as e:
-        print(f"Error running docker command: {e}")
-        print("Docker run stdout:\n", e.stdout)
-        print("Docker run stderr:\n", e.stderr)
-        raise
-
-    output_files_after = os.listdir(OUTPUT_DIR)
-    print(f"Host OUTPUT_FOLDER ({OUTPUT_DIR}) contents after run: {output_files_after}")
+    subprocess.run(cmd, check=True)
 
 def test_files_created():
     """

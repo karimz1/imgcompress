@@ -46,11 +46,13 @@ jobs:
 
       - name: Run Tests
         run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$(pwd)/tests/sample-images:/app/input_folder" \
-            -v "$(pwd)/tests/output:/app/output_folder" \
-            devcontainer:local-test /app/runTests.sh 3>&1 1>> docker_log.log
+        docker run --rm \
+          --entrypoint /bin/sh \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v "$(pwd):/app/" \
+          --name devcontainer \
+          devcontainer:local-test /app/runTests.sh 3>&1 1>> docker_log.log
+
         continue-on-error: true
 
       - name: Upload Docker Run Logs
