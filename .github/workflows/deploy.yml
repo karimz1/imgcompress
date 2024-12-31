@@ -80,8 +80,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker
-        run: docker build -t karimz1/imgcompress:beta .
+        run: docker build -t karimz1/imgcompress:development .
 
       - name: Push Docker Image
-        run: docker push karimz1/imgcompress:beta
+        run: docker push karimz1/imgcompress:development
 
