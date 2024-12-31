@@ -68,6 +68,7 @@ jobs:
   deploy:
     needs: [build-and-test]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/release/')
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
