@@ -5,7 +5,7 @@ from PIL import Image
 from .test_utils import is_image, are_files_identical
 import shutil
 
-# Constants for directories and Docker
+
 TESTS_DIR = os.path.dirname(__file__)
 DOCKER_IMAGE_NAME = "karimz1/imgcompress:local-test"
 DOCKER_CONTEXT = os.path.abspath(os.path.join(TESTS_DIR, ".."))
@@ -20,10 +20,9 @@ def build_docker_image():
     """
     Fixture to build the Docker image once before running tests.
     """
-   
     print(f"Building Docker image from context: {DOCKER_CONTEXT}")
     result = subprocess.run(
-        ["docker", "build", "-t", DOCKER_IMAGE_NAME, "-f", DOCKERFILE_PATH, DOCKER_CONTEXT , "--no-cache"],
+        ["docker", "build", "-t", DOCKER_IMAGE_NAME, "-f", DOCKERFILE_PATH, DOCKER_CONTEXT, "--no-cache"],
         capture_output=True,
         text=True,
     )
@@ -32,24 +31,31 @@ def build_docker_image():
     if result.returncode != 0:
         raise RuntimeError(f"Docker build failed with output:\n{result.stderr}")
 
-
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def setup_environment():
     """
     Fixture to set up the test environment before every test.
+    Ensures that the output directory is clean before each test.
     """
+    if os.path.exists(OUTPUT_DIR):
+        print("remove the output folder")
+        shutil.rmtree(OUTPUT_DIR)
+    
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    #if os.path.exists(OUTPUT_DIR):
-       #shutil.rmtree(OUTPUT_DIR)
-
+    
     assert os.path.exists(SAMPLE_IMAGES_DIR), "SAMPLE_IMAGES_DIR directory does not exist."
+    
     create_sample_test_image()
-
+    
+    sample_files = os.listdir(SAMPLE_IMAGES_DIR)
+    print(f"Contents of SAMPLE_IMAGES_DIR ({SAMPLE_IMAGES_DIR}): {sample_files}")
 
 def create_sample_test_image():
+    img_path = os.path.join(SAMPLE_IMAGES_DIR, "test_image.png")
     img = Image.new("RGB", (6000, 12000), color="white")
-    img.save(os.path.join(SAMPLE_IMAGES_DIR, "test_image.png"))
-
+    img.save(img_path)
+    assert os.path.exists(img_path), f"Failed to create test image at {img_path}"
+    print(f"Created test image at {img_path}")
 
 def run_script():
     """
@@ -66,10 +72,16 @@ def run_script():
     print("Docker command debug:")
     print(docker_command)
 
+    input_files = os.listdir(SAMPLE_IMAGES_DIR)
+    print(f"Host INPUT_FOLDER ({SAMPLE_IMAGES_DIR}) contents before run: {input_files}")
+
+    output_files_before = os.listdir(OUTPUT_DIR)
+    print(f"Host OUTPUT_FOLDER ({OUTPUT_DIR}) contents before run: {output_files_before}")
+
     try:
         result = subprocess.run(
             docker_command,
-            shell=True,  # Required because the command is a single string
+            shell=True,
             capture_output=True,
             text=True,
             check=True
@@ -82,17 +94,21 @@ def run_script():
         print("Docker run stderr:\n", e.stderr)
         raise
 
-def __test_files_created():
+    output_files_after = os.listdir(OUTPUT_DIR)
+    print(f"Host OUTPUT_FOLDER ({OUTPUT_DIR}) contents after run: {output_files_after}")
+
+def test_files_created():
     """
     Test that files are created in the output directory.
     """
     run_script()
 
     assert os.path.exists(OUTPUT_DIR), "Output directory does not exist."
-    assert len(os.listdir(OUTPUT_DIR)) > 0, "No files were created in the output directory."
+    output_files = os.listdir(OUTPUT_DIR)
+    print(f"Output_FOLDER contents after run: {output_files}")
+    assert len(output_files) > 0, "No files were created in the output directory."
 
-
-def __test_file_count_matches():
+def test_file_count_matches():
     """
     Test that the number of image files in output matches the number of image files in sample-images.
     """
@@ -110,33 +126,37 @@ def __test_file_count_matches():
         if os.path.isfile(os.path.join(OUTPUT_DIR, f)) and is_image(os.path.join(OUTPUT_DIR, f))
     ]
 
+    print(f"Sample files count: {len(sample_files)}")
+    print(f"Output files count: {len(output_files)}")
+    print(f"Sample files: {sample_files}")
+    print(f"Output files: {output_files}")
+
     assert len(sample_files) == len(output_files), (
         f"Number of image files in output ({len(output_files)}) does not match sample images ({len(sample_files)})."
     )
-
 
 def test_validate_output_dimensions():
     """
     Test that all images in the output folder have the expected width of 800 pixels.
     """
-
     run_script()
 
-    all_files = [file for _, _, files in os.walk(OUTPUT_DIR) for file in files]
-    if all_files:
-        print(f"There are: {len(OUTPUT_DIR)} files in: {OUTPUT_DIR}")
-    else:
+    output_files = os.listdir(OUTPUT_DIR)
+    print(f"There are: {len(output_files)} files in: {OUTPUT_DIR}")
+
+    if not output_files:
         raise AssertionError(f"Failed to find any files in {OUTPUT_DIR}")
 
+    for file in output_files:
+        output_file = os.path.join(OUTPUT_DIR, file)
+        print(f"file found in {output_file}")
 
-    for root, _, files in os.walk(OUTPUT_DIR):
-        for file in files:
-            output_file = os.path.join(root, file)
-            print(f"file found in {output_file}")
-
-            try:
-                with Image.open(output_file) as img:
-                    width, height = img.size
-                    assert width == EXPECTED_IMAGE_WIDTH, f"Image {file} has width {width}, expected {EXPECTED_IMAGE_WIDTH}."
-            except Exception as e:
-                raise AssertionError(f"Failed to validate dimensions for file {file}. Error: {e}")
+        try:
+            with Image.open(output_file) as img:
+                width, height = img.size
+                print(f"Image {file} has width {width} and height {height}")
+                assert width == EXPECTED_IMAGE_WIDTH, (
+                    f"Image {file} has width {width}, expected {EXPECTED_IMAGE_WIDTH}."
+                )
+        except Exception as e:
+            raise AssertionError(f"Failed to validate dimensions for file {file}. Error: {e}")
