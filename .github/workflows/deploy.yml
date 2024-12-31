@@ -68,7 +68,6 @@ jobs:
   deploy:
     needs: [build-and-test]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/heads/release/')
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -95,10 +94,30 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+       - name: Define Tags
+        id: define-tags
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+
+          # Use metadata output as base tag
+          BASE_TAG="${{ steps.meta.outputs.tags }}"
+
+          # Append "_beta" for non-release branches
+          if [[ "$BRANCH_NAME" != release/* ]]; then
+            echo "ADDITIONAL_TAG=${BASE_TAG}_beta" >> $GITHUB_ENV
+          fi
+
+          # Add "latest" tag for release branches
+          if [[ "$BRANCH_NAME" == release/* ]]; then
+            echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
+          fi
+
       - name: Build Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ env.ADDITIONAL_TAG }}
 
