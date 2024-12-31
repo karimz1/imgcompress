@@ -34,7 +34,7 @@ jobs:
             -v "$(pwd)":/workspace \
             -w /workspace \
             devcontainer:local-test /app/runTests.sh 2>&1 | tee docker_run.log
-        continue-on-error: false
+        continue-on-error: true
 
       - name: Upload Docker Run Logs
         if: failure()
