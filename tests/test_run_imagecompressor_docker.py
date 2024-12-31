@@ -58,7 +58,7 @@ def create_sample_test_image():
     print(f"Created test image at {img_path}")
 
 def is_devcontainer():
-    return os.path.exists("/workspace")
+    return os.getenv("DEVCONTAINER") == "true"
 
 
 
@@ -68,11 +68,8 @@ def run_script():
     """
     if is_devcontainer():
             print("in devcontaienr cmd")
-            # Running inside the devcontainer, use --volumes-from
-            container_name = "devcontainer"
             cmd = [
                 "docker", "run", "--rm",
-                "--volumes-from", container_name,
                 "karimz1/imgcompress:local-test",
                 SAMPLE_IMAGES_DIR, OUTPUT_DIR,
                 "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)

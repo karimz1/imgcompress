@@ -4,6 +4,9 @@
       "dockerfile": "Dockerfile",
       "context": "."
     },
+    "containerEnv": {
+      "DEVCONTAINER": "true"
+    },
     "settings": {},
     "extensions": [
       "ms-python.python",
