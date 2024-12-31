@@ -72,20 +72,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Extract version and create tag
-        id: version
-        run: |
-          branch_name=${GITHUB_REF#refs/heads/}
-          version=${branch_name#release/}
-          short_sha=${GITHUB_SHA::7}
-          version_tag="${version}-${short_sha}-${{ github.run_id }}"
-          echo "version=${version}" >> $GITHUB_ENV
-          echo "version_tag=${version_tag}" >> $GITHUB_ENV
-          
-      - name: Log Docker Image Tag
-        run: | 
-          echo "Docker Image Tag: karimz1/imgcompress:${{ env.version_tag }}"
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -98,14 +84,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push Docker Image
+      - name: Generate Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: karimz1/imgcompress
+          tags: |
+            type=ref,event=branch,pattern={{branch}}-{{sha}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: karimz1/imgcompress:${{ env.version_tag }}
-
-      - name: Log Successful Deployment
-        run: |
-           echo "Successfully pushed Docker image with tag: ${{ env.version_tag }}"
+          tags: ${{ steps.meta.outputs.tags }}
 
