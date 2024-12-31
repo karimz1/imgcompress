@@ -125,6 +125,7 @@ def test_validate_output_dimensions():
     for root, _, files in os.walk(OUTPUT_DIR):
         for file in files:
             output_file = os.path.join(root, file)
+            print(f"file found in {output_file}")
 
             try:
                 with Image.open(output_file) as img:
