@@ -1,18 +1,19 @@
 #!/bin/sh
+set -euo pipefail
+set -x
 
-# Exit immediately if any command fails
-set -e
-
-python3 -m venv /venv
 . /venv/bin/activate
-pip install -r requirements-dev.txt
 
-# Run pytest and handle failure
-pytest tests/ \
+if pytest tests/ \
   --junitxml=reports/test-results.xml \
   --cov=tests/ \
   --cov-report=xml:reports/test-coverage.xml \
-  -s || { echo "Tests failed! Exiting..."; deactivate; exit 1; }
+  -s; then
+    echo "Tests passed successfully."
+else
+    echo "Tests failed! Exiting..."
+    deactivate
+    exit 1
+fi
 
-# Deactivate the virtual environment
 deactivate

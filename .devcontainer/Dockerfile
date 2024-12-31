@@ -1,5 +1,7 @@
 FROM docker:27.4.1-dind
 
+WORKDIR /app
+
 # Install Python 3, pip, libheif-dev, and essential build tools
 RUN apk update && apk add --no-cache \
     python3 \
@@ -9,13 +11,17 @@ RUN apk update && apk add --no-cache \
     build-base \
     && rm -rf /var/cache/apk/*
 
-WORKDIR /app
+# Create and activate a virtual environment
+RUN python3 -m venv /venv
+ENV PATH="/venv/bin:$PATH"
 
-COPY . /app
+# Copy and install Python dependencies
+COPY requirements-dev.txt .
+RUN pip install --upgrade pip
+RUN pip install -r requirements-dev.txt
 
-# (Optional) Install Python dependencies if you have a requirements.txt
-# COPY requirements.txt /app/
-# RUN pip3 install --no-cache-dir -r requirements.txt
+# Copy the rest of the application code
+COPY . .
 
-# Set the entry point to run your Python script
+# Set the entrypoint
 ENTRYPOINT ["/bin/sh"]
