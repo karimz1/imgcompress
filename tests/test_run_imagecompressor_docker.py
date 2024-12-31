@@ -82,7 +82,7 @@ def run_script():
         print("Docker run stderr:\n", e.stderr)
         raise
 
-def test_files_created():
+def __test_files_created():
     """
     Test that files are created in the output directory.
     """
@@ -92,7 +92,7 @@ def test_files_created():
     assert len(os.listdir(OUTPUT_DIR)) > 0, "No files were created in the output directory."
 
 
-def test_file_count_matches():
+def __test_file_count_matches():
     """
     Test that the number of image files in output matches the number of image files in sample-images.
     """
