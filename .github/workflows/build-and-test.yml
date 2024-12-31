@@ -1,4 +1,4 @@
-name: Docker in Docker CI
+name: Build and Test Docker Image
 
 on:
   push:
