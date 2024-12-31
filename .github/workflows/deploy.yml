@@ -97,14 +97,10 @@ jobs:
       - name: Define Tags
         id: define-tags
         run: |
-          # "beta" for non-release branches
-          if [[ "$BRANCH_NAME" != release/* || "$BRANCH_NAME" != "main"]]; then
-            echo "beta" >> $GITHUB_ENV
-          fi
-
-          # Add "latest" tag for release/* or main branche
-          if [[ "$BRANCH_NAME" == release/* || "$BRANCH_NAME" == "main" ]]; then
+          if [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
+          else
+            echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
           fi
 
       - name: Build Docker Image
