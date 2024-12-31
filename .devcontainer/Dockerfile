@@ -15,6 +15,9 @@ RUN apk update && apk add --no-cache \
 RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
+# Debugging: List files before copying
+RUN ls -la /app
+
 # Copy and install Python dependencies
 COPY requirements-dev.txt .
 RUN pip install --upgrade pip
