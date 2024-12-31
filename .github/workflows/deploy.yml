@@ -83,7 +83,8 @@ jobs:
           echo "version_tag=${version_tag}" >> $GITHUB_ENV
           
       - name: Log Docker Image Tag
-        run: echo "Docker Image Tag: karimz1/imgcompress:${{ env.version_tag }}"
+        run: | 
+          echo "Docker Image Tag: karimz1/imgcompress:${{ env.version_tag }}"
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -105,5 +106,6 @@ jobs:
           tags: karimz1/imgcompress:${{ env.version_tag }}
 
       - name: Log Successful Deployment
-        run: echo "Successfully pushed Docker image with tag: ${{ env.version_tag }}"
+        run: |
+           echo "Successfully pushed Docker image with tag: ${{ env.version_tag }}"
 
