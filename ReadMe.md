@@ -3,7 +3,7 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)
 ![Docker Image Version](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)
 ![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)
-[![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/build-test-deploy.yml)
+[![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml)
 
 ![imgcompress Logo](./images/imgcompress_logo.jpg)
 ## What is this image ?
