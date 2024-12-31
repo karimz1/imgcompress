@@ -83,7 +83,7 @@ jobs:
           version_tag="${version}-${short_sha}-${{ github.run_id }}"
           echo "version=${version}" >> $GITHUB_ENV
           echo "version_tag=${version_tag}" >> $GITHUB_ENV
-
+          
       - name: Log Docker Image Tag
         run: echo "Docker Image Tag: karimz1/imgcompress:${{ env.version_tag }}"
 
