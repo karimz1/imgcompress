@@ -66,24 +66,24 @@ jobs:
           path: reports/test-results.xml
 
   deploy:
-  needs: [ build-and-test ]
-  runs-on: ubuntu-latest
-  if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: [ build-and-test ]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
-  steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Docker
-      run: docker build -t karimz1/imgcompress:latest .
+      - name: Build Docker
+        run: docker build -t karimz1/imgcompress:latest .
 
-    - name: Push Docker Image
-      run: docker push karimz1/imgcompress:latest
+      - name: Push Docker Image
+        run: docker push karimz1/imgcompress:latest
 
