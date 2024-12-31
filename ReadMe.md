@@ -5,7 +5,7 @@
 ![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)
 [![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml)
 
-
+![imgcompress Logo](./images/imgcompress_logo.jpg)
 ## What is this image ?
 
 `imgcompress` is a lightweight, efficient, and scalable image compression tool available as a Docker image. It is designed for compressing and optimizing images while maintaining high quality. A standout feature is its support for converting HEIC photos (common on iPhones) to standard JPG format.
