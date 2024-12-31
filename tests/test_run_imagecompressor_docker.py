@@ -57,33 +57,38 @@ def create_sample_test_image():
     assert os.path.exists(img_path), f"Failed to create test image at {img_path}"
     print(f"Created test image at {img_path}")
 
-def is_devcontainer():
-    return os.getenv("DEVCONTAINER") == "true"
 
-
+def is_github_actions():
+    """
+    Detect if the script is running inside a GitHub Actions workflow.
+    Returns:
+        bool: True if running in GitHub Actions, False otherwise.
+    """
+    return os.getenv("GITHUB_ACTIONS") == "true"
 
 def run_script():
     """
     Run the Docker container with a single string command.
     """
-    if is_devcontainer():
-            print("in devcontaienr cmd")
-            cmd = [
-                "docker", "run", "--rm",
-                "karimz1/imgcompress:local-test",
-                SAMPLE_IMAGES_DIR, OUTPUT_DIR,
-                "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
-            ]
-    else:
-        print("not in devcontaienr cmd")
+    if is_github_actions():
+        print("running within github actions exec.")
+        
         container_name = "devcontainer"
-
-        # Running in CI/CD, use explicit paths
         cmd = [
              "docker", "run", "--rm",
                 "--volumes-from", container_name,
-                "karimz1/imgcompress:local-test",
+                DOCKER_IMAGE_NAME,
                 SAMPLE_IMAGES_DIR, OUTPUT_DIR,
+                "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
+        ]
+    else:
+        print("running within local exec.")
+        cmd = [
+            "docker", "run", "--rm",
+                "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",
+                "-v", f"{OUTPUT_DIR}:/app/output_folder",
+                DOCKER_IMAGE_NAME,
+                "/app/input_folder", "/app/output_folder",
                 "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
         ]
 

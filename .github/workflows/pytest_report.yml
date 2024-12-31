@@ -52,20 +52,11 @@ jobs:
             -v "$(pwd):/app/" \
             --name devcontainer \
             devcontainer:local-test /app/runTests.sh
+        continue-on-error: false
 
-        continue-on-error: true
-
-      - name: Upload Docker Run Logs
-        if: failure()
+      - name: Upload Pytest Results
         uses: actions/upload-artifact@v3
         with:
-          name: docker-run-logs
-          path: docker_run.log
-
-      - name: Check Test Results
-        if: failure()
-        run: |
-          echo "Docker run failed. Displaying logs:"
-          cat docker_run.log
-          exit 1
+          name: pytest-results
+          path: reports/test-results.xml
 
