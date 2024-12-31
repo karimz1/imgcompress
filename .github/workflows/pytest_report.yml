@@ -47,7 +47,8 @@ jobs:
       - name: Run Tests
         run: |
           docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "/workspace/tests/sample-images:/app/input_folder" \
+            -v "/workspace/tests/output:/app/output_folder" \
             devcontainer:local-test /app/runTests.sh 2>&1 | tee docker_run.log
         continue-on-error: true
 
