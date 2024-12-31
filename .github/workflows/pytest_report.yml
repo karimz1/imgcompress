@@ -51,7 +51,7 @@ jobs:
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
             --name devcontainer \
-            devcontainer:local-test /app/runTests.sh 3>&1 1>> docker_log.log
+            devcontainer:local-test /app/runTests.sh
 
         continue-on-error: true
 
