@@ -45,6 +45,17 @@ docker run --rm \
   /app/input_folder /app/output_folder --quality 85 --width 800
 ```
 
+### Volume Mapping Explained
+
+1. **Input Folder Mapping**:
+   - The `-v "$(pwd)/tests/sample-images:/app/input_folder"` flag maps your local folder (`tests/sample-images`) to the container's internal `/app/input_folder` path.
+   - Replace `$(pwd)/tests/sample-images` with the full path to your folder containing images.
+     
+2. **Output Folder Mapping**:
+   - The `-v "$(pwd)/tests/output:/app/output_folder"` flag maps your local folder (`tests/output`) to the container's internal `/app/output_folder` path.
+   - Replace `$(pwd)/tests/output` with the full path where you want the converted images saved.
+
+
 ### Parameters Breakdown
 
 - **`--quality`**: Set compression quality (1–100, default: 85).
