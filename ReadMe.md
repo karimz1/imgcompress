@@ -16,6 +16,7 @@
 - **HEIC to JPG Conversion**: Convert iPhone HEIC photos to widely compatible JPG format.
 - **Compression and Resizing**: Adjust image quality and dimensions for optimized storage and faster loading.
 - **Batch Processing**: Process entire directories of images with one command.
+- **Default Text Logging**: Standard logs with timestamps and statuses are human-readable and suitable for debugging or monitoring.
 - **JSON Logging for API-Like Usage**: Output structured logs in JSON format for easy integration with external applications or pipelines.
 - **Automatic Folder Management**: Automatically creates output directories if they don't exist.
 - **Configurable Logging**: Debug mode (`--debug`) for detailed logs and standard logs for routine tasks.
@@ -52,6 +53,21 @@ docker run --rm \
 - **`--json-output`**: Output logs in JSON format for capturing results programmatically.
 
 ------
+
+### Default Text Output
+
+By default, `imgcompress` produces text-based logs, ideal for manual monitoring or debugging. Example:
+
+```shell
+2025-01-01 00:29:48,496 - INFO - Starting conversion: /app/input_folder -> /app/output_folder with quality=80, width=800
+2025-01-01 00:29:48,924 - INFO - Converted: /app/input_folder/pexels-willianjusten-29944187.jpg -> /app/output_folder/pexels-willianjusten-29944187.jpg (Q=80, W=800)
+2025-01-01 00:29:50,494 - INFO - Converted: /app/input_folder/test_image.png -> /app/output_folder/test_image.jpg (Q=80, W=800)
+2025-01-01 00:29:50,820 - INFO - Converted: /app/input_folder/pexels-pealdesign-28594392.jpg -> /app/output_folder/pexels-pealdesign-28594392.jpg (Q=80, W=800)
+2025-01-01 00:29:50,820 - INFO - Summary: 3 files processed, 0 errors.
+```
+
+------
+
 
 ### JSON Output Mode
 
