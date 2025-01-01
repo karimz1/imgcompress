@@ -4,6 +4,7 @@ import subprocess
 from PIL import Image
 from .test_utils import is_image, are_files_identical
 import shutil
+import shlex
 
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,11 +22,13 @@ def build_docker_image():
     Fixture to build the Docker image once before running tests.
     """
     print(f"Building Docker image from context: {DOCKER_CONTEXT}")
+    cmd = ["docker", "build", "-t", DOCKER_IMAGE_NAME, "-f", DOCKERFILE_PATH, DOCKER_CONTEXT, "--no-cache"]
     result = subprocess.run(
-        ["docker", "build", "-t", DOCKER_IMAGE_NAME, "-f", DOCKERFILE_PATH, DOCKER_CONTEXT, "--no-cache"],
+        cmd,
         capture_output=True,
         text=True,
     )
+    print("docker build command:", shlex.join(cmd))
     print("Docker build stdout:\n", result.stdout)
     print("Docker build stderr:\n", result.stderr)
     if result.returncode != 0:
@@ -92,6 +95,7 @@ def run_script():
                 "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
         ]
 
+    print("docker run command:", shlex.join(cmd))
     subprocess.run(cmd, check=True)
 
 def test_files_created():
