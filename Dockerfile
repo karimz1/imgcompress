@@ -20,10 +20,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY imgcompress.py /app/imgcompress.py
-COPY requirements.txt /app/requirements.txt
+COPY image_converter/ /app/image_converter/
+COPY setup.py /app/
+COPY requirements.txt /app/
 
-# Install Python packages
 RUN pip install -r requirements.txt
+RUN pip install .
 
-ENTRYPOINT ["python", "imgcompress.py"]
+RUN adduser --disabled-password --gecos '' appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+ENTRYPOINT ["image-converter"]
