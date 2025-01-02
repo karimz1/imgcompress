@@ -11,12 +11,10 @@ LABEL org.opencontainers.image.source="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.licenses="MIT"
 
-
 # Install system dependencies needed for HEIC support
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
     && rm -rf /var/lib/apt/lists/*
-
 
 WORKDIR /app
 
@@ -24,12 +22,7 @@ COPY image_converter/ /app/image_converter/
 COPY setup.py /app/
 COPY requirements.txt /app/
 
-RUN pip install -r requirements.txt
-RUN pip install .
-
-RUN adduser --disabled-password --gecos '' appuser
-RUN chown -R appuser:appuser /app
-RUN chmod -R u=rw,go=r tests/
-USER appuser
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir .
 
 ENTRYPOINT ["image-converter"]
