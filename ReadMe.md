@@ -54,6 +54,16 @@ docker run --rm \
   /container/images /container/converted --quality 85 --width 800
 ```
 
+### **What It Does**
+
+1. **Maps local directories:**
+   - `$(pwd)`: Refers to the current working directory on your host machine.
+   - `images/`: The input folder or file for uncompressed images.
+   - `converted/`: The output folder for compressed images.
+2. **Processes images:**
+   - `--quality`: Sets JPEG quality (e.g., `80` for single file, `85` for folders).
+   - `--width`: Resizes images to a specific width while maintaining aspect ratio.
+   
 ------
 
 ### **Parameters**
