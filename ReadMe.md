@@ -63,7 +63,7 @@ docker run --rm \
 2. **Processes images:**
    - `--quality`: Sets JPEG quality (e.g., `80` for single file, `85` for folders).
    - `--width`: Resizes images to a specific width while maintaining aspect ratio.
-   
+
 ------
 
 ### **Parameters**
@@ -82,20 +82,45 @@ docker run --rm \
 #### **Text Logs**:
 
 ```plaintext
-2025-01-01 00:29:50,820 - INFO - Converted: /container/images/example.jpg -> /container/converted/example.jpg (Q=80, W=800)
-2025-01-01 00:29:50,820 - INFO - Summary: 1 file processed, 0 errors.
+025-01-02 17:16:01,102 - INFO - Starting image conversion process.
+2025-01-02 17:16:01,103 - INFO - Processing directory: /container/images
+2025-01-02 17:16:01,529 - INFO - Converted: /container/images/pexels-willianjusten-29944187.jpg -> /container/converted/pexels-willianjusten-29944187.jpg (Q=85, W=800)
+2025-01-02 17:16:03,089 - INFO - Converted: /container/images/test_image.png -> /container/converted/test_image.jpg (Q=85, W=800)
+2025-01-02 17:16:03,488 - INFO - Converted: /container/images/pexels-pealdesign-28594392.jpg -> /container/converted/pexels-pealdesign-28594392.jpg (Q=85, W=800)
+2025-01-02 17:16:03,495 - INFO - Summary: 3 file(s) processed, 0 error(s).
 ```
 
 #### **JSON Logs**:
 
 ```json
+{"level": "info", "message": "Starting image conversion process."}
+{"level": "info", "message": "Processing directory: /container/images"}
+{"level": "info", "message": "Converted: /container/images/pexels-willianjusten-29944187.jpg -> /container/converted/pexels-willianjusten-29944187.jpg (Q=85, W=800)"}
+{"level": "info", "message": "Converted: /container/images/test_image.png -> /container/converted/test_image.jpg (Q=85, W=800)"}
+{"level": "info", "message": "Converted: /container/images/pexels-pealdesign-28594392.jpg -> /container/converted/pexels-pealdesign-28594392.jpg (Q=85, W=800)"}
 {
     "summary": [
         {
-            "file": "example.jpg",
+            "file": "pexels-willianjusten-29944187.jpg",
             "status": "success",
-            "source": "/container/images/example.jpg",
-            "destination": "/container/converted/example.jpg",
+            "source": "/container/images/pexels-willianjusten-29944187.jpg",
+            "destination": "/container/converted/pexels-willianjusten-29944187.jpg",
+            "original_width": 3648,
+            "resized_width": 800
+        },
+        {
+            "file": "test_image.png",
+            "status": "success",
+            "source": "/container/images/test_image.png",
+            "destination": "/container/converted/test_image.jpg",
+            "original_width": 6000,
+            "resized_width": 800
+        },
+        {
+            "file": "pexels-pealdesign-28594392.jpg",
+            "status": "success",
+            "source": "/container/images/pexels-pealdesign-28594392.jpg",
+            "destination": "/container/converted/pexels-pealdesign-28594392.jpg",
             "original_width": 3486,
             "resized_width": 800
         }
