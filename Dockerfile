@@ -11,19 +11,18 @@ LABEL org.opencontainers.image.source="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.licenses="MIT"
 
-
 # Install system dependencies needed for HEIC support
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
     && rm -rf /var/lib/apt/lists/*
 
-
 WORKDIR /app
 
-COPY imgcompress.py /app/imgcompress.py
-COPY requirements.txt /app/requirements.txt
+COPY image_converter/ /app/image_converter/
+COPY setup.py /app/
+COPY requirements.txt /app/
 
-# Install Python packages
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir .
 
-ENTRYPOINT ["python", "imgcompress.py"]
+ENTRYPOINT ["image-converter"]
