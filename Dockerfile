@@ -16,11 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /container
 
-COPY image_converter/ /app/image_converter/
-COPY setup.py /app/
-COPY requirements.txt /app/
+COPY image_converter/ /container/image_converter/
+COPY setup.py /container/
+COPY requirements.txt /container/
 
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir .

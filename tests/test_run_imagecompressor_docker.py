@@ -88,10 +88,10 @@ def run_docker_folder_processing():
         print("running within local exec")
         cmd = [
             "docker", "run", "--rm",
-                "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",
-                "-v", f"{OUTPUT_DIR}:/app/output_folder",
+                "-v", f"{SAMPLE_IMAGES_DIR}:/container/input_folder",
+                "-v", f"{OUTPUT_DIR}:/container/output_folder",
                 DOCKER_IMAGE_NAME,
-                "/app/input_folder", "/app/output_folder",
+                "/container/input_folder", "/container/output_folder",
                 "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
         ]
 
@@ -185,10 +185,10 @@ def test_single_file_processing():
     else:
         cmd = [
             "docker", "run", "--rm",
-            "-v", f"{SAMPLE_IMAGES_DIR}:/app/input_folder",
-            "-v", f"{OUTPUT_DIR}:/app/output_folder",
+            "-v", f"{SAMPLE_IMAGES_DIR}:/container/input_folder",
+            "-v", f"{OUTPUT_DIR}:/container/output_folder",
             DOCKER_IMAGE_NAME,
-            f"/app/input_folder/{single_file_name}", "/app/output_folder",
+            f"/container/input_folder/{single_file_name}", "/container/output_folder",
             "--quality", str(80), "--width", str(EXPECTED_IMAGE_WIDTH)
         ]
 

@@ -7,25 +7,20 @@
 
 ![imgcompress Logo](./images/imgcompress_logo.jpg)
 
-## What is this image ?
+## **What is imgcompress?**
 
-`imgcompress` is a lightweight, efficient, and fully Dockerized tool for compressing, resizing, and converting images, specifically tailored to modern image processing needs. With built-in support for HEIC-to-JPG conversion and JSON output for seamless integration with external systems, this tool is designed to work efficiently in both standalone and automated workflows.
+`imgcompress` is a lightweight, fully Dockerized tool for compressing, resizing, and converting images. It’s designed to simplify image optimization with:
 
-### Key Features
-
-- **HEIC to JPG Conversion**: Convert iPhone HEIC photos to widely compatible JPG format.
-- **Compression and Resizing**: Adjust image quality and dimensions for optimized storage and faster loading.
-- **Batch Processing**: Process entire directories of images with one command.
-- **Default Text Logging**: Standard logs with timestamps and statuses are human-readable and suitable for debugging or monitoring.
-- **JSON Logging for API-Like Usage**: Output structured logs in JSON format for easy integration with external applications or pipelines.
-- **Automatic Folder Management**: Automatically creates output directories if they don't exist.
-- **Configurable Logging**: Debug mode (`--debug`) for detailed logs and standard logs for routine tasks.
+- **HEIC to JPG Conversion**: Automatically convert HEIC files to JPG.
+- **Batch & Single File Processing**: Process entire directories or individual images effortlessly.
+- **Logging Options**: Choose between human-readable text or structured JSON output.
+- **Seamless Automation**: Perfect for use in CI/CD pipelines or standalone workflows.
 
 ------
 
-## Installation
+## **Installation**
 
-Pull the Docker image with a single command:
+Pull the latest image with:
 
 ```bash
 docker pull karimz1/imgcompress:latest
@@ -33,111 +28,64 @@ docker pull karimz1/imgcompress:latest
 
 ------
 
-## Usage
+## **Usage**
 
-### Folder Image Processing
-To process all images within a folder:
+### **Quick Start**
+
+Navigate to your image directory and run:
+
+#### Single File Processing:
 
 ```bash
-docker run --rm -v "$(pwd)/tests/sample-images:/app/input_folder" -v "$(pwd)/tests/output:/app/output_folder" karimz1/imgcompress:latest /app/input_folder /app/output_folder --quality 85 --width 800
+docker run --rm \
+  -v "$(pwd):/container/images" \
+  -v "$(pwd)/converted:/container/converted" \
+  karimz1/imgcompress:latest \
+  /container/images/example.jpg /container/converted --quality 80 --width 1920
 ```
 
-**Description**:
+#### Folder Processing:
 
-- The above command processes all images in the `tests/sample-images` folder, compresses them to a quality of 85, and resizes them to a width of 800 pixels while maintaining the aspect ratio.
-- Outputs the processed images in the `tests/output` directory.
-
-### Single File Processing
-To process a single image file:
-
-Description:
-Processes the file ``pexels-pealdesign-28594392.jpg`` from the ``tests/sample-images`` folder.
-Compresses it to a quality of 80 and resizes it to a width of 800 pixels.
-Outputs the processed image in the ``tests/output`` directory.
-
-``` bash
-docker run --rm -v "$(pwd)/tests/sample-images:/app/input_folder" -v "$(pwd)/tests/output:/app/output_folder" karimz1/imgcompress:latest /app/input_folder/pexels-pealdesign-28594392.jpg /app/output_folder --quality 80 --width 800
-```
-
-### **Volume Mapping Explained**
-
-Docker uses volume mapping (`-v`) to access files on your local machine from within the container. Here's how it works:
-
-#### **Input Folder Mapping**
-
-- ```
-  -v "$(pwd)/tests/sample-images:/app/input_folder"
-  ```
-
-  - Maps your local folder (`tests/sample-images`) to the container’s internal path `/app/input_folder`.
-  - Replace `$(pwd)/tests/sample-images` with the absolute path to your folder containing the input images.
-
-#### **Output Folder Mapping**
-
-- ```
-  -v "$(pwd)/tests/output:/app/output_folder"
-  ```
-
-  - Maps your local folder (`tests/output`) to the container’s internal path `/app/output_folder`.
-  - Replace `$(pwd)/tests/output` with the absolute path to the folder where you want the processed images saved.
-
-
-### Parameters Breakdown
-
-- **`--quality`**: Set compression quality (1–100, default: 85).
-- **`--width`**: Optional, resizes images to the specified width while maintaining aspect ratio.
-- **`--debug`**: Enable verbose logs for troubleshooting.
-- **`--json-output`**: Output logs in JSON format for capturing results programmatically.
-
-------
-
-### Default Text Output
-
-By default, `imgcompress` produces text-based logs, ideal for manual monitoring or debugging. Example:
-
-```shell
-2025-01-01 00:29:48,496 - INFO - Starting conversion: /app/input_folder -> /app/output_folder with quality=80, width=800
-2025-01-01 00:29:48,924 - INFO - Converted: /app/input_folder/pexels-willianjusten-29944187.jpg -> /app/output_folder/pexels-willianjusten-29944187.jpg (Q=80, W=800)
-2025-01-01 00:29:50,494 - INFO - Converted: /app/input_folder/test_image.png -> /app/output_folder/test_image.jpg (Q=80, W=800)
-2025-01-01 00:29:50,820 - INFO - Converted: /app/input_folder/pexels-pealdesign-28594392.jpg -> /app/output_folder/pexels-pealdesign-28594392.jpg (Q=80, W=800)
-2025-01-01 00:29:50,820 - INFO - Summary: 3 files processed, 0 errors.
+```bash
+docker run --rm \
+  -v "$(pwd):/container/images" \
+  -v "$(pwd)/converted:/container/converted" \
+  karimz1/imgcompress:latest \
+  /container/images /container/converted --quality 85 --width 800
 ```
 
 ------
 
+### **Parameters**
 
-### JSON Output Mode
+| Parameter       | Description                                          |
+| --------------- | ---------------------------------------------------- |
+| `--quality`     | Compression quality (1–100, default: `85`).          |
+| `--width`       | Resize images to the specified width (optional).     |
+| `--debug`       | Enable detailed logs for troubleshooting.            |
+| `--json-output` | Output logs in JSON format for automation workflows. |
 
-When the `--json-output` flag is used, all logs and summaries are emitted as structured JSON. This feature makes `imgcompress` act as a lightweight API for external applications or pipelines. Example JSON output for a successful run:
+------
+
+### **Example Logs**
+
+#### **Text Logs**:
+
+```plaintext
+2025-01-01 00:29:50,820 - INFO - Converted: /container/images/example.jpg -> /container/converted/example.jpg (Q=80, W=800)
+2025-01-01 00:29:50,820 - INFO - Summary: 1 file processed, 0 errors.
+```
+
+#### **JSON Logs**:
 
 ```json
-{"level": "info", "message": "Starting conversion: /app/input_folder -> /app/output_folder with quality=80, width=800"}
-{"level": "info", "message": "Converted: /app/input_folder/pexels-willianjusten-29944187.jpg -> /app/output_folder/pexels-willianjusten-29944187.jpg (Q=80, W=800)"}
-{"level": "info", "message": "Converted: /app/input_folder/test_image.png -> /app/output_folder/test_image.jpg (Q=80, W=800)"}
-{"level": "info", "message": "Converted: /app/input_folder/pexels-pealdesign-28594392.jpg -> /app/output_folder/pexels-pealdesign-28594392.jpg (Q=80, W=800)"}
 {
     "summary": [
         {
-            "file": "pexels-willianjusten-29944187.jpg",
+            "file": "example.jpg",
             "status": "success",
-            "source": "/app/input_folder/pexels-willianjusten-29944187.jpg",
-            "destination": "/app/output_folder/pexels-willianjusten-29944187.jpg",
-            "original_width": 3648,
-            "resized_width": 800
-        },
-        {
-            "file": "test_image.png",
-            "status": "success",
-            "source": "/app/input_folder/test_image.png",
-            "destination": "/app/output_folder/test_image.jpg",
-            "original_width": 6000,
-            "resized_width": 800
-        },
-        {
-            "file": "pexels-pealdesign-28594392.jpg",
-            "status": "success",
-            "source": "/app/input_folder/pexels-pealdesign-28594392.jpg",
-            "destination": "/app/output_folder/pexels-pealdesign-28594392.jpg",
+            "source": "/container/images/example.jpg",
+            "destination": "/container/converted/example.jpg",
             "original_width": 3486,
             "resized_width": 800
         }
@@ -147,13 +95,18 @@ When the `--json-output` flag is used, all logs and summaries are emitted as str
 }
 ```
 
-In case of errors, the `status` will be `failed`, and detailed information about each failed file will be included.
+------
+
+## **Advanced Use Cases**
+
+- **HEIC Conversion**: Just include HEIC files in your input directory, and they’ll automatically convert to JPG.
+- **CI/CD Integration**: Use `--json-output` for structured results in automated workflows.
 
 ------
 
-### Full Help Menu
+## **Help Menu**
 
-Use the `--help` flag for complete details on all options:
+For all options, run:
 
 ```bash
 docker run --rm karimz1/imgcompress --help
@@ -161,31 +114,12 @@ docker run --rm karimz1/imgcompress --help
 
 ------
 
-## Advanced Use Cases
+## **Contribution**
 
-### HEIC Conversion
-
-Simply add HEIC files to the input directory. `imgcompress` will automatically convert them to JPG while respecting the provided compression quality and resizing options.
-
-### Integrating with External Applications
-
-To integrate `imgcompress` with a larger pipeline or workflow, use the `--json-output` flag to capture output and monitor statuses programmatically. This allows for seamless automation and error handling in CI/CD pipelines or other automated environments.
+We welcome contributions! Fork the repo, create a branch, and submit a pull request.
 
 ------
 
-## Contribution
-
-We welcome contributions from the community! To contribute:
-
-1. Fork the repository.
-2. Clone your fork.
-3. Create a feature branch.
-4. Commit and push your changes.
-5. Submit a pull request.
-
-For any issues or feature requests, feel free to open an issue in the GitHub repository.
-
-------
 
 ## ❤️ Supporting the Project ❤️
 
