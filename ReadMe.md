@@ -151,7 +151,9 @@ docker run --rm karimz1/imgcompress --help
 
 ## **Contribution**
 
-We welcome contributions! Fork the repo, create a branch, and submit a pull request.
+[Source Code](https://github.com/karimz1/imgcompress)
+
+I welcome contributions! Fork the repo, create a branch, and submit a pull request.
 
 ------
 
