@@ -29,6 +29,7 @@ RUN pip install .
 
 RUN adduser --disabled-password --gecos '' appuser
 RUN chown -R appuser:appuser /app
+RUN chmod -R u=rw,go=r tests/
 USER appuser
 
 ENTRYPOINT ["image-converter"]
