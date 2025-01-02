@@ -28,32 +28,58 @@
 Pull the Docker image with a single command:
 
 ```bash
-docker pull karimz1/imgcompress
+docker pull karimz1/imgcompress:latest
 ```
 
 ------
 
 ## Usage
 
-### Basic Example
+### Folder Image Processing
+To process all images within a folder:
 
 ```bash
-docker run --rm \
-  -v "$(pwd)/tests/sample-images:/app/input_folder" \
-  -v "$(pwd)/tests/output:/app/output_folder" \
-  karimz1/imgcompress \
-  /app/input_folder /app/output_folder --quality 85 --width 800
+docker run --rm -v "$(pwd)/tests/sample-images:/app/input_folder" -v "$(pwd)/tests/output:/app/output_folder" karimz1/imgcompress:latest /app/input_folder /app/output_folder --quality 85 --width 800
 ```
 
-### Volume Mapping Explained
+**Description**:
 
-1. **Input Folder Mapping**:
-   - The `-v "$(pwd)/tests/sample-images:/app/input_folder"` flag maps your local folder (`tests/sample-images`) to the container's internal `/app/input_folder` path.
-   - Replace `$(pwd)/tests/sample-images` with the full path to your folder containing images.
-     
-2. **Output Folder Mapping**:
-   - The `-v "$(pwd)/tests/output:/app/output_folder"` flag maps your local folder (`tests/output`) to the container's internal `/app/output_folder` path.
-   - Replace `$(pwd)/tests/output` with the full path where you want the converted images saved.
+- The above command processes all images in the `tests/sample-images` folder, compresses them to a quality of 85, and resizes them to a width of 800 pixels while maintaining the aspect ratio.
+- Outputs the processed images in the `tests/output` directory.
+
+### Single File Processing
+To process a single image file:
+
+Description:
+Processes the file ``pexels-pealdesign-28594392.jpg`` from the ``tests/sample-images`` folder.
+Compresses it to a quality of 80 and resizes it to a width of 800 pixels.
+Outputs the processed image in the ``tests/output`` directory.
+
+``` bash
+docker run --rm -v "$(pwd)/tests/sample-images:/app/input_folder" -v "$(pwd)/tests/output:/app/output_folder" karimz1/imgcompress:latest /app/input_folder/pexels-pealdesign-28594392.jpg /app/output_folder --quality 80 --width 800
+```
+
+### **Volume Mapping Explained**
+
+Docker uses volume mapping (`-v`) to access files on your local machine from within the container. Here's how it works:
+
+#### **Input Folder Mapping**
+
+- ```
+  -v "$(pwd)/tests/sample-images:/app/input_folder"
+  ```
+
+  - Maps your local folder (`tests/sample-images`) to the container’s internal path `/app/input_folder`.
+  - Replace `$(pwd)/tests/sample-images` with the absolute path to your folder containing the input images.
+
+#### **Output Folder Mapping**
+
+- ```
+  -v "$(pwd)/tests/output:/app/output_folder"
+  ```
+
+  - Maps your local folder (`tests/output`) to the container’s internal path `/app/output_folder`.
+  - Replace `$(pwd)/tests/output` with the absolute path to the folder where you want the processed images saved.
 
 
 ### Parameters Breakdown
