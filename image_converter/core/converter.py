@@ -1,14 +1,16 @@
 import os
 import pyheif
 from PIL import Image
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from image_converter.infrastructure.logger import Logger
+
 
 class ImageConverter:
     def __init__(self, quality: int = 85, width: Optional[int] = None, logger: Logger = None):
         self.quality = quality
         self.width = width
         self.logger = logger
+        self.summary = []
 
     def convert(self, filename: str, source_folder: str, dest_folder: str) -> Dict:
         source_path = os.path.join(source_folder, filename)
@@ -37,16 +39,23 @@ class ImageConverter:
                 "source": source_path,
                 "destination": dest_path,
                 "original_width": original_width,
-                "resized_width": resized_width or original_width
+                "resized_width": resized_width or original_width,
+                "successful": True,
+                "error": None
             })
         except Exception as e:
             self.logger.log(f"Error converting {source_path}: {e}", "error")
             result.update({
                 "status": "failed",
                 "source": source_path,
+                "destination": dest_path,
+                "original_width": None,
+                "resized_width": None,
+                "successful": False,
                 "error": str(e)
             })
 
+        self.summary.append(result)
         return result
 
     def load_image(self, source_path: str, ext: str) -> Image.Image:
@@ -80,3 +89,20 @@ class ImageConverter:
         image = image.resize((self.width, new_height), Image.Resampling.LANCZOS)
         self.logger.log(f"Resized image to width {self.width}", "debug")
         return image, self.width
+
+    def generate_summary(self) -> Dict:
+        total = len(self.summary)
+        successful = sum(1 for item in self.summary if item["successful"])
+        errors = total - successful
+        status = "success" if errors == 0 else "failed"
+
+        summary = {
+            "summary": self.summary,
+            "status": status,
+            "total": total,
+            "successful": successful,
+            "errors": errors
+        }
+
+        self.logger.log(json.dumps(summary, indent=4), "info")
+        return summary

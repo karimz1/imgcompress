@@ -64,18 +64,29 @@ class ImageConversionProcessor:
     def output_results(self, summary: Dict):
         """Output the results based on user preference."""
         if self.args.json_output:
-            print(json.dumps(summary, indent=4))
+            final_output = {
+                "status": "complete",
+                "logs": self.logger.logs,
+                "conversion_results": {
+                    "files": self.results,
+                    "summary": {
+                        "status": summary["status"],
+                        "total_files": len(self.results),
+                        "successful_files": len([r for r in self.results if r["status"] == "success"]),
+                        "failed_files": len([r for r in self.results if r["status"] == "failed"])
+                    }
+                }
+            }
+            print(json.dumps(final_output, indent=4))
         else:
-            self.logger.log(
-                f"Summary: {len(self.results)} file(s) processed, {summary['errors']} error(s).",
-                "info"
-            )
+            message = f"Summary: {len(self.results)} file(s) processed, {summary['errors']} error(s)."
+            self.logger.log(message, "info")
+
             for result in self.results:
                 if result["status"] == "failed":
-                    self.logger.log(
-                        f"Failed: {result['file']} - Error: {result['error']}",
-                        "error"
-                    )
+                    error_message = f"Failed: {result['file']} - Error: {result['error']}"
+                    self.logger.log(error_message, "error")
+
 
     def run(self):
         """Execute the image conversion process."""
@@ -92,4 +103,6 @@ class ImageConversionProcessor:
             sys.exit(1)
 
         summary = self.generate_summary()
+
+        # Output results (logs included) only in one place
         self.output_results(summary)

@@ -82,51 +82,81 @@ docker run --rm \
 #### **Text Logs**:
 
 ```plaintext
-025-01-02 17:16:01,102 - INFO - Starting image conversion process.
-2025-01-02 17:16:01,103 - INFO - Processing directory: /container/images
-2025-01-02 17:16:01,529 - INFO - Converted: /container/images/pexels-willianjusten-29944187.jpg -> /container/converted/pexels-willianjusten-29944187.jpg (Q=85, W=800)
-2025-01-02 17:16:03,089 - INFO - Converted: /container/images/test_image.png -> /container/converted/test_image.jpg (Q=85, W=800)
-2025-01-02 17:16:03,488 - INFO - Converted: /container/images/pexels-pealdesign-28594392.jpg -> /container/converted/pexels-pealdesign-28594392.jpg (Q=85, W=800)
-2025-01-02 17:16:03,495 - INFO - Summary: 3 file(s) processed, 0 error(s).
+Starting image conversion process.
+Processing directory: /container/input_folder/
+Converted: /container/input_folder/pexels-willianjusten-29944187.jpg -> /container/output_folder/pexels-willianjusten-29944187.jpg (Q=80, W=800)
+Converted: /container/input_folder/test_image.png -> /container/output_folder/test_image.jpg (Q=80, W=800)
+Converted: /container/input_folder/pexels-pealdesign-28594392.jpg -> /container/output_folder/pexels-pealdesign-28594392.jpg (Q=80, W=800)
+Summary: 3 file(s) processed, 0 error(s).
 ```
 
 #### **JSON Logs**:
 
 ```json
-{"level": "info", "message": "Starting image conversion process."}
-{"level": "info", "message": "Processing directory: /container/images"}
-{"level": "info", "message": "Converted: /container/images/pexels-willianjusten-29944187.jpg -> /container/converted/pexels-willianjusten-29944187.jpg (Q=85, W=800)"}
-{"level": "info", "message": "Converted: /container/images/test_image.png -> /container/converted/test_image.jpg (Q=85, W=800)"}
-{"level": "info", "message": "Converted: /container/images/pexels-pealdesign-28594392.jpg -> /container/converted/pexels-pealdesign-28594392.jpg (Q=85, W=800)"}
 {
-    "summary": [
+    "status": "complete",
+    "logs": [
         {
-            "file": "pexels-willianjusten-29944187.jpg",
-            "status": "success",
-            "source": "/container/images/pexels-willianjusten-29944187.jpg",
-            "destination": "/container/converted/pexels-willianjusten-29944187.jpg",
-            "original_width": 3648,
-            "resized_width": 800
+            "level": "info",
+            "message": "Starting image conversion process."
         },
         {
-            "file": "test_image.png",
-            "status": "success",
-            "source": "/container/images/test_image.png",
-            "destination": "/container/converted/test_image.jpg",
-            "original_width": 6000,
-            "resized_width": 800
+            "level": "info",
+            "message": "Processing directory: /container/input_folder/"
         },
         {
-            "file": "pexels-pealdesign-28594392.jpg",
-            "status": "success",
-            "source": "/container/images/pexels-pealdesign-28594392.jpg",
-            "destination": "/container/converted/pexels-pealdesign-28594392.jpg",
-            "original_width": 3486,
-            "resized_width": 800
+            "level": "info",
+            "message": "Converted: /container/input_folder/pexels-willianjusten-29944187.jpg -> /container/output_folder/pexels-willianjusten-29944187.jpg (Q=80, W=800)"
+        },
+        {
+            "level": "info",
+            "message": "Converted: /container/input_folder/test_image.png -> /container/output_folder/test_image.jpg (Q=80, W=800)"
+        },
+        {
+            "level": "info",
+            "message": "Converted: /container/input_folder/pexels-pealdesign-28594392.jpg -> /container/output_folder/pexels-pealdesign-28594392.jpg (Q=80, W=800)"
         }
     ],
-    "status": "success",
-    "errors": 0
+    "conversion_results": {
+        "files": [
+            {
+                "file": "pexels-willianjusten-29944187.jpg",
+                "status": "success",
+                "source": "/container/input_folder/pexels-willianjusten-29944187.jpg",
+                "destination": "/container/output_folder/pexels-willianjusten-29944187.jpg",
+                "original_width": 3648,
+                "resized_width": 800,
+                "successful": true,
+                "error": null
+            },
+            {
+                "file": "test_image.png",
+                "status": "success",
+                "source": "/container/input_folder/test_image.png",
+                "destination": "/container/output_folder/test_image.jpg",
+                "original_width": 6000,
+                "resized_width": 800,
+                "successful": true,
+                "error": null
+            },
+            {
+                "file": "pexels-pealdesign-28594392.jpg",
+                "status": "success",
+                "source": "/container/input_folder/pexels-pealdesign-28594392.jpg",
+                "destination": "/container/output_folder/pexels-pealdesign-28594392.jpg",
+                "original_width": 3486,
+                "resized_width": 800,
+                "successful": true,
+                "error": null
+            }
+        ],
+        "summary": {
+            "status": "success",
+            "total_files": 3,
+            "successful_files": 3,
+            "failed_files": 0
+        }
+    }
 }
 ```
 

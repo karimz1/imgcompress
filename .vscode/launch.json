@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Pytest Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "pythonPath": "/venv/bin/python",  // Adjust this to the correct Python path
+            "args": [
+                "--maxfail=1",
+                "--disable-warnings",
+                "-v"
+            ],
+            "justMyCode": false
+        }
+    ]
+}
