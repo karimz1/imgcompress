@@ -68,6 +68,7 @@ class ImageConversionProcessor:
                 "status": "complete",
                 "logs": self.logger.logs,
                 "conversion_results": {
+                    "files": self.results,
                     "summary": {
                         "status": summary["status"],
                         "total_files": len(self.results),
