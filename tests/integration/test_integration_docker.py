@@ -95,37 +95,33 @@ class TestDockerIntegration:
         print("Docker run command:", shlex.join(cmd))
         subprocess.run(cmd, check=True)
 
-
     def run_docker_singlefile_processing(self, single_file_name):
-    """
-    Processes a single file inside SAMPLE_IMAGES_DIR -> OUTPUT_DIR.
-    """
-    if is_github_actions():
-        print("Running within GitHub Actions.")
-        cmd = [
-            "docker", "run", "--rm",
-            "--volumes-from", self.DEVCONTAINER_NAME,
-            self.DOCKER_IMAGE_NAME,
-            f"/container/input_folder/{single_file_name}",  # path within the container
-            "/container/output_folder",                     # same destination as folder mode
-            "--quality", str(80),
-            "--width", str(self.EXPECTED_IMAGE_WIDTH),
-        ]
-    else:
-        print("Running locally...")
-        cmd = [
-            "docker", "run", "--rm",
-            "-v", f"{self.SAMPLE_IMAGES_DIR}:/container/input_folder",
-            "-v", f"{self.OUTPUT_DIR}:/container/output_folder",
-            self.DOCKER_IMAGE_NAME,
-            f"/container/input_folder/{single_file_name}",  # path within the container
-            "/container/output_folder",
-            "--quality", str(80),
-            "--width", str(self.EXPECTED_IMAGE_WIDTH),
-        ]
-    print("Docker single-file command:", shlex.join(cmd))
-    subprocess.run(cmd, check=True)
-
+        """
+        Processes a single file inside SAMPLE_IMAGES_DIR -> OUTPUT_DIR.
+        """
+        if is_github_actions():
+            cmd = [
+                "docker", "run", "--rm",
+                "--volumes-from", self.DEVCONTAINER_NAME,
+                self.DOCKER_IMAGE_NAME,
+                os.path.join(self.OUTPUT_DIR, single_file_name),
+                self.OUTPUT_DIR,
+                "--quality", str(80),
+                "--width", str(self.EXPECTED_IMAGE_WIDTH),
+            ]
+        else:
+            cmd = [
+                "docker", "run", "--rm",
+                "-v", f"{self.SAMPLE_IMAGES_DIR}:/container/input_folder",
+                "-v", f"{self.OUTPUT_DIR}:/container/output_folder",
+                self.DOCKER_IMAGE_NAME,
+                f"/container/input_folder/{single_file_name}",
+                "/container/output_folder",
+                "--quality", str(80),
+                "--width", str(self.EXPECTED_IMAGE_WIDTH),
+            ]
+        print("Docker single-file command:", shlex.join(cmd))
+        subprocess.run(cmd, check=True)
 
     def test_files_created(self):
         """
