@@ -46,13 +46,13 @@ def test_success_json_output(mock_converter, mock_file_manager):
             "file": "test1.jpg", "status": "success",
             "source": "/mock/source/test1.jpg", "destination": "/mock/destination/test1.jpg",
             "original_width": 2000, "resized_width": 800,
-            "successful": True, "error": None
+            "is_successful": True, "error": None
         },
         {
             "file": "test2.jpg", "status": "success",
             "source": "/mock/source/test2.jpg", "destination": "/mock/destination/test2.jpg",
             "original_width": 3000, "resized_width": 800,
-            "successful": True, "error": None
+            "is_successful": True, "error": None
         },
     ]
 
@@ -64,9 +64,9 @@ def test_success_json_output(mock_converter, mock_file_manager):
     assert output_json["status"] == "complete"
     assert len(output_json["logs"]) == 0
     conv_results = output_json["conversion_results"]
-    assert conv_results["summary"]["total_files"] == 2
-    assert conv_results["summary"]["successful_files"] == 2
-    assert conv_results["summary"]["failed_files"] == 0
+    assert conv_results["file_processing_summary"]["total_files_count"] == 2
+    assert conv_results["file_processing_summary"]["successful_files_count"] == 2
+    assert conv_results["file_processing_summary"]["failed_files_count"] == 0
 
 def test_failure_text_output(mock_converter, mock_file_manager):
     """
@@ -85,17 +85,18 @@ def test_failure_text_output(mock_converter, mock_file_manager):
             "file": "test1.jpg", "status": "success",
             "source": "/mock/source/test1.jpg", "destination": "/mock/destination/test1.jpg",
             "original_width": 2000, "resized_width": 800,
-            "successful": True, "error": None
+            "is_successful": True, "error": None
         },
         {
             "file": "test2.jpg", "status": "failed",
             "source": "/mock/source/test2.jpg", "destination": "/mock/destination/test2.jpg",
             "original_width": None, "resized_width": None,
-            "successful": False, "error": "Mock failure"
+            "is_successful": False, "error": "Mock failure"
         },
     ]
 
     summary = processor.generate_summary()
+    #assert  summary["is_all_successful"] == False
     output = capture_logger_output(processor.output_results, summary)
     assert "Summary: 2 file(s) processed, 1 error(s)." in output
     assert "Failed: test2.jpg - Error: Mock failure" in output
@@ -108,10 +109,10 @@ def test_debug_mode_logging(mock_logger):
     logger = mock_logger
     logger.debug = True
 
-    logger.log("Debugging info...", "debug")
-    logger.log("Just an info message.", "info")
-    logger.log("Heads up!", "warning")
-    logger.log("Error occurred!", "error")
+    logger.log("Mock: Debug - Debugging info...", "debug")
+    logger.log("Mock: Info - Just an info message.", "info")
+    logger.log("Mock: Warning - Heads up!", "warning")
+    logger.log("Mock: Error - occurred!", "error")
 
  
     assert len(logger.logs) == 0

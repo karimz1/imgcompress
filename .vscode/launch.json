@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Pytest Tests",
+            "name": "Debug Pytest Unit Tests",
             "type": "python",
             "request": "launch",
             "module": "pytest",
@@ -10,7 +10,22 @@
             "args": [
                 "--maxfail=1",
                 "--disable-warnings",
-                "-v"
+                "-v",
+                "tests/unit"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "Debug Pytest All Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "pythonPath": "/venv/bin/python",
+            "args": [
+                "--maxfail=1",
+                "--disable-warnings",
+                "-v",
+                "tests/"
             ],
             "justMyCode": false
         }

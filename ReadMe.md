@@ -126,7 +126,7 @@ Summary: 3 file(s) processed, 0 error(s).
                 "destination": "/container/output_folder/pexels-willianjusten-29944187.jpg",
                 "original_width": 3648,
                 "resized_width": 800,
-                "successful": true,
+                "is_successful": true,
                 "error": null
             },
             {
@@ -136,7 +136,7 @@ Summary: 3 file(s) processed, 0 error(s).
                 "destination": "/container/output_folder/test_image.jpg",
                 "original_width": 6000,
                 "resized_width": 800,
-                "successful": true,
+                "is_successful": true,
                 "error": null
             },
             {
@@ -146,15 +146,15 @@ Summary: 3 file(s) processed, 0 error(s).
                 "destination": "/container/output_folder/pexels-pealdesign-28594392.jpg",
                 "original_width": 3486,
                 "resized_width": 800,
-                "successful": true,
+                "is_successful": true,
                 "error": null
             }
         ],
-        "summary": {
+        "file_processing_summary": {
             "status": "success",
-            "total_files": 3,
-            "successful_files": 3,
-            "failed_files": 0
+            "total_files_count": 3,
+            "successful_files_count": 3,
+            "failed_files_count": 0
         }
     }
 }

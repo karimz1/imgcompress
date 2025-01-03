@@ -57,29 +57,28 @@ class ImageConversionProcessor:
         summary = {
             "summary": self.results,
             "status": "success" if error_count == 0 else "failed",
-            "errors": error_count
+            "errors_count": error_count
         }
         return summary
 
     def output_results(self, summary: Dict):
-        """Output the results based on user preference."""
         if self.args.json_output:
             final_output = {
                 "status": "complete",
                 "logs": self.logger.logs,
                 "conversion_results": {
                     "files": self.results,
-                    "summary": {
+                    "file_processing_summary": {
                         "status": summary["status"],
-                        "total_files": len(self.results),
-                        "successful_files": len([r for r in self.results if r["status"] == "success"]),
-                        "failed_files": len([r for r in self.results if r["status"] == "failed"])
+                        "total_files_count": len(self.results),
+                        "successful_files_count": len([r for r in self.results if r["status"] == "success"]),
+                        "failed_files_count": len([r for r in self.results if r["status"] == "failed"])
                     }
                 }
             }
             print(json.dumps(final_output, indent=4))
         else:
-            message = f"Summary: {len(self.results)} file(s) processed, {summary['errors']} error(s)."
+            message = f"Summary: {len(self.results)} file(s) processed, {summary['errors_count']} error(s)."
             self.logger.log(message, "info")
 
             for result in self.results:
