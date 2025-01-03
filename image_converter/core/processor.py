@@ -13,6 +13,7 @@ class ImageConversionProcessor:
 
     def __init__(self, args: argparse.Namespace):
         self.args = args
+        self.debug = args.debug
         self.logger = Logger(debug=args.debug, json_output=args.json_output)
         self.converter = ImageConverter(
             quality=args.quality,
@@ -53,37 +54,34 @@ class ImageConversionProcessor:
 
     def generate_summary(self) -> Dict:
         """Generate a summary of the conversion process."""
-        error_count = sum(1 for result in self.results if result["status"] == "failed")
+        error_count = sum(1 for result in self.results if result["is_successful"] == False)
         summary = {
             "summary": self.results,
-            "status": "success" if error_count == 0 else "failed",
-            "errors": error_count
+            "errors_count": error_count
         }
         return summary
 
     def output_results(self, summary: Dict):
-        """Output the results based on user preference."""
         if self.args.json_output:
             final_output = {
                 "status": "complete",
-                "logs": self.logger.logs,
+                **({"logs": self.logger.logs} if self.debug else {}),
                 "conversion_results": {
                     "files": self.results,
-                    "summary": {
-                        "status": summary["status"],
-                        "total_files": len(self.results),
-                        "successful_files": len([r for r in self.results if r["status"] == "success"]),
-                        "failed_files": len([r for r in self.results if r["status"] == "failed"])
+                    "file_processing_summary": {
+                        "total_files_count": len(self.results),
+                        "successful_files_count": len([r for r in self.results if r["is_successful"]  == True]),
+                        "failed_files_count": len([r for r in self.results if r["is_successful"] == False])
                     }
                 }
             }
             print(json.dumps(final_output, indent=4))
         else:
-            message = f"Summary: {len(self.results)} file(s) processed, {summary['errors']} error(s)."
+            message = f"Summary: {len(self.results)} file(s) processed, {summary['errors_count']} error(s)."
             self.logger.log(message, "info")
 
             for result in self.results:
-                if result["status"] == "failed":
+                if result["is_successful"] == False:
                     error_message = f"Failed: {result['file']} - Error: {result['error']}"
                     self.logger.log(error_message, "error")
 

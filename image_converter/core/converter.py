@@ -35,23 +35,21 @@ class ImageConverter:
             )
 
             result.update({
-                "status": "success",
                 "source": source_path,
                 "destination": dest_path,
                 "original_width": original_width,
                 "resized_width": resized_width or original_width,
-                "successful": True,
+                "is_successful": True,
                 "error": None
             })
         except Exception as e:
             self.logger.log(f"Error converting {source_path}: {e}", "error")
             result.update({
-                "status": "failed",
                 "source": source_path,
                 "destination": dest_path,
                 "original_width": None,
                 "resized_width": None,
-                "successful": False,
+                "is_successful": False,
                 "error": str(e)
             })
 
@@ -89,20 +87,3 @@ class ImageConverter:
         image = image.resize((self.width, new_height), Image.Resampling.LANCZOS)
         self.logger.log(f"Resized image to width {self.width}", "debug")
         return image, self.width
-
-    def generate_summary(self) -> Dict:
-        total = len(self.summary)
-        successful = sum(1 for item in self.summary if item["successful"])
-        errors = total - successful
-        status = "success" if errors == 0 else "failed"
-
-        summary = {
-            "summary": self.summary,
-            "status": status,
-            "total": total,
-            "successful": successful,
-            "errors": errors
-        }
-
-        self.logger.log(json.dumps(summary, indent=4), "info")
-        return summary

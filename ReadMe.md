@@ -95,66 +95,40 @@ Summary: 3 file(s) processed, 0 error(s).
 ```json
 {
     "status": "complete",
-    "logs": [
-        {
-            "level": "info",
-            "message": "Starting image conversion process."
-        },
-        {
-            "level": "info",
-            "message": "Processing directory: /container/input_folder/"
-        },
-        {
-            "level": "info",
-            "message": "Converted: /container/input_folder/pexels-willianjusten-29944187.jpg -> /container/output_folder/pexels-willianjusten-29944187.jpg (Q=80, W=800)"
-        },
-        {
-            "level": "info",
-            "message": "Converted: /container/input_folder/test_image.png -> /container/output_folder/test_image.jpg (Q=80, W=800)"
-        },
-        {
-            "level": "info",
-            "message": "Converted: /container/input_folder/pexels-pealdesign-28594392.jpg -> /container/output_folder/pexels-pealdesign-28594392.jpg (Q=80, W=800)"
-        }
-    ],
     "conversion_results": {
         "files": [
             {
                 "file": "pexels-willianjusten-29944187.jpg",
-                "status": "success",
                 "source": "/container/input_folder/pexels-willianjusten-29944187.jpg",
                 "destination": "/container/output_folder/pexels-willianjusten-29944187.jpg",
                 "original_width": 3648,
                 "resized_width": 800,
-                "successful": true,
+                "is_successful": true,
                 "error": null
             },
             {
                 "file": "test_image.png",
-                "status": "success",
                 "source": "/container/input_folder/test_image.png",
                 "destination": "/container/output_folder/test_image.jpg",
                 "original_width": 6000,
                 "resized_width": 800,
-                "successful": true,
+                "is_successful": true,
                 "error": null
             },
             {
                 "file": "pexels-pealdesign-28594392.jpg",
-                "status": "success",
                 "source": "/container/input_folder/pexels-pealdesign-28594392.jpg",
                 "destination": "/container/output_folder/pexels-pealdesign-28594392.jpg",
                 "original_width": 3486,
                 "resized_width": 800,
-                "successful": true,
+                "is_successful": true,
                 "error": null
             }
         ],
-        "summary": {
-            "status": "success",
-            "total_files": 3,
-            "successful_files": 3,
-            "failed_files": 0
+        "file_processing_summary": {
+            "total_files_count": 3,
+            "successful_files_count": 3,
+            "failed_files_count": 0
         }
     }
 }
