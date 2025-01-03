@@ -104,7 +104,7 @@ class TestDockerIntegration:
                 "docker", "run", "--rm",
                 "--volumes-from", self.DEVCONTAINER_NAME,
                 self.DOCKER_IMAGE_NAME,
-                os.path.join(self.OUTPUT_DIR, single_file_name),
+                os.path.join(self.SAMPLE_IMAGES_DIR, single_file_name),
                 self.OUTPUT_DIR,
                 "--quality", str(80),
                 "--width", str(self.EXPECTED_IMAGE_WIDTH),
