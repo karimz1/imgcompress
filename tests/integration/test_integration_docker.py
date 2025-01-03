@@ -61,7 +61,7 @@ class TestDockerIntegration:
 
         img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_image.png")
         create_sample_test_image(img_path)
-        assert os.path.exists(dest_img_path), f"Failed to create test image at {img_path}"
+        assert os.path.exists(img_path), f"Failed to create test image at {img_path}"
 
         sample_files = os.listdir(self.SAMPLE_IMAGES_DIR)
         print(f"Contents of SAMPLE_IMAGES_DIR: {sample_files}")
