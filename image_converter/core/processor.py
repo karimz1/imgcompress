@@ -13,6 +13,7 @@ class ImageConversionProcessor:
 
     def __init__(self, args: argparse.Namespace):
         self.args = args
+        self.debug = args.debug
         self.logger = Logger(debug=args.debug, json_output=args.json_output)
         self.converter = ImageConverter(
             quality=args.quality,
@@ -64,7 +65,7 @@ class ImageConversionProcessor:
         if self.args.json_output:
             final_output = {
                 "status": "complete",
-                "logs": self.logger.logs,
+                **({"logs": self.logger.logs} if self.debug else {}),
                 "conversion_results": {
                     "files": self.results,
                     "file_processing_summary": {

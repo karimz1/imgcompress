@@ -62,7 +62,6 @@ def test_success_json_output(mock_converter, mock_file_manager):
     import json
     output_json = json.loads(output)
     assert output_json["status"] == "complete"
-    assert len(output_json["logs"]) == 0
     conv_results = output_json["conversion_results"]
     assert conv_results["file_processing_summary"]["total_files_count"] == 2
     assert conv_results["file_processing_summary"]["successful_files_count"] == 2
