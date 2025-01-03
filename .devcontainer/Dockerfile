@@ -26,5 +26,7 @@ RUN pip install -r requirements-dev.txt
 # Copy the rest of the application code
 COPY . .
 
+RUN export PYTHONPATH="/workspaces/imgcompress:$PYTHONPATH"
+
 # Set the entrypoint
 ENTRYPOINT ["/bin/sh"]
