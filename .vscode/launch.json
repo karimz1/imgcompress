@@ -6,7 +6,7 @@
             "type": "python",
             "request": "launch",
             "module": "pytest",
-            "pythonPath": "/venv/bin/python",  // Adjust this to the correct Python path
+            "pythonPath": "/venv/bin/python",
             "args": [
                 "--maxfail=1",
                 "--disable-warnings",

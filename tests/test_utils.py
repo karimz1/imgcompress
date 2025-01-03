@@ -50,7 +50,7 @@ def capture_logger_output(func, *args, **kwargs):
     old_handlers = logger.handlers[:]
     logger.handlers = []
     logger.addHandler(handler)
-    logger.setLevel(logging.INFO)  # or DEBUG, if needed
+    logger.setLevel(logging.INFO)
     try:
         func(*args, **kwargs)
     finally:
@@ -100,7 +100,6 @@ def create_sample_test_image(dest_img_path):
     from PIL import Image
     img = Image.new("RGB", (6000, 12000), color="white")
     img.save(dest_img_path)
-    assert os.path.exists(dest_img_path), f"Failed to create test image at {dest_img_path}"
 
 
 def is_github_actions():

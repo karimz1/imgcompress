@@ -103,6 +103,4 @@ class ImageConversionProcessor:
             sys.exit(1)
 
         summary = self.generate_summary()
-
-        # Output results (logs included) only in one place
         self.output_results(summary)
