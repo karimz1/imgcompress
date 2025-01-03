@@ -121,7 +121,6 @@ Summary: 3 file(s) processed, 0 error(s).
         "files": [
             {
                 "file": "pexels-willianjusten-29944187.jpg",
-                "status": "success",
                 "source": "/container/input_folder/pexels-willianjusten-29944187.jpg",
                 "destination": "/container/output_folder/pexels-willianjusten-29944187.jpg",
                 "original_width": 3648,
@@ -131,7 +130,6 @@ Summary: 3 file(s) processed, 0 error(s).
             },
             {
                 "file": "test_image.png",
-                "status": "success",
                 "source": "/container/input_folder/test_image.png",
                 "destination": "/container/output_folder/test_image.jpg",
                 "original_width": 6000,
@@ -141,7 +139,6 @@ Summary: 3 file(s) processed, 0 error(s).
             },
             {
                 "file": "pexels-pealdesign-28594392.jpg",
-                "status": "success",
                 "source": "/container/input_folder/pexels-pealdesign-28594392.jpg",
                 "destination": "/container/output_folder/pexels-pealdesign-28594392.jpg",
                 "original_width": 3486,
@@ -151,7 +148,6 @@ Summary: 3 file(s) processed, 0 error(s).
             }
         ],
         "file_processing_summary": {
-            "status": "success",
             "total_files_count": 3,
             "successful_files_count": 3,
             "failed_files_count": 0

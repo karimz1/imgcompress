@@ -43,13 +43,13 @@ def test_success_json_output(mock_converter, mock_file_manager):
 
     processor.results = [
         {
-            "file": "test1.jpg", "status": "success",
+            "file": "test1.jpg",
             "source": "/mock/source/test1.jpg", "destination": "/mock/destination/test1.jpg",
             "original_width": 2000, "resized_width": 800,
             "is_successful": True, "error": None
         },
         {
-            "file": "test2.jpg", "status": "success",
+            "file": "test2.jpg",
             "source": "/mock/source/test2.jpg", "destination": "/mock/destination/test2.jpg",
             "original_width": 3000, "resized_width": 800,
             "is_successful": True, "error": None
@@ -82,13 +82,13 @@ def test_failure_text_output(mock_converter, mock_file_manager):
 
     processor.results = [
         {
-            "file": "test1.jpg", "status": "success",
+            "file": "test1.jpg",
             "source": "/mock/source/test1.jpg", "destination": "/mock/destination/test1.jpg",
             "original_width": 2000, "resized_width": 800,
             "is_successful": True, "error": None
         },
         {
-            "file": "test2.jpg", "status": "failed",
+            "file": "test2.jpg",
             "source": "/mock/source/test2.jpg", "destination": "/mock/destination/test2.jpg",
             "original_width": None, "resized_width": None,
             "is_successful": False, "error": "Mock failure"

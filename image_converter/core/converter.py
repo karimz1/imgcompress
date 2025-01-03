@@ -35,7 +35,6 @@ class ImageConverter:
             )
 
             result.update({
-                "status": "success",
                 "source": source_path,
                 "destination": dest_path,
                 "original_width": original_width,
@@ -46,7 +45,6 @@ class ImageConverter:
         except Exception as e:
             self.logger.log(f"Error converting {source_path}: {e}", "error")
             result.update({
-                "status": "failed",
                 "source": source_path,
                 "destination": dest_path,
                 "original_width": None,

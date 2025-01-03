@@ -53,10 +53,9 @@ class ImageConversionProcessor:
 
     def generate_summary(self) -> Dict:
         """Generate a summary of the conversion process."""
-        error_count = sum(1 for result in self.results if result["status"] == "failed")
+        error_count = sum(1 for result in self.results if result["is_successful"] == False)
         summary = {
             "summary": self.results,
-            "status": "success" if error_count == 0 else "failed",
             "errors_count": error_count
         }
         return summary
@@ -69,10 +68,9 @@ class ImageConversionProcessor:
                 "conversion_results": {
                     "files": self.results,
                     "file_processing_summary": {
-                        "status": summary["status"],
                         "total_files_count": len(self.results),
-                        "successful_files_count": len([r for r in self.results if r["status"] == "success"]),
-                        "failed_files_count": len([r for r in self.results if r["status"] == "failed"])
+                        "successful_files_count": len([r for r in self.results if r["is_successful"]  == True]),
+                        "failed_files_count": len([r for r in self.results if r["is_successful"] == False])
                     }
                 }
             }
@@ -82,7 +80,7 @@ class ImageConversionProcessor:
             self.logger.log(message, "info")
 
             for result in self.results:
-                if result["status"] == "failed":
+                if result["is_successful"] == False:
                     error_message = f"Failed: {result['file']} - Error: {result['error']}"
                     self.logger.log(error_message, "error")
 
