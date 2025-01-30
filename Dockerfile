@@ -25,6 +25,8 @@ COPY requirements.txt /container/
 
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir .
+RUN chmod +r ./buildFrontend.sh
+RUN ./buildFrontend.sh
 
 EXPOSE 5000
 
