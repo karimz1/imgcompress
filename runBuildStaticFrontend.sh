@@ -10,9 +10,6 @@ npm install
 echo "Running Next.js build..."
 npm run build
 
-echo "Exporting static site..."
-npm run export  # This puts the static site in ./out by default
-
 echo "=== Copying exported UI to backend/static_site ==="
 cd ..
 
