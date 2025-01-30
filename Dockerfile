@@ -14,6 +14,8 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Install system dependencies needed for HEIC support
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
+    nodejs \ 
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /container
@@ -23,10 +25,14 @@ COPY frontend/ /container/frontend/
 COPY setup.py /container/
 COPY requirements.txt /container/
 
+COPY runBuildStaticFrontend.sh /container
+RUN chmod +x ./runBuildStaticFrontend.sh
+RUN ./runBuildStaticFrontend.sh
+
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir .
-RUN chmod +x ./buildFrontend.sh
-RUN ./buildFrontend.sh
+
+
 
 EXPOSE 5000
 
