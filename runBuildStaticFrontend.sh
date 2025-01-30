@@ -1,3 +1,4 @@
+#!/bin/sh
 set -e  # Exit on any error
 
 echo "=== Building Next.js UI ==="
