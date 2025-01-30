@@ -9,11 +9,10 @@ RUN apk update && apk add --no-cache \
     python3-dev \
     libheif-dev \
     build-base \
+    nodejs \ 
+    npm \
+    npx \
     && rm -rf /var/cache/apk/*
-
-
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-&& apt-get install -y nodejs
 
 
 # Create and activate a virtual environment
