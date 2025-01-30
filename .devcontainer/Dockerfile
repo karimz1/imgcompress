@@ -11,6 +11,11 @@ RUN apk update && apk add --no-cache \
     build-base \
     && rm -rf /var/cache/apk/*
 
+
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+&& apt-get install -y nodejs
+
+
 # Create and activate a virtual environment
 RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
