@@ -2,7 +2,7 @@ import os
 import pyheif
 from PIL import Image
 from typing import Optional, Dict, List
-from image_converter.infrastructure.logger import Logger
+from backend.image_converter.infrastructure.logger import Logger
 
 
 class ImageConverter:

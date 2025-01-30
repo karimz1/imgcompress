@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /container
 
-COPY image_converter/ /container/image_converter/
+COPY backend/ /container/backend/
+COPY frontend/ /container/frontend/
 COPY setup.py /container/
 COPY requirements.txt /container/
 

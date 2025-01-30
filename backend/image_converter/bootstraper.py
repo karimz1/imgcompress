@@ -1,6 +1,6 @@
 import sys
 import subprocess
-from image_converter.cli.convert_images import main as cli_main
+from backend.image_converter.cli.convert_images import main as cli_main
 
 
 def launch_web():
@@ -8,7 +8,7 @@ def launch_web():
         "python",
         "-m",
         "flask",
-        "--app", "web_app.app",
+        "--app", "backend.image_converter.web_app.app",
         "run",
         "--host=0.0.0.0",
         "--port=5000"

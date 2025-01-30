@@ -1,6 +1,6 @@
 import os
 from typing import List
-from image_converter.infrastructure.logger import Logger
+from backend.image_converter.infrastructure.logger import Logger
 
 SUPPORTED_EXTENSIONS = [
     ".heic", ".heif",

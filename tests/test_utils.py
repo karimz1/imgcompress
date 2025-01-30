@@ -44,7 +44,7 @@ def capture_logger_output(func, *args, **kwargs):
     """
     logger_output = StringIO()
     handler = logging.StreamHandler(logger_output)
-    logger = logging.getLogger("image_converter.infrastructure.logger")
+    logger = logging.getLogger("backend.image_converter.infrastructure.logger")
     
     old_level = logger.level
     old_handlers = logger.handlers[:]

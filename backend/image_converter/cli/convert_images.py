@@ -1,7 +1,7 @@
 # image_converter/cli/convert_images.py
 
-from image_converter.cli.argument_parser import parse_arguments
-from image_converter.core.processor import ImageConversionProcessor
+from backend.image_converter.cli.argument_parser import parse_arguments
+from backend.image_converter.core.processor import ImageConversionProcessor
 
 def main():
     """Main entry point of the script."""

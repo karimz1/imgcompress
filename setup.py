@@ -13,7 +13,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'backend/image-converter=image_converter.bootstraper:main',
+            'image-converter=backend.image_converter.bootstraper:main',
         ],
     },
     classifiers=[
