@@ -25,4 +25,6 @@ COPY requirements.txt /container/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir .
 
+EXPOSE 5000
+
 ENTRYPOINT ["image-converter"]
