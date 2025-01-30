@@ -1,3 +1,23 @@
+############################################################
+# 1) Stage FRONTEND BUILD (with Node)
+############################################################
+FROM node:18 AS frontend-build
+
+WORKDIR /app
+# Copy the frontend code into this stage
+COPY frontend/ ./frontend
+
+WORKDIR /app/frontend
+
+# Install and build
+RUN npm install
+RUN npm run build
+RUN npm run export
+# The static site is now in /app/frontend/out/
+
+############################################################
+# 2) Stage FINAL PYTHON IMAGE
+############################################################
 FROM python:3.9-slim-bullseye
 
 LABEL maintainer="Karim Zouine <mails.karimzouine@gmail.com>"
@@ -14,26 +34,29 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Install system dependencies needed for HEIC support
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
-    nodejs \ 
-    npm \
     && rm -rf /var/lib/apt/lists/*
 
+# Set the working directory
 WORKDIR /container
 
-COPY backend/ /container/backend/
-COPY frontend/ /container/frontend/
+# Copy Python code from the host
+# - backend/ for Flask & CLI code
+# - setup.py to install the package
+# - requirements.txt for Python dependencies
+COPY backend/ /container/backend
 COPY setup.py /container/
 COPY requirements.txt /container/
 
-COPY runBuildStaticFrontend.sh /container
-RUN chmod +x ./runBuildStaticFrontend.sh
-RUN ./runBuildStaticFrontend.sh
-
+# Install Python dependencies + packages
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir .
 
+RUN mkdir -p /container/backend/image_converter/web_app/static_site
 
+# Copy the compiled Next.js site from Stage 1
+COPY --from=frontend-build /app/frontend/out/. \
+     /container/backend/image_converter/web_app/static_site
 
+# Expose 5000 for "web" mode
 EXPOSE 5000
 
 ENTRYPOINT ["image-converter"]
