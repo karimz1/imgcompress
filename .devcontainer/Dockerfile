@@ -11,7 +11,6 @@ RUN apk update && apk add --no-cache \
     build-base \
     nodejs \ 
     npm \
-    npx \
     && rm -rf /var/cache/apk/*
 
 
