@@ -12,7 +12,6 @@ WORKDIR /app/frontend
 # Install and build
 RUN npm install
 RUN npm run build
-RUN npm run export
 # The static site is now in /app/frontend/out/
 
 ############################################################
