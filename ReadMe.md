@@ -46,7 +46,7 @@ For users who prefer a graphical interface, `imgcompress` offers a modern Web UI
 Run the following command to launch the Web UI:
 
 ```
-docker run -p 5000:5000 karimz1/imgcompress:latest web
+docker run --rm -p 5000:5000 karimz1/imgcompress:latest web
 ```
 
 - Port Mapping:
