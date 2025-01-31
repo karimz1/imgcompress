@@ -1,102 +1,89 @@
-# imgcompress: Image Compression Tool
+ ![imgcompress Mascot Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
+ 
+# imgcompress: The Ultimate Docker Image Compression Tool
 
-![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)
-![Docker Image Version](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)
-![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)
+[![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)  
+[![Docker Image Version](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress)  
+[![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)  
 [![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml)
 
-![imgcompress Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
+---
+
+## 🎬 See It In Action
+
+Experience the power of imgcompress with our modern Web UI. Check out the quick demo below:
+
+![Web UI in Action](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/ezgif-12f4af43b7a59.gif)
+
+---
+
+## ❓Why imgcompress?
+
+Ever been frustrated by juggling multiple programs just to convert or compress images? **I did too.**  
+I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effortlessly compress, convert, and resize your images—all inside a Docker container. No more complicated installations or worrying about privacy with online converters. Everything runs locally, secure and consistent across any system.
+
+---
+
+## Feature Overview
+
+- **📱 Convert iPhone HEIC Photos to JPEG:**  
+  Easily convert your iPhone's HEIC images to JPEG for smaller file sizes and universal compatibility.
+
+- **🖼️ Universal Format Conversion & Resizing:**  
+  Transform almost any photo format to JPEG and resize images effortlessly—ideal for creating thumbnails, web-optimized images, or custom sizes.
+
+- **⚙️ Customizable Output Quality:**  
+  Fine-tune the compression settings to balance image clarity and file size, ensuring your photos look great while saving space.
+
+- **🗂️ Batch & Single File Processing:**  
+  Whether you're processing one photo or an entire folder, imgcompress handles it all with ease.
+
+- **🔄 Seamless Automation & Flexible Logging:**  
+  Integrate imgcompress into your CI/CD pipelines and choose between human-readable logs or structured JSON for a smoother workflow.
 
 
-## Why would someone develop a tool like that ?!
+---
 
-Hello, I am Karim Zouine, and I created this Docker-based tool called **imgcompress** because I got tired of relying on multiple programs whenever I needed to convert or compress images. Dealing with HEIC files was especially frustrating, since they often need specific DLLs that can be complicated to install. Although there are online conversion services out there, I have always been cautious about uploading personal photos to random websites. Privacy matters to me, so I wanted a reliable way to handle everything locally on my own computer.
+## 🚀 Get Started in Seconds
 
-By packaging imgcompress in a Docker container, I eliminated the need to install extra dependencies or spend time on complicated setup. Docker guarantees that imgcompress operates the same way on any machine, removing the guesswork. With just a few commands, it can also convert entire folders of images in one go.
+### Step 1: Install via Docker
 
-
-## **Features of imgcompress?**
-
-`imgcompress` is a lightweight, fully Dockerized tool for compressing, resizing, and converting images. It’s designed to simplify image optimization with:
-
-- **HEIC to JPG Conversion**: Automatically convert HEIC files to JPG.
-- **Batch & Single File Processing**: Process entire directories or individual images effortlessly.
-- **Logging Options**: Choose between human-readable text or structured JSON output.
-- **Seamless Automation**: Perfect for use in CI/CD pipelines or standalone workflows.
-- **NEW Modern Web UI**: An intuitive web interface for easy image compression without the command line.
-
-![Web UI Gif](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/ezgif-12f4af43b7a59.gif)
-
-------
-
-## **Installation**
-
-Pull the latest image with:
+Pull the latest image:
 
 ```bash
 docker pull karimz1/imgcompress:latest
 ```
 
+### Step 2: Choose Your Workflow
+
+#### A. Try the NEW Web User Interface (Highly Recommended!)
+
+1. **Launch the Web UI:**
+
+   ```  bash
+   docker run --rm -p 5000:5000 karimz1/imgcompress:latest web
+   ```
+
+2. **Access the Web UI:**
+
+   Open your browser and go to:
+   **http://localhost:5000**
+
+3. **Explore the Features:**
+
+   - **Drag & Drop Uploads:** Simply drag your images into the browser.
+   - **Batch Processing:** Compress multiple images simultaneously.
+   - **Real-Time Progress:** Watch your images optimize live.
+   - **Download Instantly:** Retrieve your optimized images directly from the browser.
+   - **Customizable Settings:** Tweak quality and resize options effortlessly.
+
 ------
 
-## Usage
+#### B. Use the Command-Line Interface (CLI) for Advanced Workflows
 
-`imgcompress` provides both a Command-Line Interface (CLI) for advanced users and a Web User Interface (Web UI) for an intuitive, no-code experience.
+**Single File Processing:**
 
-
-
-### NEW: Web User Interface (Web UI) - Workflow
-
-> This is the recommended approach because providing a user interface for image compression can be highly beneficial.
-
-For users who prefer a graphical interface, `imgcompress` offers a modern Web UI.
-
-#### **Starting the Web UI**
-
-Run the following command to launch the Web UI:
-
-```
-docker run --rm -p 5000:5000 karimz1/imgcompress:latest web
-```
-
-- Port Mapping:
-  - `-p 5000:5000`: Maps port `5000` of the container to port `5000` on the host machine.
-
-#### **Accessing the Web UI**
-
-Once the container is running, open your browser and navigate to:
-
-```
-http://localhost:5000
-```
-
-#### **Features**
-
-- **Drag & Drop**: Easily upload images for compression.
-- **Batch Processing**: Handle multiple images simultaneously.
-- **Real-Time Progress**: Monitor the compression status.
-- **Download Optimized Images**: Retrieve compressed images directly from the Web interface.
-- **Settings Panel**: Adjust compression quality and resizing options.
-- **Multi Images Support**: Easily upload and process multiple images simultaneously, streamlining your workflow with the ability to drag and drop entire image folders.
-
-
-
-#### Screenshoots
-> The user interface may differ slightly from the screenshot, as I continuously develop and implement minor enhancements.
-
-##### Web UI
-![Web UI GIF](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/ezgif-12f4af43b7a59.gif)
-
-
-### Command-Line Interface (CLI) - Workflow
-
-> This approach is designed for advanced workflows and automation, allowing you to integrate it seamlessly into pipelines or other automated processes.
-
-Navigate to your image directory and run:
-
-#### Single File Processing:
-
-```bash
+``` bash
 docker run --rm \
   -v "$(pwd):/container/images" \
   -v "$(pwd)/converted:/container/converted" \
@@ -104,9 +91,9 @@ docker run --rm \
   /container/images/example.jpg /container/converted --quality 80 --width 1920
 ```
 
-#### Folder Processing:
+**Folder Processing:**
 
-```bash
+``` bash
 docker run --rm \
   -v "$(pwd):/container/images" \
   -v "$(pwd)/converted:/container/converted" \
@@ -114,80 +101,69 @@ docker run --rm \
   /container/images /container/converted --quality 85 --width 800
 ```
 
-### **What It Does**
+------
 
-1. **Maps local directories:**
-   - `$(pwd)`: Refers to the current working directory on your host machine.
-   - `images/`: The input folder or file for uncompressed images.
-   - `converted/`: The output folder for compressed images.
-2. **Processes images:**
-   - `--quality`: Sets JPEG quality (e.g., `80` for single file, `85` for folders).
-   - `--width`: Resizes images to a specific width while maintaining aspect ratio.
+## How It Works
+
+1. 📁 Local Directory Mapping:
+
+   Map your host machine’s directories into the Docker container:
+
+   - **Input:** Your original images.
+   - **Output:** Your optimized images.
+
+2. ⚙️ Process Parameters:
+
+   Customize your conversion with:
+
+   - `--quality`: Set JPEG quality (1–100, default: 85).
+   - `--width`: Resize images to a desired width (optional).
+   - `--debug`: Enable detailed logging.
+   - `--json-output`: Generate logs in JSON format for automation workflows.
 
 ------
 
-### **Parameters**
+## Detailed Example Logs
 
-| Parameter       | Description                                          |
-| --------------- | ---------------------------------------------------- |
-| `--quality`     | Compression quality (1–100, default: `85`).          |
-| `--width`       | Resize images to the specified width (optional).     |
-| `--debug`       | Enable detailed logs for troubleshooting.            |
-| `--json-output` | Output logs in JSON format for automation workflows. |
+**Text Output:**
 
-------
-
-### **Example Logs**
-
-#### **Text Logs**:
-
-```plaintext
+``` plain text
 Starting image conversion process.
 Processing directory: /container/input_folder/
-Converted: /container/input_folder/pexels-willianjusten-29944187.jpg -> /container/output_folder/pexels-willianjusten-29944187.jpg (Q=80, W=800)
-Converted: /container/input_folder/test_image.png -> /container/output_folder/test_image.jpg (Q=80, W=800)
-Converted: /container/input_folder/pexels-pealdesign-28594392.jpg -> /container/output_folder/pexels-pealdesign-28594392.jpg (Q=80, W=800)
-Summary: 3 file(s) processed, 0 error(s).
+Converted: /container/input_folder/photo1.jpg -> /container/output_folder/photo1.jpg (Q=80, W=800)
+Converted: /container/input_folder/photo2.png -> /container/output_folder/photo2.jpg (Q=80, W=800)
+Summary: 2 files processed, 0 errors.
 ```
 
-#### **JSON Logs**:
+**JSON Output:**
 
-```json
+``` json
 {
     "status": "complete",
     "conversion_results": {
         "files": [
             {
-                "file": "pexels-willianjusten-29944187.jpg",
-                "source": "/container/input_folder/pexels-willianjusten-29944187.jpg",
-                "destination": "/container/output_folder/pexels-willianjusten-29944187.jpg",
+                "file": "photo1.jpg",
+                "source": "/container/input_folder/photo1.jpg",
+                "destination": "/container/output_folder/photo1.jpg",
                 "original_width": 3648,
                 "resized_width": 800,
                 "is_successful": true,
                 "error": null
             },
             {
-                "file": "test_image.png",
-                "source": "/container/input_folder/test_image.png",
-                "destination": "/container/output_folder/test_image.jpg",
+                "file": "photo2.png",
+                "source": "/container/input_folder/photo2.png",
+                "destination": "/container/output_folder/photo2.jpg",
                 "original_width": 6000,
-                "resized_width": 800,
-                "is_successful": true,
-                "error": null
-            },
-            {
-                "file": "pexels-pealdesign-28594392.jpg",
-                "source": "/container/input_folder/pexels-pealdesign-28594392.jpg",
-                "destination": "/container/output_folder/pexels-pealdesign-28594392.jpg",
-                "original_width": 3486,
                 "resized_width": 800,
                 "is_successful": true,
                 "error": null
             }
         ],
         "file_processing_summary": {
-            "total_files_count": 3,
-            "successful_files_count": 3,
+            "total_files_count": 2,
+            "successful_files_count": 2,
             "failed_files_count": 0
         }
     }
@@ -196,46 +172,36 @@ Summary: 3 file(s) processed, 0 error(s).
 
 ------
 
-## **Advanced Use Cases**
-
-- **HEIC Conversion**: Just include HEIC files in your input directory, and they’ll automatically convert to JPG.
-- **CI/CD Integration**: Use `--json-output` for structured results in automated workflows.
+## Advanced Use Cases
+- 🔧 **CI/CD Integration:**
+  Use the `--json-output` flag to obtain structured results for automation, it acts as a mini API.
 
 ------
 
-## **Help Menu**
+## Need Help?
 
-For all options, run:
+Display all available options:
 
-```bash
+``` bash
 docker run --rm karimz1/imgcompress --help
 ```
 
 ------
 
-## Privacy And Security
-One of my main motivations was maintaining full control over my images. Because imgcompress runs in Docker on your local environment, there is no need to upload your images to a third-party website. This approach not only preserves your privacy but also avoids potential security risks that come with web-based tools.
+## 🔒 Privacy & Security
 
-
-------
-
-## **Contribution**
-
-[Source Code](https://github.com/karimz1/imgcompress)
-
-I welcome contributions! Fork the repo, create a branch, and submit a pull request.
+Your images remain private—**no uploads to third-party servers.**
+Everything runs locally in Docker, ensuring your data stays secure and under your control.
 
 ------
 
+## 🤝 Contribute & Support
 
-## ❤️ If You Find This Useful ❤️
+Interested in contributing? Visit the [Source Code on GitHub](https://github.com/karimz1/imgcompress) and feel free to fork, branch, and submit a pull request.
 
-I am thrilled to offer this tool for free, and I truly value open source. If imgcompress saves you time or simplifies your workflow, you are welcome to support the project with a small donation. It is totally optional, and I appreciate your interest regardless.
+If you find imgcompress valuable, consider supporting the project (totally optional), it would help investing in infrastructure and development tools:
 
-**PayPal:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
-
-
-Thank you for taking the time to learn about imgcompress. I hope it makes your image conversion tasks easier and more secure. Give it a try, and feel free to share your experience or contribute your ideas to help improve it for everyone. ❤️
+🤗 **PayPal:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
 
 ------
 
