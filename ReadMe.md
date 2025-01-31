@@ -17,6 +17,8 @@
 - **Seamless Automation**: Perfect for use in CI/CD pipelines or standalone workflows.
 - **NEW Modern Web UI**: An intuitive web interface for easy image compression without the command line.
 
+![Web UI Gif](./images/ezgif-12f4af43b7a59.gif)
+
 ------
 
 ## **Installation**
@@ -75,7 +77,7 @@ http://localhost:5000
 > The user interface may differ slightly from the screenshot, as I continuously develop and implement minor enhancements.
 
 ##### Web UI
-![Web UI](./images/web_ui.png)
+![Web UI GIF](./images/ezgif-12f4af43b7a59.gif)
 
 
 ### Command-Line Interface (CLI) - Workflow

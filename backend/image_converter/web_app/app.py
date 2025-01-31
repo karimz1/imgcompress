@@ -1,164 +1,318 @@
-
 import os
 import time
 import shutil
 import tempfile
-from flask import Flask, request, jsonify, send_from_directory
+import logging
+from flask import Flask, request, jsonify, send_from_directory, abort
 from werkzeug.utils import secure_filename
-
-
+from werkzeug.exceptions import RequestEntityTooLarge, HTTPException
 from backend.image_converter.core.processor import ImageConversionProcessor
 from backend.image_converter.core.args_namespace import ArgsNamespace
-import tempfile
 from typing import List
-import shutil
+
+# Configure Logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__, static_folder='static_site', static_url_path='/')
+
+app.config['MAX_FORM_MEMORY_SIZE'] = None
+
+# Configuration Constants
+TEMP_DIR = tempfile.gettempdir()
+EXPIRATION_TIME = 3600  # 1 hour in seconds
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp',
+    'heic', 'heif', 'svg', 'ico', 'raw', 'cr2', 'nef', 'arw',
+    'dng', 'orf', 'rw2', 'sr2', 'apng', 'jp2', 'j2k', 'jpf',
+    'jpx', 'jpm', 'mj2', 'psd', 'pdf', 'emf', 'exr', 'avif'}
+
+# Ensure TEMP_DIR exists
+if not os.path.exists(TEMP_DIR):
+    os.makedirs(TEMP_DIR)
+
+# Error Handler for Payload Too Large
+@app.errorhandler(RequestEntityTooLarge)
+def handle_request_entity_too_large(e):
+    logger.warning(f"Payload Too Large: exceeded.")
+    return jsonify({
+        "error": "Payload Too Large",
+        "message": f"The uploaded files exceed the maximum allowed size."
+    }), 413
 
 
-###############################################################################
-# Create the Flask app
-###############################################################################
-app = Flask(__name__, static_folder=None)  # We'll manually serve files
+# Global Error Handler for HTTP Exceptions
+@app.errorhandler(HTTPException)
+def handle_http_exception(e):
+    logger.warning(f"HTTP Exception: {e}")
+    response = e.get_response()
+    response.data = jsonify({
+        "error": e.name,
+        "description": e.description,
+        "code": e.code
+    }).data
+    response.content_type = "application/json"
+    return response, e.code
+
+
+# Global Error Handler for Unhandled Exceptions
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.error(f"Unhandled Exception: {e}", exc_info=True)
+    return jsonify({
+        "error": "Internal Server Error",
+        "message": "An unexpected error occurred. Please try again later."
+    }), 500
+
+
+def serve_static_file(filename: str):
+    """
+    Serve the static React frontend.
+    All non-API routes will return the React app's index.html.
+    """
+    try:
+        return send_from_directory(app.static_folder, filename)
+    except Exception as e:
+        logger.error(f"Error serving static file {filename}: {e}")
+        return jsonify({
+            "error": "File Not Found",
+            "message": f"The requested file {filename} was not found on the server."
+        }), 404
 
 
 @app.route("/")
 def serve_index():
-    return send_from_directory("static_site", "index.html")
+    return serve_static_file("index.html")
+
 
 @app.route("/_next/static/<path:path>")
 def serve_next_static(path):
-    return send_from_directory("static_site/_next/static", path)
+    return send_from_directory(os.path.join(app.static_folder, "_next/static"), path)
 
 
 @app.route("/<path:path>")
 def serve_out_files(path):
-    full_path = os.path.join("static_site", path)
-    if os.path.exists(full_path):
-        return send_from_directory("static_site", path)
-    else:
-        # fallback to index.html if it's an SPA route
-        return send_from_directory("static_site", "index.html")
+    """
+    Serve any static files or fallback to index.html for SPA routing.
+    """
+    if path.startswith("api/"):
+        abort(404)
+    
+    full_path = os.path.join(app.static_folder, path)
+    if os.path.exists(full_path) and os.path.isfile(full_path):
+        return send_from_directory(app.static_folder, path)
+    return serve_static_file("index.html")
 
 
-###############################################################################
-# /api/compress
-# Expects a POST with form-data:
-#   - "files[]" for the uploaded images
-#   - "quality" (e.g. "85")
-#   - "width" (e.g. "800" or blank)
-###############################################################################
-@app.route("/api/compress", methods=["POST"])
-def compress_images():
-    # 1) Extract form data
+def is_file_allowed(filename: str) -> bool:
+    """
+    Check if the file has an allowed extension.
+    """
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def extract_form_data(request) -> dict:
+    """
+    Extract and validate form data from the request.
+    """
     uploaded_files = request.files.getlist("files[]")
     quality_str = request.form.get("quality", "85")
     width_str = request.form.get("width", "")
 
-    # Convert quality/width to integers if possible
+    # Validate quality
     try:
         quality = int(quality_str)
-    except ValueError:
-        quality = 85
+        if not (1 <= quality <= 100):
+            raise ValueError("Quality must be between 1 and 100.")
+    except ValueError as ve:
+        logger.warning(f"Invalid quality value: {quality_str}. Using default 85.")
+        quality = 85  # Default quality
 
+    # Validate width
     width = None
     if width_str.strip():
         try:
             width = int(width_str)
-        except ValueError:
+            if width <= 0:
+                raise ValueError("Width must be a positive integer.")
+        except ValueError as ve:
+            logger.warning(f"Invalid width value: {width_str}. Width will not be set.")
             width = None
 
-    # 2) Validate we have files
-    if not uploaded_files:
-        return jsonify({"error": "No files uploaded"}), 400
+    # Filter allowed files
+    allowed_files = [f for f in uploaded_files if is_file_allowed(f.filename)]
+    if len(allowed_files) != len(uploaded_files):
+        logger.warning("Some files were rejected due to unsupported file types.")
 
-    # 3) Create temp folders for input & output
-    source_folder = tempfile.mkdtemp(prefix="source_")
-    dest_folder = tempfile.mkdtemp(prefix="converted_")
+    return {
+        "uploaded_files": allowed_files,
+        "quality": quality,
+        "width": width
+    }
 
-    # 4) Save the uploaded files into source_folder
-    for f in uploaded_files:
-        filename = secure_filename(f.filename)
-        f.save(os.path.join(source_folder, filename))
+def save_uploaded_files(uploaded_files: List, source_folder: str):
+    """
+    Save uploaded files to the source folder using streaming to handle large files.
+    """
+    for file in uploaded_files:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(source_folder, filename)
+        try:
+            with open(file_path, 'wb') as f:
+                while True:
+                    chunk = file.stream.read(8192)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+            logger.info(f"Saved file: {file_path}")
+        except Exception as e:
+            logger.error(f"Failed to save file {filename}: {e}")
+            raise
 
-    # 5) Build arguments for your existing processor
-    # If your code uses debug/json_output, set them accordingly
-    args_obj = ArgsNamespace(
+def process_images(source_folder: str, dest_folder: str, quality: int, width: int):
+    """
+    Process images using the ImageConversionProcessor.
+    """
+    args = ArgsNamespace(
         source=source_folder,
         destination=dest_folder,
         quality=quality,
         width=width,
         debug=False,
-        json_output=True  # <-- If you want your processor to output JSON logs
+        json_output=True
     )
-
-    # 6) Run your processor
-    processor = ImageConversionProcessor(args_obj)
+    processor = ImageConversionProcessor(args)
     processor.run()
+    logger.info(f"Processed images from {source_folder} to {dest_folder}")
 
-    # -------------------------------------------------------------------------
-    # Option A: If your processor prints JSON to stdout, you can capture it or
-    #           just build a custom response. For example, if run() returns a
-    #           summary dict or logs, you can do:
-    # summary = processor.generate_summary()
-    # return jsonify(summary)
-    #
-    # Option B: If your processor writes a final JSON, read it. Or if "json_output"
-    #           prints to stdout, you can parse that. The simplest is to gather
-    #           the final results from "processor.results" or "summary".
-    # -------------------------------------------------------------------------
+def cleanup_temp_folders():
+    """
+    Delete temporary folders older than EXPIRATION_TIME.
+    """
+    current_time = time.time()
+    for folder in os.listdir(TEMP_DIR):
+        folder_path = os.path.join(TEMP_DIR, folder)
+        if os.path.isdir(folder_path):
+            try:
+                creation_time = os.path.getctime(folder_path)
+                folder_age = current_time - creation_time
+                if folder_age > EXPIRATION_TIME:
+                    shutil.rmtree(folder_path, ignore_errors=True)
+                    logger.info(f"Deleted old temp folder: {folder_path}")
+            except Exception as e:
+                logger.error(f"Error deleting folder {folder_path}: {e}")
 
-    # Example: gather results from the final run (like the new .jpg files):
-    converted_files = os.listdir(dest_folder)
+@app.route("/api/compress", methods=["POST"])
+def compress_images():
+    """
+    Endpoint to handle image compression.
+    """
+    cleanup_temp_folders()
 
-    # If you want to merge in the processor's logs or summary, do so here:
-    # e.g. summary = processor.generate_summary()
+    data = extract_form_data(request)
+    uploaded_files = data["uploaded_files"]
+    quality = data["quality"]
+    width = data["width"]
 
-    # 7) Return JSON
+    if not uploaded_files:
+        return jsonify({
+            "error": "No valid files uploaded. Please upload PNG, JPG, JPEG, or GIF files."
+        }), 400
+
+    # Create unique temporary directories for source and destination
+    source_folder = tempfile.mkdtemp(prefix="source_")
+    dest_folder = tempfile.mkdtemp(prefix="converted_")
+
+    try:
+        # Save uploaded files using streaming
+        save_uploaded_files(uploaded_files, source_folder)
+
+        # Process images
+        process_images(source_folder, dest_folder, quality, width)
+
+        # List converted files
+        converted_files = os.listdir(dest_folder)
+        if not converted_files:
+            raise ValueError("No files were converted. Please check the uploaded files.")
+
+    except Exception as e:
+        logger.error(f"Error during image processing: {e}")
+        return jsonify({
+            "error": "Processing failed",
+            "message": str(e)
+        }), 500
+    finally:
+        # Clean up source folder after processing
+        shutil.rmtree(source_folder, ignore_errors=True)
+        logger.info(f"Deleted source folder: {source_folder}")
+
     return jsonify({
         "status": "ok",
         "converted_files": converted_files,
         "dest_folder": dest_folder
-        # "summary": summary,  # if you want to attach more info
-    })
+    }), 200
 
-###############################################################################
-# /api/download
-# Download a previously converted file from the "dest_folder"
-###############################################################################
 @app.route("/api/download", methods=["GET"])
 def download_file():
+    """
+    Endpoint to download a single compressed file.
+    """
+    cleanup_temp_folders()
+
     folder = request.args.get("folder")
     filename = request.args.get("file")
-    return send_from_directory(folder, filename, as_attachment=True)
+
+    if not folder or not filename:
+        return jsonify({
+            "error": "Folder and file parameters are required."
+        }), 400
+
+    # Security check to prevent directory traversal
+    folder_abs = os.path.abspath(folder)
+    if not folder_abs.startswith(TEMP_DIR):
+        return jsonify({
+            "error": "Invalid folder path."
+        }), 400
+
+    file_path = os.path.join(folder_abs, filename)
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        return jsonify({
+            "error": "File does not exist."
+        }), 404
+
+    return send_from_directory(folder_abs, filename, as_attachment=True)
 
 @app.route("/api/download_all", methods=["GET"])
 def download_all():
     """
-    GET /api/download_all?folder=<dest_folder>
-    Zips everything in `folder`, returns the .zip as attachment.
+    Endpoint to download all compressed files as a ZIP archive.
     """
+    cleanup_temp_folders()
+
     folder = request.args.get("folder")
-    if not folder:
-        return jsonify({"error": "No folder specified"}), 400
+    if not folder or not os.path.isdir(folder):
+        return jsonify({
+            "error": "Invalid folder."
+        }), 400
 
-    if not os.path.exists(folder) or not os.path.isdir(folder):
-        return jsonify({"error": "Folder does not exist"}), 404
+    try:
+        timestamp = int(time.time())
+        zip_filename = f"converted_{timestamp}.zip"
+        zip_path = os.path.join(TEMP_DIR, zip_filename)
+        shutil.make_archive(zip_path[:-4], 'zip', root_dir=folder)
+        logger.info(f"Created ZIP archive: {zip_path}")
 
-    # Create a unique name for the zip
-    # e.g. "converted_1674503800.zip"
-    timestamp = int(time.time())
-    zip_filename = f"converted_{timestamp}.zip"
+        return send_from_directory(TEMP_DIR, zip_filename, as_attachment=True, mimetype='application/zip')
+    except Exception as e:
+        logger.error(f"Error creating ZIP archive: {e}")
+        return jsonify({
+            "error": "Failed to create ZIP archive.",
+            "message": str(e)
+        }), 500
 
-    # We'll create the zip inside a temp directory.
-    tmp_dir = tempfile.gettempdir()
-    zip_path = os.path.join(tmp_dir, zip_filename)
+# Override default 404 to serve index.html for SPA routing
+@app.errorhandler(404)
+def not_found(error):
+    return serve_static_file("index.html")
 
-    # Zip all files from `folder`
-    # e.g., shutil.make_archive("/path/to/myarchive", 'zip', root_dir=folder)
-    # But `make_archive` will append ".zip" automatically if needed,
-    # so we pass zip_path without .zip for the "base_name".
-    base_name = zip_path[:-4]  # remove ".zip"
-    shutil.make_archive(base_name, 'zip', root_dir=folder)
-
-    # Now "zip_path" should be a valid zip containing everything from `folder`.
-    # Return it with send_from_directory
-    return send_from_directory(tmp_dir, zip_filename, as_attachment=True, mimetype='application/zip')
+if __name__ == "__main__":
+    logger.info("Starting Flask server...")
+    app.run(host="0.0.0.0", port=5000, debug=False)
