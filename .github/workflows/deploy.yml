@@ -89,10 +89,8 @@ jobs:
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
-          elif [[ "$BRANCH_NAME" == feature/* ]]; then
+          else
             echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
-          elif [[ "$BRANCH_NAME" == bugfix/* ]]; then
-            echo "ADDITIONAL_TAG=karimz1/imgcompress:bugfix" >> $GITHUB_ENV
           fi
 
       - name: Build Docker Image
