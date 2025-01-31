@@ -48,6 +48,7 @@ COPY requirements.txt /container/
 
 # Install Python dependencies + packages
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir .
 
 RUN mkdir -p /container/backend/image_converter/web_app/static_site
 
