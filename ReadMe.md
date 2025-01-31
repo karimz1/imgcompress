@@ -5,9 +5,17 @@
 ![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)
 [![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml)
 
-![imgcompress Logo](./images/imgcompress_logo.jpg)
+![imgcompress Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
 
-## **What is imgcompress?**
+
+## Why would someone develop a tool like that ?!
+
+Hello, I am Karim Zouine, and I created this Docker-based tool called **imgcompress** because I got tired of relying on multiple programs whenever I needed to convert or compress images. Dealing with HEIC files was especially frustrating, since they often need specific DLLs that can be complicated to install. Although there are online conversion services out there, I have always been cautious about uploading personal photos to random websites. Privacy matters to me, so I wanted a reliable way to handle everything locally on my own computer.
+
+By packaging imgcompress in a Docker container, I eliminated the need to install extra dependencies or spend time on complicated setup. Docker guarantees that imgcompress operates the same way on any machine, removing the guesswork. With just a few commands, it can also convert entire folders of images in one go.
+
+
+## **Features of imgcompress?**
 
 `imgcompress` is a lightweight, fully Dockerized tool for compressing, resizing, and converting images. It’s designed to simplify image optimization with:
 
@@ -17,7 +25,7 @@
 - **Seamless Automation**: Perfect for use in CI/CD pipelines or standalone workflows.
 - **NEW Modern Web UI**: An intuitive web interface for easy image compression without the command line.
 
-![Web UI Gif](./images/ezgif-12f4af43b7a59.gif)
+![Web UI Gif](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/ezgif-12f4af43b7a59.gif)
 
 ------
 
@@ -77,7 +85,7 @@ http://localhost:5000
 > The user interface may differ slightly from the screenshot, as I continuously develop and implement minor enhancements.
 
 ##### Web UI
-![Web UI GIF](./images/ezgif-12f4af43b7a59.gif)
+![Web UI GIF](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/ezgif-12f4af43b7a59.gif)
 
 
 ### Command-Line Interface (CLI) - Workflow
@@ -205,6 +213,12 @@ docker run --rm karimz1/imgcompress --help
 
 ------
 
+## Privacy And Security
+One of my main motivations was maintaining full control over my images. Because imgcompress runs in Docker on your local environment, there is no need to upload your images to a third-party website. This approach not only preserves your privacy but also avoids potential security risks that come with web-based tools.
+
+
+------
+
 ## **Contribution**
 
 [Source Code](https://github.com/karimz1/imgcompress)
@@ -214,14 +228,17 @@ I welcome contributions! Fork the repo, create a branch, and submit a pull reque
 ------
 
 
-## ❤️ Supporting the Project ❤️
+## ❤️ If You Find This Useful ❤️
 
-If you find this project useful, please consider supporting its development. Donations are appreciated and help maintain and improve this tool. 
+I am thrilled to offer this tool for free, and I truly value open source. If imgcompress saves you time or simplifies your workflow, you are welcome to support the project with a small donation. It is totally optional, and I appreciate your interest regardless.
 
 **PayPal:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
+
+
+Thank you for taking the time to learn about imgcompress. I hope it makes your image conversion tasks easier and more secure. Give it a try, and feel free to share your experience or contribute your ideas to help improve it for everyone. ❤️
 
 ------
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/LICENSE) file for details.
