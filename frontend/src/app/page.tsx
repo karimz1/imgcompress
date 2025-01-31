@@ -187,7 +187,7 @@ export default function HomePage() {
           <CardContent>
             {/* "Download All" button if there's more than 1 file */}
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm text-gray-300">
+              <p className="text-sm">
                 {converted.length} file(s) converted
               </p>
               {converted.length > 1 && (
