@@ -134,11 +134,13 @@ export default function HomePage() {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(
       destFolder
     )}`;
+
+    // **Clear the upload list after initiating the download**
+    setFiles([]);
   }
 
   return (
     <main className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
-      {/* Toast Container for notifications */}
       <ToastContainer />
 
       <Card className="w-full max-w-xl">
