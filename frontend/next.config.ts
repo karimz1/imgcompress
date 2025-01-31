@@ -1,18 +1,27 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  // needed for local dev
-  /* 
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*',
+const getNextConfig = () => {
+  if (process.env.IS_RUNNING_IN_DEVCONTAINER === 'true') {
+    return {
+      async rewrites() {
+        console.log(
+          'IS_RUNNING_IN_DEVCONTAINER:',
+          process.env.IS_RUNNING_IN_DEVCONTAINER,
+          'NODE_ENV:',
+          process.env.NODE_ENV
+        );
+        return [
+          {
+            source: '/api/:path*',
+            destination: 'http://localhost:5000/api/:path*',
+          },
+        ];
       },
-    ];
-  },*/
-  
-  // needed for pipeline to export the Next.js app as static files
-  output: 'export'
+    };
+  } else {
+    return {
+      output: 'export',
+    };
+  }
 };
 
-module.exports = nextConfig;
+module.exports = getNextConfig();
