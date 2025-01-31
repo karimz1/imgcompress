@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feature/*
+      - bugfix/*
   pull_request:
 
 jobs:
@@ -88,8 +89,12 @@ jobs:
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
-          else
+          elif [[ "$BRANCH_NAME" == feature/* ]]; then
             echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
+          elif [[ "$BRANCH_NAME" == bugfix/* ]]; then
+            echo "ADDITIONAL_TAG=karimz1/imgcompress:bugfix" >> $GITHUB_ENV
+          else 
+             echo "ADDITIONAL_TAG=karimz1/imgcompress:testing" >> $GITHUB_ENV
           fi
 
       - name: Build Docker Image
