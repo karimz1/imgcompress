@@ -15,6 +15,7 @@
 - **Batch & Single File Processing**: Process entire directories or individual images effortlessly.
 - **Logging Options**: Choose between human-readable text or structured JSON output.
 - **Seamless Automation**: Perfect for use in CI/CD pipelines or standalone workflows.
+- **NEW Modern Web UI**: An intuitive web interface for easy image compression without the command line.
 
 ------
 
@@ -28,9 +29,58 @@ docker pull karimz1/imgcompress:latest
 
 ------
 
-## **Usage**
+## Usage
 
-### **Quick Start**
+`imgcompress` provides both a Command-Line Interface (CLI) for advanced users and a Web User Interface (Web UI) for an intuitive, no-code experience.
+
+
+
+### NEW: Web User Interface (Web UI) - Workflow
+
+> This is the recommended approach because providing a user interface for image compression can be highly beneficial.
+
+For users who prefer a graphical interface, `imgcompress` offers a modern Web UI.
+
+#### **Starting the Web UI**
+
+Run the following command to launch the Web UI:
+
+```
+docker run -p 5000:5000 karimz1/imgcompress:latest web
+```
+
+- Port Mapping:
+  - `-p 5000:5000`: Maps port `5000` of the container to port `5000` on the host machine.
+
+#### **Accessing the Web UI**
+
+Once the container is running, open your browser and navigate to:
+
+```
+http://localhost:5000
+```
+
+#### **Features**
+
+- **Drag & Drop**: Easily upload images for compression.
+- **Batch Processing**: Handle multiple images simultaneously.
+- **Real-Time Progress**: Monitor the compression status.
+- **Download Optimized Images**: Retrieve compressed images directly from the Web interface.
+- **Settings Panel**: Adjust compression quality and resizing options.
+- **Multi Images Support**: Easily upload and process multiple images simultaneously, streamlining your workflow with the ability to drag and drop entire image folders.
+
+
+
+#### Screenshoots
+> The user interface may differ slightly from the screenshot, as I continuously develop and implement minor enhancements.
+
+##### Web UI
+![Web UI](./images/web_ui.png)
+
+
+### Command-Line Interface (CLI) - Workflow
+
+> This approach is designed for advanced workflows and automation, allowing you to integrate it seamlessly into pipelines or other automated processes.
 
 Navigate to your image directory and run:
 
