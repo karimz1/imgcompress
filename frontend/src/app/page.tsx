@@ -13,6 +13,17 @@ import { Loader2, Info } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Define allowed extensions once
+const allowedExtensions = [
+  "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp",
+  "heic", "heif", "svg", "ico", "raw", "cr2", "nef", "arw",
+  "dng", "orf", "rw2", "sr2", "apng", "jp2", "j2k", "jpf",
+  "jpx", "jpm", "mj2", "psd", "pdf", "emf", "exr", "avif"
+];
+
+// Create a comma-separated string (each with a preceding dot)
+const acceptString = allowedExtensions.map(ext => `.${ext}`).join(",");
+
 export default function HomePage() {
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
@@ -23,14 +34,8 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
 
-  // Drag-and-drop configuration
+  // onDrop: filter files using allowedExtensions array
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const allowedExtensions = [
-      "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp",
-      "heic", "heif", "svg", "ico", "raw", "cr2", "nef", "arw",
-      "dng", "orf", "rw2", "sr2", "apng", "jp2", "j2k", "jpf",
-      "jpx", "jpm", "mj2", "psd", "pdf", "emf", "exr", "avif"
-    ];
     const filteredFiles = acceptedFiles.filter((file) => {
       const ext = file.name.split(".").pop()?.toLowerCase();
       if (ext && allowedExtensions.includes(ext)) {
@@ -48,14 +53,11 @@ export default function HomePage() {
     setFiles((prev) => [...prev, ...filteredFiles]);
   }, []);
 
+  // useDropzone: use acceptString so that the file input only allows allowedExtensions
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
-    accept: {
-      "image/png": [".png"],
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/gif": [".gif"],
-    },
+    accept: acceptString,
     multiple: true,
   });
 
@@ -122,8 +124,6 @@ export default function HomePage() {
       setConverted(data.converted_files);
       setDestFolder(data.dest_folder);
       toast.success("Files uploaded and compressed successfully!");
-
-      // Clear the upload list after successful upload
       setFiles([]);
     } catch (err) {
       console.error(err);
@@ -214,9 +214,7 @@ export default function HomePage() {
                   value={width}
                   onChange={(e) => setWidth(e.target.value)}
                   disabled={isLoading}
-                  className="bg-gray-900 text-gray-100 placeholder-gray-400 
-                    border border-gray-700 focus:border-blue-500 
-                    focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gray-900 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               )}
             </div>
@@ -238,9 +236,9 @@ export default function HomePage() {
             {/* DRAG-AND-DROP ZONE */}
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-md p-6 text-center transition-colors
-                ${isDragActive ? "border-blue-400" : "border-gray-700"}
-                ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`border-2 border-dashed rounded-md p-6 text-center transition-colors ${
+                isDragActive ? "border-blue-400" : "border-gray-700"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <input {...getInputProps()} />
               {isDragActive ? (
