@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, forwardRef } from "react";
+import React, { useState, useCallback } from "react";
 import Tippy from "@tippyjs/react";
 import "tippy.js/dist/tippy.css";
 import { useDropzone } from "react-dropzone";
@@ -12,11 +12,6 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Info } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// A simple forwardRef wrapper for tooltip content
-const TooltipWrapper = forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>(
-  (props, ref) => <span ref={ref} {...props} />
-);
 
 export default function HomePage() {
   const [quality, setQuality] = useState("85");
@@ -36,7 +31,7 @@ export default function HomePage() {
       "dng", "orf", "rw2", "sr2", "apng", "jp2", "j2k", "jpf",
       "jpx", "jpm", "mj2", "psd", "pdf", "emf", "exr", "avif"
     ];
-    const filteredFiles = acceptedFiles.filter(file => {
+    const filteredFiles = acceptedFiles.filter((file) => {
       const ext = file.name.split(".").pop()?.toLowerCase();
       if (ext && allowedExtensions.includes(ext)) {
         return true;
@@ -59,9 +54,9 @@ export default function HomePage() {
     accept: {
       "image/png": [".png"],
       "image/jpeg": [".jpg", ".jpeg"],
-      "image/gif": [".gif"]
+      "image/gif": [".gif"],
     },
-    multiple: true
+    multiple: true,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -167,9 +162,9 @@ export default function HomePage() {
                 <Label htmlFor="quality" className="text-sm flex items-center gap-1">
                   Quality
                   <Tippy content="Sets the JPEG quality. 100 provides the best quality (largest file size) while lower values reduce quality and file size.">
-                    <TooltipWrapper>
+                    <span>
                       <Info className="h-4 w-4 text-gray-600 cursor-pointer" />
-                    </TooltipWrapper>
+                    </span>
                   </Tippy>
                 </Label>
                 <span className="text-sm text-gray-600">{quality}</span>
@@ -192,9 +187,9 @@ export default function HomePage() {
                 <Label htmlFor="resizeWidthToggle" className="text-sm flex items-center gap-1">
                   Resize Width
                   <Tippy content="Resizes the image(s) to the desired width while preserving the original aspect ratio.">
-                    <TooltipWrapper>
+                    <span>
                       <Info className="h-4 w-4 text-gray-600 cursor-pointer" />
-                    </TooltipWrapper>
+                    </span>
                   </Tippy>
                 </Label>
                 <Switch

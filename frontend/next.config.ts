@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable rewrites only when running in development mode
   async rewrites() {
+    // Log for debugging (this output will appear during build time)
+    console.log('DEV_MODE:', process.env.DEV_MODE, 'NODE_ENV:', process.env.NODE_ENV);
+
     if (process.env.DEV_MODE === 'true' || process.env.NODE_ENV === 'development') {
       return [
         {
@@ -10,13 +12,10 @@ const nextConfig = {
         },
       ];
     }
-    // No rewrites in production (or you can adjust as needed)
     return [];
   },
 
-  // Enable static export if desired in production
-  // For example, if an environment variable OUTPUT_STATIC is set,
-  // you can use that, or simply check NODE_ENV.
+  // If you need to export the app statically in production
   output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
 };
 
