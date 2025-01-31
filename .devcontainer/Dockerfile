@@ -2,9 +2,6 @@ FROM docker:27.4.1-dind
 
 WORKDIR /app
 
-# Set environment variable to signal development mode.
-ENV DEV_MODE=true
-
 # Install Python 3, pip, libheif-dev, and essential build tools
 RUN apk update && apk add --no-cache \
     python3 \

@@ -2,9 +2,9 @@
 const nextConfig = {
   async rewrites() {
     // Log for debugging (this output will appear during build time)
-    console.log('DEV_MODE:', process.env.DEV_MODE, 'NODE_ENV:', process.env.NODE_ENV);
+    console.log('IS_RUNNING_IN_DEVCONTAINER:', process.env.IS_RUNNING_IN_DEVCONTAINER, 'NODE_ENV:', process.env.NODE_ENV);
 
-    if (process.env.DEV_MODE === 'true' || process.env.NODE_ENV === 'development') {
+    if (process.env.IS_RUNNING_IN_DEVCONTAINER === 'true' || process.env.NODE_ENV === 'development') {
       return [
         {
           source: '/api/:path*',
