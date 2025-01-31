@@ -27,8 +27,10 @@ const allowedExtensions = [
   "jpx", "jpm", "mj2", "psd", "pdf", "emf", "exr", "avif"
 ];
 
-// Create a comma-separated string (each with a preceding dot)
-const acceptString = allowedExtensions.map(ext => `.${ext}`).join(",");
+// Create an object for the accept prop using "image/*" as the MIME type
+const acceptObject = {
+  "image/*": allowedExtensions.map((ext) => `.${ext}`),
+};
 
 export default function HomePage() {
   const [quality, setQuality] = useState("85");
@@ -59,11 +61,11 @@ export default function HomePage() {
     setFiles((prev) => [...prev, ...filteredFiles]);
   }, []);
 
-  // useDropzone: use acceptString so that the file input only allows allowedExtensions
+  // useDropzone now uses the acceptObject
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
-    accept: acceptString,
+    accept: acceptObject,
     multiple: true,
   });
 
