@@ -74,7 +74,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
       <Card className="w-full max-w-xl">
         <CardHeader>
-          <CardTitle>Drag & Drop Image Compressor</CardTitle>
+          <CardTitle>karimz1/imgcompress: Image Compression Tool</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
