@@ -15,6 +15,9 @@
       "ms-azuretools.vscode-docker",
       "formulahendry.code-runner"
     ],
+    "remoteEnv": {
+      "DEV_MODE": "true"
+    },
     "mounts": [
       "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
     ],
