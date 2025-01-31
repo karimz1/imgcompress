@@ -21,7 +21,10 @@ app.config['MAX_FORM_MEMORY_SIZE'] = None
 # Configuration Constants
 TEMP_DIR = tempfile.gettempdir()
 EXPIRATION_TIME = 3600  # 1 hour in seconds
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp',
+    'heic', 'heif', 'svg', 'ico', 'raw', 'cr2', 'nef', 'arw',
+    'dng', 'orf', 'rw2', 'sr2', 'apng', 'jp2', 'j2k', 'jpf',
+    'jpx', 'jpm', 'mj2', 'psd', 'pdf', 'emf', 'exr', 'avif'}
 
 # Ensure TEMP_DIR exists
 if not os.path.exists(TEMP_DIR):
@@ -35,7 +38,6 @@ def handle_request_entity_too_large(e):
         "error": "Payload Too Large",
         "message": f"The uploaded files exceed the maximum allowed size."
     }), 413
-
 
 
 # Global Error Handler for HTTP Exceptions
@@ -62,15 +64,6 @@ def handle_exception(e):
     }), 500
 
 
-# Global Error Handler for Unhandled Exceptions
-@app.errorhandler(Exception)
-def handle_exception(e):
-    logger.error(f"Unhandled Exception: {e}", exc_info=True)
-    return jsonify({
-        "error": "Internal Server Error",
-        "message": "An unexpected error occurred. Please try again later."
-    }), 500
-
 def serve_static_file(filename: str):
     """
     Serve the static React frontend.
@@ -85,13 +78,16 @@ def serve_static_file(filename: str):
             "message": f"The requested file {filename} was not found on the server."
         }), 404
 
+
 @app.route("/")
 def serve_index():
     return serve_static_file("index.html")
 
+
 @app.route("/_next/static/<path:path>")
 def serve_next_static(path):
     return send_from_directory(os.path.join(app.static_folder, "_next/static"), path)
+
 
 @app.route("/<path:path>")
 def serve_out_files(path):
@@ -105,6 +101,7 @@ def serve_out_files(path):
     if os.path.exists(full_path) and os.path.isfile(full_path):
         return send_from_directory(app.static_folder, path)
     return serve_static_file("index.html")
+
 
 def is_file_allowed(filename: str) -> bool:
     """
@@ -318,4 +315,4 @@ def not_found(error):
 
 if __name__ == "__main__":
     logger.info("Starting Flask server...")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

@@ -21,7 +21,10 @@ export default function HomePage() {
 
   // Drag-and-drop configuration
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp',
+    'heic', 'heif', 'svg', 'ico', 'raw', 'cr2', 'nef', 'arw',
+    'dng', 'orf', 'rw2', 'sr2', 'apng', 'jp2', 'j2k', 'jpf',
+    'jpx', 'jpm', 'mj2', 'psd', 'pdf', 'emf', 'exr', 'avif'];
     const filteredFiles = acceptedFiles.filter(file => {
       const ext = file.name.split('.').pop()?.toLowerCase();
       if (ext && allowedExtensions.includes(ext)) {
