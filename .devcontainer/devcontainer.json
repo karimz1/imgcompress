@@ -7,7 +7,9 @@
     "containerEnv": {
       "IS_RUNNING_IN_DEVCONTAINER": "true"
     },
-    "settings": {},
+    "settings": {
+        "python.defaultInterpreterPath": "/venv"
+    },
     "extensions": [
       "ms-python.python",
       "ms-azuretools.vscode-docker",

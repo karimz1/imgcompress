@@ -17,4 +17,4 @@ mkdir -p backend/image_converter/web_app/static_site/
 
 cp -R frontend/out/* backend/image_converter/web_app/static_site/
 
-echo "Done. The static site is now in backend/static_site/"
+echo "Done. The static site is now in backend/image_converter/web_app/static_site/"

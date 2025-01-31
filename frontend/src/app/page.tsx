@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function HomePage() {
   const [quality, setQuality] = useState("85");
@@ -15,25 +17,75 @@ export default function HomePage() {
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<{ message: string; details?: string } | null>(null); // Enhanced error state
 
-  // Drag-and-drop config:
-  // We pass "disabled: isLoading" so it won't accept new files while processing.
+  // Drag-and-drop configuration
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles((prev) => [...prev, ...acceptedFiles]);
+    const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif'];
+    const filteredFiles = acceptedFiles.filter(file => {
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (ext && allowedExtensions.includes(ext)) {
+        return true;
+      } else {
+        // Notify user about rejected files
+        toast.warn(`File type not allowed: ${file.name}`);
+        return false;
+      }
+    });
+    if (filteredFiles.length < acceptedFiles.length) {
+      setError({
+        message: "Some files were rejected due to unsupported file types.",
+      });
+    }
+    setFiles((prev) => [...prev, ...filteredFiles]);
   }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    disabled: isLoading, // Disable while isLoading
+    disabled: isLoading,
+    accept: {
+      'image/png': ['.png'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/gif': ['.gif']
+    },
+    multiple: true
   });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (files.length === 0) {
-      alert("Please drop or select some files first.");
+      setError({
+        message: "Please drop or select some files first.",
+      });
+      toast.error("Please drop or select some files first.");
+      return;
+    }
+
+    const qualityNum = parseInt(quality, 10);
+    const widthNum = parseInt(width, 10);
+
+    // Validate quality and width
+    if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
+      setError({
+        message: "Quality must be a number between 1 and 100.",
+      });
+      toast.error("Quality must be a number between 1 and 100.");
+      return;
+    }
+
+    if (width && (isNaN(widthNum) || widthNum <= 0)) {
+      setError({
+        message: "Width must be a positive number.",
+      });
+      toast.error("Width must be a positive number.");
       return;
     }
 
     setIsLoading(true);
+    setError(null); // Reset error before new request
+    setConverted([]); // Clear previous results
+    setDestFolder("");
+
     const formData = new FormData();
     files.forEach((file) => formData.append("files[]", file));
     formData.append("quality", quality);
@@ -44,17 +96,28 @@ export default function HomePage() {
         method: "POST",
         body: formData,
       });
+
       if (!res.ok) {
         const err = await res.json();
-        alert(err.error || "Error uploading files");
+        setError({
+          message: err.error || "Error uploading files.",
+          details: err.message || undefined,
+        });
+        toast.error(err.error || "Error uploading files.");
         return;
       }
+
       const data = await res.json();
       setConverted(data.converted_files);
       setDestFolder(data.dest_folder);
+      toast.success("Files uploaded and compressed successfully!");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      setError({
+        message: "Something went wrong. Please try again.",
+        details: err instanceof Error ? err.message : undefined,
+      });
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +135,9 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
+      {/* Toast Container for notifications */}
+      <ToastContainer />
+
       <Card className="w-full max-w-xl">
         <CardHeader>
           <CardTitle>karimz1/imgcompress: Image Compression Tool</CardTitle>
@@ -113,6 +179,14 @@ export default function HomePage() {
                   focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
+
+            {/* Error Message Display */}
+            {error && (
+              <div className="p-2 bg-red-600 text-white rounded-md">
+                <p><strong>Error:</strong> {error.message}</p>
+                {error.details && <p><strong>Details:</strong> {error.details}</p>}
+              </div>
+            )}
 
             {/* DRAG-AND-DROP ZONE */}
             <div
@@ -214,6 +288,37 @@ export default function HomePage() {
           </CardContent>
         </Card>
       )}
+
+      {/* FOOTER with open-source info */}
+      <Card className="w-full max-w-xl mt-8">
+        <CardHeader>
+          <CardTitle>Open Source & Free</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600">
+            This project is <strong>open source</strong> and freely available. 
+            Check out the source code on{" "}
+            <a
+              href="https://github.com/karimz1/imgcompress"
+              className="text-blue-400 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>.
+          </p>
+          <p className="text-sm text-gray-600 mt-2">
+            Created by <strong>Karim Zouine</strong>. 
+            Donations are very welcome, if you find this tool useful 🤗 My PayPal:{" "}
+            <a
+              href="mailto:mails.karimzouine@gmail.com"
+              className="text-blue-400 hover:underline"
+            >
+              mails.karimzouine@gmail.com
+            </a>
+          </p>
+        </CardContent>
+      </Card>
     </main>
   );
 }
