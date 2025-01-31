@@ -111,6 +111,9 @@ export default function HomePage() {
       setConverted(data.converted_files);
       setDestFolder(data.dest_folder);
       toast.success("Files uploaded and compressed successfully!");
+
+       // **Clear the upload list after successful upload**
+      setFiles([]); // This line clears the files state
     } catch (err) {
       console.error(err);
       setError({
