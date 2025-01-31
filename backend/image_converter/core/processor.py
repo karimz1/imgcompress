@@ -4,9 +4,9 @@ import os
 import sys
 from typing import List, Dict
 
-from image_converter.infrastructure.logger import Logger
-from image_converter.core.file_manager import FileManager
-from image_converter.core.converter import ImageConverter
+from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.core.file_manager import FileManager
+from backend.image_converter.core.converter import ImageConverter
 
 class ImageConversionProcessor:
     """Handles the image conversion process."""

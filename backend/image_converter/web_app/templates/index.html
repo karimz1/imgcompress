@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>Image Compressor</title>
+  <!-- Tailwind CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col items-center p-4">
+  <div class="w-full max-w-2xl">
+    <h1 class="text-2xl font-bold mb-4">Compress & Resize Images</h1>
+
+    <!-- Card container for the form -->
+    <div class="rounded-2xl bg-gray-800 p-6 shadow-md">
+      <form method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+        <div>
+          <label for="mode" class="block mb-1 font-medium">Mode:</label>
+          <select name="mode" id="mode" class="w-full rounded-md border border-gray-700 bg-gray-900 text-gray-100 p-2">
+            <option value="single" {% if mode == "single" %}selected{% endif %}>Single File</option>
+            <option value="folder" {% if mode == "folder" %}selected{% endif %}>Folder</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="quality" class="block mb-1 font-medium">Quality:</label>
+          <input
+            type="number"
+            name="quality"
+            id="quality"
+            class="w-full rounded-md border border-gray-700 bg-gray-900 text-gray-100 p-2"
+            value="{{ quality or '85' }}"
+            placeholder="85"
+          />
+        </div>
+
+        <div>
+          <label for="width" class="block mb-1 font-medium">Width:</label>
+          <input
+            type="number"
+            name="width"
+            id="width"
+            class="w-full rounded-md border border-gray-700 bg-gray-900 text-gray-100 p-2"
+            value="{{ width or '800' }}"
+            placeholder="800"
+          />
+        </div>
+
+        <div>
+          <label class="block mb-1 font-medium">Select file(s):</label>
+          <!-- For a real folder approach, consider `webkitdirectory`, though it's not fully supported on all browsers -->
+          <input
+            type="file"
+            name="images"
+            multiple
+            class="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4
+                   file:rounded-full file:border-0
+                   file:text-sm file:font-semibold
+                   file:bg-violet-50 file:text-gray-900
+                   hover:file:bg-violet-100
+                   cursor-pointer"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full mt-2 p-2 rounded-md bg-violet-600 text-white font-medium hover:bg-violet-700 focus:outline-none transition-colors"
+        >
+          Upload & Compress
+        </button>
+      </form>
+    </div>
+
+    {% if converted and converted|length > 0 %}
+      <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-3">Converted Files:</h2>
+        <div class="grid gap-3">
+          {% for fname in converted %}
+            <div class="rounded-xl bg-gray-800 p-4 shadow">
+              <a
+                href="{{ url_for('download', filename=fname) }}"
+                class="text-violet-400 hover:underline"
+              >
+                {{ fname }}
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

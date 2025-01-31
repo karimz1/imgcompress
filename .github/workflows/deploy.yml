@@ -58,7 +58,7 @@ jobs:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
 
       - name: Upload Pytest Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pytest-results
           path: reports/test-results.xml

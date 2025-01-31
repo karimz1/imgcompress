@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock
-from image_converter.infrastructure.logger import Logger
-from image_converter.core.converter import ImageConverter
-from image_converter.core.file_manager import FileManager
-from image_converter.core.processor import ImageConversionProcessor
+from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.core.converter import ImageConverter
+from backend.image_converter.core.file_manager import FileManager
+from backend.image_converter.core.processor import ImageConversionProcessor
 from tests.test_utils import mock_args, capture_stdout, capture_logger_output
 import pytest
 

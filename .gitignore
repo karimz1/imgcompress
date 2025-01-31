@@ -1,3 +1,4 @@
+backend/image_converter/web_app/static_site/
 output/
 tests/sample-images/test_image.png
 reports/

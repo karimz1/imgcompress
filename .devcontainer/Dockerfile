@@ -9,7 +9,10 @@ RUN apk update && apk add --no-cache \
     python3-dev \
     libheif-dev \
     build-base \
+    nodejs \ 
+    npm \
     && rm -rf /var/cache/apk/*
+
 
 # Create and activate a virtual environment
 RUN python3 -m venv /venv
