@@ -1,5 +1,3 @@
- ![imgcompress Mascot Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
- 
 # imgcompress: The Ultimate Docker Image Compression Tool
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)  
@@ -11,7 +9,7 @@
 
 ## 🎬 See It In Action
 
-Experience the power of imgcompress with our modern Web UI. Check out the quick demo below:
+Experience the power of imgcompress with the **NEW** modern Web UI. Check out the quick demo below:
 
 ![Web UI in Action](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/new_web_ui.gif)
 
@@ -21,6 +19,9 @@ Experience the power of imgcompress with our modern Web UI. Check out the quick 
 
 Ever been frustrated by juggling multiple programs just to convert or compress images? **I did too.**  
 I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effortlessly compress, convert, and resize your images—all inside a Docker container. No more complicated installations or worrying about privacy with online converters. Everything runs locally, secure and consistent across any system.
+
+### ^^ And this is how imgcompress was born 🐣
+ ![imgcompress Mascot Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
 
 ---
 
