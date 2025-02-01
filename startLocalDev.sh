@@ -10,7 +10,8 @@
 (
   cd frontend || exit 1
   echo "Installing frontend dependencies..."
-  npm install
+  npm install --legacy-peer-deps
+
   echo "Starting Node.js frontend (dev mode)..."
   exec npm run dev
 ) &
