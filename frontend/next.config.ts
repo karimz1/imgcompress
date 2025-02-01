@@ -20,6 +20,9 @@ const getNextConfig = () => {
   } else {
     return {
       output: 'export',
+      images: {
+        unoptimized: true,
+      },
     };
   }
 };
