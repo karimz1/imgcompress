@@ -215,19 +215,6 @@ export default function HomePage() {
     }
   }
 
-  // Reset the form to its initial state
-  function handleReset() {
-    setFiles([]);
-    setQuality("85");
-    setWidth("");
-    setResizeWidthEnabled(false);
-    setOutputFormat("jpeg");
-    setError(null);
-    setConverted([]);
-    setDestFolder("");
-    toast.info("App Selection has been reset.");
-  }
-
   function clearFileSelection() {
     setFiles([]);
     toast.info(pluralize(files.length, "Image", "Images") + " selection cleared! 🧹");
