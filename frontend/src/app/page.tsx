@@ -10,8 +10,20 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Info } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
-// Import the Radix-based Tooltip components (adjust the import path as needed)
+// Import Tooltip components
 import {
   TooltipProvider,
   Tooltip,
@@ -19,15 +31,43 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-// Define allowed extensions once
+// Define allowed extensions
 const allowedExtensions = [
-  "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp",
-  "heic", "heif", "svg", "ico", "raw", "cr2", "nef", "arw",
-  "dng", "orf", "rw2", "sr2", "apng", "jp2", "j2k", "jpf",
-  "jpx", "jpm", "mj2", "psd", "pdf", "emf", "exr", "avif"
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "bmp",
+  "tiff",
+  "tif",
+  "webp",
+  "heic",
+  "heif",
+  "svg",
+  "ico",
+  "raw",
+  "cr2",
+  "nef",
+  "arw",
+  "dng",
+  "orf",
+  "rw2",
+  "sr2",
+  "apng",
+  "jp2",
+  "j2k",
+  "jpf",
+  "jpx",
+  "jpm",
+  "mj2",
+  "psd",
+  "pdf",
+  "emf",
+  "exr",
+  "avif",
 ];
 
-// Create an object for the accept prop using "image/*" as the MIME type
+// Create an object for the accept prop
 const acceptObject = {
   "image/*": allowedExtensions.map((ext) => `.${ext}`),
 };
@@ -42,8 +82,15 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
 
-  // onDrop: filter files using allowedExtensions array
+  // NEW: State to control the Drawer open/close
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // onDrop: filter files based on allowedExtensions
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    setError(null);
+    setConverted([]);
+    setDestFolder("");
+
     const filteredFiles = acceptedFiles.filter((file) => {
       const ext = file.name.split(".").pop()?.toLowerCase();
       if (ext && allowedExtensions.includes(ext)) {
@@ -61,7 +108,7 @@ export default function HomePage() {
     setFiles((prev) => [...prev, ...filteredFiles]);
   }, []);
 
-  // useDropzone now uses the acceptObject
+  // Configure dropzone with our accept object
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
@@ -88,7 +135,7 @@ export default function HomePage() {
       return;
     }
 
-    // Validate width only if resizing is enabled
+    // Validate width if resizing is enabled
     if (resizeWidthEnabled) {
       const widthNum = parseInt(width, 10);
       if (isNaN(widthNum) || widthNum <= 0) {
@@ -133,6 +180,8 @@ export default function HomePage() {
       setDestFolder(data.dest_folder);
       toast.success("Files uploaded and compressed successfully!");
       setFiles([]);
+      // NEW: Automatically open the drawer when processing is done
+      setDrawerOpen(true);
     } catch (err) {
       console.error(err);
       setError({
@@ -151,6 +200,8 @@ export default function HomePage() {
 
   function handleDownloadAll() {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
+
+
     setFiles([]);
   }
 
@@ -158,10 +209,16 @@ export default function HomePage() {
     <TooltipProvider delayDuration={0}>
       <main className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
         <ToastContainer />
-
         <Card className="w-full max-w-xl">
+        <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
           <CardHeader>
-            <CardTitle>karimz1/imgcompress: Image Compression Tool</CardTitle>
+            <Image
+              src="/imgcompress_mascot.jpg"
+              width={600}
+              height={600}
+              alt="Mascot of ImgCompress a Tool by Karim Zouine"
+            />
+            <Separator />
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -277,7 +334,7 @@ export default function HomePage() {
               {/* SHOW SELECTED FILES */}
               {files.length > 0 && (
                 <div className="mt-2 space-y-1">
-                  <Label>Files to upload:</Label>
+                  <Label>Files to convert:</Label>
                   {files.map((file) => (
                     <div
                       key={file.name}
@@ -312,40 +369,74 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* RESULTS */}
         {converted.length > 0 && (
-          <Card className="w-full max-w-xl mt-8">
-            <CardHeader>
-              <CardTitle>Converted Files</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm">{converted.length} file(s) converted</p>
+          <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} >
+            <DrawerTrigger asChild>
+              <Button variant="secondary" className="mt-8">
+                🗃️ Show Converted Files
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="bg-zinc-950 dark:bg-white border-0">
+              <div className="mx-auto w-full max-w-sm">
+                <DrawerHeader>
+                  <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">Converted Files</DrawerTitle>
+                  {converted.length > 1 && (
+                      <DrawerDescription className="text-center text-gray-500">
+                          Download your processed files individually or all at once.
+                      </DrawerDescription>
+                  )}
+                  {converted.length == 1 && (
+                      <DrawerDescription className="text-center text-gray-500">
+                          Download your processed file.
+                      </DrawerDescription>
+                  )}
+
+                </DrawerHeader>
+
+
+                <div className="p-1 pb-0 flex flex-col items-center">
                 {converted.length > 1 && (
-                  <Button variant="secondary" onClick={handleDownloadAll}>
-                    Download All as ZIP
-                  </Button>
-                )}
+                    <div className="text-center p-5">
+                      <Button
+                        variant="secondary"
+                        onClick={handleDownloadAll}>
+                        Download All as Zip
+                      </Button>
+                  </div>
+                  )}
+                </div>
+
+                <div className="p-4 pb-0">
+                  <ul className="space-y-2">
+                    {converted.map((fname) => (
+                      <li key={fname} className="text-center">
+                        <a
+                          href={`/api/download?folder=${encodeURIComponent(
+                            destFolder
+                          )}&file=${encodeURIComponent(fname)}`}
+                          className="text-blue-400 underline"
+                        >
+                          {fname}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-10">
+                  <DrawerFooter>
+                    <DrawerClose asChild>
+                      <Button variant="destructive">
+                        Close
+                      </Button>
+                    </DrawerClose>
+                  </DrawerFooter>
+                </div>
               </div>
-              <ul className="space-y-2">
-                {converted.map((fname) => (
-                  <li key={fname}>
-                    <a
-                      href={`/api/download?folder=${encodeURIComponent(
-                        destFolder
-                      )}&file=${encodeURIComponent(fname)}`}
-                      className="text-blue-400 underline"
-                    >
-                      {fname}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+            </DrawerContent>
+          </Drawer>
         )}
 
-        {/* FOOTER */}
         <Card className="w-full max-w-xl mt-8">
           <CardHeader>
             <CardTitle>Open Source & Free</CardTitle>
