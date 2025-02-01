@@ -213,7 +213,7 @@ export default function HomePage() {
         <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
           <CardHeader>
             <Image
-              src="/imgcompress_mascot.jpg"
+              src="/mascot.jpg"
               width={600}
               height={600}
               alt="Mascot of ImgCompress a Tool by Karim Zouine"
