@@ -82,6 +82,10 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
 
+  const pluralize = (count: number, singular: string, plural: string): string => 
+    count === 1 ? singular : plural;
+  
+  
   // NEW: State to control the Drawer open/close
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -373,24 +377,16 @@ export default function HomePage() {
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} >
             <DrawerTrigger asChild>
               <Button variant="secondary" className="mt-8">
-                🗃️ Show Converted Files
+                🗃️ Show Compressed {pluralize(converted.length, "Image", "Images")}
               </Button>
             </DrawerTrigger>
             <DrawerContent className="bg-zinc-950 dark:bg-white border-0">
               <div className="mx-auto w-full max-w-sm">
                 <DrawerHeader>
-                  <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">Converted Files</DrawerTitle>
-                  {converted.length > 1 && (
+                  <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">Compressed {pluralize(converted.length, "Image", "Images")}</DrawerTitle>
                       <DrawerDescription className="text-center text-gray-500">
-                          Download your processed files individually or all at once.
+                          Download your compressed {pluralize(converted.length, "Image", "Images individually or all at once.")}
                       </DrawerDescription>
-                  )}
-                  {converted.length == 1 && (
-                      <DrawerDescription className="text-center text-gray-500">
-                          Download your processed file.
-                      </DrawerDescription>
-                  )}
-
                 </DrawerHeader>
 
 
@@ -402,7 +398,7 @@ export default function HomePage() {
                         onClick={handleDownloadAll}>
                         Download All as Zip
                       </Button>
-                  </div>
+                    </div>
                   )}
                 </div>
 
