@@ -2,12 +2,17 @@
 
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Info, Trash } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
@@ -30,6 +35,15 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+
+// Import shadcn Select components for the combobox
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define allowed extensions
 const allowedExtensions = [
@@ -81,12 +95,14 @@ export default function HomePage() {
   const [destFolder, setDestFolder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
+  // New state for output format; default to "jpeg"
+  const [outputFormat, setOutputFormat] = useState("jpeg");
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const pluralize = (count: number, singular: string, plural: string): string => 
+  const pluralize = (count: number, singular: string, plural: string): string =>
     count === 1 ? singular : plural;
-  
-  
-  // NEW: State to control the Drawer open/close
+
+  // State to control the Drawer open/close
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // onDrop: filter files based on allowedExtensions
@@ -123,29 +139,25 @@ export default function HomePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (files.length === 0) {
-      setError({
-        message: "Please drop or select some files first.",
-      });
+      setError({ message: "Please drop or select some files first." });
       toast.error("Please drop or select some files first.");
       return;
     }
 
-    const qualityNum = parseInt(quality, 10);
-    if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
-      setError({
-        message: "Quality must be a number between 1 and 100.",
-      });
-      toast.error("Quality must be a number between 1 and 100.");
-      return;
+    if (outputFormat === "jpeg") {
+      const qualityNum = parseInt(quality, 10);
+      if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
+        setError({ message: "Quality must be a number between 1 and 100." });
+        toast.error("Quality must be a number between 1 and 100.");
+        return;
+      }
     }
 
     // Validate width if resizing is enabled
     if (resizeWidthEnabled) {
       const widthNum = parseInt(width, 10);
       if (isNaN(widthNum) || widthNum <= 0) {
-        setError({
-          message: "Width must be a positive number.",
-        });
+        setError({ message: "Width must be a positive number." });
         toast.error("Width must be a positive number.");
         return;
       }
@@ -158,10 +170,15 @@ export default function HomePage() {
 
     const formData = new FormData();
     files.forEach((file) => formData.append("files[]", file));
-    formData.append("quality", quality);
+    // Append quality only if JPEG is selected
+    if (outputFormat === "jpeg") {
+      formData.append("quality", quality);
+    }
     if (resizeWidthEnabled) {
       formData.append("width", width);
     }
+    // Append the selected output format
+    formData.append("format", outputFormat);
 
     try {
       const res = await fetch("/api/compress", {
@@ -182,10 +199,10 @@ export default function HomePage() {
       const data = await res.json();
       setConverted(data.converted_files);
       setDestFolder(data.dest_folder);
-      toast.success("Files uploaded and compressed successfully!");
-      setFiles([]);
-      // NEW: Automatically open the drawer when processing is done
+      // Do not clear file selection automatically on success
       setDrawerOpen(true);
+      await delay(600);
+      toast.success(pluralize(data.converted_files.length, "Image", "Images") + " compressed successfully!");
     } catch (err) {
       console.error(err);
       setError({
@@ -198,15 +215,27 @@ export default function HomePage() {
     }
   }
 
+  // Reset the form to its initial state
+  function handleReset() {
+    setFiles([]);
+    setQuality("85");
+    setWidth("");
+    setResizeWidthEnabled(false);
+    setOutputFormat("jpeg");
+    setError(null);
+    setConverted([]);
+    setDestFolder("");
+    toast.info("Selection has been reset.");
+  }
+
   function removeFile(fileName: string) {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
   }
 
   function handleDownloadAll() {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
-
-
-    setFiles([]);
+    // Optionally clear selections if needed:
+    // setFiles([]);
   }
 
   return (
@@ -214,7 +243,7 @@ export default function HomePage() {
       <main className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
         <ToastContainer />
         <Card className="w-full max-w-xl">
-        <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
+          <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
           <CardHeader>
             <Image
               src="/mascot.jpg"
@@ -226,38 +255,78 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Quality Slider Field with Tooltip */}
+              {/* Output Format Selector */}
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="quality" className="text-sm flex items-center gap-1">
-                    Quality
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <Info className="h-4 w-4 text-gray-600 cursor-pointer" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="bg-gray-900 text-white p-2 rounded shadow-lg border-0">
-                        <p className="text-sm">
-                          Sets the JPEG quality. 100 provides the best quality (largest file size)
-                          while lower values reduce quality and file size.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="outputFormat" className="text-sm">
+                    Output Format
                   </Label>
-                  <span className="text-sm text-gray-600">{quality}</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
+                      <p className="text-sm">
+                        <strong>PNG:</strong> Preserves transparency (alpha) and is best for images with transparent backgrounds.
+                        <br />
+                        <strong>JPEG:</strong> Ideal for images without transparency and produces smaller file sizes.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <input
-                  id="quality"
-                  type="range"
-                  min="10"
-                  max="100"
-                  value={quality}
-                  onChange={(e) => setQuality(e.target.value)}
-                  disabled={isLoading}
-                  className="w-full accent-blue-500"
-                />
+                <Select value={outputFormat} onValueChange={setOutputFormat}>
+                  <SelectTrigger
+                    id="outputFormat"
+                    className="bg-gray-800 text-gray-300 border-gray-700 focus:border-blue-500"
+                  >
+                    <SelectValue placeholder="Select format" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
+                    <SelectItem value="jpeg">
+                      JPEG (smaller file size)
+                    </SelectItem>
+                    <SelectItem value="png">
+                      PNG (preserves transparency)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              {/* Quality Slider Field with Tooltip - only show if outputFormat is JPEG */}
+              {outputFormat === "jpeg" && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="quality" className="text-sm flex items-center gap-1">
+                      Quality (for JPEG only)
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
+                          <p className="text-sm">
+                            Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                    <span className="text-sm text-gray-400">{quality}</span>
+                  </div>
+                  <input
+                    id="quality"
+                    type="range"
+                    min="10"
+                    max="100"
+                    value={quality}
+                    onChange={(e) => setQuality(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full accent-blue-500"
+                  />
+                </div>
+              )}
 
               {/* Resize Width Switch & Input with Tooltip */}
               <div className="space-y-1">
@@ -267,10 +336,10 @@ export default function HomePage() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span>
-                          <Info className="h-4 w-4 text-gray-600 cursor-pointer" />
+                          <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="bg-gray-900 text-white p-2 rounded shadow-lg border-0">
+                      <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
                         <p className="text-sm">
                           Resizes the image(s) to the desired width while preserving the original aspect ratio.
                         </p>
@@ -299,7 +368,7 @@ export default function HomePage() {
                     value={width}
                     onChange={(e) => setWidth(e.target.value)}
                     disabled={isLoading}
-                    className="bg-gray-900 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 )}
               </div>
@@ -327,11 +396,11 @@ export default function HomePage() {
               >
                 <input {...getInputProps()} />
                 {isDragActive ? (
-                  <p className="text-blue-300">Drop files here...</p>
+                  <p className="text-blue-300">Drop Images here...</p>
                 ) : isLoading ? (
-                  <p>Cannot drop files while processing...</p>
+                  <p>Cannot drop Images while processing...</p>
                 ) : (
-                  <p>Drag & drop files here, or click to select</p>
+                  <p>Drag & drop Images here, or click to select</p>
                 )}
               </div>
 
@@ -358,23 +427,35 @@ export default function HomePage() {
                 </div>
               )}
 
-              {/* SUBMIT BUTTON */}
-              <Button type="submit" variant="default" disabled={isLoading}>
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processing...
-                  </div>
-                ) : (
-                  "Upload & Compress"
-                )}
-              </Button>
+              {/* SUBMIT & RESET BUTTONS */}
+              <div className="flex items-center justify-between gap-4">
+                <Button type="submit" variant="default" disabled={isLoading}>
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </div>
+                  ) : (
+                    "Start Converting"
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleReset}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 outline outline-1 outline-gray-700"
+                >
+                  <Trash className="h-4 w-4" />
+                  Clear Selections
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
 
         {converted.length > 0 && (
-          <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} >
+          <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DrawerTrigger asChild>
               <Button variant="secondary" className="mt-8">
                 🗃️ Show Compressed {pluralize(converted.length, "Image", "Images")}
@@ -383,25 +464,22 @@ export default function HomePage() {
             <DrawerContent className="bg-zinc-950 dark:bg-white border-0">
               <div className="mx-auto w-full max-w-sm">
                 <DrawerHeader>
-                  <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">Compressed {pluralize(converted.length, "Image", "Images")}</DrawerTitle>
-                      <DrawerDescription className="text-center text-gray-500">
-                          Download your compressed {pluralize(converted.length, "Image", "Images individually or all at once.")}
-                      </DrawerDescription>
+                  <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">
+                    Compressed {pluralize(converted.length, "Image", "Images")}
+                  </DrawerTitle>
+                  <DrawerDescription className="text-center text-gray-500">
+                    Download your compressed {pluralize(converted.length, "Image", "Images")} individually or all at once.
+                  </DrawerDescription>
                 </DrawerHeader>
-
-
                 <div className="p-1 pb-0 flex flex-col items-center">
-                {converted.length > 1 && (
+                  {converted.length > 1 && (
                     <div className="text-center p-5">
-                      <Button
-                        variant="secondary"
-                        onClick={handleDownloadAll}>
+                      <Button variant="secondary" onClick={handleDownloadAll}>
                         Download All as Zip
                       </Button>
                     </div>
                   )}
                 </div>
-
                 <div className="p-4 pb-0">
                   <ul className="space-y-2">
                     {converted.map((fname) => (
@@ -418,13 +496,10 @@ export default function HomePage() {
                     ))}
                   </ul>
                 </div>
-
                 <div className="pt-10">
                   <DrawerFooter>
                     <DrawerClose asChild>
-                      <Button variant="destructive">
-                        Close
-                      </Button>
+                      <Button variant="destructive">Close</Button>
                     </DrawerClose>
                   </DrawerFooter>
                 </div>
