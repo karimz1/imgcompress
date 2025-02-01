@@ -10,7 +10,7 @@ COPY frontend/ ./frontend
 WORKDIR /app/frontend
 
 # Install and build
-RUN npm install
+RUN npm install --legacy-peer-deps
 RUN npm run build
 # The static site is now in /app/frontend/out/
 
