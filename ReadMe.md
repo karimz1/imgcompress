@@ -13,7 +13,7 @@
 
 Experience the power of imgcompress with our modern Web UI. Check out the quick demo below:
 
-![Web UI in Action](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/new_web_ui.gif)
+![Web UI in Action](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/ezgif-12f4af43b7a59.gif)
 
 ---
 

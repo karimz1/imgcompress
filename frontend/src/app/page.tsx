@@ -10,20 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Info } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Image from "next/image";
-import { Separator } from "@/components/ui/separator";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 
-// Import Tooltip components
+// Import the Radix-based Tooltip components (adjust the import path as needed)
 import {
   TooltipProvider,
   Tooltip,
@@ -31,43 +19,15 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-// Define allowed extensions
+// Define allowed extensions once
 const allowedExtensions = [
-  "jpg",
-  "jpeg",
-  "png",
-  "gif",
-  "bmp",
-  "tiff",
-  "tif",
-  "webp",
-  "heic",
-  "heif",
-  "svg",
-  "ico",
-  "raw",
-  "cr2",
-  "nef",
-  "arw",
-  "dng",
-  "orf",
-  "rw2",
-  "sr2",
-  "apng",
-  "jp2",
-  "j2k",
-  "jpf",
-  "jpx",
-  "jpm",
-  "mj2",
-  "psd",
-  "pdf",
-  "emf",
-  "exr",
-  "avif",
+  "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp",
+  "heic", "heif", "svg", "ico", "raw", "cr2", "nef", "arw",
+  "dng", "orf", "rw2", "sr2", "apng", "jp2", "j2k", "jpf",
+  "jpx", "jpm", "mj2", "psd", "pdf", "emf", "exr", "avif"
 ];
 
-// Create an object for the accept prop
+// Create an object for the accept prop using "image/*" as the MIME type
 const acceptObject = {
   "image/*": allowedExtensions.map((ext) => `.${ext}`),
 };
@@ -82,15 +42,8 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
 
-  // NEW: State to control the Drawer open/close
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  // onDrop: filter files based on allowedExtensions
+  // onDrop: filter files using allowedExtensions array
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setError(null);
-    setConverted([]);
-    setDestFolder("");
-
     const filteredFiles = acceptedFiles.filter((file) => {
       const ext = file.name.split(".").pop()?.toLowerCase();
       if (ext && allowedExtensions.includes(ext)) {
@@ -108,7 +61,7 @@ export default function HomePage() {
     setFiles((prev) => [...prev, ...filteredFiles]);
   }, []);
 
-  // Configure dropzone with our accept object
+  // useDropzone now uses the acceptObject
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
@@ -135,7 +88,7 @@ export default function HomePage() {
       return;
     }
 
-    // Validate width if resizing is enabled
+    // Validate width only if resizing is enabled
     if (resizeWidthEnabled) {
       const widthNum = parseInt(width, 10);
       if (isNaN(widthNum) || widthNum <= 0) {
@@ -180,8 +133,6 @@ export default function HomePage() {
       setDestFolder(data.dest_folder);
       toast.success("Files uploaded and compressed successfully!");
       setFiles([]);
-      // NEW: Automatically open the drawer when processing is done
-      setDrawerOpen(true);
     } catch (err) {
       console.error(err);
       setError({
@@ -200,8 +151,6 @@ export default function HomePage() {
 
   function handleDownloadAll() {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
-
-
     setFiles([]);
   }
 
@@ -209,16 +158,10 @@ export default function HomePage() {
     <TooltipProvider delayDuration={0}>
       <main className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
         <ToastContainer />
+
         <Card className="w-full max-w-xl">
-        <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
           <CardHeader>
-            <Image
-              src="/imgcompress_mascot.jpg"
-              width={600}
-              height={600}
-              alt="Mascot of ImgCompress a Tool by Karim Zouine"
-            />
-            <Separator />
+            <CardTitle>karimz1/imgcompress: Image Compression Tool</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -334,7 +277,7 @@ export default function HomePage() {
               {/* SHOW SELECTED FILES */}
               {files.length > 0 && (
                 <div className="mt-2 space-y-1">
-                  <Label>Files to convert:</Label>
+                  <Label>Files to upload:</Label>
                   {files.map((file) => (
                     <div
                       key={file.name}
@@ -369,74 +312,40 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
+        {/* RESULTS */}
         {converted.length > 0 && (
-          <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} >
-            <DrawerTrigger asChild>
-              <Button variant="secondary" className="mt-8">
-                🗃️ Show Converted Files
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="bg-zinc-950 dark:bg-white border-0">
-              <div className="mx-auto w-full max-w-sm">
-                <DrawerHeader>
-                  <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">Converted Files</DrawerTitle>
-                  {converted.length > 1 && (
-                      <DrawerDescription className="text-center text-gray-500">
-                          Download your processed files individually or all at once.
-                      </DrawerDescription>
-                  )}
-                  {converted.length == 1 && (
-                      <DrawerDescription className="text-center text-gray-500">
-                          Download your processed file.
-                      </DrawerDescription>
-                  )}
-
-                </DrawerHeader>
-
-
-                <div className="p-1 pb-0 flex flex-col items-center">
+          <Card className="w-full max-w-xl mt-8">
+            <CardHeader>
+              <CardTitle>Converted Files</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm">{converted.length} file(s) converted</p>
                 {converted.length > 1 && (
-                    <div className="text-center p-5">
-                      <Button
-                        variant="secondary"
-                        onClick={handleDownloadAll}>
-                        Download All as Zip
-                      </Button>
-                  </div>
-                  )}
-                </div>
-
-                <div className="p-4 pb-0">
-                  <ul className="space-y-2">
-                    {converted.map((fname) => (
-                      <li key={fname} className="text-center">
-                        <a
-                          href={`/api/download?folder=${encodeURIComponent(
-                            destFolder
-                          )}&file=${encodeURIComponent(fname)}`}
-                          className="text-blue-400 underline"
-                        >
-                          {fname}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="pt-10">
-                  <DrawerFooter>
-                    <DrawerClose asChild>
-                      <Button variant="destructive">
-                        Close
-                      </Button>
-                    </DrawerClose>
-                  </DrawerFooter>
-                </div>
+                  <Button variant="secondary" onClick={handleDownloadAll}>
+                    Download All as ZIP
+                  </Button>
+                )}
               </div>
-            </DrawerContent>
-          </Drawer>
+              <ul className="space-y-2">
+                {converted.map((fname) => (
+                  <li key={fname}>
+                    <a
+                      href={`/api/download?folder=${encodeURIComponent(
+                        destFolder
+                      )}&file=${encodeURIComponent(fname)}`}
+                      className="text-blue-400 underline"
+                    >
+                      {fname}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         )}
 
+        {/* FOOTER */}
         <Card className="w-full max-w-xl mt-8">
           <CardHeader>
             <CardTitle>Open Source & Free</CardTitle>
