@@ -225,7 +225,12 @@ export default function HomePage() {
     setError(null);
     setConverted([]);
     setDestFolder("");
-    toast.info("Selection has been reset.");
+    toast.info("App Selection has been reset.");
+  }
+
+  function clearFileSelection() {
+    setFiles([]);
+    toast.info(pluralize(files.length, "Image", "Images") + " selection cleared! 🧹");
   }
 
   function removeFile(fileName: string) {
@@ -234,8 +239,6 @@ export default function HomePage() {
 
   function handleDownloadAll() {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
-    // Optionally clear selections if needed:
-    // setFiles([]);
   }
 
   return (
@@ -442,12 +445,12 @@ export default function HomePage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleReset}
+                  onClick={clearFileSelection}
                   disabled={isLoading}
                   className="flex items-center gap-2 outline outline-1 outline-gray-700"
                 >
                   <Trash className="h-4 w-4" />
-                  Clear Selections
+                  Clear
                 </Button>
               </div>
             </form>
