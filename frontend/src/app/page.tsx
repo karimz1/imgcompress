@@ -471,7 +471,7 @@ export default function HomePage() {
                     Compressed {pluralize(converted.length, "Image", "Images")}
                   </DrawerTitle>
                   <DrawerDescription className="text-center text-gray-500">
-                    Download your compressed {pluralize(converted.length, "Image", "Images")} individually or all at once.
+                    Download your compressed {pluralize(converted.length, "Image", "Images individually or all at once")}.
                   </DrawerDescription>
                 </DrawerHeader>
                 <div className="p-1 pb-0 flex flex-col items-center">
