@@ -6,31 +6,56 @@ from backend.image_converter.infrastructure.logger import Logger
 
 
 class ImageConverter:
-    def __init__(self, quality: int = 85, width: Optional[int] = None, logger: Logger = None):
+    def __init__(self, quality: int = 85, width: Optional[int] = None, output_format: str = "JPEG", logger: Logger = None):
+        """
+        :param quality: Quality setting for JPEG output.
+        :param width: Optional new width to resize the image.
+        :param output_format: Output image format ("JPEG" or "PNG").
+        :param logger: Logger instance.
+        """
         self.quality = quality
         self.width = width
+        self.output_format = output_format.upper()  # Normalize to uppercase
         self.logger = logger
         self.summary = []
 
     def convert(self, filename: str, source_folder: str, dest_folder: str) -> Dict:
         source_path = os.path.join(source_folder, filename)
-        base_name, ext = os.path.splitext(filename)
-        dest_path = os.path.join(dest_folder, base_name + ".jpg")
-        result = {"file": filename}
+        base_name, _ = os.path.splitext(filename)
+        # Choose extension based on output format.
+        if self.output_format == "PNG":
+            dest_path = os.path.join(dest_folder, base_name + ".png")
+        else:
+            dest_path = os.path.join(dest_folder, base_name + ".jpg")
 
+        result = {"file": filename}
         self.logger.log(f"Processing file: {source_path}", "debug")
 
         try:
-            image = self.load_image(source_path, ext)
+            image = self.load_image(source_path, filename)
             original_width, original_height = image.size
 
             resized_width = None
             if self.width:
                 image, resized_width = self.resize_image(image, original_width, original_height)
 
-            image.save(dest_path, "JPEG", quality=self.quality)
+            if self.output_format == "JPEG":
+                # For JPEG, composite any transparency over a white background.
+                if image.mode in ("RGBA", "LA"):
+                    background = Image.new("RGB", image.size, (255, 255, 255))
+                    # Use the alpha channel as mask. For "RGBA", it's the 4th channel.
+                    alpha = image.split()[-1]
+                    background.paste(image, mask=alpha)
+                    image = background
+                image.save(dest_path, "JPEG", quality=self.quality)
+            elif self.output_format == "PNG":
+                # For PNG, preserve transparency if present.
+                image.save(dest_path, "PNG")
+            else:
+                raise ValueError(f"Unsupported output format: {self.output_format}")
+
             self.logger.log(
-                f"Converted: {source_path} -> {dest_path} (Q={self.quality}, W={resized_width or original_width})",
+                f"Converted: {source_path} -> {dest_path} (Format={self.output_format}, Q={self.quality}, W={resized_width or original_width})",
                 "info"
             )
 
@@ -56,7 +81,8 @@ class ImageConverter:
         self.summary.append(result)
         return result
 
-    def load_image(self, source_path: str, ext: str) -> Image.Image:
+    def load_image(self, source_path: str, filename: str) -> Image.Image:
+        ext = os.path.splitext(filename)[1]
         if ext.lower() in [".heic", ".heif"]:
             heif_file = pyheif.read(source_path)
             image = Image.frombytes(
@@ -72,9 +98,10 @@ class ImageConverter:
             image = Image.open(source_path)
             self.logger.log(f"Loaded image: {source_path}", "debug")
 
-        if image.mode in ("RGBA", "P"):
+        # Only convert to RGB if outputting as JPEG.
+        if self.output_format == "JPEG" and image.mode in ("RGBA", "P"):
             image = image.convert("RGB")
-            self.logger.log(f"Converted image mode to RGB: {source_path}", "debug")
+            self.logger.log(f"Converted image mode to RGB for JPEG: {source_path}", "debug")
 
         return image
 

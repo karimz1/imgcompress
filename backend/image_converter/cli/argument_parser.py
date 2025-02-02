@@ -3,7 +3,7 @@ import argparse
 def parse_arguments() -> argparse.Namespace:
     """Parse command-line arguments for the image conversion script."""
     parser = argparse.ArgumentParser(
-        description="Convert images to JPEG (optionally resizing to given width)."
+        description="Convert images to JPEG or PNG (optionally resizing to a given width)."
     )
     parser.add_argument(
         "source",
@@ -11,7 +11,7 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "destination",
-        help="Destination folder to store output JPEG images"
+        help="Destination folder to store output images"
     )
     parser.add_argument(
         "--quality",
@@ -24,6 +24,13 @@ def parse_arguments() -> argparse.Namespace:
         type=int,
         default=None,
         help="Optional width for resizing (height auto-calculated)"
+    )
+    parser.add_argument(
+        "--format",
+        type=str,
+        choices=["jpeg", "png"],
+        default="jpeg",
+        help="Output format: 'jpeg' or 'png' (default: jpeg)"
     )
     parser.add_argument(
         "--debug",

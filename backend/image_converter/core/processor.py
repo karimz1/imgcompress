@@ -18,6 +18,7 @@ class ImageConversionProcessor:
         self.converter = ImageConverter(
             quality=args.quality,
             width=args.width,
+            output_format=args.format,
             logger=self.logger
         )
         self.results: List[Dict] = []

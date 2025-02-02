@@ -20,6 +20,7 @@ def mock_args(json_output=False, debug=False):
         width=800,
         json_output=json_output,
         debug=debug,
+        format="jpeg"
     )
 
 # -------------------------------------------------------------------

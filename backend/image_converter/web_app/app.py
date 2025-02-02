@@ -11,6 +11,7 @@ from werkzeug.exceptions import RequestEntityTooLarge, HTTPException
 from backend.image_converter.core.processor import ImageConversionProcessor
 from backend.image_converter.core.args_namespace import ArgsNamespace
 from backend.image_converter.infrastructure.logger import Logger
+
 app_logger = Logger(debug=False, json_output=False)
 
 app = Flask(__name__, static_folder='static_site', static_url_path='/')
@@ -133,7 +134,11 @@ def extract_form_data(request) -> dict:
     uploaded_files = request.files.getlist("files[]")
     quality = _parse_quality(request.form.get("quality", "85"))
     width = _parse_width(request.form.get("width", ""))
-    
+    output_format = request.form.get("format", "jpeg").lower()
+    if output_format not in ("jpeg", "png"):
+        app_logger.log(f"Invalid format '{output_format}' provided. Falling back to 'jpeg'.", level="warning")
+        output_format = "jpeg"
+
     allowed_files = [f for f in uploaded_files if is_file_allowed(f.filename)]
     if len(allowed_files) != len(uploaded_files):
         app_logger.log("Some files were rejected due to unsupported file types.", level="warning")
@@ -141,7 +146,8 @@ def extract_form_data(request) -> dict:
     return {
         "uploaded_files": allowed_files,
         "quality": quality,
-        "width": width
+        "width": width,
+        "format": output_format
     }
 
 
@@ -162,15 +168,16 @@ def save_uploaded_files(uploaded_files: List, source_folder: str):
             raise
 
 
-def process_images(source_folder: str, dest_folder: str, quality: int, width: Optional[int]):
+def process_images(source_folder: str, dest_folder: str, quality: int, width: Optional[int], output_format: str):
     width_msg = f"with width={width}" if width is not None else "without width resizing"
-    app_logger.log(f"Processing images from {source_folder} to {dest_folder} with quality={quality} {width_msg}", level="info")
+    app_logger.log(f"Processing images from {source_folder} to {dest_folder} with quality={quality} {width_msg} and format={output_format}", level="info")
     
     args = ArgsNamespace(
         source=source_folder,
         destination=dest_folder,
         quality=quality,
         width=width,  # width will be None if not provided
+        format=output_format,
         debug=False,
         json_output=True
     )
@@ -203,6 +210,7 @@ def compress_images():
     uploaded_files = data["uploaded_files"]
     quality = data["quality"]
     width = data["width"]
+    output_format = data["format"]
 
     if not uploaded_files:
         return jsonify({
@@ -215,7 +223,7 @@ def compress_images():
 
     try:
         save_uploaded_files(uploaded_files, source_folder)
-        process_images(source_folder, dest_folder, quality, width)
+        process_images(source_folder, dest_folder, quality, width, output_format)
         converted_files = os.listdir(dest_folder)
         if not converted_files:
             raise ValueError("No files were converted. Please check the uploaded files.")
