@@ -61,14 +61,12 @@ class TestDockerIntegration:
 
         assert os.path.exists(self.SAMPLE_IMAGES_DIR), "SAMPLE_IMAGES_DIR does not exist."
 
-        # Create a generic test image for other tests
         img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_image.png")
         create_sample_test_image(img_path)
         assert os.path.exists(img_path), f"Failed to create test image at {img_path}"
 
         sample_files = os.listdir(self.SAMPLE_IMAGES_DIR)
         print(f"Contents of SAMPLE_IMAGES_DIR: {sample_files}")
-
 
     def run_docker_folder_processing(self):
         """
@@ -100,11 +98,11 @@ class TestDockerIntegration:
         print("Docker run command:", shlex.join(cmd))
         subprocess.run(cmd, check=True)
 
-
-    def run_docker_singlefile_processing(self, single_file_name, extra_args=None):
+    def run_docker_singlefile_processing(self, single_file_name, extra_args=["--format", "jpeg"]):
         """
         Processes a single file inside SAMPLE_IMAGES_DIR -> OUTPUT_DIR.
         Optionally appends extra command-line arguments.
+        Default is jpeg.
         """
         extra_args = extra_args or []
         if is_github_actions():
@@ -130,6 +128,64 @@ class TestDockerIntegration:
             ] + extra_args
         print("Docker single-file command:", shlex.join(cmd))
         subprocess.run(cmd, check=True)
+
+
+    def test_files_created(self):
+        """
+        Ensures at least one file is created in OUTPUT_DIR after folder processing.
+        """
+        self.run_docker_folder_processing()
+        output_files = os.listdir(self.OUTPUT_DIR)
+        print(f"Contents of OUTPUT_DIR after run: {output_files}")
+        assert output_files, "No files were created in the output directory."
+
+    def test_file_count_matches(self):
+        """
+        Ensures the number of processed files in OUTPUT_DIR 
+        matches the number of supported images in SAMPLE_IMAGES_DIR.
+        """
+        self.run_docker_folder_processing()
+        output_files = os.listdir(self.OUTPUT_DIR)
+
+        sample_files = [
+            f for f in os.listdir(self.SAMPLE_IMAGES_DIR)
+            if os.path.isfile(os.path.join(self.SAMPLE_IMAGES_DIR, f))
+               and is_image(os.path.join(self.SAMPLE_IMAGES_DIR, f))
+        ]
+        print(f"Sample count: {len(sample_files)}, Output count: {len(output_files)}")
+        assert len(sample_files) == len(output_files), (
+            f"Expected {len(sample_files)} processed files, got {len(output_files)}."
+        )
+
+    def test_validate_output_dimensions(self):
+        """
+        Ensures that each file in OUTPUT_DIR has the expected width.
+        """
+        self.run_docker_folder_processing()
+        output_files = os.listdir(self.OUTPUT_DIR)
+        assert output_files, f"No files found in {self.OUTPUT_DIR}"
+
+        for filename in output_files:
+            path = os.path.join(self.OUTPUT_DIR, filename)
+            assert is_image(path), f"Not a valid image file: {filename}"
+            validate_image_dimensions(path, self.EXPECTED_IMAGE_WIDTH)
+            print(f"{filename}: {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
+
+    def test_single_file_processing(self):
+        """
+        Tests converting just a single file (pexels-pealdesign-28594392.jpg).
+        """
+        single_file_name = "pexels-pealdesign-28594392.jpg"
+        local_path = os.path.join(self.SAMPLE_IMAGES_DIR, single_file_name)
+        assert os.path.exists(local_path), f"Missing test image: {local_path}"
+
+        self.run_docker_singlefile_processing(single_file_name)
+
+        output_files = os.listdir(self.OUTPUT_DIR)
+        assert len(output_files) == 1, f"Expected 1 output file, found {len(output_files)}."
+        out_path = os.path.join(self.OUTPUT_DIR, output_files[0])
+        validate_image_dimensions(out_path, self.EXPECTED_IMAGE_WIDTH)
+        print(f"Single file '{out_path}' validated at {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
 
 
     def test_png_transparency_preserved(self):
