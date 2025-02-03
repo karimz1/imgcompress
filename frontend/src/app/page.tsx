@@ -1,93 +1,46 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import Image from "next/image";
 import { useDropzone } from "react-dropzone";
-import FileManager from "@/components/FileManager";
-import { HardDrive, Info, Loader2, Trash } from "lucide-react";
-import { VisuallyHidden } from '@/components/visually-hidden';
-import PageFooter from "@/components/PageFooter";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-
+// UI Components
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-  DrawerClose,
-  DrawerDescription,
-  DrawerFooter
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { HardDrive } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
+// Custom Components
+import FileConversionForm from "@/components/FileConversionForm";
+import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
+import FileManager from "@/components/FileManager";
+import { VisuallyHidden } from "@/components/visually-hidden";
+import PageFooter from "@/components/PageFooter";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Error store context
+import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 
-// Allowed extensions and acceptObject defined as before...
+// Allowed file extensions and dropzone accept object
 const allowedExtensions = [
-  "jpg",
-  "jpeg",
-  "png",
-  "gif",
-  "bmp",
-  "tiff",
-  "tif",
-  "webp",
-  "heic",
-  "heif",
-  "svg",
-  "ico",
-  "raw",
-  "cr2",
-  "nef",
-  "arw",
-  "dng",
-  "orf",
-  "rw2",
-  "sr2",
-  "apng",
-  "jp2",
-  "j2k",
-  "jpf",
-  "jpx",
-  "jpm",
-  "mj2",
-  "psd",
-  "pdf",
-  "emf",
-  "exr",
-  "avif",
+  "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp", "heic",
+  "heif", "svg", "ico", "raw", "cr2", "nef", "arw", "dng", "orf", "rw2",
+  "sr2", "apng", "jp2", "j2k", "jpf", "jpx", "jpm", "mj2", "psd", "pdf",
+  "emf", "exr", "avif",
 ];
 const acceptObject = {
   "image/*": allowedExtensions.map((ext) => `.${ext}`),
 };
 
-export default function HomePage() {
+function HomePageContent() {
+  // Global state for file conversion
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
@@ -95,18 +48,22 @@ export default function HomePage() {
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<{ message: string; details?: string } | null>(null);
   const [outputFormat, setOutputFormat] = useState("jpeg");
-  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-  const pluralize = (count: number, singular: string, plural: string): string =>
-    count === 1 ? singular : plural;
 
-  const [drawerOpen, setDrawerOpen] = useState(false); // For compressed files drawer
-  const [fileManagerOpen, setFileManagerOpen] = useState(false); // For Admin Tools (FileManager) drawer
+  // Drawer and File Manager states
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
+  // Get error store functions
+  const { error, setError, clearError } = useErrorStore();
+
+  // Delay helper (simulate delay before showing a success toast)
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // Setup dropzone for file selection
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setError(null);
+    clearError();
     setConverted([]);
     setDestFolder("");
     const filteredFiles = acceptedFiles.filter((file) => {
@@ -122,7 +79,7 @@ export default function HomePage() {
       setError({ message: "Some files were rejected due to unsupported file types." });
     }
     setFiles((prev) => [...prev, ...filteredFiles]);
-  }, []);
+  }, [clearError, setError]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -131,7 +88,8 @@ export default function HomePage() {
     multiple: true,
   });
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Handle form submission and API call for compression
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (files.length === 0) {
       setError({ message: "Please drop or select some files first." });
@@ -155,9 +113,10 @@ export default function HomePage() {
       }
     }
     setIsLoading(true);
-    setError(null);
+    clearError();
     setConverted([]);
     setDestFolder("");
+
     const formData = new FormData();
     files.forEach((file) => formData.append("files[]", file));
     if (outputFormat === "jpeg") {
@@ -167,6 +126,7 @@ export default function HomePage() {
       formData.append("width", width);
     }
     formData.append("format", outputFormat);
+
     try {
       const res = await fetch("/api/compress", {
         method: "POST",
@@ -184,11 +144,10 @@ export default function HomePage() {
       const data = await res.json();
       setConverted(data.converted_files);
       setDestFolder(data.dest_folder);
-      setDrawerOpen(true); // Open the compressed files drawer
+      setDrawerOpen(true);
       await delay(600);
       toast.success(
-        pluralize(data.converted_files.length, "Image", "Images") +
-          " compressed successfully!"
+        `${data.converted_files.length} Image${data.converted_files.length > 1 ? "s" : ""} compressed successfully!`
       );
     } catch (err) {
       console.error(err);
@@ -200,350 +159,136 @@ export default function HomePage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [files, outputFormat, quality, resizeWidthEnabled, width, clearError, setError]);
 
-  function clearFileSelection() {
+  const clearFileSelection = useCallback(() => {
     setFiles([]);
-    toast.info(pluralize(files.length, "Image", "Images") + " selection cleared! 🧹");
-  }
+    toast.info(`${files.length} Image${files.length !== 1 ? "s" : ""} selection cleared! 🧹`);
+  }, [files]);
 
-  function removeFile(fileName: string) {
+  const removeFile = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
-  }
+  }, []);
 
-  function handleDownloadAll() {
+  const handleDownloadAll = useCallback(() => {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
-  }
+  }, [destFolder]);
 
-  // Callback passed to FileManager to update parent's state when force clean is triggered.
-  async function onForceCleanCallback(){
+  // Callback passed to FileManager for force cleanup
+  const onForceCleanCallback = useCallback(async () => {
     try {
       const res = await fetch("/api/force_cleanup", { method: "POST" });
       const json = await res.json();
       if (json.status === "ok") {
-        toast.success("🧹 Deletion Complete. Your processed files have been permanently removed.");
+        toast.success("Deletion Complete. Your processed files have been permanently removed. 🧹🧹🧹");
         setConverted([]);
         setDestFolder("");
-        setDrawerOpen(false); // Close the compressed files drawer
+        setDrawerOpen(false);
         setFileManagerRefresh((prev) => prev + 1);
       } else {
         toast.error(json.error || "Force cleanup failed.");
       }
     } catch (error) {
-      toast.error("🚨 cleanup failed.");
-      console.error(error)
+      toast.error("🚨 Cleanup failed.");
+      console.error(error);
     }
-  };
-
+  }, [setFileManagerRefresh]);
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <main className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
-        <ToastContainer />
-        <Card className="w-full max-w-xl">
-          <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
-          <CardHeader>
-            <Image
-              src="/mascot.jpg"
-              width={600}
-              height={600}
-              alt="Mascot of ImgCompress a Tool by Karim Zouine"
-            />
-            <Separator />
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Output Format Selector */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <Label htmlFor="outputFormat" className="text-sm">
-                    Output Format
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>
-                        <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
-                      <p className="text-sm">
-                        <strong>PNG:</strong> Preserves transparency (alpha) and is best for images with transparent backgrounds.
-                        <br />
-                        <strong>JPEG:</strong> Ideal for images without transparency and produces smaller file sizes.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <Select value={outputFormat} onValueChange={setOutputFormat}>
-                  <SelectTrigger id="outputFormat" className="bg-gray-800 text-gray-300 border-gray-700 focus:border-blue-500">
-                    <SelectValue placeholder="Select format" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
-                    <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
-                    <SelectItem value="png">PNG (preserves transparency)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+    <div className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
+      <ToastContainer />
 
-              {/* Quality Slider Field with Tooltip */}
-              {outputFormat === "jpeg" && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="quality" className="text-sm flex items-center gap-1">
-                      Quality (for JPEG only)
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>
-                            <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
-                          <p className="text-sm">
-                            Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </Label>
-                    <span className="text-sm text-gray-400">{quality}</span>
-                  </div>
-                  <input
-                    id="quality"
-                    type="range"
-                    min="10"
-                    max="100"
-                    value={quality}
-                    onChange={(e) => setQuality(e.target.value)}
-                    disabled={isLoading}
-                    className="w-full accent-blue-500"
-                  />
-                </div>
-              )}
+      {/* Main Card containing the file conversion form */}
+      <Card className="w-full max-w-xl">
+        <CardTitle className="text-center pt-5">
+          An Image Compression Tool
+        </CardTitle>
+        <CardHeader>
+          <Image
+            src="/mascot.jpg"
+            width={600}
+            height={600}
+            alt="Mascot of ImgCompress a Tool by Karim Zouine"
+          />
+          <Separator />
+        </CardHeader>
+        <CardContent>
+          <FileConversionForm
+            isLoading={isLoading}
+            error={error}
+            quality={quality}
+            setQuality={setQuality}
+            width={width}
+            setWidth={setWidth}
+            resizeWidthEnabled={resizeWidthEnabled}
+            setResizeWidthEnabled={setResizeWidthEnabled}
+            outputFormat={outputFormat}
+            setOutputFormat={setOutputFormat}
+            files={files}
+            removeFile={removeFile}
+            clearFileSelection={clearFileSelection}
+            onSubmit={handleSubmit}
+            getRootProps={getRootProps}
+            getInputProps={getInputProps}
+            isDragActive={isDragActive}
+          />
+        </CardContent>
+      </Card>
 
-              {/* Resize Width Switch & Input with Tooltip */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="resizeWidthToggle" className="text-sm flex items-center gap-1">
-                    Resize Width
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
-                        <p className="text-sm">
-                          Resizes the image(s) to the desired width while preserving the original aspect ratio.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <Switch
-                    id="resizeWidthToggle"
-                    checked={resizeWidthEnabled}
-                    onCheckedChange={(checked) => {
-                      setResizeWidthEnabled(checked);
-                      if (checked && width === "") {
-                        setWidth("800");
-                      } else if (!checked) {
-                        setWidth("");
-                      }
-                    }}
-                    disabled={isLoading}
-                  />
-                </div>
-                {resizeWidthEnabled && (
-                  <Input
-                    id="width"
-                    type="number"
-                    placeholder="800"
-                    value={width}
-                    onChange={(e) => setWidth(e.target.value)}
-                    disabled={isLoading}
-                    className="bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                )}
-              </div>
-
-              {/* Error Message Display */}
-              {error && (
-                <div className="p-2 bg-red-600 text-white rounded-md">
-                  <p>
-                    <strong>Error:</strong> {error.message}
-                  </p>
-                  {error.details && (
-                    <p>
-                      <strong>Details:</strong> {error.details}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* DRAG-AND-DROP ZONE */}
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-md p-6 text-center transition-colors ${
-                  isDragActive ? "border-blue-400" : "border-gray-700"
-                } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <input {...getInputProps()} />
-                {isDragActive ? (
-                  <p className="text-blue-300">Drop Images here...</p>
-                ) : isLoading ? (
-                  <p>Cannot drop Images while processing...</p>
-                ) : (
-                  <p>Drag & drop Images here, or click to select</p>
-                )}
-              </div>
-
-              {/* SHOW SELECTED FILES */}
-              {files.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  <Label>Files to convert:</Label>
-                  {files.map((file) => (
-                    <div
-                      key={file.name}
-                      className="flex items-center justify-between bg-gray-800 rounded-md p-2 text-gray-100"
-                    >
-                      <span className="text-sm">{file.name}</span>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={isLoading}
-                        onClick={() => removeFile(file.name)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* SUBMIT & RESET BUTTONS */}
-              <div className="flex items-center justify-between gap-4">
-                <Button type="submit" variant="default" disabled={isLoading}>
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Processing...
-                    </div>
-                  ) : (
-                    "Start Converting"
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={clearFileSelection}
-                  disabled={isLoading}
-                  className="flex items-center gap-2 outline outline-1 outline-gray-700"
-                >
-                  <Trash className="h-4 w-4" />
-                  Clear
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Floating Action Button to open the File Manager Drawer */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-              <Button
-                disabled={isLoading}
-                onClick={() => setFileManagerOpen(true)}
-                className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl">
-                <HardDrive className="h-6 w-6" />
-              </Button>
-          </TooltipTrigger>
-          <TooltipContent className="px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg">
-          Open Storage Management
-          </TooltipContent>
-        </Tooltip>
-
-
-        {/* Admin Tools (File Manager) Drawer */}
-        <Drawer
-          open={fileManagerOpen}
-          onOpenChange={(open) => {
-            setFileManagerOpen(open);
-          }}
+      {/* Floating Action Button for Storage Management */}
+      <div className="fixed bottom-4 right-4">
+        <button
+          disabled={isLoading}
+          onClick={() => setFileManagerOpen(true)}
+          className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
+            isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
+          }`}
         >
-          <DrawerTrigger asChild>
-            <Button variant="secondary" className="hidden" />
-          </DrawerTrigger>
-          <DrawerContent className="bg-zinc-950 border-0">
-            <VisuallyHidden>
-              <DrawerHeader>
-                <DrawerTitle className="text-lg font-semibold text-white text-center">
+          <HardDrive className="h-6 w-6" />
+        </button>
+      </div>
+
+      {/* File Manager Drawer */}
+      <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+        <DrawerTrigger asChild>
+          <button className="hidden" />
+        </DrawerTrigger>
+        <DrawerContent className="bg-zinc-950 border-0">
+          <VisuallyHidden>
+            <DrawerHeader>
+              <DrawerTitle className="text-lg font-semibold text-white text-center">
                 Admin Tools
-                </DrawerTitle>
-              </DrawerHeader>
-            </VisuallyHidden>
-            <div className="p-4">
-              {/* Pass the onForceClean callback to FileManager */}
-              <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
-            </div>
-          </DrawerContent>
-        </Drawer>
+              </DrawerTitle>
+            </DrawerHeader>
+          </VisuallyHidden>
+          <div className="p-4">
+            <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
-        {/* Compressed Files Drawer (conditionally rendered when processed files exist) */}
-        {converted?.length > 0 && (
-          <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-            <DrawerTrigger asChild>
-              <Button variant="secondary" className="mt-8">
-                🗃️ Show Compressed {pluralize(converted.length, "Image", "Images")}
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="bg-zinc-950 dark:bg-white border-0">
-              <div className="mx-auto w-full max-w-sm">
-                <DrawerHeader>
-                  <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">
-                    Compressed {pluralize(converted.length, "Image", "Images")}
-                  </DrawerTitle>
-                  <DrawerDescription className="text-center text-gray-500">
-                    Download your compressed {pluralize(converted.length, "Image", "Images individually or all at once")}.
-                  </DrawerDescription>
-                </DrawerHeader>
-                <div className="p-1 pb-0 flex flex-col items-center">
-                  {converted.length > 1 && (
-                    <div className="text-center p-5">
-                      <Button variant="secondary" onClick={handleDownloadAll}>
-                        Download All as Zip
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 pb-0">
-                  {/* Scrollable container for the compressed files list */}
-                  <div className="overflow-y-auto max-h-40">
-                    <ul className="space-y-2">
-                      {converted.map((fname) => (
-                        <li key={fname} className="text-center">
-                          <a
-                            href={`/api/download?folder=${encodeURIComponent(destFolder)}&file=${encodeURIComponent(fname)}`}
-                            className="text-blue-400 underline"
-                          >
-                            {fname}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                <div className="pt-10">
-                  <DrawerFooter>
-                    <DrawerClose asChild>
-                      <Button variant="destructive">Close</Button>
-                    </DrawerClose>
-                  </DrawerFooter>
-                </div>
-              </div>
-            </DrawerContent>
-          </Drawer>
-        )}
+      {/* Compressed Files Drawer */}
+      {converted.length > 0 && (
+        <CompressedFilesDrawer
+          converted={converted}
+          destFolder={destFolder}
+          isOpen={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          onDownloadAll={handleDownloadAll}
+        />
+      )}
 
-       <PageFooter/>
-      </main>
-    </TooltipProvider>
+      <PageFooter />
+    </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ErrorStoreProvider>
+      <TooltipProvider delayDuration={0}>
+        <HomePageContent />
+      </TooltipProvider>
+    </ErrorStoreProvider>
   );
 }

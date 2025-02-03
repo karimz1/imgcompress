@@ -119,7 +119,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
             <div className="absolute inset-y-0 right-0 flex items-center">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="p-2" title="Clear Processed Files">
+                  <Button variant="destructive" className="p-2" title="Clear Processed Files" disabled={data?.files?.length === 0}>
                     <Trash className="h-4 w-4" /> Clear Processed Files
                   </Button>
                 </AlertDialogTrigger>
