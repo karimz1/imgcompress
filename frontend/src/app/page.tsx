@@ -101,7 +101,6 @@ export default function HomePage() {
 
   const [drawerOpen, setDrawerOpen] = useState(false); // For compressed files drawer
   const [fileManagerOpen, setFileManagerOpen] = useState(false); // For Admin Tools (FileManager) drawer
-  const [forceCleaning, setForceCleaning] = useState(false);
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -230,21 +229,10 @@ export default function HomePage() {
       }
     } catch (error) {
       toast.error("Force cleanup failed.");
-    } finally {
-      setForceCleaning(false);
+      console.error(error)
     }
   };
 
-  // Refresh converted state when Admin Tools drawer closes.
-  async function refreshConvertedState() {
-    try {
-      const res = await fetch("/api/container_files");
-      const json = await res.json();
-      setConverted(json.files);
-    } catch (error) {
-      toast.error("Failed to refresh processed files.");
-    }
-  }
 
   return (
     <TooltipProvider delayDuration={0}>
