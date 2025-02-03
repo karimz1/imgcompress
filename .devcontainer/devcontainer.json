@@ -13,7 +13,8 @@
     "extensions": [
       "ms-python.python",
       "ms-azuretools.vscode-docker",
-      "formulahendry.code-runner"
+      "formulahendry.code-runner",
+      "dbaeumer.vscode-eslint"
     ],
     "mounts": [
       "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"

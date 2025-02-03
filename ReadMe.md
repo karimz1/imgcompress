@@ -23,6 +23,18 @@ I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effor
 ### ^^ And this is how imgcompress was born 🐣
  ![imgcompress Mascot Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
 
+
+## 📰 Latest News
+
+Stay up-to-date with the newest improvements:
+
+- [**NEW**: The Web UI now includes Storage Management for Cleanups](https://github.com/karimz1/imgcompress/issues/27)
+  *Quickly manage and clean up your storage directly from the Web UI.*
+- [**NEW**: PNG Processing now supports Transparency](https://github.com/karimz1/imgcompress/pull/25)
+  *Enjoy enhanced image processing that now preserves PNG transparency.*
+
+*For more details, check out the linked GitHub issues and pull requests!*
+
 ---
 
 ## Feature Overview
