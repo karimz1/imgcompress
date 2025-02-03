@@ -2,6 +2,9 @@
 
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import FileManager from "@/components/FileManager";
+
+
 import {
   Card,
   CardHeader,
@@ -104,6 +107,9 @@ export default function HomePage() {
 
   // State to control the Drawer open/close
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+
+  const [fileManagerOpen, setFileManagerOpen] = useState(false);
 
   // onDrop: filter files based on allowedExtensions
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -443,6 +449,29 @@ export default function HomePage() {
             </form>
           </CardContent>
         </Card>
+
+        <Button variant="secondary" className="mt-8" onClick={() => setFileManagerOpen(true)}>
+        🗂️ Open File Manager
+        </Button>
+
+        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+        <DrawerTrigger asChild>
+          <Button variant="secondary" className="hidden" />
+        </DrawerTrigger>
+        <DrawerContent className="bg-zinc-950">
+          <DrawerHeader>
+            <DrawerTitle className="text-lg font-semibold text-white">File Manager</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-4">
+            <FileManager />
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="destructive">Close</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
         {converted.length > 0 && (
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
