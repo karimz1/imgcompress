@@ -3,8 +3,10 @@
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import FileManager from "@/components/FileManager";
-import { Box, Info, Loader2, Trash } from "lucide-react";
+import { HardDrive, Info, Loader2, Trash } from "lucide-react";
 import { VisuallyHidden } from '@/components/visually-hidden';
+import PageFooter from "@/components/PageFooter";
+
 
 import {
   Card,
@@ -219,7 +221,7 @@ export default function HomePage() {
       const res = await fetch("/api/force_cleanup", { method: "POST" });
       const json = await res.json();
       if (json.status === "ok") {
-        toast.success("🧹 Forced cleanup completed. 👏");
+        toast.success("🧹 Deletion Complete. Your processed files have been permanently removed.");
         setConverted([]);
         setDestFolder("");
         setDrawerOpen(false); // Close the compressed files drawer
@@ -228,7 +230,7 @@ export default function HomePage() {
         toast.error(json.error || "Force cleanup failed.");
       }
     } catch (error) {
-      toast.error("Force cleanup failed.");
+      toast.error("🚨 cleanup failed.");
       console.error(error)
     }
   };
@@ -444,13 +446,19 @@ export default function HomePage() {
         </Card>
 
         {/* Floating Action Button to open the File Manager Drawer */}
-        <Button
-          variant="secondary"
-          onClick={() => setFileManagerOpen(true)}
-          className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl"
-        >
-          <Box className="h-6 w-6" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+              <Button
+                onClick={() => setFileManagerOpen(true)}
+                className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl">
+                <HardDrive className="h-6 w-6" />
+              </Button>
+          </TooltipTrigger>
+          <TooltipContent className="px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg">
+          Open Storage Management
+          </TooltipContent>
+        </Tooltip>
+
 
         {/* Admin Tools (File Manager) Drawer */}
         <Drawer
@@ -533,35 +541,7 @@ export default function HomePage() {
           </Drawer>
         )}
 
-        <Card className="w-full max-w-xl mt-8">
-          <CardHeader>
-            <CardTitle>Open Source & Free</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">
-              This project is <strong>open source</strong> and freely available.
-              Check out the source code on{" "}
-              <a
-                href="https://github.com/karimz1/imgcompress"
-                className="text-blue-400 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub
-              </a>.
-            </p>
-            <p className="text-sm text-gray-600 mt-2">
-              Created by <strong>Karim Zouine</strong>. Donations are very welcome,
-              if you find this tool useful 🤗 My PayPal:{" "}
-              <a
-                href="mailto:mails.karimzouine@gmail.com"
-                className="text-blue-400 hover:underline"
-              >
-                mails.karimzouine@gmail.com
-              </a>
-            </p>
-          </CardContent>
-        </Card>
+       <PageFooter/>
       </main>
     </TooltipProvider>
   );

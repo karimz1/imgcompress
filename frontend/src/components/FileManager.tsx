@@ -56,7 +56,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
       setData(json);
     } catch (error) {
       toast.error("Failed to fetch container files.");
-      console.error(error)
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
       setStorage(json);
     } catch (error) {
       toast.error("Failed to fetch storage info.");
-      console.error(error)
+      console.error(error);
     }
   };
 
@@ -82,12 +82,12 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
   return (
     <Card className="w-full max-w-2xl mx-auto mt-4">
       <CardHeader className="flex flex-col">
-      <CardTitle className="text-center">
-        <div className="flex items-center justify-center gap-2">
-          <HardDrive className="h-4 w-4" />
-          <span>File Storage Info</span>
-        </div>
-      </CardTitle>
+        <CardTitle className="text-center">
+          <div className="flex items-center justify-center gap-2">
+            <HardDrive className="h-4 w-4" />
+            <span>Storage Management</span>
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Storage Information */}
@@ -114,82 +114,81 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
           </div>
         )}
 
-        {/* Force Clean AlertDialog button placed on the right below storage info */}
-        <div className="flex justify-end mb-4">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="p-2" title="Force Clean">
-                <Trash className="h-4 w-4" /> Clear Storage of Processed Files
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Force Clean</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to clear all processed files? Make sure you have downloaded your images as this action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={onForceClean}>
-                  Confirm
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-
         <div className="w-full">
-        {/* Section header */}
-        <h2 className="text-lg font-bold text-center">Files</h2>
-        
-        <div className="mt-4">
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin" />
+          {/* Header with centered Files text and Clear Processed Files button on the right */}
+          <div className="relative">
+            <h2 className="text-lg font-bold text-center">Files</h2>
+            <div className="absolute inset-y-0 right-0 flex items-center">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="p-2" title="Clear Processed Files">
+                    <Trash className="h-4 w-4" /> Clear Processed Files
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm File Deletion</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will permanently delete all processed files. Please ensure you have downloaded any necessary files before proceeding, as this action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onForceClean}>
+                      Yes, Delete Files
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
-          ) : data?.files?.length ? (
-            <div>
-              {/* Totals displayed outside the scrollable container */}
-              <div className="mb-4 text-sm text-gray-400 text-center">
-                <p>
-                  Total Files: <strong>{data.total_count}</strong>
-                </p>
-                <p>
-                  Total Space Used: <strong>{data.total_size_mb} MB</strong>
-                </p>
-              </div>
-              {/* Scrollable container for the file list */}
-              <div className="overflow-y-auto max-h-40 space-y-2">
-                {data.files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between bg-gray-800 rounded-md p-2"
-                  >
-                    <span>
-                      <strong className="text-xs text-gray-400">
-                        {file.filename}
-                      </strong>{" "}
-                      <span className="text-xs text-gray-400">
-                        ({file.size_mb} MB)
-                      </span>
-                      {file.folder === "zip" && (
-                        <span className="ml-2 text-xs text-blue-400">(ZIP)</span>
-                      )}
-                    </span>
-                    <span className="text-xs text-gray-400">{file.folder}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-center text-gray-400">
-              No converted files found.
-            </p>
-          )}
-        </div>
-      </div>
+          </div>
 
+          <div className="mt-4">
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : data?.files?.length ? (
+              <div>
+                {/* Totals displayed above the scrollable container */}
+                <div className="mb-4 text-sm text-gray-400 text-center">
+                  <p>
+                    Total Files: <strong>{data.total_count}</strong>
+                  </p>
+                  <p>
+                    Total Space Used: <strong>{data.total_size_mb} MB</strong>
+                  </p>
+                </div>
+                {/* Scrollable container for the file list */}
+                <div className="overflow-y-auto max-h-40 space-y-2">
+                  {data.files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between bg-gray-800 rounded-md p-2"
+                    >
+                      <span>
+                        <strong className="text-xs text-gray-400">
+                          {file.filename}
+                        </strong>{" "}
+                        <span className="text-xs text-gray-400">
+                          ({file.size_mb} MB)
+                        </span>
+                        {file.folder === "zip" && (
+                          <span className="ml-2 text-xs text-blue-400">(ZIP)</span>
+                        )}
+                      </span>
+                      <span className="text-xs text-gray-400">{file.folder}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-gray-400">
+                No converted files found.
+              </p>
+            )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
