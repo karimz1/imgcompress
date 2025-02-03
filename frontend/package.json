@@ -10,6 +10,7 @@
     "export": "next export"
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.5",
     "@radix-ui/react-dialog": "^1.1.5",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-progress": "^1.1.1",

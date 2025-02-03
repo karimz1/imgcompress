@@ -3,8 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import FileManager from "@/components/FileManager";
-import { Folder } from "lucide-react"; // Using Folder icon for example
-
+import { Folder, Trash, Info, Loader2 } from "lucide-react";
 
 import {
   Card,
@@ -16,20 +15,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Info, Trash } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  DrawerClose,
+  DrawerDescription,
+  DrawerFooter
 } from "@/components/ui/drawer";
 
 // Import Tooltip components
@@ -48,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 
 // Define allowed extensions
 const allowedExtensions = [
@@ -99,25 +98,26 @@ export default function HomePage() {
   const [destFolder, setDestFolder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
-  // New state for output format; default to "jpeg"
   const [outputFormat, setOutputFormat] = useState("jpeg");
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const pluralize = (count: number, singular: string, plural: string): string =>
     count === 1 ? singular : plural;
 
-  // State to control the Drawer open/close
+  // Controls for the Admin Tools (File Manager) drawer
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-
+  // Controls for the floating File Manager button
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
+  // State for force cleanup process
+  const [forceCleaning, setForceCleaning] = useState(false);
+  // Refresh key for FileManager re-mounting
+  const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
   // onDrop: filter files based on allowedExtensions
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setError(null);
     setConverted([]);
     setDestFolder("");
-
     const filteredFiles = acceptedFiles.filter((file) => {
       const ext = file.name.split(".").pop()?.toLowerCase();
       if (ext && allowedExtensions.includes(ext)) {
@@ -150,7 +150,6 @@ export default function HomePage() {
       toast.error("Please drop or select some files first.");
       return;
     }
-
     if (outputFormat === "jpeg") {
       const qualityNum = parseInt(quality, 10);
       if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
@@ -159,8 +158,6 @@ export default function HomePage() {
         return;
       }
     }
-
-    // Validate width if resizing is enabled
     if (resizeWidthEnabled) {
       const widthNum = parseInt(width, 10);
       if (isNaN(widthNum) || widthNum <= 0) {
@@ -169,30 +166,24 @@ export default function HomePage() {
         return;
       }
     }
-
     setIsLoading(true);
     setError(null);
     setConverted([]);
     setDestFolder("");
-
     const formData = new FormData();
     files.forEach((file) => formData.append("files[]", file));
-    // Append quality only if JPEG is selected
     if (outputFormat === "jpeg") {
       formData.append("quality", quality);
     }
     if (resizeWidthEnabled) {
       formData.append("width", width);
     }
-    // Append the selected output format
     formData.append("format", outputFormat);
-
     try {
       const res = await fetch("/api/compress", {
         method: "POST",
         body: formData,
       });
-
       if (!res.ok) {
         const err = await res.json();
         setError({
@@ -202,14 +193,15 @@ export default function HomePage() {
         toast.error(err.error || "Error uploading files.");
         return;
       }
-
       const data = await res.json();
       setConverted(data.converted_files);
       setDestFolder(data.dest_folder);
-      // Do not clear file selection automatically on success
-      setDrawerOpen(true);
+      setDrawerOpen(true); // Open the compressed files drawer
       await delay(600);
-      toast.success(pluralize(data.converted_files.length, "Image", "Images") + " compressed successfully!");
+      toast.success(
+        pluralize(data.converted_files.length, "Image", "Images") +
+          " compressed successfully!"
+      );
     } catch (err) {
       console.error(err);
       setError({
@@ -234,6 +226,30 @@ export default function HomePage() {
   function handleDownloadAll() {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
   }
+
+  // Force cleanup handler: called from FileManager via callback.
+  // It calls the backend, then clears the converted files from state,
+  // closes the compressed files drawer, and forces a refresh of FileManager.
+  const handleForceCleanup = async () => {
+    setForceCleaning(true);
+    try {
+      const res = await fetch("/api/force_cleanup", { method: "POST" });
+      const json = await res.json();
+      if (json.status === "ok") {
+        toast.success("Forced cleanup completed.");
+        setConverted([]);
+        setDestFolder("");
+        setDrawerOpen(false); // Close the compressed files drawer
+        setFileManagerRefresh((prev) => prev + 1);
+      } else {
+        toast.error(json.error || "Force cleanup failed.");
+      }
+    } catch (error) {
+      toast.error("Force cleanup failed.");
+    } finally {
+      setForceCleaning(false);
+    }
+  };
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -264,7 +280,10 @@ export default function HomePage() {
                         <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
+                    <TooltipContent
+                      side="top"
+                      className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
+                    >
                       <p className="text-sm">
                         <strong>PNG:</strong> Preserves transparency (alpha) and is best for images with transparent backgrounds.
                         <br />
@@ -281,17 +300,13 @@ export default function HomePage() {
                     <SelectValue placeholder="Select format" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
-                    <SelectItem value="jpeg">
-                      JPEG (smaller file size)
-                    </SelectItem>
-                    <SelectItem value="png">
-                      PNG (preserves transparency)
-                    </SelectItem>
+                    <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
+                    <SelectItem value="png">PNG (preserves transparency)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Quality Slider Field with Tooltip - only show if outputFormat is JPEG */}
+              {/* Quality Slider Field with Tooltip */}
               {outputFormat === "jpeg" && (
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -303,7 +318,10 @@ export default function HomePage() {
                             <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
+                        <TooltipContent
+                          side="top"
+                          className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
+                        >
                           <p className="text-sm">
                             Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).
                           </p>
@@ -336,7 +354,10 @@ export default function HomePage() {
                           <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
+                      <TooltipContent
+                        side="top"
+                        className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
+                      >
                         <p className="text-sm">
                           Resizes the image(s) to the desired width while preserving the original aspect ratio.
                         </p>
@@ -451,37 +472,36 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-      {/* Floating Action Button at lower right */}
-      <Button
-        variant="secondary"
-        onClick={() => setFileManagerOpen(true)}
-        className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl"
-      >
-        <Folder className="h-6 w-6" />
-      </Button>
+        {/* Floating Action Button to open the File Manager Drawer */}
+        <Button
+          variant="secondary"
+          onClick={() => setFileManagerOpen(true)}
+          className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl"
+        >
+          <Folder className="h-6 w-6" />
+        </Button>
 
-      {/* Drawer for File Manager */}
-      <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
-        <DrawerTrigger asChild>
-          <Button variant="secondary" className="hidden" />
-        </DrawerTrigger>
-        <DrawerContent className="bg-zinc-950 border-0">
-          <DrawerHeader>
-            <DrawerTitle className="text-lg font-semibold text-white text-center">
-              Admin Tools
-            </DrawerTitle>
-          </DrawerHeader>
-          <div className="p-4">
-            <FileManager />
-          </div>
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button variant="destructive">Close</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+        {/* Admin Tools (File Manager) Drawer */}
+        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+          <DrawerTrigger asChild>
+            <Button variant="secondary" className="hidden" />
+          </DrawerTrigger>
+          <DrawerContent className="bg-zinc-950 border-0">
+            {/* Removed the Force Clean trash icon from the header.
+                Instead, FileManager will include its own Trash icon that calls onForceClean. */}
+            <DrawerHeader>
+              <DrawerTitle className="text-lg font-semibold text-white">
+                Admin Tools
+              </DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4">
+              {/* Pass refresh key and the onForceClean callback to FileManager */}
+              <FileManager key={fileManagerRefresh} onForceClean={handleForceCleanup} />
+            </div>
+          </DrawerContent>
+        </Drawer>
 
+        {/* Compressed Files Drawer (conditionally rendered when converted files exist) */}
         {converted.length > 0 && (
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DrawerTrigger asChild>
@@ -509,20 +529,21 @@ export default function HomePage() {
                   )}
                 </div>
                 <div className="p-4 pb-0">
-                  <ul className="space-y-2">
-                    {converted.map((fname) => (
-                      <li key={fname} className="text-center">
-                        <a
-                          href={`/api/download?folder=${encodeURIComponent(
-                            destFolder
-                          )}&file=${encodeURIComponent(fname)}`}
-                          className="text-blue-400 underline"
-                        >
-                          {fname}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Scrollable container for the compressed files list */}
+                  <div className="overflow-y-auto max-h-40">
+                    <ul className="space-y-2">
+                      {converted.map((fname) => (
+                        <li key={fname} className="text-center">
+                          <a
+                            href={`/api/download?folder=${encodeURIComponent(destFolder)}&file=${encodeURIComponent(fname)}`}
+                            className="text-blue-400 underline"
+                          >
+                            {fname}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
                 <div className="pt-10">
                   <DrawerFooter>

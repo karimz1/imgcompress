@@ -148,26 +148,34 @@ def process_images(source_folder: str, dest_folder: str, quality: int, width: Op
 def cleanup_temp_folders(force: bool = False):
     """
     Delete temp subfolders that are older than EXPIRATION_TIME.
-    If force is True, delete ALL folders (that follow our naming conventions),
-    except for ZIP files.
+    If force is True, delete ALL folders and ZIP files that follow our naming conventions.
     """
     current_time = time.time()
-    for folder in os.listdir(TEMP_DIR):
-        folder_path = os.path.join(TEMP_DIR, folder)
-        
-        # Skip if this is a file and it's a ZIP file.
-        if os.path.isfile(folder_path) and folder.endswith(".zip"):
-            continue
-        
-        # Optionally only cleanup folders we created (starting with "source_" or "converted_")
-        if os.path.isdir(folder_path) and (folder.startswith("source_") or folder.startswith("converted_")):
+    for item in os.listdir(TEMP_DIR):
+        item_path = os.path.join(TEMP_DIR, item)
+        # If item is a directory and its name starts with "source_" or "converted_"
+        if os.path.isdir(item_path) and (item.startswith("source_") or item.startswith("converted_")):
             try:
-                creation_time = os.path.getctime(folder_path)
+                creation_time = os.path.getctime(item_path)
+                # When force is True, always delete the folder
                 if force or (current_time - creation_time > EXPIRATION_TIME):
-                    shutil.rmtree(folder_path, ignore_errors=True)
-                    app_logger.log(f"Deleted temp folder: {folder_path}", level="info")
+                    shutil.rmtree(item_path, ignore_errors=True)
+                    app_logger.log(f"Deleted temp folder: {item_path}", level="info")
             except Exception as e:
-                app_logger.log(f"Error deleting folder {folder_path}: {e}", level="error")
+                app_logger.log(f"Error deleting folder {item_path}: {e}", level="error")
+        # If item is a file (a ZIP file) and its name starts with "converted_" and ends with ".zip"
+        elif os.path.isfile(item_path) and item.startswith("converted_") and item.endswith(".zip"):
+            try:
+                # When force is True, delete the ZIP file
+                if force:
+                    os.remove(item_path)
+                    app_logger.log(f"Deleted ZIP file: {item_path}", level="info")
+                # Otherwise, you can choose to delete it if it's older than EXPIRATION_TIME:
+                elif current_time - os.path.getctime(item_path) > EXPIRATION_TIME:
+                    os.remove(item_path)
+                    app_logger.log(f"Deleted ZIP file: {item_path}", level="info")
+            except Exception as e:
+                app_logger.log(f"Error deleting ZIP file {item_path}: {e}", level="error")
 
 
 def get_container_files() -> dict:
