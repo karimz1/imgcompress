@@ -449,6 +449,7 @@ export default function HomePage() {
         <Tooltip>
           <TooltipTrigger asChild>
               <Button
+                disabled={isLoading}
                 onClick={() => setFileManagerOpen(true)}
                 className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl">
                 <HardDrive className="h-6 w-6" />
