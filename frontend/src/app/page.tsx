@@ -3,7 +3,8 @@
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import FileManager from "@/components/FileManager";
-import { Folder, Trash, Info, Loader2 } from "lucide-react";
+import { Box, Info, Loader2, Trash } from "lucide-react";
+import { VisuallyHidden } from '@/components/visually-hidden';
 
 import {
   Card,
@@ -30,7 +31,6 @@ import {
   DrawerFooter
 } from "@/components/ui/drawer";
 
-// Import Tooltip components
 import {
   TooltipProvider,
   Tooltip,
@@ -38,7 +38,6 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 
-// Import shadcn Select components for the combobox
 import {
   Select,
   SelectContent,
@@ -47,8 +46,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
-// Define allowed extensions
+// Allowed extensions and acceptObject defined as before...
 const allowedExtensions = [
   "jpg",
   "jpeg",
@@ -83,8 +81,6 @@ const allowedExtensions = [
   "exr",
   "avif",
 ];
-
-// Create an object for the accept prop
 const acceptObject = {
   "image/*": allowedExtensions.map((ext) => `.${ext}`),
 };
@@ -99,21 +95,15 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
   const [outputFormat, setOutputFormat] = useState("jpeg");
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const pluralize = (count: number, singular: string, plural: string): string =>
     count === 1 ? singular : plural;
 
-  // Controls for the Admin Tools (File Manager) drawer
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  // Controls for the floating File Manager button
-  const [fileManagerOpen, setFileManagerOpen] = useState(false);
-  // State for force cleanup process
+  const [drawerOpen, setDrawerOpen] = useState(false); // For compressed files drawer
+  const [fileManagerOpen, setFileManagerOpen] = useState(false); // For Admin Tools (FileManager) drawer
   const [forceCleaning, setForceCleaning] = useState(false);
-  // Refresh key for FileManager re-mounting
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
-  // onDrop: filter files based on allowedExtensions
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setError(null);
     setConverted([]);
@@ -128,14 +118,11 @@ export default function HomePage() {
       }
     });
     if (filteredFiles.length < acceptedFiles.length) {
-      setError({
-        message: "Some files were rejected due to unsupported file types.",
-      });
+      setError({ message: "Some files were rejected due to unsupported file types." });
     }
     setFiles((prev) => [...prev, ...filteredFiles]);
   }, []);
 
-  // Configure dropzone with our accept object
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
@@ -227,16 +214,13 @@ export default function HomePage() {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
   }
 
-  // Force cleanup handler: called from FileManager via callback.
-  // It calls the backend, then clears the converted files from state,
-  // closes the compressed files drawer, and forces a refresh of FileManager.
-  const handleForceCleanup = async () => {
-    setForceCleaning(true);
+  // Callback passed to FileManager to update parent's state when force clean is triggered.
+  async function onForceCleanCallback(){
     try {
       const res = await fetch("/api/force_cleanup", { method: "POST" });
       const json = await res.json();
       if (json.status === "ok") {
-        toast.success("Forced cleanup completed.");
+        toast.success("🧹 Forced cleanup completed. 👏");
         setConverted([]);
         setDestFolder("");
         setDrawerOpen(false); // Close the compressed files drawer
@@ -250,6 +234,17 @@ export default function HomePage() {
       setForceCleaning(false);
     }
   };
+
+  // Refresh converted state when Admin Tools drawer closes.
+  async function refreshConvertedState() {
+    try {
+      const res = await fetch("/api/container_files");
+      const json = await res.json();
+      setConverted(json.files);
+    } catch (error) {
+      toast.error("Failed to refresh processed files.");
+    }
+  }
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -280,10 +275,7 @@ export default function HomePage() {
                         <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
-                    >
+                    <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
                       <p className="text-sm">
                         <strong>PNG:</strong> Preserves transparency (alpha) and is best for images with transparent backgrounds.
                         <br />
@@ -293,10 +285,7 @@ export default function HomePage() {
                   </Tooltip>
                 </div>
                 <Select value={outputFormat} onValueChange={setOutputFormat}>
-                  <SelectTrigger
-                    id="outputFormat"
-                    className="bg-gray-800 text-gray-300 border-gray-700 focus:border-blue-500"
-                  >
+                  <SelectTrigger id="outputFormat" className="bg-gray-800 text-gray-300 border-gray-700 focus:border-blue-500">
                     <SelectValue placeholder="Select format" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
@@ -318,10 +307,7 @@ export default function HomePage() {
                             <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent
-                          side="top"
-                          className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
-                        >
+                        <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
                           <p className="text-sm">
                             Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).
                           </p>
@@ -354,10 +340,7 @@ export default function HomePage() {
                           <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent
-                        side="top"
-                        className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
-                      >
+                      <TooltipContent side="top" className="bg-gray-800 text-white p-2 rounded shadow-lg border-0">
                         <p className="text-sm">
                           Resizes the image(s) to the desired width while preserving the original aspect ratio.
                         </p>
@@ -478,31 +461,36 @@ export default function HomePage() {
           onClick={() => setFileManagerOpen(true)}
           className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl"
         >
-          <Folder className="h-6 w-6" />
+          <Box className="h-6 w-6" />
         </Button>
 
         {/* Admin Tools (File Manager) Drawer */}
-        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+        <Drawer
+          open={fileManagerOpen}
+          onOpenChange={(open) => {
+            setFileManagerOpen(open);
+          }}
+        >
           <DrawerTrigger asChild>
             <Button variant="secondary" className="hidden" />
           </DrawerTrigger>
           <DrawerContent className="bg-zinc-950 border-0">
-            {/* Removed the Force Clean trash icon from the header.
-                Instead, FileManager will include its own Trash icon that calls onForceClean. */}
-            <DrawerHeader>
-              <DrawerTitle className="text-lg font-semibold text-white">
+            <VisuallyHidden>
+              <DrawerHeader>
+                <DrawerTitle className="text-lg font-semibold text-white text-center">
                 Admin Tools
-              </DrawerTitle>
-            </DrawerHeader>
+                </DrawerTitle>
+              </DrawerHeader>
+            </VisuallyHidden>
             <div className="p-4">
-              {/* Pass refresh key and the onForceClean callback to FileManager */}
-              <FileManager key={fileManagerRefresh} onForceClean={handleForceCleanup} />
+              {/* Pass the onForceClean callback to FileManager */}
+              <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
             </div>
           </DrawerContent>
         </Drawer>
 
-        {/* Compressed Files Drawer (conditionally rendered when converted files exist) */}
-        {converted.length > 0 && (
+        {/* Compressed Files Drawer (conditionally rendered when processed files exist) */}
+        {converted?.length > 0 && (
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DrawerTrigger asChild>
               <Button variant="secondary" className="mt-8">

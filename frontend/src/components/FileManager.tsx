@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Trash } from "lucide-react";
+import { Loader2, Trash, HardDrive } from "lucide-react";
 import { toast } from "react-toastify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 
-// Import AlertDialog components from shadcn/ui (make sure you've installed alert-dialog)
+// Import AlertDialog components from shadcn/ui
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,12 +39,16 @@ interface StorageInfo {
   available_storage_mb: number;
 }
 
-export default function FileManager() {
+interface FileManagerProps {
+  onForceClean: () => void;
+}
+
+export default function FileManager({ onForceClean }: FileManagerProps) {
   const [data, setData] = useState<ContainerData | null>(null);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [forceCleaning, setForceCleaning] = useState(false);
-  const [alertOpen, setAlertOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("files");
 
   // Fetch container files from the backend
   const fetchContainerFiles = async () => {
@@ -60,7 +64,7 @@ export default function FileManager() {
     }
   };
 
-  // Fetch storage information from the backend
+  // Fetch storage info from the backend
   const fetchStorageInfo = async () => {
     try {
       const res = await fetch("/api/storage_info");
@@ -71,46 +75,29 @@ export default function FileManager() {
     }
   };
 
-  // Local force cleanup handler (called after user confirms)
-  const handleLocalForceCleanup = async () => {
-    setForceCleaning(true);
-    try {
-      const res = await fetch("/api/force_cleanup", { method: "POST" });
-      const json = await res.json();
-      if (json.status === "ok") {
-        toast.success("Forced cleanup completed.");
-        // Refresh file and storage info after cleanup
-        fetchContainerFiles();
-        fetchStorageInfo();
-      } else {
-        toast.error(json.error || "Force cleanup failed.");
-      }
-    } catch (error) {
-      toast.error("Force cleanup failed.");
-    } finally {
-      setForceCleaning(false);
-      setAlertOpen(false);
-    }
-  };
-
   useEffect(() => {
     fetchContainerFiles();
     fetchStorageInfo();
   }, []);
 
-  // Calculate percentages for progress bars
-  const maxCount = Math.max(100, data?.total_count || 0);
-  const maxSize = Math.max(100, data?.total_size_mb || 0);
+  // Calculate progress values
+  const maxCount = Math.max(100, data?.total_count ?? 0);
+  const maxSize = Math.max(100, data?.total_size_mb ?? 0);
   const countPercent = data ? Math.min((data.total_count / maxCount) * 100, 100) : 0;
   const sizePercent = data ? Math.min((data.total_size_mb / maxSize) * 100, 100) : 0;
 
   return (
     <Card className="w-full max-w-2xl mx-auto mt-4">
-      <CardHeader>
-        <CardTitle className="text-center">File Manager</CardTitle>
+      <CardHeader className="flex flex-col">
+      <CardTitle className="text-center">
+        <div className="flex items-center justify-center gap-2">
+          <HardDrive className="h-4 w-4" />
+          <span>File Storage Info</span>
+        </div>
+      </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Storage Info */}
+        {/* Storage Information */}
         {storage && (
           <div className="mb-4 space-y-2">
             <div className="text-center text-sm text-gray-400">
@@ -134,34 +121,35 @@ export default function FileManager() {
           </div>
         )}
 
-        {/* AlertDialog for force cleanup */}
-        <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="mb-4">
-              <Trash className="h-4 w-4" title="Force Clean" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Force Clean</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to clear all processed files? Make sure you have downloaded your images as this action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleLocalForceCleanup}>
-                Confirm
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {/* Force Clean AlertDialog button placed on the right below storage info */}
+        <div className="flex justify-end mb-4">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="p-2" title="Force Clean">
+                <Trash className="h-4 w-4" /> Clear Storage of Processed Files
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Force Clean</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to clear all processed files? Make sure you have downloaded your images as this action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onForceClean}>
+                  Confirm
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
 
-        {/* Tabs for file list and usage chart */}
-        <Tabs defaultValue="files" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        {/* Tabs for file listing */}
+        <Tabs defaultValue="files" className="w-full" onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="files">Files</TabsTrigger>
-            <TabsTrigger value="chart">Usage Chart</TabsTrigger>
           </TabsList>
           <TabsContent value="files" className="mt-4">
             {loading ? (
@@ -171,13 +159,9 @@ export default function FileManager() {
             ) : data?.files?.length ? (
               <div>
                 {/* Totals displayed outside the scrollable container */}
-                <div className="mb-4 text-sm text-gray-400">
-                  <p>
-                    Total Files: <strong>{data.total_count}</strong>
-                  </p>
-                  <p>
-                    Total Space Used: <strong>{data.total_size_mb} MB</strong>
-                  </p>
+                <div className="mb-4 text-sm text-gray-400 text-center">
+                  <p>Total Files: <strong>{data.total_count}</strong></p>
+                  <p>Total Space Used: <strong>{data.total_size_mb} MB</strong></p>
                 </div>
                 {/* Scrollable container for the file list */}
                 <div className="overflow-y-auto max-h-40 space-y-2">
@@ -197,27 +181,6 @@ export default function FileManager() {
               </div>
             ) : (
               <p className="text-center text-gray-400">No converted files found.</p>
-            )}
-          </TabsContent>
-
-          <TabsContent value="chart" className="mt-4">
-            {data ? (
-              <div className="space-y-6">
-                <div>
-                  <p className="mb-1 text-sm font-medium text-gray-400">
-                    Total Files: <span className="text-white">{data.total_count}</span>
-                  </p>
-                  <Progress value={countPercent} className="h-3" />
-                </div>
-                <div>
-                  <p className="mb-1 text-sm font-medium text-gray-400">
-                    Total MB Used: <span className="text-white">{data.total_size_mb}</span>
-                  </p>
-                  <Progress value={sizePercent} className="h-3" />
-                </div>
-              </div>
-            ) : (
-              <p className="text-center text-gray-400">No data to display.</p>
             )}
           </TabsContent>
         </Tabs>
