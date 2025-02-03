@@ -21,20 +21,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Custom Components
 import FileConversionForm from "@/components/FileConversionForm";
 import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
-import FileManager from "@/components/FileManager";
+import FileManager from "@/components/StorageFileManager";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import PageFooter from "@/components/PageFooter";
+
+// Allowed file extensions and dropzone accept object
+import {allowedExtensions} from "@/lib/constants";
 
 // Error store context
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 
-// Allowed file extensions and dropzone accept object
-const allowedExtensions = [
-  "jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp", "heic",
-  "heif", "svg", "ico", "raw", "cr2", "nef", "arw", "dng", "orf", "rw2",
-  "sr2", "apng", "jp2", "j2k", "jpf", "jpx", "jpm", "mj2", "psd", "pdf",
-  "emf", "exr", "avif",
-];
 const acceptObject = {
   "image/*": allowedExtensions.map((ext) => `.${ext}`),
 };

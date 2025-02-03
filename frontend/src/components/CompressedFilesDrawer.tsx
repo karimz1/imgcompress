@@ -12,7 +12,7 @@ import {
   DrawerDescription,
   DrawerFooter,
 } from "@/components/ui/drawer";
-import { pluralize } from "@/lib/helpers"; // You can move the helper to a shared file if desired
+import { pluralize } from "@/lib/helpers";
 
 interface CompressedFilesDrawerProps {
   converted: string[];
