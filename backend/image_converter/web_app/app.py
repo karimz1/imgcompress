@@ -148,11 +148,18 @@ def process_images(source_folder: str, dest_folder: str, quality: int, width: Op
 def cleanup_temp_folders(force: bool = False):
     """
     Delete temp subfolders that are older than EXPIRATION_TIME.
-    If force is True, delete ALL folders (that follow our naming conventions).
+    If force is True, delete ALL folders (that follow our naming conventions),
+    except for ZIP files.
     """
     current_time = time.time()
     for folder in os.listdir(TEMP_DIR):
         folder_path = os.path.join(TEMP_DIR, folder)
+        
+        # Skip if this is a file and it's a ZIP file.
+        if os.path.isfile(folder_path) and folder.endswith(".zip"):
+            continue
+        
+        # Optionally only cleanup folders we created (starting with "source_" or "converted_")
         if os.path.isdir(folder_path) and (folder.startswith("source_") or folder.startswith("converted_")):
             try:
                 creation_time = os.path.getctime(folder_path)
@@ -162,18 +169,24 @@ def cleanup_temp_folders(force: bool = False):
             except Exception as e:
                 app_logger.log(f"Error deleting folder {folder_path}: {e}", level="error")
 
+
 def get_container_files() -> dict:
     """
-    Scan TEMP_DIR for folders we created and return a list of files with sizes (in MB)
-    and overall totals.
+    Scan TEMP_DIR for folders we created (starting with "converted_")
+    and also for ZIP files (named like "converted_*.zip") and return a list
+    of files with sizes (in MB) and overall totals.
     """
     files_list = []
     total_size = 0
     total_count = 0
 
+    app_logger.log(f"Scanning TEMP_DIR: {TEMP_DIR}", level="info")
+    
+    # Scan directories (non-ZIP files)
     for folder in os.listdir(TEMP_DIR):
         folder_path = os.path.join(TEMP_DIR, folder)
         if os.path.isdir(folder_path) and folder.startswith("converted_"):
+            app_logger.log(f"Found converted folder: {folder}", level="info")
             for fname in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, fname)
                 if os.path.isfile(file_path):
@@ -187,7 +200,25 @@ def get_container_files() -> dict:
                     total_size += size_mb
                     total_count += 1
 
+    # Scan for ZIP files directly in TEMP_DIR
+    for fname in os.listdir(TEMP_DIR):
+        if fname.startswith("converted_") and fname.endswith(".zip"):
+            file_path = os.path.join(TEMP_DIR, fname)
+            if os.path.isfile(file_path):
+                app_logger.log(f"Found ZIP file: {fname}", level="info")
+                size_bytes = os.path.getsize(file_path)
+                size_mb = round(size_bytes / (1024 * 1024), 2)
+                files_list.append({
+                    "folder": "zip",  # Label these as ZIP files
+                    "filename": fname,
+                    "size_mb": size_mb
+                })
+                total_size += size_mb
+                total_count += 1
+
+    app_logger.log(f"Total files found: {total_count}, total size: {total_size} MB", level="info")
     return {"files": files_list, "total_size_mb": round(total_size, 2), "total_count": total_count}
+
 
 # ----------------------------
 # API ENDPOINTS
@@ -281,6 +312,20 @@ def download_all():
             "error": "Failed to create ZIP archive.",
             "message": str(e)
         }), 500
+
+@app.route("/api/storage_info", methods=["GET"])
+def storage_info():
+    # Use the root ("/") for disk usage; adjust if needed.
+    total, used, free = shutil.disk_usage("/")
+    # Convert bytes to MB
+    total_mb = round(total / (1024 * 1024), 2)
+    used_mb = round(used / (1024 * 1024), 2)
+    free_mb = round(free / (1024 * 1024), 2)
+    return jsonify({
+        "total_storage_mb": total_mb,
+        "used_storage_mb": used_mb,
+        "available_storage_mb": free_mb
+    }), 200
 
 @app.route("/api/force_cleanup", methods=["POST"])
 def force_cleanup():

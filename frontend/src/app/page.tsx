@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import FileManager from "@/components/FileManager";
+import { Folder } from "lucide-react"; // Using Folder icon for example
 
 
 import {
@@ -450,17 +451,25 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        <Button variant="secondary" className="mt-8" onClick={() => setFileManagerOpen(true)}>
-        🗂️ Open File Manager
-        </Button>
+      {/* Floating Action Button at lower right */}
+      <Button
+        variant="secondary"
+        onClick={() => setFileManagerOpen(true)}
+        className="fixed bottom-4 right-4 rounded-full p-3 shadow-lg hover:shadow-xl"
+      >
+        <Folder className="h-6 w-6" />
+      </Button>
 
-        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+      {/* Drawer for File Manager */}
+      <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
         <DrawerTrigger asChild>
           <Button variant="secondary" className="hidden" />
         </DrawerTrigger>
-        <DrawerContent className="bg-zinc-950">
+        <DrawerContent className="bg-zinc-950 border-0">
           <DrawerHeader>
-            <DrawerTitle className="text-lg font-semibold text-white">File Manager</DrawerTitle>
+            <DrawerTitle className="text-lg font-semibold text-white text-center">
+              Admin Tools
+            </DrawerTitle>
           </DrawerHeader>
           <div className="p-4">
             <FileManager />
