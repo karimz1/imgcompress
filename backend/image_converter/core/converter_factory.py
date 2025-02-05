@@ -3,7 +3,7 @@ from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.enums.image_format import ImageFormat
 from .jpeg_converter import JpegConverter
 from .png_converter import PngConverter
-from .iconverter import IImageConverter
+from .interfaces.iconverter import IImageConverter
 
 class ImageConverterFactory:
     """Factory to produce the correct converter instance based on the desired ImageFormat."""

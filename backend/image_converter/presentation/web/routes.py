@@ -2,18 +2,20 @@ import os
 import time
 import shutil
 import tempfile
-from typing import List, Optional
-
+from typing import Optional
 from flask import Blueprint, request, jsonify, send_from_directory, abort
 from werkzeug.utils import secure_filename
 
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
-from backend.image_converter.domain.image_conversion_service import ImageConversionService
 from backend.image_converter.domain.image_resizer import ImageResizer
+
+from backend.image_converter.core.converter_factory import ImageConverterFactory
+from backend.image_converter.core.enums.image_format import ImageFormat
+
 from backend.image_converter.presentation.web.parse_services import (
-    extract_form_data, 
-    ALLOWED_EXTENSIONS  # if needed
+    extract_form_data,
+    ALLOWED_EXTENSIONS
 )
 
 api_blueprint = Blueprint("api", __name__)
@@ -22,9 +24,7 @@ TEMP_DIR = tempfile.gettempdir()
 EXPIRATION_TIME = 3600
 logger = Logger(debug=False, json_output=False)
 cleanup_service = CleanupService(TEMP_DIR, EXPIRATION_TIME, logger)
-
 resizer = ImageResizer()
-conversion_service = ImageConversionService(resizer=resizer)
 
 @api_blueprint.route("/compress", methods=["POST"])
 def compress_images():
@@ -39,17 +39,19 @@ def compress_images():
     uploaded_files = data["uploaded_files"]
     quality = data["quality"]
     width = data["width"]
-    output_format = data["format"]
+    output_format_str = data["format"]  # "jpeg" or "png" from form
 
     if not uploaded_files:
         return jsonify({"error": "No valid files uploaded."}), 400
 
+    # Derive the enum
+    image_format = ImageFormat.from_string(output_format_str)
     source_folder = tempfile.mkdtemp(prefix="source_")
     dest_folder = tempfile.mkdtemp(prefix="converted_")
 
     try:
         _save_uploaded_files(uploaded_files, source_folder)
-        _process_images(source_folder, dest_folder, quality, width, output_format)
+        _process_images(source_folder, dest_folder, image_format, quality, width)
         converted_files = os.listdir(dest_folder)
         if not converted_files:
             raise ValueError("No files were converted.")
@@ -137,7 +139,7 @@ def container_files():
 
 def _save_uploaded_files(uploaded_files, source_folder: str):
     """
-    save user upload to fileystem 
+    Save the user's uploaded files to disk.
     """
     for file in uploaded_files:
         filename = secure_filename(file.filename)
@@ -154,42 +156,63 @@ def _save_uploaded_files(uploaded_files, source_folder: str):
             logger.log(f"Failed to save file {filename}: {e}", "error")
             raise
 
-def _process_images(source_folder: str, dest_folder: str, quality: int, width: Optional[int], output_format: str):
+def _process_images(source_folder: str, 
+                    dest_folder: str,
+                    image_format: ImageFormat, 
+                    quality: int, 
+                    width: Optional[int]) -> None:
     """
-    uses the domain-level ImageConversionService to do real conversion.
+    For each file in 'source_folder':
+      1) Read bytes
+      2) Optionally resize
+      3) Use 'ImageConverterFactory' to create a converter
+      4) Convert & save final file
     """
     logger.log(
-        f"Processing images from {source_folder} -> {dest_folder} (quality={quality}, width={width}, format={output_format})",
+        f"Processing images {source_folder} -> {dest_folder} (format={image_format.value}, quality={quality}, width={width})",
         "info"
     )
+
+    # Create a converter from the factory
+    converter = ImageConverterFactory.create_converter(image_format, quality, logger)
+
+    # Determine file extension
+
+    #ToDo: Well i need to move it to the enum itself would be cleaner but maybe later …
+    if image_format == ImageFormat.PNG:
+        new_ext = ".png"
+    else:
+        new_ext = ".jpg"  # default to JPEG
 
     for filename in os.listdir(source_folder):
         src_file_path = os.path.join(source_folder, filename)
         if not os.path.isfile(src_file_path):
             continue
 
-        # Read bytes
         with open(src_file_path, "rb") as f:
             original_data = f.read()
 
-        # Convert via domain service
+        # 1) Maybe resize
+        if width and width > 0:
+            resized_data = resizer.resize_image(original_data, width)
+        else:
+            resized_data = original_data
+
+        # 2) Final path
+        base, _ext = os.path.splitext(filename)
+        dest_path = os.path.join(dest_folder, base + new_ext)
+
+        # 3) Convert using the factory-chosen converter
         try:
-            converted_data = conversion_service.convert_image(
-                image_data=original_data,
-                output_format=output_format,
-                quality=quality,
-                width=width
+            result = converter.convert(
+                image_data=resized_data,
+                source_path=src_file_path,
+                dest_path=dest_path
             )
+            if not result["is_successful"]:
+                logger.log(f"Conversion failed for {filename}: {result['error']}", "error")
         except Exception as e:
             logger.log(f"Error converting {filename}: {e}", "error")
             raise
-
-        # Save to destination with new extension if needed
-        base, _ext = os.path.splitext(filename)
-        new_ext = ".png" if output_format.lower() == "png" else ".jpg"
-        new_name = base + new_ext
-        dest_path = os.path.join(dest_folder, new_name)
-        with open(dest_path, "wb") as f:
-            f.write(converted_data)
 
     logger.log(f"Processed images from {source_folder} to {dest_folder}", "info")
