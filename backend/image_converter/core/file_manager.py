@@ -27,5 +27,5 @@ class FileManager:
             f for f in all_files
             if os.path.splitext(f)[1].lower() in SUPPORTED_EXTENSIONS
         ]
-        self.logger.log(f"Found {len(supported_files)} supported files.", "debug")
+        self.logger.log(f"Found {len(supported_files)} supported file(s).", "debug")
         return supported_files

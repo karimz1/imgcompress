@@ -12,8 +12,8 @@ trap cleanup EXIT INT TERM
 # Start the Flask backend in a subshell with the virtual environment activated
 (
   . /venv/bin/activate
-  echo "Starting Flask backend on port 5000..."
-  exec python -m flask --app ./backend/image_converter/web_app/app.py run --host=0.0.0.0 --port=5000
+  echo "Starting Flask backend using bootstraper"
+  exec python ./backend/image_converter/bootstraper.py web
 ) &
 
 # Start the Node.js frontend in its own subshell
