@@ -1,5 +1,3 @@
-# file: tests/core/test_converters.py
-
 import pytest
 from PIL import Image
 from io import BytesIO

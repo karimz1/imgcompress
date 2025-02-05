@@ -1,5 +1,3 @@
-# file: backend/image_converter/presentation/web/error_handlers.py
-
 from flask import jsonify, request
 from werkzeug.exceptions import RequestEntityTooLarge, HTTPException
 
