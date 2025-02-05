@@ -1,5 +1,3 @@
-# file: backend/image_converter/presentation/web/app.py
-
 import os
 import tempfile
 from flask import Flask

@@ -10,7 +10,7 @@ from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.domain.image_resizer import ImageResizer
 
-from backend.image_converter.core.converter_factory import ImageConverterFactory
+from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
 
 from backend.image_converter.presentation.web.parse_services import (

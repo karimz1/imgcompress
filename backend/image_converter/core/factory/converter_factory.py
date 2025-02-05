@@ -1,9 +1,9 @@
 from typing import Optional
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.enums.image_format import ImageFormat
-from .jpeg_converter import JpegConverter
-from .png_converter import PngConverter
-from .interfaces.iconverter import IImageConverter
+from backend.image_converter.core.factory.jpeg_converter import JpegConverter
+from backend.image_converter.core.factory.png_converter import PngConverter
+from ..interfaces.iconverter import IImageConverter
 
 class ImageConverterFactory:
     """Factory to produce the correct converter instance based on the desired ImageFormat."""

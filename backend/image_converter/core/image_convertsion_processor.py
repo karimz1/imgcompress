@@ -3,10 +3,10 @@ import os
 import sys
 import json
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.core.file_manager import FileManager
-from backend.image_converter.core.image_loader import ImageLoader
+from backend.image_converter.core.internals.file_manager import FileManager
+from backend.image_converter.core.internals.image_loader import ImageLoader
 from backend.image_converter.domain.image_resizer import ImageResizer
-from backend.image_converter.core.converter_factory import ImageConverterFactory
+from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.enums.conversion_error import ConversionError
 from backend.image_converter.core.enums.log_level import LogLevel
