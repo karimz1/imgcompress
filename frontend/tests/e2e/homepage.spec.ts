@@ -3,6 +3,18 @@ import path from "path";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
 
+
+test.describe("Web Page Title and Basic Checks", () => {
+  test("has the correct page title", async ({ page }) => {
+    await page.goto(BASE_URL);
+
+    // Check that the page's <title> matches something like "Image Compression Tool"
+    // or whatever is rendered in your Next.js application.
+    await expect(page).toHaveTitle(/Image Compression Tool/i);
+  })
+});
+
+
 test.describe("Home Page E2E Tests", () => {
   test("renders the homepage with default UI elements", async ({ page }) => {
     await page.goto(BASE_URL);
