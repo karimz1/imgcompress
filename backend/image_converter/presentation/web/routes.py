@@ -216,3 +216,4 @@ def _process_images(source_folder: str,
             raise
 
     logger.log(f"Processed images from {source_folder} to {dest_folder}", "info")
+    

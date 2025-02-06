@@ -1,6 +1,6 @@
 import os
 import tempfile
-from flask import Flask
+from flask import Flask,  send_from_directory, abort
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from backend.image_converter.infrastructure.logger import Logger
@@ -35,6 +35,45 @@ app.register_error_handler(401, handle_http_exception)
 app.register_error_handler(403, handle_http_exception)
 app.register_error_handler(405, handle_http_exception)
 app.register_error_handler(500, handle_http_exception)
+
+# ----------------------------
+# STATIC FILE SERVING
+# ----------------------------
+def serve_static_file(filename: str):
+    try:
+        return send_from_directory(app.static_folder, filename)
+    except Exception as e:
+        app_logger.log(f"Error serving static file {filename}: {e}", level="error")
+        return jsonify({
+            "error": "File Not Found",
+            "message": f"The requested file {filename} was not found on the server."
+        }), 404
+
+@app.errorhandler(404)
+def not_found(error):
+    # If a route is not found, serve index.html.
+    return serve_static_file("index.html")
+
+@app.route("/")
+def serve_index():
+    return serve_static_file("index.html")
+
+@app.route("/_next/static/<path:path>")
+def serve_next_static(path):
+    return send_from_directory(os.path.join(app.static_folder, "_next/static"), path)
+
+@app.route("/<path:path>")
+def serve_out_files(path):
+    # Avoid intercepting API calls.
+    if path.startswith("api/"):
+        abort(404)
+    
+    full_path = os.path.join(app.static_folder, path)
+    if os.path.exists(full_path) and os.path.isfile(full_path):
+        return send_from_directory(app.static_folder, path)
+    
+    return serve_static_file("index.html")
+
 
 def start_scheduler():
     """
