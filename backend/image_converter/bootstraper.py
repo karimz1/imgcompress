@@ -1,7 +1,7 @@
 import sys
 import subprocess
 
-from backend.image_converter.presentation.web.app import start_scheduler
+from backend.image_converter.presentation.web.server import start_scheduler
 from backend.image_converter.presentation.cli.app import main as cli_main
 
 def launch_web_prod():
@@ -10,7 +10,7 @@ def launch_web_prod():
         "gunicorn",
         "-w", "4",
         "-b", "0.0.0.0:5000",
-        "backend.image_converter.presentation.web.app:app"  
+        "backend.image_converter.presentation.web.server:app"  
     ], check=True)
 
 
@@ -23,7 +23,7 @@ def launch_web_dev():
         "python",
         "-m",
         "flask",
-        "--app", "backend.image_converter.presentation.web.app",
+        "--app", "backend.image_converter.presentation.web.server",
         "run",
         "--host=0.0.0.0",
         "--port=5000"

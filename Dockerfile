@@ -54,7 +54,7 @@ RUN mkdir -p /container/backend/image_converter/web_app/static_site
 
 # Copy the compiled Next.js site from Stage 1
 COPY --from=frontend-build /app/frontend/out/. \
-     /container/backend/image_converter/web_app/static_site
+     /container/backend/image_converter/presentation/web/static_site
 
 # Expose 5000 for "web" mode
 EXPOSE 5000
