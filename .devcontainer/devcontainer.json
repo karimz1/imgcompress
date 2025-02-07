@@ -14,7 +14,8 @@
       "ms-python.python",
       "ms-azuretools.vscode-docker",
       "formulahendry.code-runner",
-      "dbaeumer.vscode-eslint"
+      "dbaeumer.vscode-eslint",
+      "ms-playwright.playwright"
     ],
     "mounts": [
       "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"

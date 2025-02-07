@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useDropzone } from "react-dropzone";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { DownloadZipToast } from "@/components/CustomToast";
 
 // UI Components
 import {
@@ -165,9 +166,12 @@ function HomePageContent() {
   const removeFile = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
   }, []);
-
+  
   const handleDownloadAll = useCallback(() => {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
+    <ToastContainer/>
+    toast(<DownloadZipToast/>)
+    
   }, [destFolder]);
 
   // Callback passed to FileManager for force cleanup

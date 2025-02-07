@@ -13,6 +13,8 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import { pluralize } from "@/lib/helpers";
+import { toast, ToastContainer } from "react-toastify";
+import { FileDown } from "lucide-react";
 
 interface CompressedFilesDrawerProps {
   converted: string[];
@@ -21,6 +23,26 @@ interface CompressedFilesDrawerProps {
   onOpenChange: (open: boolean) => void;
   onDownloadAll: () => void;
 }
+
+
+const DownloadFileToast: React.FC<DownloadFileToastProps> = ({ fileName }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {/* Bigger icon */}
+    <span style={{ fontSize: "16px", fontWeight: "bold", wordBreak: "break-word" }}>
+      Downloading <strong>{fileName}</strong>...
+    </span>
+  </div>
+);
+
+interface DownloadFileToastProps {
+  fileName: string
+}
+
+const handleDownloadItemClickeEvent = (fileName: string) =>{
+<ToastContainer/>
+toast(<DownloadFileToast fileName={fileName} />);
+}
+
 
 const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
   converted,
@@ -49,7 +71,7 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
           <div className="p-1 pb-0 flex flex-col items-center">
             {converted.length > 1 && (
               <div className="text-center p-5">
-                <Button variant="secondary" onClick={onDownloadAll}>
+                <Button variant="secondary" onClick={onDownloadAll} data-testid="drawer-download-all-as-zip-btn">
                   Download All as Zip
                 </Button>
               </div>
@@ -59,11 +81,12 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
             <div className="overflow-y-auto max-h-40">
               <ul className="space-y-2">
                 {converted.map((fname) => (
-                  <li key={fname} className="text-center">
-                    <a
+                  <li key={fname} className="text-center" data-testid="drawer-uploaded-file-item">
+                    <a data-testid="drawer-uploaded-file-item-link"
                       href={`/api/download?folder=${encodeURIComponent(
                         destFolder
                       )}&file=${encodeURIComponent(fname)}`}
+                      onClick={() => handleDownloadItemClickeEvent(fname)}
                       className="text-blue-400 underline"
                     >
                       {fname}

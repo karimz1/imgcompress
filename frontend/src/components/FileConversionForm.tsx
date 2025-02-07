@@ -74,12 +74,12 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const renderError = useMemo(
     () =>
       error && (
-        <div className="p-2 bg-red-600 text-white rounded-md">
-          <p>
+        <div data-testid="error-holder" className="p-2 bg-red-600 text-white rounded-md">
+          <p data-testid="error-message-holder">
             <strong>Error:</strong> {error.message}
           </p>
           {error.details && (
-            <p>
+            <p data-testid="error-details-holder">
               <strong>Details:</strong> {error.details}
             </p>
           )}
@@ -87,6 +87,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       ),
     [error]
   );
+  
 
   const renderFilesList = useMemo(
     () =>
@@ -98,7 +99,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               key={file.name}
               className="flex items-center justify-between bg-gray-800 rounded-md p-2 text-gray-100"
             >
-              <span className="text-sm">{file.name}</span>
+              <span className="text-sm" data-testid="dropzone-added-file">{file.name}</span>
               <Button
                 variant="secondary"
                 size="sm"
@@ -122,7 +123,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           isDragActive ? "border-blue-400" : "border-gray-700"
         } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps()} data-testid="dropzone-input" />
         {isDragActive ? (
           <p className="text-blue-300">Drop Images here...</p>
         ) : isLoading ? (
@@ -232,6 +233,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             </Tooltip>
           </Label>
           <Switch
+            data-testid='resize-width-switch'
             id="resizeWidthToggle"
             checked={resizeWidthEnabled}
             onCheckedChange={(checked) => {
@@ -247,6 +249,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
         {resizeWidthEnabled && (
           <Input
+            data-testid='resize-width-input'
+            itemProp='data-testid: convert-btn'
             id="width"
             type="number"
             placeholder="800"
@@ -269,7 +273,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
       {/* Submit & Clear Buttons */}
       <div className="flex items-center justify-between gap-4">
-        <Button type="submit" variant="default" disabled={isLoading}>
+        <Button type="submit" variant="default" disabled={isLoading} data-testid="convert-btn">
           {isLoading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -285,6 +289,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           onClick={clearFileSelection}
           disabled={isLoading}
           className="flex items-center gap-2 outline outline-1 outline-gray-700"
+        
         >
           <Trash className="h-4 w-4" />
           Clear

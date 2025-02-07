@@ -11,7 +11,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -25,7 +24,7 @@ jobs:
           pwd
           tree -L 2
           echo "===== End Root Directory ====="
-
+          
           echo "===== tests Directory ====="
           if [ -d "tests" ]; then
             cd tests
@@ -40,12 +39,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker image
+      - name: Build Dev Container Image
         run: |
           cd .devcontainer/
           docker build --no-cache -t devcontainer:local-test .
 
-      - name: Run Tests
+      - name: Run Unit Tests in Dev Container
         run: |
           docker run --rm \
             --entrypoint /bin/sh \
@@ -54,7 +53,6 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
             devcontainer:local-test /app/runTests.sh
-        continue-on-error: false
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
 
@@ -64,8 +62,56 @@ jobs:
           name: pytest-results
           path: reports/test-results.xml
 
+  e2e-test:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Build Application Docker Image for E2E
+        run: docker build --no-cache -t karimz1/imgcompress:local-test .
+
+      - name: Create Docker Network
+        run: docker network create e2e-net
+
+      - name: Run Application Container
+        run: |
+          docker run --rm -d \
+            --network e2e-net \
+            --name app \
+            -p 5000:5000 \
+            karimz1/imgcompress:local-test web
+
+      - name: Wait for Application to be Ready
+        run: |
+          echo "Waiting for the application to be ready on port 5000..."
+          for i in {1..30}; do
+            if curl -s http://localhost:5000 > /dev/null; then
+              echo "Application is up!"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Application did not start in time." && exit 1
+
+      - name: Run E2E Tests in Dev Container
+        run: |
+          docker run --rm \
+            --network e2e-net \
+            -v "$(pwd):/workspaces/imgcompress" \
+            -w /workspaces/imgcompress/frontend \
+            -e PLAYWRIGHT_BASE_URL=http://app:5000 \
+            devcontainer:local-test npm run test:e2e
+
+      - name: Cleanup: Stop App Container and Remove Network
+        if: always()
+        run: |
+          docker stop app || true
+          docker network rm e2e-net || true
+
   deploy:
-    needs: [build-and-test]
+    needs: [e2e-test]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -93,10 +139,9 @@ jobs:
             echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
           fi
 
-      - name: Build Docker Image
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           tags: ${{ env.ADDITIONAL_TAG }}
-
