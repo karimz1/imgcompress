@@ -75,16 +75,18 @@ jobs:
           cd .devcontainer/
           docker build --no-cache -t devcontainer:local-test .
 
-      - name: Run E2E Tests in Dev Container
-        run: |
-          docker run --rm \
-            --entrypoint /bin/sh \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$(pwd):/app/" \
-            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
-            -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
-            --name devcontainer2 \
-            devcontainer:local-test -c "/app/run-e2e.sh"
+    - name: Run E2E Tests in Dev Container
+      run: |
+        docker run --rm \
+          --entrypoint /bin/sh \
+          --network e2e-net \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v "$(pwd):/app/" \
+          -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+          -e PLAYWRIGHT_BASE_URL=http://app:5000 \
+          --name devcontainer2 \
+          devcontainer:local-test -c "/app/run-e2e.sh"
+
 
 
   deploy-image:
