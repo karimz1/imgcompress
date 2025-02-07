@@ -48,7 +48,7 @@ jobs:
       - name: Run Unit Tests in Dev Container
         run: |
           docker run --rm \
-            --entrypoint /bin/sh \
+            --entrypoint /bin/bash \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
