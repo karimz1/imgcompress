@@ -105,11 +105,12 @@ jobs:
             -e PLAYWRIGHT_BASE_URL=http://app:5000 \
             devcontainer:local-test npm run test:e2e
 
-      - name: Cleanup: Stop App Container and Remove Network
+      - name: "Cleanup: Stop App Container and Remove Network"
         if: always()
         run: |
           docker stop app || true
           docker network rm e2e-net || true
+
 
   deploy:
     needs: [e2e-test]
