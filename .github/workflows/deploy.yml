@@ -42,7 +42,7 @@ jobs:
           docker run --rm \
             --entrypoint /bin/bash \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "${{ github.workspace }}:/app" \
+            -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             devcontainer:local-test /app/runTests.sh
 
