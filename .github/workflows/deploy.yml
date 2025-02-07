@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Build and Test Docker Image
 
 on:
   push:
@@ -10,34 +10,42 @@ on:
   pull_request:
 
 jobs:
-  backend-test:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Install tree & List Repository Structure
+      - name: Install tree
+        run: sudo apt-get update && sudo apt-get install -y tree
+
+      - name: List Repository Contents
         run: |
-          sudo apt-get update && sudo apt-get install -y tree
           echo "===== Root Directory ====="
+          pwd
           tree -L 2
           echo "===== End Root Directory ====="
+          
           echo "===== tests Directory ====="
           if [ -d "tests" ]; then
-            tree -L 2 tests
+            cd tests
+            pwd
+            tree -L 2
+            cd ..
           else
             echo "tests directory does not exist."
           fi
           echo "===== End tests Directory ====="
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v2
 
       - name: Build Dev Container Image
-        working-directory: .devcontainer
-        run: docker build --no-cache -t devcontainer:local-test .
+        run: |
+          cd .devcontainer/
+          docker build --no-cache -t devcontainer:local-test .
 
-      - name: Run Unit & Integration Tests in Dev Container
+      - name: Run Unit + Integration Tests in Dev Container
         run: |
           docker run --rm \
             --entrypoint /bin/bash \
@@ -46,6 +54,8 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
             devcontainer:local-test /app/runTests.sh
+        env:
+          IS_RUNNING_IN_GITHUB_ACTIONS: true
 
       - name: Upload Pytest Results
         uses: actions/upload-artifact@v4
@@ -54,19 +64,19 @@ jobs:
           path: reports/test-results.xml
 
   e2e-test:
-    needs: backend-test
+    needs: build-and-test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Check out code
         uses: actions/checkout@v3
 
       - name: Build Application Docker Image for E2E
         run: docker build --no-cache -t karimz1/imgcompress:local-test .
 
       - name: Build Dev Container Image
-        working-directory: .devcontainer
-        run: docker build --no-cache -t devcontainer:local-test .
-
+        run: |
+          cd .devcontainer/
+          docker build --no-cache -t devcontainer:local-test .
       - name: Create Docker Network
         run: docker network create e2e-net
 
@@ -100,18 +110,18 @@ jobs:
             devcontainer:local-test \
             sh -c "npm install && npm run test:e2e"
 
-
       - name: "Cleanup: Stop App Container and Remove Network"
         if: always()
         run: |
           docker stop app || true
           docker network rm e2e-net || true
 
-  deploy-docker-image:
-    needs: e2e-test
+
+  deploy:
+    needs: [e2e-test]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Check out repository
         uses: actions/checkout@v3
 
       - name: Login to Docker Hub
@@ -126,7 +136,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Define Docker Image Tag
+      - name: Define Tags
         id: define-tags
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
