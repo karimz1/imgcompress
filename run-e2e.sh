@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e  # Exit immediately if a command exits with a non-zero status
 
+# Use PLAYWRIGHT_BASE_URL if provided; default to http://localhost:5000
+BASE_URL=${PLAYWRIGHT_BASE_URL:-http://localhost:5000}
+echo "Using base URL: ${BASE_URL}"
+
 # Create Docker Network
 echo "Creating Docker Network..."
 docker network create e2e-net || true  # Avoid error if it already exists
@@ -15,14 +19,20 @@ docker run --rm -d \
   karimz1/imgcompress:local-test web
 
 # Wait for Application to be Ready
-echo "Waiting for the application to be ready on port 5000..."
-for i in {1..30}; do
-  if curl -s http://localhost:5000 > /dev/null; then
-    echo "Application is up!"
-    break
+echo "Waiting for the application to be ready on ${BASE_URL}..."
+max_attempts=30
+attempt_num=1
+
+until curl -s "$BASE_URL" > /dev/null; do
+  if (( attempt_num == max_attempts )); then
+    echo "Application failed to start after $max_attempts attempts."
+    exit 1
   fi
+  echo "Waiting for app... attempt $attempt_num"
+  attempt_num=$((attempt_num+1))
   sleep 1
 done
+echo "Application is up!"
 
 # Run E2E Tests in Dev Container
 echo "Running E2E Tests..."
