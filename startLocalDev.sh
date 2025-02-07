@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Define a cleanup function to kill all background processes
 cleanup() {
   echo "Terminating background processes..."
