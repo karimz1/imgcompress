@@ -54,6 +54,16 @@ Stay up-to-date with the newest improvements:
 - **🔄 Seamless Automation & Flexible Logging:**  
   Integrate imgcompress into your CI/CD pipelines and choose between human-readable logs or structured JSON for a smoother workflow.
 
+---
+
+## 💰 Support Further Development
+
+If you find **imgcompress** valuable, please consider supporting the project (entirely optional). Your contributions help fund the infrastructure and development tools needed to build even better open source software during my free time. Thank you for your support!
+
+### Donate using PayPal
+🤗 **My PayPal Email:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
+
+![Donate QR Code Paypal](./images/donate_qr.png)
 
 ---
 
@@ -208,13 +218,9 @@ Everything runs locally in Docker, ensuring your data stays secure and under you
 
 ------
 
-## 🤝 Contribute & Support
+## 🤝 Contribute
 
 Interested in contributing? Visit the [Source Code on GitHub](https://github.com/karimz1/imgcompress) and feel free to fork, branch, and submit a pull request.
-
-If you find imgcompress valuable, consider supporting the project (totally optional), it would help investing in infrastructure and development tools:
-
-🤗 **PayPal:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
 
 ------
 
