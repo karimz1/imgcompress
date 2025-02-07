@@ -1,4 +1,3 @@
-# server.py
 import os
 import tempfile
 from flask import Flask

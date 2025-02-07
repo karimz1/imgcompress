@@ -1,4 +1,3 @@
-# backend/image_converter/core/enums/image_format.py
 from enum import Enum
 
 class ImageFormat(Enum):

@@ -81,7 +81,7 @@ class ImageConversionProcessor:
             # 2) Resize if needed
             original_width = None
             new_width = None
-            # We can discover original width by opening the bytes quickly
+            # discover original width by opening the bytes quickly
             with Image.open(BytesIO(image_data)) as temp_img:
                 original_width, _ = temp_img.size
 
@@ -92,7 +92,7 @@ class ImageConversionProcessor:
             else:
                 new_width = original_width
 
-            # 3) Convert via our factory-chosen converter
+            # 3) Convert via factory-chosen converter
             convert_result = self.converter.convert(
                 image_data=image_data,
                 source_path=file_path,
