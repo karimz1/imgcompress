@@ -75,6 +75,9 @@ jobs:
           cd .devcontainer/
           docker build --no-cache -t devcontainer:local-test .
 
+      - name: Create Docker Network
+        run: docker network create e2e-net || true
+
       - name: Run E2E Tests in Dev Container
         run: |
           docker run --rm \
@@ -86,8 +89,6 @@ jobs:
             -e PLAYWRIGHT_BASE_URL=http://app:5000 \
             --name devcontainer2 \
             devcontainer:local-test -c "/app/run-e2e.sh"
-
-
 
   deploy-image:
     needs: [test-e2e]
