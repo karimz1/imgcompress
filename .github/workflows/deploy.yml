@@ -82,8 +82,8 @@ jobs:
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
-            --name devcontainer \
-            devcontainer:local-test -c "./run-e2e.sh"
+            --name devcontainer2 \
+            devcontainer:local-test -c "/app/run-e2e.sh"
 
 
   deploy:

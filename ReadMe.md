@@ -20,8 +20,13 @@ Experience the power of imgcompress with the **NEW** modern Web UI. Check out th
 Ever been frustrated by juggling multiple programs just to convert or compress images? **I did too.**  
 I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effortlessly compress, convert, and resize your images—all inside a Docker container. No more complicated installations or worrying about privacy with online converters. Everything runs locally, secure and consistent across any system.
 
-### ^^ And this is how imgcompress was born 🐣
- ![imgcompress Mascot Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
+<figure style="text-align: center;">
+<h3>and this is how the tool was born 🐣</h3>
+  <img src="https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg" 
+       alt="imgcompress Mascot Logo" 
+       style="width:100%; height:auto;">
+  <figcaption><em>imgcompress Mascot</em></figcaption>
+</figure>
 
 
 ## 📰 Latest News
@@ -63,7 +68,7 @@ If you find **imgcompress** valuable, please consider supporting the project (en
 ### Donate using PayPal
 🤗 **My PayPal Email:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
 
-![Donate QR Code Paypal](./images/donate_qr.png)
+<img src="./images/donate_qr.png" alt="paypal donate qr-code"  width="60%" height="30%">
 
 ---
 
