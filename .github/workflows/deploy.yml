@@ -6,6 +6,7 @@ on:
       - main
       - feature/*
       - bugfix/*
+      - enhancements/*
   pull_request:
 
 jobs:
