@@ -18,21 +18,21 @@ docker run --rm -d \
   -p 5000:5000 \
   karimz1/imgcompress:local-test web
 
-# Wait for Application to be Ready
 echo "Waiting for the application to be ready on ${BASE_URL}..."
 max_attempts=30
 attempt_num=1
 
-until curl -s "$BASE_URL" > /dev/null; do
+until curl -s --fail "$BASE_URL" > /dev/null; do
   if (( attempt_num == max_attempts )); then
     echo "Application failed to start after $max_attempts attempts."
-    exit 1
+    exit -1
   fi
   echo "Waiting for app... attempt $attempt_num"
   attempt_num=$((attempt_num+1))
   sleep 1
 done
-echo "Application is up!"
+
+echo "Application is up! Continuing..."
 
 # Run E2E Tests in Dev Container
 echo "Running E2E Tests..."
