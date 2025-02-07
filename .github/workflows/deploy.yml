@@ -107,7 +107,8 @@ jobs:
             -v "$(pwd):/workspaces/imgcompress" \
             -w /workspaces/imgcompress/frontend \
             -e PLAYWRIGHT_BASE_URL=http://app:5000 \
-            devcontainer:local-test npm run test:e2e
+            devcontainer:local-test \
+            bash -c "npm install && npm run test:e2e"
 
       - name: "Cleanup: Stop App Container and Remove Network"
         if: always()
