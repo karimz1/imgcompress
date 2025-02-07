@@ -1,54 +1,42 @@
 #!/bin/bash
-set -euo pipefail
+set -e  # Exit immediately if a command exits with a non-zero status
 
-echo "=== Clearing Docker config to avoid credential helper issues ==="
-# Remove any existing Docker configuration that might refer to unavailable credential helpers.
-rm -rf "$HOME/.docker"
-mkdir -p "$HOME/.docker"
-echo '{}' > "$HOME/.docker/config.json"
+# Create Docker Network
+echo "Creating Docker Network..."
+docker network create e2e-net || true  # Avoid error if it already exists
 
-echo "=== Building Application Docker Image ==="
+# Build and Run Application Container
+echo "Building and Running Application Container..."
 docker build --no-cache -t karimz1/imgcompress:local-test .
-
-NETWORK="e2e-net"
-
-echo "=== Creating Docker Network: ${NETWORK} ==="
-# Create the network; ignore error if it already exists.
-docker network create "${NETWORK}" || true
-
-echo "=== Starting Application Container ==="
 docker run --rm -d \
-  --network "${NETWORK}" \
+  --network e2e-net \
   --name app \
   -p 5000:5000 \
   karimz1/imgcompress:local-test web
 
-echo "=== Waiting for the Application to be Ready on Port 5000 ==="
-max_attempts=30
-attempt=1
-until curl -s http://localhost:5000 > /dev/null; do
-  if [ $attempt -ge $max_attempts ]; then
-    echo "Application did not start in time."
-    docker stop app || true
-    docker network rm "${NETWORK}" || true
-    exit 1
+# Wait for Application to be Ready
+echo "Waiting for the application to be ready on port 5000..."
+for i in {1..30}; do
+  if curl -s http://localhost:5000 > /dev/null; then
+    echo "Application is up!"
+    break
   fi
-  echo "Attempt $attempt: waiting..."
-  attempt=$((attempt+1))
   sleep 1
 done
-echo "Application is up!"
 
-echo "=== Running E2E Tests in Dev Container ==="
+# Run E2E Tests in Dev Container
+echo "Running E2E Tests..."
 docker run --rm \
-  --network "${NETWORK}" \
+  --network e2e-net \
   -v "$(pwd):/workspaces/imgcompress" \
   -w /workspaces/imgcompress/frontend \
   -e PLAYWRIGHT_BASE_URL=http://app:5000 \
-  devcontainer:local-test npm run test:e2e
+  devcontainer:local-test \
+  sh -c "npm install && npm run test:e2e"
 
-echo "=== Cleaning up: Stopping Application Container and Removing Network ==="
+# Cleanup: Stop App Container and Remove Network
+echo "Cleaning up..."
 docker stop app || true
-docker network rm "${NETWORK}" || true
+docker network rm e2e-net || true
 
-echo "=== E2E Tests Completed Successfully ==="
+echo "E2E Tests completed successfully!"
