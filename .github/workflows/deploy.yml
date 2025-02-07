@@ -45,7 +45,7 @@ jobs:
           cd .devcontainer/
           docker build --no-cache -t devcontainer:local-test .
 
-      - name: Run Unit Tests in Dev Container
+      - name: Run Unit + CLI Integration Tests in Dev Container
         run: |
           docker run --rm \
             --entrypoint /bin/bash \
@@ -73,6 +73,10 @@ jobs:
       - name: Build Application Docker Image for E2E
         run: docker build --no-cache -t karimz1/imgcompress:local-test .
 
+      - name: Build Dev Container Image
+        run: |
+          cd .devcontainer/
+          docker build --no-cache -t devcontainer:local-test .
       - name: Create Docker Network
         run: docker network create e2e-net
 
