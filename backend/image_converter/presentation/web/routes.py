@@ -173,16 +173,8 @@ def _process_images(source_folder: str,
         "info"
     )
 
-    # Create a converter from the factory
     converter = ImageConverterFactory.create_converter(image_format, quality, logger)
-
-    # Determine file extension
-
-    #ToDo: Well i need to move it to the enum itself would be cleaner but maybe later …
-    if image_format == ImageFormat.PNG:
-        new_ext = ".png"
-    else:
-        new_ext = ".jpg"  # default to JPEG
+    new_ext = image_format.get_file_extension()
 
     for filename in os.listdir(source_folder):
         src_file_path = os.path.join(source_folder, filename)
