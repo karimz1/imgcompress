@@ -26,13 +26,8 @@ done
 
 # Run E2E Tests in Dev Container
 echo "Running E2E Tests..."
-docker run --rm \
-  --network e2e-net \
-  -v "$(pwd):/workspaces/imgcompress" \
-  -w /workspaces/imgcompress/frontend \
-  -e PLAYWRIGHT_BASE_URL=http://app:5000 \
-  devcontainer:local-test \
-  sh -c "npm install && npm run test:e2e"
+cd frontend 
+npm install && npm run test:e2e"
 
 # Cleanup: Stop App Container and Remove Network
 echo "Cleaning up..."
