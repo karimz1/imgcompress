@@ -27,7 +27,7 @@ done
 # Run E2E Tests in Dev Container
 echo "Running E2E Tests..."
 cd frontend 
-npm install && npm run test:e2e"
+npm install && npm run test:e2e
 
 # Cleanup: Stop App Container and Remove Network
 echo "Cleaning up..."

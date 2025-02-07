@@ -10,7 +10,7 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  test-backend:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -63,8 +63,8 @@ jobs:
           name: pytest-results
           path: reports/test-results.xml
 
-  e2e-test:
-    needs: build-and-test
+  test-e2e:
+    needs: test-backend
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -86,8 +86,8 @@ jobs:
             devcontainer:local-test -c "/app/run-e2e.sh"
 
 
-  deploy:
-    needs: [e2e-test]
+  deploy-image:
+    needs: [test-e2e]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
