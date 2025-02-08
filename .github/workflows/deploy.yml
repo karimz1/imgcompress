@@ -11,7 +11,6 @@ on:
 
 jobs:
   test-e2e:
-    needs: test-backend
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
