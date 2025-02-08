@@ -25,7 +25,7 @@ jobs:
         run: |
           docker run --rm -d \
             --network host \
-            --name app \
+            --name app_$(date +%s) \
             karimz1/imgcompress:local-test web
 
       # Wait until the application is up and running.
@@ -66,7 +66,7 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
-            --name devcontainer2 \
+            --name devcontainer_$(date +%s) \
             devcontainer:local-test -c "/app/run-e2e.sh"
 
       # Cleanup: stop the application container.
