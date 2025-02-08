@@ -46,10 +46,6 @@ jobs:
           done
           echo "Application is up! Continuing..."
 
-      # (Optional) Check application logs.
-      - name: Check App Container Logs
-        run: docker logs app
-
       # Build the dev container image for running tests.
       - name: Build Dev Container Image
         run: |
@@ -66,10 +62,5 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
-            --name devcontainer_$(date +%s) \
+            --name devcontainer_e2e_$(date +%s) \
             devcontainer:local-test -c "/app/run-e2e.sh"
-
-      # Cleanup: stop the application container.
-      - name: Cleanup Docker Containers
-        if: always()
-        run: docker stop app || true
