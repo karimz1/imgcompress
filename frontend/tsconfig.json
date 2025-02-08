@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "tests/e2e/singleFileDownload_WithResize_Test.spec.ts.off", "tests/e2e/multiFileDownload_WithResize_Test.spec.ts.off", "tests/e2e/multiFileDownload_WithoutResize_Test.spec.ts.off"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "tests/e2e/singleFileDownload_WithResize_Test.spec.ts", "tests/e2e/multiFileDownload_WithResize_Test.spec.ts", "testtests/e2e/multiFileDownload_WithoutResize_Test.spec.ts
   "exclude": ["node_modules"]
 }

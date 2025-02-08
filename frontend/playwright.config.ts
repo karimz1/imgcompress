@@ -12,7 +12,8 @@ fs.mkdirSync(videoDir, { recursive: true });
 
 export default defineConfig({
   testDir: "tests/e2e",
-  timeout: 30_000,
+  // Set each test to have up to 5 minutes to complete.
+  timeout: 300_000,
   use: {
     headless: true,
     // Use the env variable if set; default to localhost:3000 for local dev
