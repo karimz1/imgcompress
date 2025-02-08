@@ -16,12 +16,15 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      # Create a Docker network so that containers can communicate.
       - name: Create Docker Network
         run: docker network create e2e-net || true
 
+      # Build the application container image.
       - name: Build Application Container Image
         run: docker build --no-cache -t karimz1/imgcompress:local-test .
 
+      # Run the application container.
       - name: Run Application Container
         run: |
           docker run --rm -d \
@@ -29,6 +32,7 @@ jobs:
             --name app \
             karimz1/imgcompress:local-test web
 
+      # Wait until the application is up and running.
       - name: Wait for Application to be Ready
         run: |
           BASE_URL="http://app:5000"
@@ -46,15 +50,17 @@ jobs:
           done
           echo "Application is up! Continuing..."
 
-      # Optional: Debugging step to print app logs if needed.
+      # (Optional) Check application logs if needed.
       - name: Check App Container Logs
         run: docker logs app
 
+      # Build the development container image for running tests.
       - name: Build Dev Container Image
         run: |
           cd .devcontainer/
           docker build --no-cache -t devcontainer:local-test .
 
+      # Run the E2E tests inside the dev container.
       - name: Run E2E Tests in Dev Container
         run: |
           docker run --rm \
@@ -67,6 +73,7 @@ jobs:
             --name devcontainer2 \
             devcontainer:local-test -c "/app/run-e2e.sh"
 
+      # Cleanup: stop the application container and remove the Docker network.
       - name: Cleanup Docker Containers and Network
         if: always()
         run: |
