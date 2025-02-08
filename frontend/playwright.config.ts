@@ -2,6 +2,16 @@ import { defineConfig } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
+/**
+ * Converts minutes to milliseconds.
+ *
+ * @param minutes - The number of minutes.
+ * @returns The equivalent number of milliseconds.
+ */
+function minutesToMilliseconds(minutes: number): number {
+  return minutes * 60 * 1000;
+}
+
 const videoDir = path.join(__dirname, "test-results/");
 
 // Pre-test cleanup: remove the old videos folder
@@ -12,8 +22,8 @@ fs.mkdirSync(videoDir, { recursive: true });
 
 export default defineConfig({
   testDir: "tests/e2e",
-  // Set each test to have up to 5 minutes to complete.
-  timeout: 300_000,
+  globalTimeout: minutesToMilliseconds(15),
+  timeout: minutesToMilliseconds(5),
   use: {
     headless: true,
     // Use the env variable if set; default to localhost:3000 for local dev
