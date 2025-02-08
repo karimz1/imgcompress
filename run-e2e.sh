@@ -10,9 +10,4 @@ echo "Running E2E Tests..."
 cd frontend 
 npm install && npm run test:e2e
 
-# Cleanup: Stop App Container and Remove Network
-echo "Cleaning up..."
-docker stop app || true
-docker network rm e2e-net || true
-
 echo "E2E Tests completed successfully!"
