@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
  * Custom hook to periodically check the backend's health.
  * It fetches from `/health/live` and returns true if the backend is down.
  *
- * @param minDelay - Minimum delay (ms) between health checks. Default: 30000 (30 seconds)
- * @param maxDelay - Maximum delay (ms) between health checks. Default: 60000 (60 seconds)
+ * @param minDelay - Minimum delay (ms) between health checks. Default: 5000 (5 seconds)
+ * @param maxDelay - Maximum delay (ms) between health checks. Default: 15000 (15 seconds)
  * @returns {boolean} - True if backend is down, false otherwise.
  */
-export function useBackendHealth(minDelay: number = 30000, maxDelay: number = 60000): boolean {
+export function useBackendHealth(minDelay: number = 5000, maxDelay: number = 15000): boolean {
   const [backendDown, setBackendDown] = useState(false);
 
   useEffect(() => {

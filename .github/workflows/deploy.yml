@@ -64,3 +64,14 @@ jobs:
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
             --name devcontainer_e2e_$(date +%s) \
             devcontainer:local-test -c "/app/run-e2e.sh"
+
+
+      - name: Zip E2E Test Results
+        run: |
+          zip -r e2e-test-results.zip frontend/test-results
+
+      - name: Upload E2E Test Results Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e-test-results
+          path: e2e-test-results.zip
