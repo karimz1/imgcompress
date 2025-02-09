@@ -12,8 +12,6 @@ import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
 
 test('should upload a file via drag-and-drop and verify the download functionality using resize width validation', async ({ page }) => {
-  
-  test.setTimeout((60*10)*1000);
   await page.goto('/');
   const desiredWidth: number = 600;
   const fileNames: ImageFileDto[] = [ new ImageFileDto("pexels-pealdesign-28594392.jpg")];

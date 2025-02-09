@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import time
 import shutil
@@ -5,6 +6,7 @@ import tempfile
 from typing import Optional
 from flask import Blueprint, request, jsonify, send_from_directory, abort
 from werkzeug.utils import secure_filename
+from datetime import datetime,timezone
 
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
@@ -132,6 +134,14 @@ def container_files():
     data = cleanup_service.get_container_files()
     return jsonify(data), 200
 
+@api_blueprint.route("/health/live", methods=["GET"])
+def health_live():
+    now_utc = datetime.now(timezone.utc)
+    response = {
+        "status": "live",
+        "UTC_Time": now_utc
+    }
+    return jsonify(response), 200
 
 # ----------------------------
 # INTERNAL HELPERS

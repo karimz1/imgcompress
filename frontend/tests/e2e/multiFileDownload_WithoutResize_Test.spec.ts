@@ -10,10 +10,7 @@ import {
 } from './utls/helpers';
 
 import { ImageFileDto } from './utls/ImageFileDto';
-
 import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
-
-
 
 test('should upload two files, verify individual downloads by clicking and ZIP download availability, without resize-width', async ({ page }) => {
     await page.goto('/');

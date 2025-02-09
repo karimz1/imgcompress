@@ -8,14 +8,15 @@ import "react-toastify/dist/ReactToastify.css";
 import { DownloadZipToast } from "@/components/CustomToast";
 
 // UI Components
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -25,12 +26,16 @@ import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
 import FileManager from "@/components/StorageFileManager";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import PageFooter from "@/components/PageFooter";
+import BackendStatusBanner from "@/components/BackendStatusBanner";
 
 // Allowed file extensions and dropzone accept object
-import {allowedExtensions} from "@/lib/constants";
+import { allowedExtensions } from "@/lib/constants";
 
 // Error store context
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
+
+// Import the custom health check hook.
+import { useBackendHealth } from "@/hooks/useBackendHealth";
 
 const acceptObject = {
   "image/*": allowedExtensions.map((ext) => `.${ext}`),
@@ -55,28 +60,33 @@ function HomePageContent() {
   // Get error store functions
   const { error, setError, clearError } = useErrorStore();
 
-  // Delay helper (simulate delay before showing a success toast)
-  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  // Use the custom hook to monitor backend health.
+  const backendDown = useBackendHealth();
 
   // Setup dropzone for file selection
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    clearError();
-    setConverted([]);
-    setDestFolder("");
-    const filteredFiles = acceptedFiles.filter((file) => {
-      const ext = file.name.split(".").pop()?.toLowerCase();
-      if (ext && allowedExtensions.includes(ext)) {
-        return true;
-      } else {
-        toast.warn(`File type not allowed: ${file.name}`);
-        return false;
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      clearError();
+      setConverted([]);
+      setDestFolder("");
+      const filteredFiles = acceptedFiles.filter((file) => {
+        const ext = file.name.split(".").pop()?.toLowerCase();
+        if (ext && allowedExtensions.includes(ext)) {
+          return true;
+        } else {
+          toast.warn(`File type not allowed: ${file.name}`);
+          return false;
+        }
+      });
+      if (filteredFiles.length < acceptedFiles.length) {
+        setError({
+          message: "Some files were rejected due to unsupported file types.",
+        });
       }
-    });
-    if (filteredFiles.length < acceptedFiles.length) {
-      setError({ message: "Some files were rejected due to unsupported file types." });
-    }
-    setFiles((prev) => [...prev, ...filteredFiles]);
-  }, [clearError, setError]);
+      setFiles((prev) => [...prev, ...filteredFiles]);
+    },
+    [clearError, setError]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -85,78 +95,84 @@ function HomePageContent() {
     multiple: true,
   });
 
+  // Delay helper (simulate delay before showing a success toast)
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
   // Handle form submission and API call for compression
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (files.length === 0) {
-      setError({ message: "Please drop or select some files first." });
-      toast.error("Please drop or select some files first.");
-      return;
-    }
-    if (outputFormat === "jpeg") {
-      const qualityNum = parseInt(quality, 10);
-      if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
-        setError({ message: "Quality must be a number between 1 and 100." });
-        toast.error("Quality must be a number between 1 and 100.");
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (files.length === 0) {
+        setError({ message: "Please drop or select some files first." });
+        toast.error("Please drop or select some files first.");
         return;
       }
-    }
-    if (resizeWidthEnabled) {
-      const widthNum = parseInt(width, 10);
-      if (isNaN(widthNum) || widthNum <= 0) {
-        setError({ message: "Width must be a positive number." });
-        toast.error("Width must be a positive number.");
-        return;
+      if (outputFormat === "jpeg") {
+        const qualityNum = parseInt(quality, 10);
+        if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
+          setError({ message: "Quality must be a number between 1 and 100." });
+          toast.error("Quality must be a number between 1 and 100.");
+          return;
+        }
       }
-    }
-    setIsLoading(true);
-    clearError();
-    setConverted([]);
-    setDestFolder("");
+      if (resizeWidthEnabled) {
+        const widthNum = parseInt(width, 10);
+        if (isNaN(widthNum) || widthNum <= 0) {
+          setError({ message: "Width must be a positive number." });
+          toast.error("Width must be a positive number.");
+          return;
+        }
+      }
+      setIsLoading(true);
+      clearError();
+      setConverted([]);
+      setDestFolder("");
 
-    const formData = new FormData();
-    files.forEach((file) => formData.append("files[]", file));
-    if (outputFormat === "jpeg") {
-      formData.append("quality", quality);
-    }
-    if (resizeWidthEnabled) {
-      formData.append("width", width);
-    }
-    formData.append("format", outputFormat);
+      const formData = new FormData();
+      files.forEach((file) => formData.append("files[]", file));
+      if (outputFormat === "jpeg") {
+        formData.append("quality", quality);
+      }
+      if (resizeWidthEnabled) {
+        formData.append("width", width);
+      }
+      formData.append("format", outputFormat);
 
-    try {
-      const res = await fetch("/api/compress", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        setError({
-          message: err.error || "Error uploading files.",
-          details: err.message || undefined,
+      try {
+        const res = await fetch("/api/compress", {
+          method: "POST",
+          body: formData,
         });
-        toast.error(err.error || "Error uploading files.");
-        return;
+        if (!res.ok) {
+          const err = await res.json();
+          setError({
+            message: err.error || "Error uploading files.",
+            details: err.message || undefined,
+          });
+          toast.error(err.error || "Error uploading files.");
+          return;
+        }
+        const data = await res.json();
+        setConverted(data.converted_files);
+        setDestFolder(data.dest_folder);
+        setDrawerOpen(true);
+        await delay(600);
+        toast.success(
+          `${data.converted_files.length} Image${data.converted_files.length > 1 ? "s" : ""} compressed successfully!`
+        );
+      } catch (err) {
+        console.error(err);
+        setError({
+          message: "Something went wrong. Please try again.",
+          details: err instanceof Error ? err.message : undefined,
+        });
+        toast.error("Something went wrong. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
-      const data = await res.json();
-      setConverted(data.converted_files);
-      setDestFolder(data.dest_folder);
-      setDrawerOpen(true);
-      await delay(600);
-      toast.success(
-        `${data.converted_files.length} Image${data.converted_files.length > 1 ? "s" : ""} compressed successfully!`
-      );
-    } catch (err) {
-      console.error(err);
-      setError({
-        message: "Something went wrong. Please try again.",
-        details: err instanceof Error ? err.message : undefined,
-      });
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [files, outputFormat, quality, resizeWidthEnabled, width, clearError, setError]);
+    },
+    [files, outputFormat, quality, resizeWidthEnabled, width, clearError, setError]
+  );
 
   const clearFileSelection = useCallback(() => {
     setFiles([]);
@@ -166,12 +182,10 @@ function HomePageContent() {
   const removeFile = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
   }, []);
-  
+
   const handleDownloadAll = useCallback(() => {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
-    <ToastContainer/>
-    toast(<DownloadZipToast/>)
-    
+    toast(<DownloadZipToast />);
   }, [destFolder]);
 
   // Callback passed to FileManager for force cleanup
@@ -195,90 +209,93 @@ function HomePageContent() {
   }, [setFileManagerRefresh]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-50 p-4 flex flex-col items-center">
-      <ToastContainer />
+    <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
+      {/* Render the backend status banner */}
+      <BackendStatusBanner backendDown={backendDown} />
 
-      {/* Main Card containing the file conversion form */}
-      <Card className="w-full max-w-xl">
-        <CardTitle className="text-center pt-5">
-          An Image Compression Tool
-        </CardTitle>
-        <CardHeader>
-          <Image
-            src="/mascot.jpg"
-            width={600}
-            height={600}
-            alt="Mascot of ImgCompress a Tool by Karim Zouine"
-          />
-          <Separator />
-        </CardHeader>
-        <CardContent>
-          <FileConversionForm
-            isLoading={isLoading}
-            error={error}
-            quality={quality}
-            setQuality={setQuality}
-            width={width}
-            setWidth={setWidth}
-            resizeWidthEnabled={resizeWidthEnabled}
-            setResizeWidthEnabled={setResizeWidthEnabled}
-            outputFormat={outputFormat}
-            setOutputFormat={setOutputFormat}
-            files={files}
-            removeFile={removeFile}
-            clearFileSelection={clearFileSelection}
-            onSubmit={handleSubmit}
-            getRootProps={getRootProps}
-            getInputProps={getInputProps}
-            isDragActive={isDragActive}
-          />
-        </CardContent>
-      </Card>
+      <div className="p-4 flex-grow flex flex-col items-center">
+        <ToastContainer />
 
-      {/* Floating Action Button for Storage Management */}
-      <div className="fixed bottom-4 right-4">
-        <button
-          disabled={isLoading}
-          onClick={() => setFileManagerOpen(true)}
-          className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
-            isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
-          }`}
-        >
-          <HardDrive className="h-6 w-6" />
-        </button>
+        {/* Main Card containing the file conversion form */}
+        <Card className="w-full max-w-xl">
+          <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
+          <CardHeader>
+            <Image
+              src="/mascot.jpg"
+              width={600}
+              height={600}
+              alt="Mascot of ImgCompress a Tool by Karim Zouine"
+            />
+            <Separator />
+          </CardHeader>
+          <CardContent>
+            <FileConversionForm
+              isLoading={isLoading}
+              error={error}
+              quality={quality}
+              setQuality={setQuality}
+              width={width}
+              setWidth={setWidth}
+              resizeWidthEnabled={resizeWidthEnabled}
+              setResizeWidthEnabled={setResizeWidthEnabled}
+              outputFormat={outputFormat}
+              setOutputFormat={setOutputFormat}
+              files={files}
+              removeFile={removeFile}
+              clearFileSelection={clearFileSelection}
+              onSubmit={handleSubmit}
+              getRootProps={getRootProps}
+              getInputProps={getInputProps}
+              isDragActive={isDragActive}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Floating Action Button for Storage Management */}
+        <div className="fixed bottom-4 right-4">
+          <button
+            disabled={isLoading}
+            onClick={() => setFileManagerOpen(true)}
+            className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
+              isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
+            }`}
+          >
+            <HardDrive className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* File Manager Drawer */}
+        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+          <DrawerTrigger asChild>
+            <button className="hidden" />
+          </DrawerTrigger>
+          <DrawerContent className="bg-zinc-950 border-0">
+            <VisuallyHidden>
+              <DrawerHeader>
+                <DrawerTitle className="text-lg font-semibold text-white text-center">
+                  Admin Tools
+                </DrawerTitle>
+              </DrawerHeader>
+            </VisuallyHidden>
+            <div className="p-4">
+              <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
+            </div>
+          </DrawerContent>
+        </Drawer>
+
+        {/* Compressed Files Drawer */}
+        {converted.length > 0 && (
+          <CompressedFilesDrawer
+            converted={converted}
+            destFolder={destFolder}
+            isOpen={drawerOpen}
+            onOpenChange={setDrawerOpen}
+            onDownloadAll={handleDownloadAll}
+          />
+        )}
+
+        <PageFooter />
       </div>
-
-      {/* File Manager Drawer */}
-      <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
-        <DrawerTrigger asChild>
-          <button className="hidden" />
-        </DrawerTrigger>
-        <DrawerContent className="bg-zinc-950 border-0">
-          <VisuallyHidden>
-            <DrawerHeader>
-              <DrawerTitle className="text-lg font-semibold text-white text-center">
-                Admin Tools
-              </DrawerTitle>
-            </DrawerHeader>
-          </VisuallyHidden>
-          <div className="p-4">
-            <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
-          </div>
-        </DrawerContent>
-      </Drawer>
-
-      {/* Compressed Files Drawer */}
-      {converted.length > 0 && (
-        <CompressedFilesDrawer
-          converted={converted}
-          destFolder={destFolder}
-          isOpen={drawerOpen}
-          onOpenChange={setDrawerOpen}
-          onDownloadAll={handleDownloadAll}
-        />
-      )}
-
-      <PageFooter />
     </div>
   );
 }

@@ -1,6 +1,7 @@
-import os
+from http.client import HTTPException
 import tempfile
-from flask import Flask
+import traceback
+from flask import Flask, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from backend.image_converter.infrastructure.logger import Logger
@@ -41,6 +42,27 @@ app.register_error_handler(401, handle_http_exception)
 app.register_error_handler(403, handle_http_exception)
 app.register_error_handler(405, handle_http_exception)
 app.register_error_handler(500, handle_http_exception)
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """
+    Return JSON instead of HTML for any errors.
+    """
+    if isinstance(e, HTTPException):
+        response = {
+            "error": e.name,
+            "message": e.description
+        }
+        return jsonify(response), e.code
+
+    # For non-HTTP exceptions, provide a generic message.
+    response = {
+        "error": type(e).__name__,
+        "message": str(e)
+    }
+
+    response["stacktrace"] = traceback.format_exc()
+    return jsonify(response), 500
 
 def start_scheduler():
     """
