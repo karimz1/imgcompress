@@ -41,7 +41,7 @@ def compress_images():
     uploaded_files = data["uploaded_files"]
     quality = data["quality"]
     width = data["width"]
-    output_format_str = data["format"]  # "jpeg" or "png" from form
+    output_format_str = data["format"]
 
     if not uploaded_files:
         return jsonify({"error": "No valid files uploaded."}), 400
