@@ -1,6 +1,6 @@
 # ignore mac file
 .DS_Store
-
+e2e-test-results/
 
 test_transparent.png
 backend/image_converter/web_app/static_site/
