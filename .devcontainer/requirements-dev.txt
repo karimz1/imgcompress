@@ -14,3 +14,4 @@ colorama==0.4.6
 flask==3.1.0
 jsonify==0.5
 apscheduler==3.11.0
+gunicorn==23.0.0

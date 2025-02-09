@@ -20,8 +20,13 @@ Experience the power of imgcompress with the **NEW** modern Web UI. Check out th
 Ever been frustrated by juggling multiple programs just to convert or compress images? **I did too.**  
 I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effortlessly compress, convert, and resize your images—all inside a Docker container. No more complicated installations or worrying about privacy with online converters. Everything runs locally, secure and consistent across any system.
 
-### ^^ And this is how imgcompress was born 🐣
- ![imgcompress Mascot Logo](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg)
+<figure style="text-align: center;">
+<h3>and this is how the tool was born 🐣</h3>
+  <img src="https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg" 
+       alt="imgcompress Mascot Logo" 
+       style="width:100%; height:auto;">
+  <figcaption><em>imgcompress Mascot</em></figcaption>
+</figure>
 
 
 ## 📰 Latest News
@@ -54,6 +59,16 @@ Stay up-to-date with the newest improvements:
 - **🔄 Seamless Automation & Flexible Logging:**  
   Integrate imgcompress into your CI/CD pipelines and choose between human-readable logs or structured JSON for a smoother workflow.
 
+---
+
+## 💰 Support Further Development
+
+If you find **imgcompress** valuable, please consider supporting the project (entirely optional). Your contributions help fund the infrastructure and development tools needed to build even better open source software during my free time. Thank you for your support!
+
+### Donate using PayPal
+🤗 **My PayPal Email:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
+
+<img src="./images/donate_qr.png" alt="paypal donate qr-code"  width="60%" height="30%">
 
 ---
 
@@ -208,13 +223,9 @@ Everything runs locally in Docker, ensuring your data stays secure and under you
 
 ------
 
-## 🤝 Contribute & Support
+## 🤝 Contribute
 
 Interested in contributing? Visit the [Source Code on GitHub](https://github.com/karimz1/imgcompress) and feel free to fork, branch, and submit a pull request.
-
-If you find imgcompress valuable, consider supporting the project (totally optional), it would help investing in infrastructure and development tools:
-
-🤗 **PayPal:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
 
 ------
 

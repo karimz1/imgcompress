@@ -1,30 +1,14 @@
 import os
 import sys
-import json
 import logging
-import argparse
 from io import StringIO
 from PIL import Image
+from backend.image_converter.core.enums.image_format import ImageFormat
+
+
 
 # -------------------------------------------------------------------
-# 1) Helper: mock_args
-# -------------------------------------------------------------------
-def mock_args(json_output=False, debug=False):
-    """
-    Returns a mock argparse.Namespace object to simulate command-line arguments.
-    """
-    return argparse.Namespace(
-        source="/mock/source",
-        destination="/mock/destination",
-        quality=80,
-        width=800,
-        json_output=json_output,
-        debug=debug,
-        format="jpeg"
-    )
-
-# -------------------------------------------------------------------
-# 2) Helpers for Capturing Output
+# Helpers for Capturing Output
 # -------------------------------------------------------------------
 def capture_stdout(func, *args, **kwargs):
     """
@@ -59,7 +43,7 @@ def capture_logger_output(func, *args, **kwargs):
     return logger_output.getvalue()
 
 # -------------------------------------------------------------------
-# 3) Helpers for Image Validation
+# Helpers for Image Validation
 # -------------------------------------------------------------------
 def is_image(file_path: str) -> bool:
     """
@@ -103,9 +87,13 @@ def create_sample_test_image(dest_img_path):
     img.save(dest_img_path)
 
 
+
+# -------------------------------------------------------------------
+# Helpers for CI
+# -------------------------------------------------------------------
+
 def is_github_actions():
     """
     Detect if running inside GitHub Actions.
     """
     return os.getenv("IS_RUNNING_IN_GITHUB_ACTIONS") == "true"
-

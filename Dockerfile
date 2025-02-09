@@ -10,7 +10,7 @@ COPY frontend/ ./frontend
 WORKDIR /app/frontend
 
 # Install and build
-RUN npm install --legacy-peer-deps
+RUN npm install
 RUN npm run build
 # The static site is now in /app/frontend/out/
 
@@ -50,11 +50,11 @@ COPY requirements.txt /container/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir .
 
-RUN mkdir -p /container/backend/image_converter/web_app/static_site
+RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
 # Copy the compiled Next.js site from Stage 1
 COPY --from=frontend-build /app/frontend/out/. \
-     /container/backend/image_converter/web_app/static_site
+     /container/backend/image_converter/presentation/web/static_site
 
 # Expose 5000 for "web" mode
 EXPOSE 5000

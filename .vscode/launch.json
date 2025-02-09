@@ -1,6 +1,20 @@
 {
     "version": "0.2.0",
     "configurations": [
+    {
+        "name": "Debug Playwright e2e",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": [
+            "run",
+            "test:e2e"
+        ],
+        "port": 9229,
+        "cwd": "${workspaceFolder}/frontend",
+        "console": "integratedTerminal",
+        "skipFiles": ["<node_internals>/**"]
+        },
         {
            "name": "NextJS: Dev Debug",
             "type": "pwa-node",
