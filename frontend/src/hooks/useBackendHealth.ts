@@ -17,7 +17,7 @@ export function useBackendHealth(minDelay: number = 30000, maxDelay: number = 60
 
     const checkHealth = async () => {
       try {
-        const res = await fetch("/health/live");
+        const res = await fetch("/api/health/live");
         if (!res.ok) {
           setBackendDown(true);
         } else {
