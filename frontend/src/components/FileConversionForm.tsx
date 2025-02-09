@@ -98,6 +98,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <div
               key={file.name}
               className="flex items-center justify-between bg-gray-800 rounded-md p-2 text-gray-100"
+              data-testid="dropzone-added-file-wrapper"
             >
               <span className="text-sm" data-testid="dropzone-added-file">{file.name}</span>
               <Button
@@ -105,6 +106,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 size="sm"
                 disabled={isLoading}
                 onClick={() => removeFile(file.name)}
+                data-testid="dropzone-remove-file-btn"
               >
                 Remove
               </Button>

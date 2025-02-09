@@ -14,7 +14,35 @@ const selectors = {
   dropzoneAddedFile: '[data-testid="dropzone-added-file"]',
   conversionButton: '[data-testid="convert-btn"]',
   downloadLink: '[data-testid="drawer-uploaded-file-item-link"]',
+  removeItemFromDropzoneBtn: '[data-testid="dropzone-remove-file-btn"]',
+  dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]'
 };
+
+
+export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: ImageFileDto): Promise<void> {
+  // Locate all file wrappers
+  const fileWrappers = page.locator(selectors.dropzoneAddedFileWrapper);
+  const count = await fileWrappers.count();
+
+  for (let i = 0; i < count; i++) {
+    const wrapper = fileWrappers.nth(i);
+    // Within the wrapper, locate the file name element
+    const fileNameElement = wrapper.locator(selectors.dropzoneAddedFile);
+    const fileNameText = await fileNameElement.textContent();
+
+    if (fileNameText && fileNameText.trim() === imageFile.fileName.trim()) {
+      // Locate the remove button inside the same wrapper and click it
+      const removeButton = wrapper.locator(selectors.removeItemFromDropzoneBtn);
+      await removeButton.click();
+      return;
+    }
+  }
+
+  throw new Error(`Remove button not found for image: ${imageFile.fileName}`);
+}
+
+
+
 
 /**
  * Returns the absolute file path for a test file in the sample-images fixture directory.

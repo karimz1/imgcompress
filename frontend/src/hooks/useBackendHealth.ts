@@ -1,4 +1,3 @@
-// hooks/useBackendHealth.ts
 import { useEffect, useState } from "react";
 
 /**

@@ -256,6 +256,7 @@ function HomePageContent() {
           <button
             disabled={isLoading}
             onClick={() => setFileManagerOpen(true)}
+            data-testid="storage-management-btn"
             className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
               isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
             }`}
