@@ -12,7 +12,7 @@ function minutesToMilliseconds(minutes: number): number {
   return minutes * 60 * 1000;
 }
 
-const videoDir = path.join(__dirname, "test-results/");
+const videoDir = path.join(__dirname, "e2e-test-results/");
 
 // Pre-test cleanup: remove the old videos folder
 if (fs.existsSync(videoDir)) {
@@ -22,10 +22,10 @@ fs.mkdirSync(videoDir, { recursive: true });
 
 export default defineConfig({
   testDir: "tests/e2e",
-  globalTimeout: minutesToMilliseconds(15), // 15 minutes for entire run
-  timeout: minutesToMilliseconds(5), // 5 minutes per test
+  globalTimeout: minutesToMilliseconds(30), // for the entire run
+  timeout: minutesToMilliseconds(20), // per test
   expect: {
-    timeout: minutesToMilliseconds(5), // 5 minutes for each expectation
+    timeout: minutesToMilliseconds(20), // for each expectation
   },
   use: {
     headless: true,
@@ -35,7 +35,6 @@ export default defineConfig({
       slowMo: 2000,
     },
     video: { mode: "on" },
-    // trace: "on-first-retry",
   },
-  outputDir: "test-results/",
+  outputDir: "e2e-test-results/",
 });

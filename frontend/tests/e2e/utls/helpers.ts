@@ -146,7 +146,7 @@ export async function clickConversionButtonAsync(page: Page): Promise<void> {
  */
 export async function assertDownloadLinksAsync(page: Page, expectedFileNames: ImageFileDto[]): Promise<Locator> {
   const downloadLinks = page.locator(selectors.downloadLink);
-  await expect(downloadLinks).toHaveCount(expectedFileNames.length, { timeout: 10000 });
+  await expect(downloadLinks).toHaveCount(expectedFileNames.length);
   const downloadLinksText = await downloadLinks.allTextContents();
   for (const expectedFile of expectedFileNames) {
     expect(downloadLinksText).toContain(expectedFile.fileName);

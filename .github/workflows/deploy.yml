@@ -68,7 +68,7 @@ jobs:
 
       - name: Zip E2E Test Results
         run: |
-          zip -r e2e-test-results.zip frontend/test-results
+          zip -r e2e-test-results.zip frontend/e2e-test-results
 
       - name: Upload E2E Test Results Artifact
         uses: actions/upload-artifact@v3
