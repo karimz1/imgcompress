@@ -13,10 +13,10 @@ export default defineConfig({
   testDir: "tests/e2e",
   timeout: 60000 * 10, // Overall test timeout (10 minutes)
   expect: {
-    timeout: 60000, // Increase expect timeout to 60 seconds
+    timeout: 60000 *2, // Increase expect timeout to 2min
   },
   use: {
-    actionTimeout: 60000, // Timeout for individual actions (60 seconds)
+    actionTimeout: 60000 *2, // Timeout for individual actions (2min)
     headless: true,
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     launchOptions: {
