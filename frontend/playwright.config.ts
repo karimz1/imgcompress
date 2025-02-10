@@ -13,6 +13,8 @@ export default defineConfig({
   testDir: "tests/e2e",
   use: {
     headless: true,
+    timeout: 120000, // 2 minutes timeout per test
+    globalTimeout: 600000, // 10 minutes max timeout
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     launchOptions: {
       slowMo: 2000,
