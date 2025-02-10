@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     libnss3 \
+    libffi-dev \
     libatk1.0-0 \
     libgbm1 \
     libasound2 \
