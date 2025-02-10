@@ -118,8 +118,9 @@ jobs:
             .
 
       # Run the e2e tests in the dev container.
-      - name: Run E2E Tests in Dev Container (Host Networking) for ${{ matrix.platform }}
+      - name: Run E2E Tests in Dev Container (Host Networking)
         run: |
+          SAFE_PLATFORM=$(echo "${{ matrix.platform }}" | tr '/' '_')
           docker run --rm \
             --platform ${{ matrix.platform }} \
             --entrypoint /bin/sh \
@@ -128,8 +129,9 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
-            --name devcontainer_e2e_${{ matrix.platform }}_$(date +%s) \
+            --name devcontainer_e2e_${SAFE_PLATFORM}_$(date +%s) \
             devcontainer:local-test -c "/app/run-e2e.sh"
+
 
       # Zip the e2e test results.
       - name: Zip E2E Test Results for ${{ matrix.platform }}
