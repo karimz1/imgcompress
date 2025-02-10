@@ -34,8 +34,7 @@ jobs:
           docker buildx build \
             --platform ${{ matrix.platform }} \
             --load \
-            -t devcontainer:local-test \
-            .
+            -t devcontainer:local-test .
 
       - name: Run Tests on ${{ matrix.platform }}
         run: |
@@ -51,7 +50,7 @@ jobs:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
 
   test-e2e:
-    needs: [test-backend, test-multi-arch]
+    needs: [test-backend-multi-arch]
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
