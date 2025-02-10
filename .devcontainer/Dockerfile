@@ -47,7 +47,7 @@ ENV PATH="/venv/bin:$PATH"
 
 # Copy Python dependencies and install them
 COPY requirements-dev.txt .
-RUN pip install --upgrade pip && pip install -r requirements-dev.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt
 
 # Copy application files
 COPY . .
