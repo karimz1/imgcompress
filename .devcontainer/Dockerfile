@@ -1,4 +1,7 @@
-FROM debian:bookworm-slim
+FROM ubuntu:22.04
+
+# Avoid interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
@@ -28,32 +31,29 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
+
 RUN apt-get update && \
     if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \
       echo "Installing Docker CLI (docker.io) for $(dpkg --print-architecture)"; \
-      apt-get install -y --no-install-recommends docker.io; \
+      apt-get install -y docker.io; \
     else \
       echo "Unsupported architecture for Docker CLI installation, skipping."; \
     fi
 
-
-# Install Playwright and its browsers
 RUN npm install -g playwright && \
     npx playwright install --with-deps
 
-# Create and activate a Python virtual environment
+
 RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
-# Copy Python dependencies and install them
+# Copy and install Python dependencies
 COPY requirements-dev.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt
 
-# Copy application files
 COPY . .
 
-# Debugging: Show Playwright installations
+
 RUN ls -la /root/.cache/ms-playwright
 
-# Set the entrypoint
 ENTRYPOINT ["/bin/sh"]
