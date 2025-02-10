@@ -87,15 +87,15 @@ RUN npm install -g playwright && \
     npx playwright install --with-deps
 
 # -----------------------------------------------------------
-# Install pyenv (Python version manager) for root and install Python 3.9.16
+# Install pyenv (Python version manager) for root and install Python 3.9.21
 # -----------------------------------------------------------
 RUN curl https://pyenv.run | bash && \
     export PYENV_ROOT="/root/.pyenv" && \
     export PATH="$PYENV_ROOT/bin:$PATH" && \
     eval "$(pyenv init --path)" && \
     eval "$(pyenv init -)" && \
-    pyenv install 3.9.16 && \
-    pyenv global 3.9.16
+    pyenv install 3.9.21 && \
+    pyenv global 3.9.21
 
 # Set environment variables so that pyenv and its shims are in the PATH for all subsequent RUN commands
 ENV PYENV_ROOT=/root/.pyenv
