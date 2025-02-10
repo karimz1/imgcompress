@@ -235,15 +235,12 @@ This Docker image is built and tested via our CI/CD pipeline for the following p
 - ❌ **linux/ppc64le** and **linux/s390x**
   *Not supported due to dependency limitations.*
 
-------
 
-### 💡 Important Testing Note
+### 💡 Testing Note
 
 All of the supported platforms above are **tested exclusively in my CI/CD pipeline** using emulation (e.g., QEMU) and matrix builds. This means that while the builds have been verified in a virtualized environment, **they have not been manually tested on physical hardware** for all target architectures.
 
 If you require more thorough testing on actual devices (such as a Raspberry Pi or native Apple Silicon hardware) or encounter issues that might be hardware-specific, your support is greatly appreciated. **Donating to this project will help acquire the necessary equipment** to perform comprehensive manual testing and ensure the highest quality across all platforms for my open source projects.
-
-[Consider donating to support further testing and improvements](#support-further-development)
 
 ------
 
