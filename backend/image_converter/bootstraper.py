@@ -3,6 +3,7 @@ import sys
 import subprocess
 from backend.image_converter.presentation.web.server import start_scheduler
 from backend.image_converter.presentation.cli.app import main as cli_main
+import pillow_heif
 
 
 
@@ -72,6 +73,9 @@ def main():
     If "web_dev" is provided, run the Flask dev server.
     Otherwise, run the CLI.
     """
+
+    pillow_heif.register_heif_opener()
+
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()
         if mode == "web":
