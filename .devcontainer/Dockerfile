@@ -6,7 +6,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-# Install system dependencies including build tools, sudo, and libraries for pyenv/HEIC support
+# -----------------------------------------------------------
+# Install system dependencies including build tools, sudo, and libraries for pyenv
+# -----------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
@@ -57,7 +59,6 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | b
     . "$NVM_DIR/nvm.sh" && \
     nvm install 22 && \
     nvm alias default 22 && \
-    \
     # Create symlinks so that node, npm, and npx are globally available
     ln -s "$NVM_DIR/versions/node/$(nvm version default)" /usr/local/node && \
     ln -s /usr/local/node/bin/node /usr/local/bin/node && \
@@ -85,34 +86,22 @@ RUN npm install -g playwright && \
     npx playwright install --with-deps
 
 # -----------------------------------------------------------
-# Create a non-root user (devuser) with passwordless sudo privileges
+# Install pyenv (Python version manager) for root and install Python 3.9.16
 # -----------------------------------------------------------
-RUN useradd -ms /bin/bash devuser && \
-    echo "devuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Switch to the non-root user from this point onward
-USER devuser
-ENV HOME=/home/devuser
-WORKDIR /app
-
-# -----------------------------------------------------------
-# Install pyenv (Python version manager) for devuser and install Python 3.9.16
-# -----------------------------------------------------------
-# The following RUN command installs pyenv, then uses it to install and set Python 3.9.16 as the global version.
 RUN curl https://pyenv.run | bash && \
-    export PYENV_ROOT="$HOME/.pyenv" && \
+    export PYENV_ROOT="/root/.pyenv" && \
     export PATH="$PYENV_ROOT/bin:$PATH" && \
     eval "$(pyenv init --path)" && \
     eval "$(pyenv init -)" && \
     pyenv install 3.9.16 && \
     pyenv global 3.9.16
 
-# Ensure that pyenv and its shims are in the PATH for subsequent commands
-ENV PYENV_ROOT=/home/devuser/.pyenv
+# Set environment variables so that pyenv and its shims are in the PATH for all subsequent RUN commands
+ENV PYENV_ROOT=/root/.pyenv
 ENV PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
 
 # -----------------------------------------------------------
-# Create a Python virtual environment using the pyenv-managed Python
+# Create a Python virtual environment using the pyenv-managed Python at /venv
 # -----------------------------------------------------------
 RUN python -m venv /venv
 ENV PATH="/venv/bin:$PATH"
@@ -120,11 +109,11 @@ ENV PATH="/venv/bin:$PATH"
 # -----------------------------------------------------------
 # Install Python dependencies from requirements-dev.txt without caching
 # -----------------------------------------------------------
-COPY --chown=devuser:devuser requirements-dev.txt .
+COPY requirements-dev.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt
 
 # Copy the rest of your application files into the container
-COPY --chown=devuser:devuser . .
+COPY . .
 
 # Set the default entrypoint to bash
 ENTRYPOINT ["/bin/bash"]
