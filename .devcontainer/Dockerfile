@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libnss3 \
     libffi-dev \
     libatk1.0-0 \
+    libheif-dev \
     libgbm1 \
     libasound2 \
     libx11-xcb1 \
