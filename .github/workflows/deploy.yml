@@ -12,7 +12,6 @@ on:
 jobs:
   # multi-arch testing using QEMU and Buildx
   test-backend-multi-arch:
-    needs: test-backend
     runs-on: ubuntu-latest
     strategy:
       matrix:
