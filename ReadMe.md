@@ -215,21 +215,6 @@ docker run --rm karimz1/imgcompress --help
 ```
 
 ------
-## 🖥️ Supported Platforms
-This Docker image is built for the following platforms:
-
-✅ linux/amd64 (Intel/AMD x86_64 – Most Linux distros & Windows with WSL2)
-✅ linux/arm64 (Mac M1/M2, AWS Graviton)
-✅ linux/arm/v7 (Raspberry Pi, 32-bit ARM)
-✅ Windows (via WSL2 with Linux containers enabled)
-❌ linux/ppc64le and linux/s390x are not supported due to dependency limitations, but for real who uses it today 🤔.
-
-### 💡 Windows Support:
-This image runs on Windows when Docker Desktop is set to use WSL2 and Linux containers. No native Windows container support is needed.
-
-By default, the Docker image is built for linux/amd64, linux/arm64, and linux/arm/v7 to ensure broad compatibility.
-
-------
 
 ## 🔒 Privacy & Security
 
