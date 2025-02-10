@@ -6,7 +6,6 @@ from PIL import Image
 from backend.image_converter.core.enums.image_format import ImageFormat
 
 
-
 # -------------------------------------------------------------------
 # Helpers for Capturing Output
 # -------------------------------------------------------------------
@@ -42,21 +41,6 @@ def capture_logger_output(func, *args, **kwargs):
         logger.removeHandler(handler)
     return logger_output.getvalue()
 
-# -------------------------------------------------------------------
-# Helpers for Image Validation
-# -------------------------------------------------------------------
-def is_image(file_path: str) -> bool:
-    """
-    Basic check to see if the file at file_path is recognized as an image.
-    For example, you can add more robust logic if needed.
-    """
-    if not os.path.isfile(file_path):
-        return False
-    try:
-        Image.open(file_path).verify()
-        return True
-    except Exception:
-        return False
 
 def validate_image_dimensions(file_path: str, expected_width: int):
     """

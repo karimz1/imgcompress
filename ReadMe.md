@@ -230,7 +230,7 @@ This Docker image is built and tested via our CI/CD pipeline for the following p
 
 - ❌ **linux/arm/v7**
   *32-bit ARM (e.g., Raspberry Pi)*
-  **Note:** Testing for this architecture is performed using QEMU-based emulation in my CI/CD pipeline. I do not have physical access to a Raspberry Pi, so while the tests indicate that it could work, it hasn’t been verified or developed for target real hardware.
+  **Note:** I do not have physical access to a Raspberry Pi, to develop it on.
 
 - ❌ **linux/ppc64le** and **linux/s390x**
   *Not supported due to dependency limitations.*
@@ -238,9 +238,9 @@ This Docker image is built and tested via our CI/CD pipeline for the following p
 
 ### 💡 Testing Note
 
-All of the supported platforms above are **tested exclusively in my CI/CD pipeline** using emulation (e.g., QEMU) and matrix builds. This means that while the builds have been verified in a virtualized environment, **they have not been manually tested on physical hardware** for all target architectures.
+All of the supported platforms above are **tested exclusively in my CI/CD pipeline** using emulation (e.g., QEMU) and matrix builds. This means that while the builds have been verified in a virtualized environment, **they have not been all manually tested on physical hardware** for all target architectures.
 
-If you require more thorough testing on actual devices (such as a Raspberry Pi or native Apple Silicon hardware) or encounter issues that might be hardware-specific, your support is greatly appreciated. **Donating to this project will help acquire the necessary equipment** to perform comprehensive manual testing and ensure the highest quality across all platforms for my open source projects.
+If you require more thorough testing on actual devices (such as a Raspberry Pi or native Apple Silicon hardware) or encounter issues that might be hardware-specific, your support is greatly appreciated. **Donating to this project will help acquire the necessary equipment** to perform comprehensive manual testing and ensure the highest quality across all platforms for my open source project.
 
 ------
 

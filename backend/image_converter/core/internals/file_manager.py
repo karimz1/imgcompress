@@ -1,14 +1,8 @@
 import os
 from typing import List
 from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.core.internals.utls import FileUrl
 
-SUPPORTED_EXTENSIONS = [
-    ".heic", ".heif",
-    ".jpg", ".jpeg",
-    ".png", ".bmp",
-    ".gif", ".tif", ".tiff",
-    ".webp"
-]
 
 class FileManager:
     def __init__(self, source_folder: str, dest_folder: str, logger: Logger):
@@ -21,11 +15,12 @@ class FileManager:
             os.makedirs(self.dest_folder, exist_ok=True)
             self.logger.log(f"Created destination folder: {self.dest_folder}", "debug")
 
-    def list_supported_files(self) -> List[str]:
+    def list_supported_files(self) -> List[FileUrl]:
         all_files = os.listdir(self.source_folder)
+        file_urls = [FileUrl(os.path.join(self.source_folder, f)) for f in all_files]
         supported_files = [
-            f for f in all_files
-            if os.path.splitext(f)[1].lower() in SUPPORTED_EXTENSIONS
+            file_url for file_url in file_urls
+            if file_url.exists() and file_url.is_supported()
         ]
         self.logger.log(f"Found {len(supported_files)} supported file(s).", "debug")
         return supported_files

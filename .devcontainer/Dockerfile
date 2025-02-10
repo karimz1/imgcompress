@@ -8,9 +8,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     libnss3 \
-    libffi-dev \
     libatk1.0-0 \
-    libheif-dev \
     libgbm1 \
     libasound2 \
     libx11-xcb1 \
@@ -30,29 +28,18 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Docker CLI
+# Conditionally install the Docker CLI (for amd64 or arm64)
 RUN apt-get update && \
-    ARCH=$(dpkg --print-architecture) && \
-    if [ "$ARCH" = "amd64" ] || [ "$ARCH" = "arm64" ]; then \
-      echo "Installing Docker CLI (docker.io) for $ARCH"; \
+    if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+      echo "Installing Docker CLI (docker.io) for $(dpkg --print-architecture)"; \
       apt-get install -y docker.io; \
-    elif [ "$ARCH" = "armhf" ] || [ "$ARCH" = "armv7l" ]; then \
-      echo "Installing Docker CE for $ARCH using Docker's official script"; \
-      apt-get install -y curl && \
-      curl -fsSL https://get.docker.com -o get-docker.sh && \
-      sh get-docker.sh; \
     else \
       echo "Unsupported architecture for Docker CLI installation, skipping."; \
     fi
 
-# Conditionally install Playwright (skip on ARMv7/armhf)
-RUN ARCH=$(dpkg --print-architecture) && \
-    if [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ]; then \
-      echo "Skipping Playwright installation on $ARCH (not officially supported)"; \
-    else \
-      npm install -g playwright && \
-      npx playwright install --with-deps; \
-    fi
+# Install Playwright and its browsers
+RUN npm install -g playwright && \
+    npx playwright install --with-deps
 
 # Create and activate a Python virtual environment
 RUN python3 -m venv /venv
@@ -65,7 +52,7 @@ RUN pip install --upgrade pip && pip install -r requirements-dev.txt
 # Copy application files
 COPY . .
 
-# Debugging: Show Playwright installations (if installed)
+# Debugging: Show Playwright installations
 RUN ls -la /root/.cache/ms-playwright
 
 # Set the entrypoint

@@ -3,9 +3,9 @@ import pytest
 import subprocess
 import shlex
 import shutil
+from backend.image_converter.core.internals.utls import is_file_supported
 
 from tests.test_utils import (
-    is_image,
     validate_image_dimensions,
     create_sample_test_image,
     is_github_actions,
@@ -150,7 +150,7 @@ class TestDockerIntegration:
         sample_files = [
             f for f in os.listdir(self.SAMPLE_IMAGES_DIR)
             if os.path.isfile(os.path.join(self.SAMPLE_IMAGES_DIR, f))
-               and is_image(os.path.join(self.SAMPLE_IMAGES_DIR, f))
+               and is_file_supported(os.path.join(self.SAMPLE_IMAGES_DIR, f))
         ]
         print(f"Sample count: {len(sample_files)}, Output count: {len(output_files)}")
         assert len(sample_files) == len(output_files), (
@@ -167,7 +167,7 @@ class TestDockerIntegration:
 
         for filename in output_files:
             path = os.path.join(self.OUTPUT_DIR, filename)
-            assert is_image(path), f"Not a valid image file: {filename}"
+            assert is_file_supported(path), f"Not a valid image file: {filename}"
             validate_image_dimensions(path, self.EXPECTED_IMAGE_WIDTH)
             print(f"{filename}: {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
 
