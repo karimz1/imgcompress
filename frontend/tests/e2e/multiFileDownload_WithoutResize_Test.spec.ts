@@ -17,6 +17,7 @@ test('should upload two files, verify individual downloads by clicking and ZIP d
     const imageFileNames: ImageFileDto[] = [
         new ImageFileDto("pexels-pealdesign-28594392.jpg", 3486),
         new ImageFileDto("pexels-willianjusten-29944187.jpg", 3648),
+        new ImageFileDto("IMG_0935.heic", 4284),
     ];
 
     await uploadFilesToDropzoneAsync(page, imageFileNames);
