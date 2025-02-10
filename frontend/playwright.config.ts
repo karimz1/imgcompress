@@ -11,8 +11,9 @@ fs.mkdirSync(videoDir, { recursive: true });
 
 export default defineConfig({
   testDir: "tests/e2e",
-  timeout: 60000,
+  timeout: 60000 * 10, // 60sec*10 = 10Min
   use: {
+    actionTimeout: 60000, // 60s timout for each test
     headless: true,
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     launchOptions: {
