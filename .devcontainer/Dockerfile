@@ -28,14 +28,14 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
-# Conditionally install the Docker CLI (for amd64 or arm64)
 RUN apt-get update && \
     if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \
       echo "Installing Docker CLI (docker.io) for $(dpkg --print-architecture)"; \
-      apt-get install -y docker.io; \
+      apt-get install -y --no-install-recommends docker.io; \
     else \
       echo "Unsupported architecture for Docker CLI installation, skipping."; \
     fi
+
 
 # Install Playwright and its browsers
 RUN npm install -g playwright && \
