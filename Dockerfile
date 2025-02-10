@@ -33,6 +33,13 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Install system dependencies needed for HEIC support
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
+    #support linux/arm/v7 - https://github.com/karimz1/imgcompress/issues/34
+    gcc \
+    g++ \
+    make \
+    build-essential \
+    libffi-dev \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
