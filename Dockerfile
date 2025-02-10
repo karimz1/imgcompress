@@ -34,6 +34,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
     #support linux/arm/v7 - https://github.com/karimz1/imgcompress/issues/34
+    libjpeg-dev \
     gcc \
     g++ \
     make \
