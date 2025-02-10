@@ -225,12 +225,12 @@ This Docker image is built and tested via our CI/CD pipeline for the following p
 - ✅ **linux/arm64**
   *Apple Silicon (Mac M1/M2 & other ARM64 devices)*
 
-- ✅ **linux/arm/v7**
-  *32-bit ARM (e.g., Raspberry Pi)*
-  **Note:** Testing for this architecture is performed using QEMU-based emulation in our CI/CD pipeline. I do not have physical access to a Raspberry Pi, so while the tests indicate that it should work, it hasn’t been verified on real hardware.
-
 - ✅ **Windows**
   *Runs via WSL2 with Linux containers enabled – no native Windows container support required.*
+
+- ❌ **linux/arm/v7**
+  *32-bit ARM (e.g., Raspberry Pi)*
+  **Note:** Testing for this architecture is performed using QEMU-based emulation in my CI/CD pipeline. I do not have physical access to a Raspberry Pi, so while the tests indicate that it could work, it hasn’t been verified or developed for target real hardware.
 
 - ❌ **linux/ppc64le** and **linux/s390x**
   *Not supported due to dependency limitations.*
