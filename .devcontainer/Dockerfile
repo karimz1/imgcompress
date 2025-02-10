@@ -43,8 +43,7 @@ RUN apt-get update && \
       echo "Unsupported architecture for Docker CLI installation, skipping."; \
     fi
 
-
-# install Playwright (skip on ARMv7/armhf) because not supported yet.
+# Conditionally install Playwright (skip on ARMv7/armhf)
 RUN ARCH=$(dpkg --print-architecture) && \
     if [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ]; then \
       echo "Skipping Playwright installation on $ARCH (not officially supported)"; \
@@ -52,11 +51,6 @@ RUN ARCH=$(dpkg --print-architecture) && \
       npm install -g playwright && \
       npx playwright install --with-deps; \
     fi
-
-
-# Install Playwright and its browsers
-RUN npm install -g playwright && \
-    npx playwright install --with-deps
 
 # Create and activate a Python virtual environment
 RUN python3 -m venv /venv
@@ -69,7 +63,7 @@ RUN pip install --upgrade pip && pip install -r requirements-dev.txt
 # Copy application files
 COPY . .
 
-# Debugging: Show Playwright installations
+# Debugging: Show Playwright installations (if installed)
 RUN ls -la /root/.cache/ms-playwright
 
 # Set the entrypoint
