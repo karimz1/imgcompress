@@ -216,18 +216,34 @@ docker run --rm karimz1/imgcompress --help
 
 ------
 ## 🖥️ Supported Platforms
-This Docker image is built for the following platforms:
 
-✅ linux/amd64 (Intel/AMD x86_64 – Most Linux distros & Windows with WSL2)
-✅ linux/arm64 (Mac M1/M2, AWS Graviton)
-✅ linux/arm/v7 (Raspberry Pi, 32-bit ARM)
-✅ Windows (via WSL2 with Linux containers enabled)
-❌ linux/ppc64le and linux/s390x are not supported due to dependency limitations, but for real who uses it today 🤔.
+This Docker image is built and tested via our CI/CD pipeline for the following platforms:
 
-### 💡 Windows Support:
-This image runs on Windows when Docker Desktop is set to use WSL2 and Linux containers. No native Windows container support is needed.
+- ✅ **linux/amd64**
+  *Intel/AMD x86_64 – Suitable for most Linux distributions and Windows via WSL2*
 
-By default, the Docker image is built for linux/amd64, linux/arm64, and linux/arm/v7 to ensure broad compatibility.
+- ✅ **linux/arm64**
+  *Apple Silicon (Mac M1/M2 & other ARM64 devices)*
+
+- ✅ **linux/arm/v7**
+  *32-bit ARM (e.g., Raspberry Pi)*
+  **Note:** Testing for this architecture is performed using QEMU-based emulation in our CI/CD pipeline. I do not have physical access to a Raspberry Pi, so while the tests indicate that it should work, it hasn’t been verified on real hardware.
+
+- ✅ **Windows**
+  *Runs via WSL2 with Linux containers enabled – no native Windows container support required.*
+
+- ❌ **linux/ppc64le** and **linux/s390x**
+  *Not supported due to dependency limitations.*
+
+------
+
+### 💡 Important Testing Note
+
+All of the supported platforms above are **tested exclusively in my CI/CD pipeline** using emulation (e.g., QEMU) and matrix builds. This means that while the builds have been verified in a virtualized environment, **they have not been manually tested on physical hardware** for all target architectures.
+
+If you require more thorough testing on actual devices (such as a Raspberry Pi or native Apple Silicon hardware) or encounter issues that might be hardware-specific, your support is greatly appreciated. **Donating to this project will help acquire the necessary equipment** to perform comprehensive manual testing and ensure the highest quality across all platforms for my open source projects.
+
+[Consider donating to support further testing and improvements](#support-further-development)
 
 ------
 

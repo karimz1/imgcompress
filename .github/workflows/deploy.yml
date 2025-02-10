@@ -1,4 +1,4 @@
-name: Pipeline for imgcompress a Tool by KarimZouine - https://github.com/karimz1
+name: Pipeline for imgcompress
 
 on:
   push:
@@ -11,16 +11,47 @@ on:
 
 jobs:
   test-backend:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Linux targets
+          - os: ubuntu-latest
+            platform: linux/amd64
+          - os: ubuntu-latest
+            platform: linux/arm64
+          - os: ubuntu-latest
+            platform: linux/arm/v7
 
+          # macOS targets (Docker still builds Linux images)
+          - os: macos-latest
+            platform: linux/amd64
+          - os: macos-latest
+            platform: linux/arm64
+
+          # Windows target (using WSL2 / Linux containers)
+          - os: windows-latest
+            platform: linux/amd64
+
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
       - name: Install tree
-        run: sudo apt-get update && sudo apt-get install -y tree
+        shell: bash
+        run: |
+          # Use the appropriate package manager per OS
+          if [[ "$(uname)" == "Linux" ]]; then
+            sudo apt-get update && sudo apt-get install -y tree
+          elif [[ "$(uname)" == "Darwin" ]]; then
+            brew install tree || echo "tree already installed"
+          else
+            # On Windows (using bash) install via chocolatey if needed
+            choco install tree -y || echo "tree already installed"
+          fi
 
       - name: List Repository Contents
+        shell: bash
         run: |
           echo "===== Root Directory ====="
           pwd
@@ -42,22 +73,22 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build Docker image
+        shell: bash
         run: |
           cd .devcontainer/
-          docker build --no-cache -t devcontainer:local-test .
+          # Use the matrix value to build for the proper platform
+          docker build --platform ${{ matrix.platform }} --no-cache -t devcontainer:local-test .
 
       - name: Run Tests
+        shell: bash
         run: |
           docker run --rm \
             --entrypoint /bin/sh \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
-            -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             --name devcontainer \
             devcontainer:local-test /app/runTests.sh
-        continue-on-error: false
-        env:
-          IS_RUNNING_IN_GITHUB_ACTIONS: true
 
       - name: Upload Pytest Results
         uses: actions/upload-artifact@v4
@@ -66,26 +97,49 @@ jobs:
           path: reports/test-results.xml
 
   test-e2e:
-    needs: [test-backend]
-    runs-on: ubuntu-latest
+    # Use the same matrix as test-backend so that e2e tests run for each target
+    needs: test-backend
+    strategy:
+      matrix:
+        include:
+          # Linux targets
+          - os: ubuntu-latest
+            platform: linux/amd64
+          - os: ubuntu-latest
+            platform: linux/arm64
+          - os: ubuntu-latest
+            platform: linux/arm/v7
+            
+          # macOS targets
+          - os: macos-latest
+            platform: linux/amd64
+          - os: macos-latest
+            platform: linux/arm64
+
+          # Windows target
+          - os: windows-latest
+            platform: linux/amd64
+
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      # Build the application container image.
       - name: Build Application Container Image
-        run: docker build --no-cache -t karimz1/imgcompress:local-test .
+        shell: bash
+        run: |
+          docker build --platform ${{ matrix.platform }} --no-cache -t karimz1/imgcompress:local-test .
 
-      # Run the application container using host networking.
       - name: Run Application Container (Host Networking)
+        shell: bash
         run: |
           docker run --rm -d \
             --network host \
             --name app_$(date +%s) \
             karimz1/imgcompress:local-test web
 
-      # Wait until the application is up and running.
       - name: Wait for Application to be Ready (using localhost)
+        shell: bash
         run: |
           BASE_URL="http://localhost:5000"
           echo "Waiting for the application to be ready on ${BASE_URL}..."
@@ -102,14 +156,14 @@ jobs:
           done
           echo "Application is up! Continuing..."
 
-      # Build the dev container image for running tests.
       - name: Build Dev Container Image
+        shell: bash
         run: |
           cd .devcontainer/
-          docker build --no-cache -t devcontainer:local-test .
+          docker build --platform ${{ matrix.platform }} --no-cache -t devcontainer:local-test .
 
-      # Run the E2E tests inside the dev container using host networking.
       - name: Run E2E Tests in Dev Container (Host Networking)
+        shell: bash
         run: |
           docker run --rm \
             --entrypoint /bin/sh \
@@ -121,19 +175,18 @@ jobs:
             --name devcontainer_e2e_$(date +%s) \
             devcontainer:local-test -c "/app/run-e2e.sh"
 
-
       - name: Zip E2E Test Results
-        run: |
-          zip -r e2e-test-results.zip frontend/e2e-test-results
+        shell: bash
+        run: zip -r e2e-test-results.zip frontend/e2e-test-results
 
       - name: Upload E2E Test Results Artifact
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-results
           path: e2e-test-results.zip
-  
+
   deploy-image-to-dockerhub:
-    needs: [test-e2e]
+    needs: test-e2e
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -153,6 +206,7 @@ jobs:
 
       - name: Define Tags
         id: define-tags
+        shell: bash
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [[ "$BRANCH_NAME" == "main" ]]; then
@@ -161,10 +215,11 @@ jobs:
             echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
           fi
 
-      - name: Build Docker Image
+      - name: Build Docker Image and Push
         uses: docker/build-push-action@v6
         with:
           context: .
+          # Build multi-architecture images for Linux
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: ${{ env.ADDITIONAL_TAG }}
