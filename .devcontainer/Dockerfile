@@ -1,4 +1,3 @@
-# Use Ubuntu 22.04 as the base image
 FROM ubuntu:22.04
 
 # Disable interactive prompts during package installation
@@ -28,6 +27,8 @@ RUN apt-get update && apt-get install -y \
     tk-dev \
     libffi-dev \
     liblzma-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
     python3 \
     python3-pip \
     python3-venv \
@@ -112,8 +113,6 @@ ENV PATH="/venv/bin:$PATH"
 COPY requirements-dev.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt
 
-# Copy the rest of your application files into the container
 COPY . .
 
-# Set the default entrypoint to bash
 ENTRYPOINT ["/bin/bash"]
