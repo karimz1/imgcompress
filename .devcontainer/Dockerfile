@@ -28,14 +28,31 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
-# Conditionally install the Docker CLI (for amd64 or arm64)
+# Install Docker CLI
 RUN apt-get update && \
-    if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \
-      echo "Installing Docker CLI (docker.io) for $(dpkg --print-architecture)"; \
+    ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "amd64" ] || [ "$ARCH" = "arm64" ]; then \
+      echo "Installing Docker CLI (docker.io) for $ARCH"; \
       apt-get install -y docker.io; \
+    elif [ "$ARCH" = "armhf" ] || [ "$ARCH" = "armv7l" ]; then \
+      echo "Installing Docker CE for $ARCH using Docker's official script"; \
+      apt-get install -y curl && \
+      curl -fsSL https://get.docker.com -o get-docker.sh && \
+      sh get-docker.sh; \
     else \
       echo "Unsupported architecture for Docker CLI installation, skipping."; \
     fi
+
+
+# install Playwright (skip on ARMv7/armhf) because not supported yet.
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ]; then \
+      echo "Skipping Playwright installation on $ARCH (not officially supported)"; \
+    else \
+      npm install -g playwright && \
+      npx playwright install --with-deps; \
+    fi
+
 
 # Install Playwright and its browsers
 RUN npm install -g playwright && \
