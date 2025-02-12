@@ -19,7 +19,7 @@ RUN npm run build
 # 2) Stage: FINAL PYTHON IMAGE
 ############################################################
 # Build the final image for the target platform.
-FROM --platform=$TARGETPLATFORM python:3.9-slim-bullseye
+FROM --platform=$TARGETPLATFORM python:3.9-slim-buster
 
 # Metadata labels
 LABEL maintainer="Karim Zouine <mails.karimzouine@gmail.com>"
