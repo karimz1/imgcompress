@@ -71,7 +71,7 @@ function HomePageContent() {
       setDestFolder("");
       const filteredFiles = acceptedFiles.filter((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
-        if (ext && allowedExtensions.includes(ext)) {
+        if (ext && allowedExtensions.includes(`.${ext}`)) {
           return true;
         } else {
           toast.warn(`File type not allowed: ${file.name}`);
