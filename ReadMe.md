@@ -32,7 +32,7 @@ I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effor
 ## 📰 Latest News
 
 Stay up-to-date with the newest improvements:
-
+- [**NEW**: Enable ARM64 (Apple Silicon) Support for Docker Image](https://github.com/karimz1/imgcompress/issues/34)
 - [**NEW**: The Web UI now includes Storage Management for Cleanups](https://github.com/karimz1/imgcompress/issues/27)
   *Quickly manage and clean up your storage directly from the Web UI.*
 - [**NEW**: PNG Processing now supports Transparency](https://github.com/karimz1/imgcompress/pull/25)
@@ -88,14 +88,16 @@ docker pull karimz1/imgcompress:latest
 
 1. **Launch the Web UI:**
 
-   ```  bash
-   docker run --rm -p 5000:5000 karimz1/imgcompress:latest web
+   ```bash
+   docker run --rm -p 8081:5000 karimz1/imgcompress:latest web
    ```
+
+   *Note: The container's internal port `5000` is mapped to the host's port `8081` in my example. You can choose a different host port by modifying the `-p` flag (e.g., `-p 9090:5000`).*
 
 2. **Access the Web UI:**
 
    Open your browser and go to:
-   **http://localhost:5000**
+   **http://localhost:8081**
 
 3. **Explore the Features:**
 
@@ -217,13 +219,13 @@ docker run --rm karimz1/imgcompress --help
 ------
 ## 🖥️ Supported Platforms
 
-This Docker image is built and tested via our CI/CD pipeline for the following platforms:
+This Docker image is built and tested via my CI/CD pipeline for the following platforms:
 
 - ✅ **linux/amd64**
   *Intel/AMD x86_64 – Suitable for most Linux distributions and Windows via WSL2*
 
 - ✅ **linux/arm64**
-  *Apple Silicon (Mac M1/M2 & other ARM64 devices)*
+  *Apple Silicon (Mac & other ARM64 devices)*
 
 - ✅ **Windows**
   *Runs via WSL2 with Linux containers enabled – no native Windows container support required.*
@@ -239,8 +241,6 @@ This Docker image is built and tested via our CI/CD pipeline for the following p
 ### 💡 Testing Note
 
 All of the supported platforms above are **tested exclusively in my CI/CD pipeline** using emulation (e.g., QEMU) and matrix builds. This means that while the builds have been verified in a virtualized environment, **they have not been all manually tested on physical hardware** for all target architectures.
-
-If you require more thorough testing on actual devices (such as a Raspberry Pi or native Apple Silicon hardware) or encounter issues that might be hardware-specific, your support is greatly appreciated. **Donating to this project will help acquire the necessary equipment** to perform comprehensive manual testing and ensure the highest quality across all platforms for my open source project.
 
 ------
 
