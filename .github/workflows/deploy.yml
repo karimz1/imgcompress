@@ -10,7 +10,7 @@ on:
   pull_request:
 
 jobs:
-  test-backend-multi-arch:
+  test-backend:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -49,8 +49,8 @@ jobs:
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
   
-  test-e2e-multi-arch:
-    needs: test-backend-multi-arch
+  test-e2e:
+    needs: test-backend
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -134,7 +134,7 @@ jobs:
           path: e2e-test-results-${{ matrix.platform }}.zip
 
   deploy-image-to-dockerhub:
-    needs: [test-e2e-multi-arch]
+    needs: [test-e2e]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
