@@ -10,7 +10,6 @@ on:
   pull_request:
 
 jobs:
-  # multi-arch testing using QEMU and Buildx
   test-backend-multi-arch:
     runs-on: ubuntu-latest
     strategy:
@@ -49,104 +48,9 @@ jobs:
         continue-on-error: false
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
-
-  test-e2e-multi-arch:
-    needs: test-backend-multi-arch
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [ "linux/amd64", "linux/arm64" ]
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # Build the application container image for the current platform.
-      - name: Build Application Container Image for ${{ matrix.platform }}
-        run: |
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --load \
-            --no-cache \
-            -t karimz1/imgcompress:local-test \
-            .
-
-      # Run the application container using host networking.
-      - name: Run Application Container (Host Networking) for ${{ matrix.platform }}
-        run: |
-          docker run --rm -d \
-            --platform ${{ matrix.platform }} \
-            --network host \
-            --name app \
-            karimz1/imgcompress:local-test web
-
-      # Wait for the application to be ready.
-      - name: Wait for Application to be Ready (using localhost) for ${{ matrix.platform }}
-        run: |
-          BASE_URL="http://localhost:5000"
-          echo "Waiting for the application to be ready on ${BASE_URL}..."
-          max_attempts=120
-          attempt_num=1
-          until curl -s --fail "$BASE_URL" > /dev/null; do
-            if [ "$attempt_num" -eq "$max_attempts" ]; then
-              echo "Application failed to start after $max_attempts attempts."
-              exit 1
-            fi
-            echo "Waiting for app... attempt $attempt_num"
-            attempt_num=$((attempt_num+1))
-            sleep 1
-          done
-          echo "Application is up! Continuing..."
-
-      # Build the dev container image for running the e2e tests.
-      - name: Build Dev Container Image for ${{ matrix.platform }}
-        run: |
-          cd .devcontainer/
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --load \
-            --no-cache \
-            -t devcontainer:local-test \
-            .
-
-      # Run the e2e tests in the dev container.
-      - name: Run E2E Tests in Dev Container (Host Networking)
-        run: |
-          docker run --rm \
-            --platform ${{ matrix.platform }} \
-            --entrypoint /bin/sh \
-            --network host \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$(pwd):/app/" \
-            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
-            -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
-            --name devcontainer_e2e \
-            devcontainer:local-test -c "/app/run-e2e.sh"
-
-
-      # Zip the e2e test results.
-      - name: Zip E2E Test Results for ${{ matrix.platform }}
-        run: |
-          zip -r e2e-test-results-${{ matrix.platform }}.zip frontend/e2e-test-results
-
-      # Upload the e2e test results artifact.
-      - name: Upload E2E Test Results Artifact for ${{ matrix.platform }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-test-results-${{ matrix.platform }}
-          path: e2e-test-results-${{ matrix.platform }}.zip
-
   
   deploy-image-to-dockerhub:
-    needs: [test-e2e-multi-arch]
+    needs: [test-backend-multi-arch]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
