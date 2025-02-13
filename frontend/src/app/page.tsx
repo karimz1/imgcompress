@@ -38,7 +38,7 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 
 const acceptObject = {
-  "image/*": allowedExtensions.map((ext) => `.${ext}`),
+  "image/*": allowedExtensions,
 };
 
 function HomePageContent() {
