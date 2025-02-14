@@ -8,5 +8,10 @@ export class ImageFileDto {
         this.width = width;
       }
     }
-  }
-  
+
+    getExpectedOutputFileName(): string {
+        return this.fileName.toLowerCase().endsWith('.heic') 
+            ? this.fileName.replace('.heic', '.jpg') 
+            : this.fileName;
+    }
+}

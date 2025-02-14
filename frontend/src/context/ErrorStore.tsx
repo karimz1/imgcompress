@@ -1,11 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-
-export interface ErrorMessage {
-  message: string;
-  details?: string;
-}
+import { ErrorMessage } from "@/models/ErrorMessage";
 
 interface ErrorStoreContextProps {
   error: ErrorMessage | null;
@@ -13,13 +9,20 @@ interface ErrorStoreContextProps {
   clearError: () => void;
 }
 
-const ErrorStoreContext = createContext<ErrorStoreContextProps | undefined>(undefined);
+const ErrorStoreContext = createContext<ErrorStoreContextProps | undefined>(
+  undefined
+);
 
 export const ErrorStoreProvider = ({ children }: { children: ReactNode }) => {
   const [error, setErrorState] = useState<ErrorMessage | null>(null);
 
-  const setError = (error: ErrorMessage) => setErrorState(error);
-  const clearError = () => setErrorState(null);
+  const setError = (error: ErrorMessage) => {
+    setErrorState(error);
+  };
+
+  const clearError = () => {
+    setErrorState(null);
+  };
 
   return (
     <ErrorStoreContext.Provider value={{ error, setError, clearError }}>

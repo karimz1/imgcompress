@@ -91,3 +91,45 @@ class FileUrl:
         This method returns the underlying file system path as a string.
         """
         return self.path
+
+
+from typing import Generic, TypeVar, Any
+
+T = TypeVar('T')
+
+class Result(Generic[T]):
+    """A result type that can either be successful with a value or failed with an error."""
+    
+    def __init__(self, success: bool, value: T = None, error: str = None):
+        self._success = success
+        self._value = value
+        self._error = error
+
+    @property
+    def success(self) -> bool:
+        return self._success
+
+    @property
+    def value(self) -> T:
+        return self._value
+
+    @property
+    def error(self) -> str:
+        return self._error
+
+    @staticmethod
+    def success(value: T) -> 'Result[T]':
+        if isinstance(value, dict):
+            value["is_successful"] = True
+            value["error"] = None
+        return Result(True, value=value)
+
+    @staticmethod
+    def failure(error: str) -> 'Result[T]':
+        if isinstance(error, dict):
+            error["is_successful"] = False
+        return Result(False, error=str(error))
+
+    @property 
+    def is_successful(self) -> bool:
+        return self._success

@@ -1,20 +1,19 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 import time
 import shutil
 import tempfile
+import traceback
 from typing import Optional
 from flask import Blueprint, request, jsonify, send_from_directory, abort
 from werkzeug.utils import secure_filename
-from datetime import datetime,timezone
 
+from backend.image_converter.core.internals.utls import Result
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.domain.image_resizer import ImageResizer
-
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
-
 from backend.image_converter.presentation.web.parse_services import (
     extract_form_data,
     ALLOWED_EXTENSIONS
@@ -33,10 +32,14 @@ def compress_images():
     """
     1) Clean old temp folders
     2) Extract form data 
-    3) Convert images
-    4) Return JSON response
+    3) Save uploaded files
+    4) Convert images using the result pattern
+    5) Return JSON response
     """
+    # Clean up old files
     cleanup_service.cleanup_temp_folders()
+    
+    # Extract data from the form
     data = extract_form_data(request, logger)
     uploaded_files = data["uploaded_files"]
     quality = data["quality"]
@@ -46,28 +49,46 @@ def compress_images():
     if not uploaded_files:
         return jsonify({"error": "No valid files uploaded."}), 400
 
-    # Derive the enum
-    image_format = ImageFormat.from_string(output_format_str)
+    # Convert string to ImageFormat enum using the result pattern
+    format_result = ImageFormat.from_string_result(output_format_str)
+    if not format_result.is_successful:
+        logger.log(f"Invalid image format: {format_result.error}", "error")
+        return jsonify({"error": format_result.error}), 400
+    image_format = format_result.value
+
+    # Create temporary source and destination folders
     source_folder = tempfile.mkdtemp(prefix="source_")
     dest_folder = tempfile.mkdtemp(prefix="converted_")
 
-    try:
-        _save_uploaded_files(uploaded_files, source_folder)
-        _process_images(source_folder, dest_folder, image_format, quality, width)
-        converted_files = os.listdir(dest_folder)
-        if not converted_files:
-            raise ValueError("No files were converted.")
-    except Exception as e:
-        logger.log(f"Error during image processing: {e}", "error")
-        return jsonify({"error": "Processing failed", "message": str(e)}), 500
-    finally:
+    # Save uploaded files using the result pattern.
+    save_result = _save_uploaded_files(uploaded_files, source_folder)
+    if not save_result.is_successful:
+        logger.log(f"Error saving uploaded files: {save_result.error}", "error")
         shutil.rmtree(source_folder, ignore_errors=True)
-        logger.log(f"Deleted source folder: {source_folder}", "info")
+        return jsonify({"error": "Failed to save uploaded files", "message": save_result.error}), 500
+
+    # Process and convert images using the result pattern.
+    process_result = _process_images(source_folder, dest_folder, image_format, quality, width)
+    
+    # Clean up the source folder regardless of processing outcome.
+    shutil.rmtree(source_folder, ignore_errors=True)
+    logger.log(f"Deleted source folder: {source_folder}", "info")
+
+    if not process_result.is_successful:
+        logger.log(f"Error processing images: {process_result.error}", "error")
+        return jsonify({"error": "Image processing failed", "message": process_result.error}), 500
+
+    # Gather list of converted files.
+    converted_files = os.listdir(dest_folder)
+    if not converted_files:
+        logger.log("No files were converted", "error")
+        return jsonify({"error": "No files were converted"}), 500
 
     return jsonify({
         "status": "ok",
         "converted_files": converted_files,
-        "dest_folder": dest_folder
+        "dest_folder": dest_folder,
+        "process_summary": process_result.value
     }), 200
 
 @api_blueprint.route("/download", methods=["GET"])
@@ -123,11 +144,10 @@ def storage_info():
 
 @api_blueprint.route("/force_cleanup", methods=["POST"])
 def force_cleanup():
-    try:
-        cleanup_service.cleanup_temp_folders(force=True)
-        return jsonify({"status": "ok", "message": "Forced cleanup completed."}), 200
-    except Exception as e:
-        return jsonify({"error": "Cleanup failed", "message": str(e)}), 500
+    force_result = cleanup_service.cleanup_temp_folders(force=True)
+    if not force_result.is_successful:
+        return jsonify({"error": "Forced cleanup failed", "message": force_result.error}), 500
+    return jsonify({"status": "ok", "message": "Forced cleanup completed."}), 200
 
 @api_blueprint.route("/container_files", methods=["GET"])
 def container_files():
@@ -139,7 +159,7 @@ def health_live():
     now_utc = datetime.now(timezone.utc)
     response = {
         "status": "live",
-        "UTC_Time": now_utc
+        "UTC_Time": now_utc.isoformat()
     }
     return jsonify(response), 200
 
@@ -147,14 +167,15 @@ def health_live():
 # INTERNAL HELPERS
 # ----------------------------
 
-def _save_uploaded_files(uploaded_files, source_folder: str):
+def _save_uploaded_files(uploaded_files, source_folder: str) -> Result[None]:
     """
     Save the user's uploaded files to disk.
+    Returns a Result; on failure, the error includes the traceback.
     """
-    for file in uploaded_files:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(source_folder, filename)
-        try:
+    try:
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(source_folder, filename)
             with open(file_path, "wb") as f:
                 while True:
                     chunk = file.stream.read(8192)
@@ -162,60 +183,81 @@ def _save_uploaded_files(uploaded_files, source_folder: str):
                         break
                     f.write(chunk)
             logger.log(f"Saved file: {file_path}", "info")
-        except Exception as e:
-            logger.log(f"Failed to save file {filename}: {e}", "error")
-            raise
+        return Result.success(None)
+    except Exception as e:
+        tb = traceback.format_exc()
+        logger.log(f"Failed to save file {filename}: {tb}", "error")
+        return Result.failure(tb)
 
 def _process_images(source_folder: str, 
                     dest_folder: str,
                     image_format: ImageFormat, 
                     quality: int, 
-                    width: Optional[int]) -> None:
+                    width: Optional[int]) -> Result:
     """
     For each file in 'source_folder':
       1) Read bytes
       2) Optionally resize
-      3) Use 'ImageConverterFactory' to create a converter
-      4) Convert & save final file
+      3) Use ImageConverterFactory to convert and save the file
+    Returns a Result that contains a summary of processed files and errors.
     """
     logger.log(
-        f"Processing images {source_folder} -> {dest_folder} (format={image_format.value}, quality={quality}, width={width})",
+        f"Processing images from {source_folder} -> {dest_folder} (format={image_format.value}, quality={quality}, width={width})",
         "info"
     )
 
     converter = ImageConverterFactory.create_converter(image_format, quality, logger)
     new_ext = image_format.get_file_extension()
 
+    conversion_errors = []
+    processed_files = []
+
     for filename in os.listdir(source_folder):
         src_file_path = os.path.join(source_folder, filename)
         if not os.path.isfile(src_file_path):
             continue
 
-        with open(src_file_path, "rb") as f:
-            original_data = f.read()
+        try:
+            with open(src_file_path, "rb") as f:
+                original_data = f.read()
+        except Exception as e:
+            error_msg = f"Failed to read file {filename}: {e}"
+            logger.log(error_msg, "error")
+            conversion_errors.append(error_msg)
+            continue
 
-        # 1) Maybe resize
+        # Optionally resize the image if width is specified.
         if width and width > 0:
-            resized_data = resizer.resize_image(original_data, width)
+            try:
+                resized_data = resizer.resize_image(original_data, width)
+            except Exception as e:
+                error_msg = f"Failed to resize {filename}: {e}"
+                logger.log(error_msg, "error")
+                conversion_errors.append(error_msg)
+                continue
         else:
             resized_data = original_data
 
-        # 2) Final path
-        base, _ext = os.path.splitext(filename)
+        base, _ = os.path.splitext(filename)
         dest_path = os.path.join(dest_folder, base + new_ext)
 
-        # 3) Convert using the factory-chosen converter
-        try:
-            result = converter.convert(
-                image_data=resized_data,
-                source_path=src_file_path,
-                dest_path=dest_path
-            )
-            if not result["is_successful"]:
-                logger.log(f"Conversion failed for {filename}: {result['error']}", "error")
-        except Exception as e:
-            logger.log(f"Error converting {filename}: {e}", "error")
-            raise
+        conv_result: Result = converter.convert(
+            image_data=resized_data,
+            source_path=src_file_path,
+            dest_path=dest_path
+        )
 
-    logger.log(f"Processed images from {source_folder} to {dest_folder}", "info")
-    
+        if not conv_result.is_successful:
+            error_msg = f"Conversion failed for {filename}: {conv_result.error}"
+            logger.log(error_msg, "error")
+            conversion_errors.append(error_msg)
+        else:
+            processed_files.append(filename)
+
+    if len(processed_files) == 0:
+        return Result.failure("No files processed successfully. Errors: " + "; ".join(conversion_errors))
+    else:
+        logger.log(f"Processed {len(processed_files)} files successfully.", "info")
+        summary = {"processed_files": processed_files, "errors": conversion_errors}
+        return Result.success(summary)
+

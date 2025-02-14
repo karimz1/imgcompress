@@ -27,6 +27,7 @@ import FileManager from "@/components/StorageFileManager";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import PageFooter from "@/components/PageFooter";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
+import ErrorModal from "@/components/ErrorModal"; // Import the ErrorModal
 
 // Allowed file extensions and dropzone accept object
 import { allowedExtensions } from "@/lib/constants";
@@ -148,6 +149,7 @@ function HomePageContent() {
           setError({
             message: err.error || "Error uploading files.",
             details: err.message || undefined,
+            isApiError: true,
           });
           toast.error(err.error || "Error uploading files.");
           return;
@@ -165,6 +167,7 @@ function HomePageContent() {
         setError({
           message: "Something went wrong. Please try again.",
           details: err instanceof Error ? err.message : undefined,
+          isApiError: true,
         });
         toast.error("Something went wrong. Please try again.");
       } finally {
@@ -294,6 +297,9 @@ function HomePageContent() {
             onDownloadAll={handleDownloadAll}
           />
         )}
+
+        {/* Error Modal (pops up on error) */}
+        <ErrorModal />
 
         <PageFooter />
       </div>

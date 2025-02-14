@@ -1,6 +1,7 @@
 import multiprocessing
 import sys
 import subprocess
+import traceback
 from backend.image_converter.presentation.web.server import start_scheduler
 from backend.image_converter.presentation.cli.app import main as cli_main
 import pillow_heif
@@ -89,4 +90,13 @@ def main():
     cli_main()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        # This is for startup errors or exceptions in CLI mode.
+        # Log the full traceback.
+        tb_list = traceback.extract_tb(e.__traceback__)
+        last_frame = tb_list[-1]
+        print(f"Exception occurred in file {last_frame.filename} at line {last_frame.lineno}")
+        print(traceback.format_exc())
+        # Optionally, exit with a non-zero code:

@@ -4,6 +4,7 @@ from io import BytesIO
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
 from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.core.internals.utls import Result
 
 @pytest.fixture
 def sample_rgba_png():
@@ -27,8 +28,8 @@ def test_jpeg_converter_alpha(sample_rgba_png, tmp_path, mock_logger):
     dest_path = str(tmp_path / "out.jpg")
 
     result = converter.convert(sample_rgba_png, source_path, dest_path)
-    assert result["is_successful"] is True
-    assert result["error"] is None
+    assert result.is_successful is True
+    assert result.error is None
 
     # Now open the output file from dest_path
     with open(dest_path, "rb") as f:
@@ -47,8 +48,8 @@ def test_png_converter_preserves_alpha(sample_rgba_png, tmp_path, mock_logger):
     dest_path = str(tmp_path / "out.png")
 
     result = converter.convert(sample_rgba_png, source_path, dest_path)
-    assert result["is_successful"]
-    assert result["error"] is None
+    assert result.is_successful is True
+    assert result.error is None
 
     with open(dest_path, "rb") as f:
         output_data = f.read()

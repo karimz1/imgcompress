@@ -1,45 +1,90 @@
 from typing import Dict
 from PIL import Image
 from io import BytesIO
-from backend.image_converter.core.interfaces.iconverter import IImageConverter
+import traceback
+
+from backend.image_converter.core.internals.utls import Result
 from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.core.interfaces.iconverter import IImageConverter
 
 class JpegConverter(IImageConverter):
-    """Converts raw image bytes -> final JPEG on disk, handling alpha."""
+    """Converts raw image bytes to a JPEG file on disk, compositing alpha over white if needed."""
 
     def __init__(self, quality: int, logger: Logger):
         self.quality = quality
         self.logger = logger
 
-    def convert(self, image_data: bytes, source_path: str, dest_path: str) -> Dict:
-        """
-        1) Open the bytes with Pillow.
-        2) Composite alpha over white if needed.
-        3) Save as JPEG (with 'quality').
-        4) Return a dict about success/fail status.
-        """
-        result = {
+    def convert(self, image_data: bytes, source_path: str, dest_path: str) -> Result[Dict]:
+        result_dict = {
             "source": source_path,
             "destination": dest_path,
-            "is_successful": True,
-            "error": None
+            "is_successful": True,  # Use 'is_successful' here.
+            "error": None,
         }
+        """
+        Converts image data to JPEG format and writes it to disk.
 
+        Returns:
+            Result.success: with a dictionary containing details if conversion is successful.
+            Result.failure: with a traceback string if an error occurs.
+        """
         try:
+            # Open the image from bytes.
             with Image.open(BytesIO(image_data)) as img:
-                # Composite alpha over white if RGBA or LA
+                # If the image has an alpha channel, composite it over a white background.
                 if img.mode in ("RGBA", "LA"):
                     background = Image.new("RGB", img.size, (255, 255, 255))
                     alpha = img.split()[-1]
                     background.paste(img, mask=alpha)
                     img = background
 
-                # Save final image as JPEG
+                # Save the final JPEG image.
                 img.save(dest_path, "JPEG", quality=self.quality)
                 self.logger.log(f"Saved JPEG: {dest_path} (Quality={self.quality})", "debug")
+            
+            # Wrap the successful result in a Result object.
+            return Result.success(result_dict)
         except Exception as e:
-            self.logger.log(f"Failed to convert to JPEG: {e}", "error")
-            result["is_successful"] = False
-            result["error"] = str(e)
+            tb = traceback.format_exc()
+            self.logger.log(f"Failed to convert to JPEG: {tb}", "error")
+            # Return a failure Result with the full traceback.
+            result_dict["is_successful"] = False
+            result_dict["error"] = tb
+            return Result.failure(result_dict)
 
-        return result
+# If you need a similar file for PNG conversion, you can create one like this:
+
+class PngConverter(IImageConverter):
+    """Converts raw image bytes to a PNG file on disk, preserving the alpha channel."""
+
+    def __init__(self, logger: Logger):
+        self.logger = logger
+
+    def convert(self, image_data: bytes, source_path: str, dest_path: str) -> Result[Dict]:
+        """
+        Converts image data to PNG format and writes it to disk.
+
+        Returns:
+            Result.success: with a dictionary containing details if conversion is successful.
+            Result.failure: with a traceback string if an error occurs.
+        """
+        result_dict = {
+            "source": source_path,
+            "destination": dest_path,
+            "is_successful": True,
+            "error": None,
+        }
+        try:
+            # Open the image from bytes.
+            with Image.open(BytesIO(image_data)) as img:
+                # Save the image as PNG.
+                img.save(dest_path, "PNG")
+                self.logger.log(f"Saved PNG: {dest_path}", "debug")
+            
+            return Result.success(result_dict)
+        except Exception as e:
+            tb = traceback.format_exc()
+            self.logger.log(f"Failed to convert to PNG: {tb}", "error")
+            result_dict["is_successful"] = False
+            result_dict["error"] = tb
+            return Result.failure(result_dict)

@@ -17,8 +17,8 @@ test('should upload two files, verify individual downloads by clicking and ZIP d
   const desiredWidth: number = 400;
   const imageFileNames: ImageFileDto[] = [
     new ImageFileDto("pexels-pealdesign-28594392.jpg"),
-    new ImageFileDto( "pexels-willianjusten-29944187.jpg"),
-    new ImageFileDto( "IMG_0935.heic"),
+    new ImageFileDto("pexels-willianjusten-29944187.jpg"),
+    new ImageFileDto("IMG_0935.heic"),
   ];
 
   await uploadFilesToDropzoneAsync(page, imageFileNames);
@@ -37,4 +37,3 @@ test('should upload two files, verify individual downloads by clicking and ZIP d
     AssertImageWidth(desiredWidth, metadata);
   }
 });
-

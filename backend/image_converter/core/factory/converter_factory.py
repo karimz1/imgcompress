@@ -4,6 +4,7 @@ from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
 from ..interfaces.iconverter import IImageConverter
+from backend.image_converter.core.exceptions import ConversionError
 
 class ImageConverterFactory:
     """Factory to produce the correct converter instance based on the desired ImageFormat."""
