@@ -43,7 +43,7 @@ const ErrorModal = () => {
 
   const handleOpenTicket = () => {
     
-    window.open("https://example.com/support", "_blank");
+    window.open("https://github.com/karimz1/imgcompress/issues", "_blank");
   };
 
   return (
