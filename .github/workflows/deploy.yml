@@ -123,16 +123,27 @@ jobs:
             --name devcontainer_e2e \
             devcontainer:local-test -c "/app/run-e2e.sh"
 
-      - name: Zip E2E Test Results for ${{ matrix.platform }}
+      - name: Get CPU Architecture
+        run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
+    
+      - name: Ensure E2E Test Results Directory Exists
+        run: mkdir -p frontend/e2e-test-results
+      
+      - name: Zip E2E Test Results for ${{ env.ARCH }}
         run: |
-          zip -r e2e-test-results-${{ matrix.platform }}.zip frontend/e2e-test-results
+          if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
+            zip -r e2e-test-results-${{ env.ARCH }}.zip frontend/e2e-test-results
+          else
+            echo "No test results found, creating an empty zip."
+            touch e2e-test-results-${{ env.ARCH }}.zip
+          fi
 
-      - name: Upload E2E Test Results Artifact for ${{ matrix.platform }}
+      - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-test-results-${{ matrix.platform }}
-          path: e2e-test-results-${{ matrix.platform }}.zip
-
+        name: e2e-test-results-${{ env.ARCH }}
+        path: e2e-test-results-${{ env.ARCH }}.zip
+    
   deploy-image-to-dockerhub:
     needs: [test-e2e]
     runs-on: ubuntu-latest
