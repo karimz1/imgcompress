@@ -10,6 +10,8 @@ The following sample images used in this project are sourced from Pexels and are
    - **Source**: [Pexels - Foggy Chicago Skyline](https://www.pexels.com/photo/foggy-chicago-skyline-with-iconic-skyscrapers-29944187/)
    - **Author**: [Willian Justen de Vasconcellos](https://www.pexels.com/@willianjusten/)
 
+3. **IMG_0935.heic**
+   - **Source**: just a Photo I made using an IPhone15 Pro Max in Stuttgart City
 ---
 
 ### License

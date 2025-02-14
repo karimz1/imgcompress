@@ -3,9 +3,9 @@ import pytest
 import subprocess
 import shlex
 import shutil
+from backend.image_converter.core.internals.utls import is_file_supported
 
 from tests.test_utils import (
-    is_image,
     validate_image_dimensions,
     create_sample_test_image,
     is_github_actions,
@@ -150,7 +150,7 @@ class TestDockerIntegration:
         sample_files = [
             f for f in os.listdir(self.SAMPLE_IMAGES_DIR)
             if os.path.isfile(os.path.join(self.SAMPLE_IMAGES_DIR, f))
-               and is_image(os.path.join(self.SAMPLE_IMAGES_DIR, f))
+               and is_file_supported(os.path.join(self.SAMPLE_IMAGES_DIR, f))
         ]
         print(f"Sample count: {len(sample_files)}, Output count: {len(output_files)}")
         assert len(sample_files) == len(output_files), (
@@ -167,7 +167,7 @@ class TestDockerIntegration:
 
         for filename in output_files:
             path = os.path.join(self.OUTPUT_DIR, filename)
-            assert is_image(path), f"Not a valid image file: {filename}"
+            assert is_file_supported(path), f"Not a valid image file: {filename}"
             validate_image_dimensions(path, self.EXPECTED_IMAGE_WIDTH)
             print(f"{filename}: {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
 
@@ -193,49 +193,49 @@ class TestDockerIntegration:
         Creates a PNG image with transparency, processes only that file with --format png,
         and validates that the output image is PNG and preserves its transparency.
         """
-        # Create a transparent PNG image in SAMPLE_IMAGES_DIR
+                                                             
         transparent_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_transparent.png")
         width, height = 100, 100
-        # Create a fully transparent background
+                                               
         img = Image.new("RGBA", (width, height), (255, 0, 0, 0))
         draw = ImageDraw.Draw(img)
-        # Draw a semi-transparent green rectangle in a smaller area (from (10,10) to (50,50))
+                                                                                             
         draw.rectangle([10, 10, 50, 50], fill=(0, 255, 0, 128))
         img.save(transparent_img_path, "PNG")
         assert os.path.exists(transparent_img_path), f"Failed to create {transparent_img_path}"
     
-        # Process only the test_transparent.png file with --format png
+                                                                      
         self.run_docker_singlefile_processing("test_transparent.png", extra_args=["--format", "png"])
     
-        # Verify that the output file exists
+                                            
         out_path = os.path.join(self.OUTPUT_DIR, "test_transparent.png")
         assert os.path.exists(out_path), f"Output file {out_path} not found."
     
-        # Open the output image and perform validations
+                                                       
         with Image.open(out_path) as out_img:
             print(f"Output image format: {out_img.format}, mode: {out_img.mode}")
-            # Check that the output image is PNG
+                                                
             assert out_img.format.upper() == "PNG", f"Output image is not PNG."
-            # Check that transparency is preserved (alpha channel present)
+                                                                          
             assert "A" in out_img.mode, "Output image does not have an alpha channel."
     
-            # Determine the scale factor (output width / original width)
-            scale_factor = self.EXPECTED_IMAGE_WIDTH / width  # 800 / 100 = 8.0
+                                                                        
+            scale_factor = self.EXPECTED_IMAGE_WIDTH / width                   
     
-            # Calculate new coordinates:
-            # Original inside point (30,30) becomes (30*8, 30*8) = (240,240)
-            # Original outside point (6,6) becomes (6*8,6*8) = (48,48)
+                                        
+                                                                            
+                                                                      
             inside_x, inside_y = int(30 * scale_factor), int(30 * scale_factor)
             outside_x, outside_y = int(6 * scale_factor), int(6 * scale_factor)
     
             pixel_inside = out_img.getpixel((inside_x, inside_y))
             pixel_outside = out_img.getpixel((outside_x, outside_y))
     
-            # Debug print of the pixel values:
+                                              
             print(f"Pixel inside at ({inside_x},{inside_y}): {pixel_inside}")
             print(f"Pixel outside at ({outside_x},{outside_y}): {pixel_outside}")
     
-            # Pixel format is RGBA; verify alpha values
+                                                       
             expected_inside_alpha = 128
             expected_outside_alpha = 0
             assert pixel_inside[3] == expected_inside_alpha, (

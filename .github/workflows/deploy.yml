@@ -1,4 +1,4 @@
-name: Pipeline for imgcompress a Tool by KarimZouine - https://github.com/karimz1
+name: Pipeline for imgcompress
 
 on:
   push:
@@ -12,41 +12,31 @@ on:
 jobs:
   test-backend:
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ "linux/amd64", "linux/arm64" ]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Install tree
-        run: sudo apt-get update && sudo apt-get install -y tree
-
-      - name: List Repository Contents
-        run: |
-          echo "===== Root Directory ====="
-          pwd
-          tree -L 2
-          echo "===== End Root Directory ====="
-
-          echo "===== tests Directory ====="
-          if [ -d "tests" ]; then
-            cd tests
-            pwd
-            tree -L 2
-            cd ..
-          else
-            echo "tests directory does not exist."
-          fi
-          echo "===== End tests Directory ====="
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker image
+      - name: Build Docker image for ${{ matrix.platform }}
         run: |
           cd .devcontainer/
-          docker build --no-cache -t devcontainer:local-test .
+          docker buildx build \
+            --platform ${{ matrix.platform }} \
+            --load \
+            -t devcontainer:local-test .
 
-      - name: Run Tests
+      - name: Run Tests on ${{ matrix.platform }}
         run: |
           docker run --rm \
             --entrypoint /bin/sh \
@@ -58,34 +48,44 @@ jobs:
         continue-on-error: false
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
-
-      - name: Upload Pytest Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: pytest-results
-          path: reports/test-results.xml
-
+  
   test-e2e:
-    needs: [test-backend]
+    needs: test-backend
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ "linux/amd64" ] # works only on amd64 for now; a fix for arm64 is in progress
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      # Build the application container image.
-      - name: Build Application Container Image
-        run: docker build --no-cache -t karimz1/imgcompress:local-test .
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
-      # Run the application container using host networking.
-      - name: Run Application Container (Host Networking)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Application Container Image for ${{ matrix.platform }}
+        run: |
+          docker buildx build \
+            --platform ${{ matrix.platform }} \
+            --load \
+            --no-cache \
+            -t karimz1/imgcompress:local-test \
+            .
+
+      - name: Run Application Container (Host Networking) for ${{ matrix.platform }}
         run: |
           docker run --rm -d \
+            --platform ${{ matrix.platform }} \
             --network host \
-            --name app_$(date +%s) \
+            --name app \
             karimz1/imgcompress:local-test web
 
-      # Wait until the application is up and running.
-      - name: Wait for Application to be Ready (using localhost)
+      - name: Wait for Application to be Ready (using localhost) for ${{ matrix.platform }}
         run: |
           BASE_URL="http://localhost:5000"
           echo "Waiting for the application to be ready on ${BASE_URL}..."
@@ -102,36 +102,50 @@ jobs:
           done
           echo "Application is up! Continuing..."
 
-      # Build the dev container image for running tests.
-      - name: Build Dev Container Image
+      - name: Build Dev Container Image for ${{ matrix.platform }}
         run: |
           cd .devcontainer/
-          docker build --no-cache -t devcontainer:local-test .
+          docker buildx build \
+            --platform ${{ matrix.platform }} \
+            --load \
+            --no-cache \
+            -t devcontainer:local-test \
+            .
 
-      # Run the E2E tests inside the dev container using host networking.
       - name: Run E2E Tests in Dev Container (Host Networking)
         run: |
           docker run --rm \
+            --platform ${{ matrix.platform }} \
             --entrypoint /bin/sh \
             --network host \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
-            --name devcontainer_e2e_$(date +%s) \
+            --name devcontainer_e2e \
             devcontainer:local-test -c "/app/run-e2e.sh"
 
-
-      - name: Zip E2E Test Results
+      - name: Get CPU Architecture
+        run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
+    
+      - name: Ensure E2E Test Results Directory Exists
+        run: mkdir -p frontend/e2e-test-results
+      
+      - name: Zip E2E Test Results for ${{ env.ARCH }}
         run: |
-          zip -r e2e-test-results.zip frontend/e2e-test-results
+          if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
+            zip -r e2e-test-results-${{ env.ARCH }}.zip frontend/e2e-test-results
+          else
+            echo "No test results found, creating an empty zip."
+            touch e2e-test-results-${{ env.ARCH }}.zip
+          fi
 
-      - name: Upload E2E Test Results Artifact
+      - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-test-results
-          path: e2e-test-results.zip
-  
+          name: e2e-test-results-${{ env.ARCH }}
+          path: e2e-test-results-${{ env.ARCH }}.zip
+    
   deploy-image-to-dockerhub:
     needs: [test-e2e]
     runs-on: ubuntu-latest
@@ -165,5 +179,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.ADDITIONAL_TAG }}

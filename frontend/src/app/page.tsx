@@ -7,7 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { DownloadZipToast } from "@/components/CustomToast";
 
-// UI Components
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -20,29 +20,30 @@ import {
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-// Custom Components
+
 import FileConversionForm from "@/components/FileConversionForm";
 import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
 import FileManager from "@/components/StorageFileManager";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import PageFooter from "@/components/PageFooter";
 import BackendStatusBanner from "@/components/BackendStatusBanner";
+import ErrorModal from "@/components/ErrorModal"; 
 
-// Allowed file extensions and dropzone accept object
+
 import { allowedExtensions } from "@/lib/constants";
 
-// Error store context
+
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 
-// Import the custom health check hook.
+
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 
 const acceptObject = {
-  "image/*": allowedExtensions.map((ext) => `.${ext}`),
+  "image/*": allowedExtensions,
 };
 
 function HomePageContent() {
-  // Global state for file conversion
+  
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
@@ -52,18 +53,18 @@ function HomePageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState("jpeg");
 
-  // Drawer and File Manager states
+  
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
-  // Get error store functions
+  
   const { error, setError, clearError } = useErrorStore();
 
-  // Use the custom hook to monitor backend health.
+  
   const backendDown = useBackendHealth();
 
-  // Setup dropzone for file selection
+  
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       clearError();
@@ -71,7 +72,7 @@ function HomePageContent() {
       setDestFolder("");
       const filteredFiles = acceptedFiles.filter((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
-        if (ext && allowedExtensions.includes(ext)) {
+        if (ext && allowedExtensions.includes(`.${ext}`)) {
           return true;
         } else {
           toast.warn(`File type not allowed: ${file.name}`);
@@ -95,10 +96,10 @@ function HomePageContent() {
     multiple: true,
   });
 
-  // Delay helper (simulate delay before showing a success toast)
+  
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Handle form submission and API call for compression
+  
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -148,6 +149,7 @@ function HomePageContent() {
           setError({
             message: err.error || "Error uploading files.",
             details: err.message || undefined,
+            isApiError: true,
           });
           toast.error(err.error || "Error uploading files.");
           return;
@@ -165,6 +167,7 @@ function HomePageContent() {
         setError({
           message: "Something went wrong. Please try again.",
           details: err instanceof Error ? err.message : undefined,
+          isApiError: true,
         });
         toast.error("Something went wrong. Please try again.");
       } finally {
@@ -188,7 +191,7 @@ function HomePageContent() {
     toast(<DownloadZipToast />);
   }, [destFolder]);
 
-  // Callback passed to FileManager for force cleanup
+  
   const onForceCleanCallback = useCallback(async () => {
     try {
       const res = await fetch("/api/force_cleanup", { method: "POST" });
@@ -210,13 +213,13 @@ function HomePageContent() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
-      {/* Render the backend status banner */}
+      {}
       <BackendStatusBanner backendDown={backendDown} />
 
       <div className="p-4 flex-grow flex flex-col items-center">
         <ToastContainer />
 
-        {/* Main Card containing the file conversion form */}
+        {}
         <Card className="w-full max-w-xl">
           <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
           <CardHeader>
@@ -251,7 +254,7 @@ function HomePageContent() {
           </CardContent>
         </Card>
 
-        {/* Floating Action Button for Storage Management */}
+        {}
         <div className="fixed bottom-4 right-4">
           <button
             disabled={isLoading}
@@ -265,7 +268,7 @@ function HomePageContent() {
           </button>
         </div>
 
-        {/* File Manager Drawer */}
+        {}
         <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
           <DrawerTrigger asChild>
             <button className="hidden" />
@@ -284,7 +287,7 @@ function HomePageContent() {
           </DrawerContent>
         </Drawer>
 
-        {/* Compressed Files Drawer */}
+        {}
         {converted.length > 0 && (
           <CompressedFilesDrawer
             converted={converted}
@@ -294,6 +297,9 @@ function HomePageContent() {
             onDownloadAll={handleDownloadAll}
           />
         )}
+
+        {}
+        <ErrorModal />
 
         <PageFooter />
       </div>

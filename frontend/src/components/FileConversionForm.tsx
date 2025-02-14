@@ -37,7 +37,7 @@ interface FileConversionFormProps {
   removeFile: (name: string) => void;
   clearFileSelection: () => void;
   onSubmit: (e: React.FormEvent) => void;
-  // The dropzone props are passed in from the parent
+  
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
@@ -140,7 +140,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {/* Output Format Selector */}
+      {}
       <div className="space-y-1">
         <div className="flex items-center gap-1">
           <Label htmlFor="outputFormat" className="text-sm">
@@ -174,7 +174,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </Select>
       </div>
 
-      {/* Quality Slider (only for JPEG) */}
+      {}
       {outputFormat === "jpeg" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* Resize Width */}
+      {}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <Label
@@ -264,16 +264,16 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
-      {/* Error Message */}
+      {}
       {renderError}
 
-      {/* Drag & Drop Zone */}
+      {}
       {renderDropZone}
 
-      {/* Selected Files */}
+      {}
       {renderFilesList}
 
-      {/* Submit & Clear Buttons */}
+      {}
       <div className="flex items-center justify-between gap-4">
         <Button type="submit" variant="default" disabled={isLoading} data-testid="convert-btn">
           {isLoading ? (

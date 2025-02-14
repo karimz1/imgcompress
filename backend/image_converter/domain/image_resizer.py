@@ -3,9 +3,8 @@ from io import BytesIO
 
 class ImageResizer:
     """
-    Resizes raw image bytes to a given width, returning new bytes.
+    Resizes raw image bytes to a given width and returns the resized image bytes.
     """
-
     def resize_image(self, image_data: bytes, target_width: int) -> bytes:
         with Image.open(BytesIO(image_data)) as img:
             if img.width <= 0:
@@ -15,10 +14,8 @@ class ImageResizer:
             new_height = int(img.height * ratio)
 
             resized_img = img.resize((target_width, new_height), Image.Resampling.LANCZOS)
-
-            # Keep original format if known, else fallback to PNG
-            output_format = resized_img.format if resized_img.format else (img.format or "PNG")
-
+            
+                                                                                                               
             buffer = BytesIO()
-            resized_img.save(buffer, format=output_format)
+            resized_img.save(buffer, format="PNG")
             return buffer.getvalue()
