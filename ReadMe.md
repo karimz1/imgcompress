@@ -231,8 +231,7 @@ This Docker image is built and tested via my CI/CD pipeline for the following pl
   *Runs via WSL2 with Linux containers enabled – no native Windows container support required.*
 
 - ❌ **linux/arm/v7**
-  *32-bit ARM (e.g., Raspberry Pi)*
-  **Note:** I do not have physical access to a Raspberry Pi, to develop it on.
+  *Not supported due to dependency limitations.*
 
 - ❌ **linux/ppc64le** and **linux/s390x**
   *Not supported due to dependency limitations.*
