@@ -1,5 +1,5 @@
 from backend.image_converter.core.internals.utls import Result
-from typing import Dict  # Add this import
+from typing import Dict                   
 
 class IImageConverter:
     """Interface (or abstract base) for different format converters."""
@@ -8,6 +8,6 @@ class IImageConverter:
         result_dict = {
             "source": source_path,
             "destination": dest_path,
-            "is_successful": True,  # Use 'is_successful' for consistency.
+            "is_successful": True,                                        
             "error": None,
         }

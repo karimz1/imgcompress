@@ -24,7 +24,7 @@ test('should upload a file via drag-and-drop and verify the download functionali
   await clickConversionButtonAsync(page);
   await assertZipButtonNotRenderedAsync(page);
 
-  // Assert download links are present and then use one to download the file.
+  
   const fileItemLocator = await assertDownloadLinksAsync(page, fileNames);
   const downloads = await downloadFilesAndGetMetadataAsync(page, fileItemLocator);
   for (const { metadata } of downloads) {

@@ -36,10 +36,10 @@ def compress_images():
     4) Convert images using the result pattern
     5) Return JSON response
     """
-    # Clean up old files
+                        
     cleanup_service.cleanup_temp_folders()
     
-    # Extract data from the form
+                                
     data = extract_form_data(request, logger)
     uploaded_files = data["uploaded_files"]
     quality = data["quality"]
@@ -49,28 +49,28 @@ def compress_images():
     if not uploaded_files:
         return jsonify({"error": "No valid files uploaded."}), 400
 
-    # Convert string to ImageFormat enum using the result pattern
+                                                                 
     format_result = ImageFormat.from_string_result(output_format_str)
     if not format_result.is_successful:
         logger.log(f"Invalid image format: {format_result.error}", "error")
         return jsonify({"error": format_result.error}), 400
     image_format = format_result.value
 
-    # Create temporary source and destination folders
+                                                     
     source_folder = tempfile.mkdtemp(prefix="source_")
     dest_folder = tempfile.mkdtemp(prefix="converted_")
 
-    # Save uploaded files using the result pattern.
+                                                   
     save_result = _save_uploaded_files(uploaded_files, source_folder)
     if not save_result.is_successful:
         logger.log(f"Error saving uploaded files: {save_result.error}", "error")
         shutil.rmtree(source_folder, ignore_errors=True)
         return jsonify({"error": "Failed to save uploaded files", "message": save_result.error}), 500
 
-    # Process and convert images using the result pattern.
+                                                          
     process_result = _process_images(source_folder, dest_folder, image_format, quality, width)
     
-    # Clean up the source folder regardless of processing outcome.
+                                                                  
     shutil.rmtree(source_folder, ignore_errors=True)
     logger.log(f"Deleted source folder: {source_folder}", "info")
 
@@ -78,7 +78,7 @@ def compress_images():
         logger.log(f"Error processing images: {process_result.error}", "error")
         return jsonify({"error": "Image processing failed", "message": process_result.error}), 500
 
-    # Gather list of converted files.
+                                     
     converted_files = os.listdir(dest_folder)
     if not converted_files:
         logger.log("No files were converted", "error")
@@ -163,9 +163,9 @@ def health_live():
     }
     return jsonify(response), 200
 
-# ----------------------------
-# INTERNAL HELPERS
-# ----------------------------
+                              
+                  
+                              
 
 def _save_uploaded_files(uploaded_files, source_folder: str) -> Result[None]:
     """
@@ -226,7 +226,7 @@ def _process_images(source_folder: str,
             conversion_errors.append(error_msg)
             continue
 
-        # Optionally resize the image if width is specified.
+                                                            
         if width and width > 0:
             try:
                 resized_data = resizer.resize_image(original_data, width)

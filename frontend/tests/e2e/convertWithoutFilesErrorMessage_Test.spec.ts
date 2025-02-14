@@ -5,7 +5,7 @@ test('Test_TryToConvertWithoutUpload_ExpectErrorMessageRendered', async ({ page 
   await page.goto('/');
   await clickConversionButtonAsync(page);
 
-  // Assert Error Message when no uploaded provided
+  
   const errorMessage = await page.locator('[data-testid="error-message-holder"]').innerText();
   expect(errorMessage).toContain("Please drop or select some files first.");
 });

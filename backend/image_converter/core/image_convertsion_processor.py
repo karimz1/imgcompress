@@ -63,8 +63,8 @@ class ImageConversionProcessor:
         self.file_manager.ensure_destination()
         supported_files = self.file_manager.list_supported_files()
         for file_url in supported_files:
-            # Adjust the following line according to how FileUrl exposes the file path.
-            path = file_url.path  # For example, if FileUrl has a "path" attribute.
+                                                                                       
+            path = file_url.path                                                   
             result = self._convert_file(path)
             self.results.append(result)
 
@@ -81,10 +81,10 @@ class ImageConversionProcessor:
         dest_path = os.path.join(self.destination, base_name + extension)
 
         try:
-            # 1) Load raw bytes using the result pattern.
+                                                         
             load_result = self.image_loader.load_image_as_bytes(file_path)
             if hasattr(load_result, "value"):
-                # Assume load_result.value is either a dict or raw bytes.
+                                                                         
                 if isinstance(load_result.value, dict):
                     if not load_result.value.get("is_successful", False):
                         raise Exception(load_result.value.get("error"))
@@ -94,12 +94,12 @@ class ImageConversionProcessor:
             else:
                 image_data = load_result
 
-            # 2) Determine original width.
+                                          
             with Image.open(BytesIO(image_data)) as temp_img:
                 original_width, _ = temp_img.size
 
             new_width = original_width
-            # Resize if a new width is provided.
+                                                
             if self.width and self.width > 0:
                 resize_result = self.image_resizer.resize_image(image_data, self.width)
                 if hasattr(resize_result, "value"):
@@ -114,7 +114,7 @@ class ImageConversionProcessor:
                 with Image.open(BytesIO(image_data)) as resized_img:
                     new_width, _ = resized_img.size
 
-            # 3) Convert via the factory-chosen converter.
+                                                          
             convert_result = self.converter.convert(
                 image_data=image_data,
                 source_path=file_path,
@@ -129,7 +129,7 @@ class ImageConversionProcessor:
                     conv_result = convert_result.value
             else:
                 conv_result = convert_result
-            # Merge conversion result details and additional metadata.
+                                                                      
             result.update(conv_result)
             result["original_width"] = original_width
             result["resized_width"] = new_width

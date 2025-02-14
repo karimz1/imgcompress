@@ -3,7 +3,7 @@ import React from "react";
 
 const DownloadFileToast: React.FC<DownloadFileToastProps> = ({ fileName }) => (
     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {/* Bigger icon */}
+      <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {}
       <span style={{ fontSize: "16px", fontWeight: "bold", wordBreak: "break-word" }}>
         Downloading: <strong>{fileName}</strong>...
       </span>
@@ -13,7 +13,7 @@ const DownloadFileToast: React.FC<DownloadFileToastProps> = ({ fileName }) => (
 
   const DownloadZipToast: React.FC = () => (
     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <FolderDown style={{ fontSize: "24px", flexShrink: 0 }} /> {/* Bigger icon */}
+      <FolderDown style={{ fontSize: "24px", flexShrink: 0 }} /> {}
       <span style={{ fontSize: "16px", fontWeight: "bold", wordBreak: "break-word" }}>
         Downloading: <strong>Folder</strong>...
       </span>

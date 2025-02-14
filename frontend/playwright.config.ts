@@ -4,19 +4,19 @@ import path from "path";
 
 const videoDir = path.join(__dirname, "e2e-test-results/");
 
-// Pre-test cleanup: remove the old videos folder
+
 if (fs.existsSync(videoDir))
   fs.rmSync(videoDir, { recursive: true, force: true });
 fs.mkdirSync(videoDir, { recursive: true });
 
 export default defineConfig({
   testDir: "tests/e2e",
-  timeout: 60000 * 10, // Overall test timeout (10 minutes)
+  timeout: 60000 * 10, 
   expect: {
-    timeout: 60000 *2, // Increase expect timeout to 2min
+    timeout: 60000 *2, 
   },
   use: {
-    actionTimeout: 60000 *2, // Timeout for individual actions (2min)
+    actionTimeout: 60000 *2, 
     headless: true,
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     launchOptions: {

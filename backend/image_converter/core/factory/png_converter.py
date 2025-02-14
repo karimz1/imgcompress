@@ -28,9 +28,9 @@ class PngConverter(IImageConverter):
             "error": None,
         }
         try:
-            # Open the image from bytes.
+                                        
             with Image.open(BytesIO(image_data)) as img:
-                # Save the image as PNG.
+                                        
                 img.save(dest_path, "PNG")
                 self.logger.log(f"Saved PNG: {dest_path}", "debug")
             

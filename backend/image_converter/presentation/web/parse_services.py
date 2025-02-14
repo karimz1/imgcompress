@@ -1,4 +1,4 @@
-# file: backend/image_converter/presentation/web/parse_service.py
+                                                                 
 
 from flask import Request
 from typing import Any, Dict, Optional
@@ -17,7 +17,7 @@ def extract_form_data(request: Request, logger: Logger) -> Dict[str, Any]:
     quality = _parse_quality(request.form.get("quality", "85"), logger)
     width = _parse_width(request.form.get("width", ""), logger)
 
-    # Filter out disallowed files
+                                 
     allowed_files = [f for f in uploaded_files if _is_file_allowed(f.filename)]
     if len(allowed_files) != len(uploaded_files):
         logger.log("Some files were rejected due to unsupported file types.", "warning")

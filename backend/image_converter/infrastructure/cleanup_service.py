@@ -3,7 +3,7 @@ import time
 import shutil
 from typing import Dict, List
 import traceback
-from backend.image_converter.core.internals.utls import Result  # Assuming you have this Result class
+from backend.image_converter.core.internals.utls import Result                                       
 
 class CleanupService:
     """
@@ -79,7 +79,7 @@ class CleanupService:
 
         self.logger.log(f"Scanning TEMP_DIR: {self.temp_dir}", "info")
 
-        # Folders
+                 
         for folder in os.listdir(self.temp_dir):
             folder_path = os.path.join(self.temp_dir, folder)
             if os.path.isdir(folder_path) and folder.startswith("converted_"):
@@ -95,7 +95,7 @@ class CleanupService:
                         total_size += size_mb
                         total_count += 1
 
-        # ZIPs
+              
         for fname in os.listdir(self.temp_dir):
             if fname.startswith("converted_") and fname.endswith(".zip"):
                 file_path = os.path.join(self.temp_dir, fname)

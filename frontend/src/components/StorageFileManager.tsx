@@ -45,7 +45,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch container files
+  
   const fetchContainerFiles = useCallback(async () => {
     setLoading(true);
     try {
@@ -60,7 +60,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
     }
   }, []);
 
-  // Fetch storage info
+  
   const fetchStorageInfo = useCallback(async () => {
     try {
       const res = await fetch("/api/storage_info");
@@ -88,7 +88,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Storage Information */}
+        {}
         {storage && (
           <div className="mb-4 space-y-2">
             <div className="text-center text-sm text-gray-400">
@@ -113,7 +113,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
         )}
 
         <div className="w-full">
-          {/* Header with centered Files text and Clear Processed Files button */}
+          {}
           <div className="relative">
             <h2 className="text-lg font-bold text-center">Files</h2>
             <div className="absolute inset-y-0 right-0 flex items-center">
@@ -148,7 +148,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
               </div>
             ) : data?.files?.length ? (
               <div>
-                {/* Totals above the file list */}
+                {}
                 <div className="mb-4 text-sm text-gray-400 text-center">
                   <p>
                     Total Files: <strong>{data.total_count}</strong>
@@ -157,7 +157,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                     Total Space Used: <strong>{data.total_size_mb} MB</strong>
                   </p>
                 </div>
-                {/* Scrollable file list */}
+                {}
                 <div className="overflow-y-auto max-h-40 space-y-2">
                   {data.files.map((file, index) => (
                     <div

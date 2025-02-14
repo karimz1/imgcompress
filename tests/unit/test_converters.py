@@ -10,7 +10,7 @@ from backend.image_converter.core.internals.utls import Result
 def sample_rgba_png():
     """Create a 64x64 RGBA image in memory."""
     buf = BytesIO()
-    img = Image.new("RGBA", (64, 64), (0, 255, 0, 128))  # translucent green
+    img = Image.new("RGBA", (64, 64), (0, 255, 0, 128))                     
     img.save(buf, format="PNG")
     return buf.getvalue()
 
@@ -31,12 +31,12 @@ def test_jpeg_converter_alpha(sample_rgba_png, tmp_path, mock_logger):
     assert result.is_successful is True
     assert result.error is None
 
-    # Now open the output file from dest_path
+                                             
     with open(dest_path, "rb") as f:
         output_data = f.read()
     with Image.open(BytesIO(output_data)) as out_img:
         assert out_img.mode == "RGB"
-        # No alpha channel, since it's JPEG
+                                           
         assert out_img.size == (64, 64)
 
 def test_png_converter_preserves_alpha(sample_rgba_png, tmp_path, mock_logger):
@@ -54,5 +54,5 @@ def test_png_converter_preserves_alpha(sample_rgba_png, tmp_path, mock_logger):
     with open(dest_path, "rb") as f:
         output_data = f.read()
     with Image.open(BytesIO(output_data)) as out_img:
-        assert out_img.mode == "RGBA"  # alpha should remain
+        assert out_img.mode == "RGBA"                       
         assert out_img.size == (64, 64)

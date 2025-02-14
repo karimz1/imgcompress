@@ -34,7 +34,7 @@ class ImageFormat(Enum):
         """
         return IMAGE_FORMAT_EXTENSIONS[self.name]
 
-# Mapping of enum names to their file extensions.
+                                                 
 IMAGE_FORMAT_EXTENSIONS = {
     "JPEG": ".jpg",
     "PNG": ".png",

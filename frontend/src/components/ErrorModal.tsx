@@ -19,7 +19,7 @@ const ErrorModal = () => {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Only open if there's an error and it's an API error.
+  
   useEffect(() => {
     if (error && error.isApiError) {
       setOpen(true);
@@ -28,7 +28,7 @@ const ErrorModal = () => {
     }
   }, [error]);
 
-  // If there's no error or it's not an API error, do not render the modal.
+  
   if (!error || !error.isApiError) {
     return null;
   }
@@ -42,7 +42,7 @@ const ErrorModal = () => {
   };
 
   const handleOpenTicket = () => {
-    // Replace with your actual support/ticketing URL.
+    
     window.open("https://example.com/support", "_blank");
   };
 

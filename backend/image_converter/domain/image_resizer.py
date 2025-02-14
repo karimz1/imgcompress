@@ -15,7 +15,7 @@ class ImageResizer:
 
             resized_img = img.resize((target_width, new_height), Image.Resampling.LANCZOS)
             
-            # Use an intermediate format here, I choose PNG as a neutral, lossless option. For later processing
+                                                                                                               
             buffer = BytesIO()
             resized_img.save(buffer, format="PNG")
             return buffer.getvalue()

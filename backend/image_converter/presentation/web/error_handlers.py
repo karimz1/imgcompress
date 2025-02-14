@@ -18,14 +18,14 @@ def handle_http_exception(e):
     return response, e.code
 
 def handle_exception(e):
-    # fallback for all unhandled exceptions
+                                           
     return jsonify({
         "error": "Internal Server Error",
         "message": "An unexpected error occurred. Please try again later."
     }), 500
 
 def not_found(error):
-    # If a route is not found, we return JSON or could serve an index.html
+                                                                          
     return jsonify({
         "error": "Not Found",
         "message": "The requested resource was not found."

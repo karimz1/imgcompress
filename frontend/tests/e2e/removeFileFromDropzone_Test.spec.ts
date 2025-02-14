@@ -14,19 +14,19 @@ test('test remove single file from dropzone works', async ({ page }) => {
     new ImageFileDto("pexels-willianjusten-29944187.jpg", 3648),
   ];
 
-  // Upload both files.
+  
   await uploadFilesToDropzoneAsync(page, imageFileNames);
   
-  // Assert that both files are present.
+  
   await assertFilesPresentInDropzoneAsync(page, imageFileNames);
 
-  // Remove the second file (index 1) from the dropzone.
+  
   await removeImageFileFromDropzoneAsync(page, imageFileNames[1]);
 
-  // Create a new array excluding the removed file.
+  
   const alteredImageFileNamesArray = [...imageFileNames];
-  alteredImageFileNamesArray.splice(1, 1); // remove the file at index 1
+  alteredImageFileNamesArray.splice(1, 1); 
 
-  // Assert that only the remaining file is present in the dropzone.
+  
   await assertFilesPresentInDropzoneAsync(page, alteredImageFileNamesArray);
 });

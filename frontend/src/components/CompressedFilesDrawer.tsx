@@ -27,7 +27,7 @@ interface CompressedFilesDrawerProps {
 
 const DownloadFileToast: React.FC<DownloadFileToastProps> = ({ fileName }) => (
   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-    <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {/* Bigger icon */}
+    <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {}
     <span style={{ fontSize: "16px", fontWeight: "bold", wordBreak: "break-word" }}>
       Downloading <strong>{fileName}</strong>...
     </span>

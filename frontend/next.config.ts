@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+
 const getNextConfig = () => {
   if (process.env.IS_RUNNING_IN_DEVCONTAINER === 'true') {
     return {

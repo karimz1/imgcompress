@@ -30,7 +30,7 @@ test('should upload two files, verify individual downloads by clicking and ZIP d
   const zipDownloadPath: string = await clickDownloadZipButtonAndGetUrlAsync(page);
   await assertZipContentAsync(zipDownloadPath, imageFileNames);
 
-  // Assert download links are present and then use one to download the file.
+  
   const fileItemLocator = await assertDownloadLinksAsync(page, imageFileNames);
   const downloads = await downloadFilesAndGetMetadataAsync(page, fileItemLocator);
   for (const { metadata } of downloads) {
