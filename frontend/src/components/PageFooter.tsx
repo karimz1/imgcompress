@@ -10,7 +10,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
       <CardContent>
         <p className="text-sm text-gray-600">
           This project is <strong>open source</strong> and freely available.
-          Check out {" "}
+          Check out 
           <a
             href="https://github.com/karimz1/imgcompress"
             className="text-blue-400 hover:underline"
