@@ -11,7 +11,7 @@
 
 Experience the power of imgcompress with the **NEW** modern Web UI. Check out the quick demo below:
 
-![Web UI in Action](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/new_web_ui.gif)
+![Web UI in Action](images/new_web_ui.gif)
 
 ---
 
@@ -20,14 +20,12 @@ Experience the power of imgcompress with the **NEW** modern Web UI. Check out th
 Ever been frustrated by juggling multiple programs just to convert or compress images? **I did too.**  
 I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effortlessly compress, convert, and resize your images—all inside a Docker container. No more complicated installations or worrying about privacy with online converters. Everything runs locally, secure and consistent across any system.
 
-<figure style="text-align: center;">
-<h3>and this is how the tool was born 🐣</h3>
-  <img src="https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/imgcompress_logo.jpg" 
-       alt="imgcompress Mascot Logo" 
-       style="width:100%; height:auto;">
-  <figcaption><em>imgcompress Mascot</em></figcaption>
-</figure>
 
+### and this is how the tool was born 🐣
+
+![imgcompress Mascot Logo](images/imgcompress_logo.jpg)
+
+<em>imgcompress Mascot</em>
 
 ## 📰 Latest News
 
