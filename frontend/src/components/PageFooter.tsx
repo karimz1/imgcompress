@@ -26,16 +26,16 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
             href="https://paypal.me/KarimZouine972"
             className="text-blue-400 hover:underline ml-1"
           >
-            🤗 My PayPal
+            🤗 Donate using PayPal
           </a></strong>.
           </p>
           <p className="text-sm text-gray-600 mt-2">
-          Got ideas for new features? Share them on my
+          Got ideas for new features? Share them on
           <a
             href="https://github.com/karimz1/imgcompress/issues"
             className="text-blue-400 hover:underline ml-1"
           >
-            GitHub Issues page
+            GitHub Issues
           </a>. Thank you.
         </p>
 
