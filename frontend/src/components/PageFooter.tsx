@@ -21,22 +21,15 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
           </a>.
         </p>
         <p className="text-sm text-gray-600 mt-2">
-          Created by <strong>Karim Zouine</strong>. If you find this tool useful, please consider donating to help support future features.
+          Created by <strong>Karim Zouine</strong>. Donations are very welcome,
+          if you find this tool useful 🤗 My PayPal:{" "}
           <a
-            href="https://paypal.me/KarimZouine972"
-            className="text-blue-400 hover:underline ml-1"
+            href="mailto:mails.karimzouine@gmail.com"
+            className="text-blue-400 hover:underline"
           >
-            🤗 My PayPal
-          </a>.
-          Got ideas for new features? Share them on my
-          <a
-            href="https://github.com/karimz1/imgcompress/issues"
-            className="text-blue-400 hover:underline ml-1"
-          >
-            GitHub Issues page
-          </a>. Thank you.
+            mails.karimzouine@gmail.com
+          </a>
         </p>
-
       </CardContent>
     </Card>
   );
