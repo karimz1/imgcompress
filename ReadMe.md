@@ -61,14 +61,11 @@ Stay up-to-date with the newest improvements:
 
 ---
 
-## 💰 Support Further Development
+## Support Further Development
 
 If you find **imgcompress** valuable, please consider supporting the project (entirely optional). Your contributions help fund the infrastructure and development tools needed to build even better open source software during my free time. Thank you for your support!
 
-### Donate using PayPal
-🤗 **My PayPal Email:** [mails.karimzouine@gmail.com](mailto:mails.karimzouine@gmail.com)
-
-<img src="./images/donate_qr.png" alt="paypal donate qr-code"  width="60%" height="30%">
+### [Donate using PayPal](https://paypal.me/KarimZouine972)
 
 ---
 
