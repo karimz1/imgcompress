@@ -182,3 +182,31 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.ADDITIONAL_TAG }}
+
+  update-dockerhub-description:
+    needs: deploy-image-to-dockerhub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Update Docker Hub Description
+        run: |
+          python update_dockerhub_description.py \
+            --readme ReadMe.md \
+            --branch "${{ github.ref }}" \
+            --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main"
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_REPO: "imgcompress"
