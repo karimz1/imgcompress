@@ -80,8 +80,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   getRootProps,
   getInputProps,
   isDragActive,
-
-  // New props for displaying supported file types
   supportedExtensions,
   extensionsLoading,
   extensionsError,
