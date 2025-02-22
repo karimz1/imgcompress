@@ -220,6 +220,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
             <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
             <SelectItem value="png">PNG (preserves transparency)</SelectItem>
+            <SelectItem value="ico">ICO</SelectItem>
           </SelectContent>
         </Select>
       </div>

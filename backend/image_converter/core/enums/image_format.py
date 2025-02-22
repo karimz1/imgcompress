@@ -4,6 +4,7 @@ from backend.image_converter.core.internals.utls import Result
 class ImageFormat(Enum):
     JPEG = "JPEG"
     PNG = "PNG"
+    ICO = "ICO"
 
     @classmethod
     def from_string(cls, value: str) -> "ImageFormat":
@@ -38,4 +39,5 @@ class ImageFormat(Enum):
 IMAGE_FORMAT_EXTENSIONS = {
     "JPEG": ".jpg",
     "PNG": ".png",
+    "ICO": ".ico",
 }

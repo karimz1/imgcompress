@@ -1,6 +1,10 @@
 from typing import List, Dict, Optional
 import os
 import json
+
+from PIL import Image
+from io import BytesIO
+
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.file_manager import FileManager
 from backend.image_converter.core.internals.image_loader import ImageLoader
@@ -9,8 +13,6 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.enums.conversion_error import ConversionError
 from backend.image_converter.core.enums.log_level import LogLevel
-from PIL import Image
-from io import BytesIO
 
 class ImageConversionProcessor:
     def __init__(
@@ -43,28 +45,33 @@ class ImageConversionProcessor:
         self.results: List[Dict] = []
 
     def run(self) -> None:
+        """Entry point to process a file or directory."""
         if os.path.isfile(self.source):
-            self.process_single_file(self.source)
+            self._process_single_file(self.source)
         elif os.path.isdir(self.source):
-            self.process_directory(self.source)
+            self._process_directory(self.source)
         else:
-            raise ConversionError(f"Source path '{self.source}' is neither file nor directory.")
+            raise ConversionError(
+                f"Source path '{self.source}' is neither file nor directory."
+            )
 
         summary = self.generate_summary()
         self.output_results(summary)
 
-    def process_single_file(self, file_path: str) -> None:
+    def _process_single_file(self, file_path: str) -> None:
+        """Process (load, resize if needed, convert) a single file."""
         self.logger.log(f"Processing single file: {file_path}", LogLevel.INFO.value)
         result = self._convert_file(file_path)
         self.results.append(result)
 
-    def process_directory(self, directory: str) -> None:
+    def _process_directory(self, directory: str) -> None:
+        """Process all supported files in a directory."""
         self.logger.log(f"Processing directory: {directory}", LogLevel.INFO.value)
         self.file_manager.ensure_destination()
         supported_files = self.file_manager.list_supported_files()
+
         for file_url in supported_files:
-                                                                                       
-            path = file_url.path                                                   
+            path = file_url.path
             result = self._convert_file(path)
             self.results.append(result)
 
@@ -72,83 +79,136 @@ class ImageConversionProcessor:
         """
         1) Load image bytes,
         2) Resize if needed,
-        3) Convert (JPEG/PNG),
-        4) Return result dict.
+        3) Convert to selected format,
+        4) Return a result dict.
         """
-        result = {"file": os.path.basename(file_path)}
-        base_name, _ = os.path.splitext(os.path.basename(file_path))
-        extension = ".png" if self.image_format == ImageFormat.PNG else ".jpg"
-        dest_path = os.path.join(self.destination, base_name + extension)
-
         try:
-                                                         
-            load_result = self.image_loader.load_image_as_bytes(file_path)
-            if hasattr(load_result, "value"):
-                                                                         
-                if isinstance(load_result.value, dict):
-                    if not load_result.value.get("is_successful", False):
-                        raise Exception(load_result.value.get("error"))
-                    image_data = load_result.value["value"]
-                else:
-                    image_data = load_result.value
-            else:
-                image_data = load_result
+            image_data, original_width = self._load_image_bytes(file_path)
+            image_data, new_width = self._maybe_resize(image_data, original_width)
+            convert_info = self._perform_conversion(file_path, image_data)
 
-                                          
-            with Image.open(BytesIO(image_data)) as temp_img:
-                original_width, _ = temp_img.size
-
-            new_width = original_width
-                                                
-            if self.width and self.width > 0:
-                resize_result = self.image_resizer.resize_image(image_data, self.width)
-                if hasattr(resize_result, "value"):
-                    if isinstance(resize_result.value, dict):
-                        if not resize_result.value.get("is_successful", False):
-                            raise Exception(resize_result.value.get("error"))
-                        image_data = resize_result.value["value"]
-                    else:
-                        image_data = resize_result.value
-                else:
-                    image_data = resize_result
-                with Image.open(BytesIO(image_data)) as resized_img:
-                    new_width, _ = resized_img.size
-
-                                                          
-            convert_result = self.converter.convert(
-                image_data=image_data,
-                source_path=file_path,
-                dest_path=dest_path
+            return self._build_success_result(
+                file_path=file_path,
+                convert_info=convert_info,
+                original_width=original_width,
+                resized_width=new_width
             )
-            if hasattr(convert_result, "value"):
-                if isinstance(convert_result.value, dict):
-                    if not convert_result.value.get("is_successful", False):
-                        raise Exception(convert_result.value.get("error"))
-                    conv_result = convert_result.value
-                else:
-                    conv_result = convert_result.value
-            else:
-                conv_result = convert_result
-                                                                      
-            result.update(conv_result)
-            result["original_width"] = original_width
-            result["resized_width"] = new_width
 
         except Exception as e:
-            error_msg = f"Error converting {file_path}: {e}"
-            self.logger.log(error_msg, LogLevel.ERROR.value)
-            result.update({
-                "source": file_path,
-                "destination": dest_path,
-                "original_width": None,
-                "resized_width": None,
-                "is_successful": False,
-                "error": str(e)
-            })
+            return self._build_failure_result(file_path, e)
 
+    def _load_image_bytes(self, file_path: str) -> (bytes, int):
+        """
+        Loads image bytes from disk via `ImageLoader`.
+        Returns (image_data, original_width).
+        Raises an Exception if loading fails.
+        """
+        self.logger.log(f"Loading image: {file_path}", LogLevel.DEBUG.value)
+        load_result = self.image_loader.load_image_as_bytes(file_path)
+
+        if not load_result.get("is_successful", False):
+            raise Exception(load_result.get("error", "Unknown load error"))
+        image_data = load_result["value"]
+
+        with Image.open(BytesIO(image_data)) as temp_img:
+            original_width, _ = temp_img.size
+
+        return image_data, original_width
+
+    def _maybe_resize(self, image_data: bytes, original_width: int) -> (bytes, int):
+        """
+        Resizes the image if self.width is set & valid.
+        Returns (possibly modified image_data, new_width).
+        """
+        new_width = original_width
+
+        if self.width and self.width > 0:
+            self.logger.log(
+                f"Resizing image from width {original_width} to {self.width}",
+                LogLevel.DEBUG.value
+            )
+            resize_result = self.image_resizer.resize_image(image_data, self.width)
+
+            if not resize_result.get("is_successful", False):
+                raise Exception(resize_result.get("error", "Unknown resize error"))
+            image_data = resize_result["value"]
+
+            with Image.open(BytesIO(image_data)) as resized_img:
+                new_width, _ = resized_img.size
+
+        return image_data, new_width
+
+    def _perform_conversion(self, file_path: str, image_data: bytes) -> Dict:
+        """
+        Converts the (possibly resized) image bytes to the target format,
+        writes it to disk, and returns converter's result info.
+        """
+        base_name, _ = os.path.splitext(os.path.basename(file_path))
+
+        extension = ImageFormat.get_file_extension()
+
+        dest_path = os.path.join(self.destination, base_name + extension)
+
+        self.logger.log(
+            f"Converting {file_path} -> {dest_path} [Format: {self.image_format.name}]",
+            LogLevel.DEBUG.value
+        )
+
+        convert_result = self.converter.convert(
+            image_data=image_data,
+            source_path=file_path,
+            dest_path=dest_path
+        )
+
+        if not convert_result.get("success", False) and not convert_result.get("is_successful", False):
+            raise Exception(convert_result.get("error", "Unknown conversion error"))
+        return convert_result
+
+    def _build_success_result(
+        self,
+        file_path: str,
+        convert_info: Dict,
+        original_width: int,
+        resized_width: int
+    ) -> Dict:
+        """
+        Builds a standardized success result dict combining the converter info
+        plus original/resized widths.
+        """
+        result = {
+            "file": os.path.basename(file_path),
+            "source": file_path,
+            "destination": convert_info.get("destination"),
+            "original_width": original_width,
+            "resized_width": resized_width,
+            "is_successful": True,
+        }
+        result.update(convert_info)
         return result
 
+    def _build_failure_result(self, file_path: str, exception: Exception) -> Dict:
+        """
+        Builds a standardized failure result dict.
+        """
+        error_msg = f"Error converting {file_path}: {exception}"
+        self.logger.log(error_msg, LogLevel.ERROR.value)
+
+        base_name, _ = os.path.splitext(os.path.basename(file_path))
+        extension = ImageFormat.get_file_extension()
+        dest_path = os.path.join(self.destination, base_name + extension)
+
+        return {
+            "file": os.path.basename(file_path),
+            "source": file_path,
+            "destination": dest_path,
+            "original_width": None,
+            "resized_width": None,
+            "is_successful": False,
+            "error": str(exception),
+        }
+
     def generate_summary(self) -> Dict:
+        """Generates a summary dict of the entire run (how many errors, etc.)."""
         error_count = sum(not r.get("is_successful", False) for r in self.results)
         return {
             "summary": self.results,
@@ -156,7 +216,7 @@ class ImageConversionProcessor:
         }
 
     def output_results(self, summary: Dict) -> None:
-        """Output final results either in JSON or plain text."""
+        """Output final results either as JSON or plain text logs."""
         if self.json_output:
             final_output = {
                 "status": "complete",

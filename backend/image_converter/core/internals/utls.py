@@ -4,9 +4,52 @@ import json
 from typing import List, Set, Dict
 from PIL import Image
 
-import os
-import json
-from typing import Set, Dict
+def load_supported_formats_details():
+    """
+    Returns a detailed dictionary of format capabilities including read/write support.
+    """
+    has_heif = importlib.util.find_spec("pillow_heif") is not None
+    capabilities = {
+            "read_write": [],
+            "read_only": [],
+            "details": {}
+    }
+
+    for fmt in Image.OPEN.keys():
+        can_write = fmt in Image.SAVE
+        format_info = {
+            "can_read": True,
+            "can_write": can_write,
+            "extensions": [],
+            "mime_types": []
+        }
+        
+        for ext, format_name in Image.registered_extensions().items():
+            if format_name.upper() == fmt.upper():
+                format_info["extensions"].append(ext)
+                
+        if can_write:
+            capabilities["read_write"].append(fmt)
+        else:
+            capabilities["read_only"].append(fmt)
+            
+        capabilities["details"][fmt] = format_info
+    
+    if has_heif:
+        heic_info = {
+            "can_read": True,
+            "can_write": True,
+            "extensions": ['.heic', '.heif'],
+            "mime_types": ['image/heic', 'image/heif']
+        }
+        capabilities["read_write"].extend(['HEIC', 'HEIF'])
+        capabilities["details"]["HEIC"] = heic_info
+        capabilities["details"]["HEIF"] = heic_info
+    
+    capabilities["read_write"].sort()
+    capabilities["read_only"].sort()
+    
+    return capabilities
 
 def load_supported_formats() -> List[str]:
     """
