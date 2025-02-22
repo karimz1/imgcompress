@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import Image from "next/image";
-import { useDropzone } from "react-dropzone";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { DownloadZipToast } from "@/components/CustomToast";
+import { useDropzone } from "react-dropzone";
 
+import Image from "next/image";
+import { HardDrive } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -17,33 +18,44 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { HardDrive } from "lucide-react";
-import { TooltipProvider } from "@/components/ui/tooltip";
-
-
-import FileConversionForm from "@/components/FileConversionForm";
-import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
-import FileManager from "@/components/StorageFileManager";
 import { VisuallyHidden } from "@/components/visually-hidden";
-import PageFooter from "@/components/PageFooter";
+
 import BackendStatusBanner from "@/components/BackendStatusBanner";
-import ErrorModal from "@/components/ErrorModal"; 
-
-
-import { allowedExtensions } from "@/lib/constants";
-
+import ErrorModal from "@/components/ErrorModal";
+import FileManager from "@/components/StorageFileManager";
+import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
+import PageFooter from "@/components/PageFooter";
+import FileConversionForm from "@/components/FileConversionForm";
+import { DownloadZipToast } from "@/components/CustomToast";
 
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
-
-
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 
-const acceptObject = {
-  "image/*": allowedExtensions,
-};
+/** 
+ * The hook that fetches supported extensions from /api/images_supported.
+ * We'll pass its returned data (extensions, isLoading, error) to FileConversionForm
+ */
+import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 
-function HomePageContent() {
-  
+export function HomePageContent() {
+  // 1) Fetch supported extensions
+  const {
+    extensions,
+    isLoading: extensionsLoading,
+    error: extensionsError,
+  } = useSupportedExtensions();
+
+  // 2) Format them if you want each to have a dot (".png", ".jpeg", etc.)
+  const formattedExtensions = extensions.map((ext) =>
+    ext.startsWith(".") ? ext : `.${ext}`
+  );
+
+  // Setup accept rules for react-dropzone
+  const acceptObject = {
+    "image/*": formattedExtensions,
+  };
+
+  // State for form
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
@@ -53,18 +65,17 @@ function HomePageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState("jpeg");
 
-  
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
-  
+  // Error store from context
   const { error, setError, clearError } = useErrorStore();
 
-  
+  // Check backend health
   const backendDown = useBackendHealth();
 
-  
+  // React Dropzone's onDrop
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       clearError();
@@ -72,13 +83,14 @@ function HomePageContent() {
       setDestFolder("");
       const filteredFiles = acceptedFiles.filter((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
-        if (ext && allowedExtensions.includes(`.${ext}`)) {
+        if (ext && formattedExtensions.some((fe) => fe.includes(ext))) {
           return true;
         } else {
           toast.warn(`File type not allowed: ${file.name}`);
           return false;
         }
       });
+
       if (filteredFiles.length < acceptedFiles.length) {
         setError({
           message: "Some files were rejected due to unsupported file types.",
@@ -86,9 +98,10 @@ function HomePageContent() {
       }
       setFiles((prev) => [...prev, ...filteredFiles]);
     },
-    [clearError, setError]
+    [clearError, setError, formattedExtensions]
   );
 
+  // Dropzone initialization
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
@@ -96,18 +109,20 @@ function HomePageContent() {
     multiple: true,
   });
 
-  
+  // Helper function
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  
+  // Submit form
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+
       if (files.length === 0) {
         setError({ message: "Please drop or select some files first." });
         toast.error("Please drop or select some files first.");
         return;
       }
+
       if (outputFormat === "jpeg") {
         const qualityNum = parseInt(quality, 10);
         if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
@@ -116,6 +131,7 @@ function HomePageContent() {
           return;
         }
       }
+
       if (resizeWidthEnabled) {
         const widthNum = parseInt(width, 10);
         if (isNaN(widthNum) || widthNum <= 0) {
@@ -124,6 +140,7 @@ function HomePageContent() {
           return;
         }
       }
+
       setIsLoading(true);
       clearError();
       setConverted([]);
@@ -160,7 +177,9 @@ function HomePageContent() {
         setDrawerOpen(true);
         await delay(600);
         toast.success(
-          `${data.converted_files.length} Image${data.converted_files.length > 1 ? "s" : ""} compressed successfully!`
+          `${data.converted_files.length} Image${
+            data.converted_files.length > 1 ? "s" : ""
+          } compressed successfully!`
         );
       } catch (err) {
         console.error(err);
@@ -174,30 +193,49 @@ function HomePageContent() {
         setIsLoading(false);
       }
     },
-    [files, outputFormat, quality, resizeWidthEnabled, width, clearError, setError]
+    [
+      files,
+      outputFormat,
+      quality,
+      resizeWidthEnabled,
+      width,
+      clearError,
+      setError,
+    ]
   );
 
+  // Clear file selection
   const clearFileSelection = useCallback(() => {
     setFiles([]);
-    toast.info(`${files.length} Image${files.length !== 1 ? "s" : ""} selection cleared! 🧹`);
+    if (files.length > 0) {
+      toast.info(
+        `${files.length} Image${files.length !== 1 ? "s" : ""} selection cleared! 🧹`
+      );
+    }
   }, [files]);
 
+  // Remove single file
   const removeFile = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
   }, []);
 
+  // Download all compressed images
   const handleDownloadAll = useCallback(() => {
-    window.location.href = `/api/download_all?folder=${encodeURIComponent(destFolder)}`;
+    window.location.href = `/api/download_all?folder=${encodeURIComponent(
+      destFolder
+    )}`;
     toast(<DownloadZipToast />);
   }, [destFolder]);
 
-  
+  // Force cleanup callback (from FileManager)
   const onForceCleanCallback = useCallback(async () => {
     try {
       const res = await fetch("/api/force_cleanup", { method: "POST" });
       const json = await res.json();
       if (json.status === "ok") {
-        toast.success("Deletion Complete. Your processed files have been permanently removed. 🧹🧹🧹");
+        toast.success(
+          "Deletion Complete. Your processed files have been permanently removed. 🧹🧹🧹"
+        );
         setConverted([]);
         setDestFolder("");
         setDrawerOpen(false);
@@ -209,19 +247,20 @@ function HomePageContent() {
       toast.error("🚨 Cleanup failed.");
       console.error(error);
     }
-  }, [setFileManagerRefresh]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
-      {}
+      {/* Banner for backend health */}
       <BackendStatusBanner backendDown={backendDown} />
 
       <div className="p-4 flex-grow flex flex-col items-center">
         <ToastContainer />
 
-        {}
         <Card className="w-full max-w-xl">
-          <CardTitle className="text-center pt-5">An Image Compression Tool</CardTitle>
+          <CardTitle className="text-center pt-5">
+            An Image Compression Tool
+          </CardTitle>
           <CardHeader>
             <Image
               src="/mascot.jpg"
@@ -232,6 +271,10 @@ function HomePageContent() {
             <Separator />
           </CardHeader>
           <CardContent>
+            {/*
+              Pass everything needed to FileConversionForm, including
+              supportedExtensions, extensionsLoading, and extensionsError
+            */}
             <FileConversionForm
               isLoading={isLoading}
               error={error}
@@ -250,11 +293,15 @@ function HomePageContent() {
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}
+              /* New props for displaying the supported formats */
+              supportedExtensions={formattedExtensions}
+              extensionsLoading={extensionsLoading}
+              extensionsError={extensionsError}
             />
           </CardContent>
         </Card>
 
-        {}
+        {/* A floating button to open the FileManager drawer */}
         <div className="fixed bottom-4 right-4">
           <button
             disabled={isLoading}
@@ -268,7 +315,7 @@ function HomePageContent() {
           </button>
         </div>
 
-        {}
+        {/* Drawer for File Manager */}
         <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
           <DrawerTrigger asChild>
             <button className="hidden" />
@@ -282,12 +329,15 @@ function HomePageContent() {
               </DrawerHeader>
             </VisuallyHidden>
             <div className="p-4">
-              <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
+              <FileManager
+                onForceClean={onForceCleanCallback}
+                key={fileManagerRefresh}
+              />
             </div>
           </DrawerContent>
         </Drawer>
 
-        {}
+        {/* Drawer for Compressed Files */}
         {converted.length > 0 && (
           <CompressedFilesDrawer
             converted={converted}
@@ -298,9 +348,10 @@ function HomePageContent() {
           />
         )}
 
-        {}
+        {/* Global Error Modal */}
         <ErrorModal />
 
+        {/* Page Footer */}
         <PageFooter />
       </div>
     </div>
