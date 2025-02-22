@@ -4,7 +4,6 @@ import React, { useState, useCallback } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDropzone } from "react-dropzone";
-
 import Image from "next/image";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,30 +26,21 @@ import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
 import PageFooter from "@/components/PageFooter";
 import FileConversionForm from "@/components/FileConversionForm";
 import { DownloadZipToast } from "@/components/CustomToast";
-
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
-
-/** 
- * The hook that fetches supported extensions from /api/images_supported.
- * We'll pass its returned data (extensions, isLoading, error) to FileConversionForm
- */
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 
 export function HomePageContent() {
-  // 1) Fetch supported extensions
   const {
     extensions,
     isLoading: extensionsLoading,
     error: extensionsError,
   } = useSupportedExtensions();
 
-  // 2) Format them if you want each to have a dot (".png", ".jpeg", etc.)
   const formattedExtensions = extensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
   );
 
-  // Setup accept rules for react-dropzone
   const acceptObject = {
     "image/*": formattedExtensions,
   };
@@ -69,13 +59,9 @@ export function HomePageContent() {
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
-  // Error store from context
   const { error, setError, clearError } = useErrorStore();
-
-  // Check backend health
   const backendDown = useBackendHealth();
 
-  // React Dropzone's onDrop
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       clearError();
@@ -101,7 +87,6 @@ export function HomePageContent() {
     [clearError, setError, formattedExtensions]
   );
 
-  // Dropzone initialization
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
@@ -109,10 +94,8 @@ export function HomePageContent() {
     multiple: true,
   });
 
-  // Helper function
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  // Submit form
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -138,6 +121,16 @@ export function HomePageContent() {
           setError({ message: "Width must be a positive number." });
           toast.error("Width must be a positive number.");
           return;
+        }
+
+        // ------------------------------------------------
+        //  Clamping logic for ICO if width is > 256
+        // ------------------------------------------------
+        if (outputFormat === "ico" && widthNum > 256) {
+          toast.info(
+            "ICO format is limited to a max width of 256px. Your input has been clamped to 256."
+          );
+          setWidth("256");
         }
       }
 
@@ -204,7 +197,6 @@ export function HomePageContent() {
     ]
   );
 
-  // Clear file selection
   const clearFileSelection = useCallback(() => {
     setFiles([]);
     if (files.length > 0) {
@@ -214,12 +206,10 @@ export function HomePageContent() {
     }
   }, [files]);
 
-  // Remove single file
   const removeFile = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
   }, []);
 
-  // Download all compressed images
   const handleDownloadAll = useCallback(() => {
     window.location.href = `/api/download_all?folder=${encodeURIComponent(
       destFolder
@@ -227,7 +217,6 @@ export function HomePageContent() {
     toast(<DownloadZipToast />);
   }, [destFolder]);
 
-  // Force cleanup callback (from FileManager)
   const onForceCleanCallback = useCallback(async () => {
     try {
       const res = await fetch("/api/force_cleanup", { method: "POST" });
@@ -251,12 +240,9 @@ export function HomePageContent() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
-      {/* Banner for backend health */}
       <BackendStatusBanner backendDown={backendDown} />
-
       <div className="p-4 flex-grow flex flex-col items-center">
         <ToastContainer />
-
         <Card className="w-full max-w-xl">
           <CardTitle className="text-center pt-5">
             An Image Compression Tool
@@ -271,10 +257,6 @@ export function HomePageContent() {
             <Separator />
           </CardHeader>
           <CardContent>
-            {/*
-              Pass everything needed to FileConversionForm, including
-              supportedExtensions, extensionsLoading, and extensionsError
-            */}
             <FileConversionForm
               isLoading={isLoading}
               error={error}
@@ -293,14 +275,12 @@ export function HomePageContent() {
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}
-              /* New props for displaying the supported formats */
               supportedExtensions={formattedExtensions}
               extensionsLoading={extensionsLoading}
               extensionsError={extensionsError}
             />
           </CardContent>
         </Card>
-
         {/* A floating button to open the FileManager drawer */}
         <div className="fixed bottom-4 right-4">
           <button
@@ -348,10 +328,8 @@ export function HomePageContent() {
           />
         )}
 
-        {/* Global Error Modal */}
         <ErrorModal />
-
-        {/* Page Footer */}
+        
         <PageFooter />
       </div>
     </div>
