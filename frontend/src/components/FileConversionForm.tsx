@@ -55,7 +55,7 @@ interface FileConversionFormProps {
 
 const tooltipContent = {
   outputFormat:
-    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.",
+  "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
   quality:
     "Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).",
   resizeWidth:
@@ -218,7 +218,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
             <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
             <SelectItem value="png">PNG (preserves transparency)</SelectItem>
-            <SelectItem value="ico">ICO</SelectItem>
+            <SelectItem value="ico">ICO (preserves transparency)</SelectItem>
           </SelectContent>
         </Select>
       </div>
