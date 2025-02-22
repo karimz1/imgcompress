@@ -11,7 +11,7 @@
 
 Experience the power of imgcompress with the **NEW** modern Web UI. Check out the quick demo below:
 
-![Web UI in Action](images/new_web_ui.gif)
+![Web UI in Action](images/web_ui_2025-02-22_17-54-17.gif)
 
 ---
 
@@ -23,13 +23,12 @@ I'm **Karim Zouine** and I built **imgcompress** as a one-stop solution to effor
 
 ### and this is how the tool was born 🐣
 
-![imgcompress Mascot Logo](images/imgcompress_logo.jpg)
-
-<em>imgcompress Mascot</em>
-
 ## 📰 Latest News
 
 Stay up-to-date with the newest improvements:
+- [**22.02.25**: Feature: See all Supported Import Formats in the UI](https://github.com/karimz1/imgcompress/issues/45)
+- [**22.02.25**: Feature: Support ICO as Output Format](https://github.com/karimz1/imgcompress/issues/46)
+
 - [**NEW**: Enable ARM64 (Apple Silicon) Support for Docker Image](https://github.com/karimz1/imgcompress/issues/34)
 - [**NEW**: The Web UI now includes Storage Management for Cleanups](https://github.com/karimz1/imgcompress/issues/27)
   *Quickly manage and clean up your storage directly from the Web UI.*
@@ -42,8 +41,8 @@ Stay up-to-date with the newest improvements:
 
 ## Feature Overview
 
-- **📱 Convert iPhone HEIC Photos to JPEG:**  
-  Easily convert your iPhone's HEIC images to JPEG for smaller file sizes and universal compatibility.
+- **📱 Convert iPhone HEIC Photos:**  
+  Easily convert your iPhone's HEIC images to JPEG or PNG for smaller file sizes and universal compatibility.
 
 - **🖼️ Universal Format Conversion & Resizing:**  
   Transform almost any photo format to JPEG and resize images effortlessly—ideal for creating thumbnails, web-optimized images, or custom sizes.
