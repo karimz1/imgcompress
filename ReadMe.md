@@ -210,6 +210,84 @@ Display all available options:
 docker run --rm karimz1/imgcompress --help
 ```
 
+## Supported File Formats
+I use the Pillow and Pillow-HEIC libraries in Python to support the following image formats in my app. Whenever Pillow adds support for more formats, the app will reflect those changes, when I do an update release.
+
+```json
+{
+	"supported_formats": [
+		".apng",
+		".blp",
+		".bmp",
+		".bufr",
+		".bw",
+		".cur",
+		".dcx",
+		".dds",
+		".dib",
+		".emf",
+		".eps",
+		".fit",
+		".fits",
+		".flc",
+		".fli",
+		".ftc",
+		".ftu",
+		".gbr",
+		".gif",
+		".grib",
+		".h5",
+		".hdf",
+		".heic",
+		".heif",
+		".icb",
+		".icns",
+		".ico",
+		".iim",
+		".im",
+		".j2c",
+		".j2k",
+		".jfif",
+		".jp2",
+		".jpc",
+		".jpe",
+		".jpeg",
+		".jpf",
+		".jpg",
+		".jpx",
+		".mpeg",
+		".mpg",
+		".msp",
+		".pbm",
+		".pcd",
+		".pcx",
+		".pfm",
+		".pgm",
+		".png",
+		".pnm",
+		".ppm",
+		".ps",
+		".psd",
+		".pxr",
+		".qoi",
+		".ras",
+		".rgb",
+		".rgba",
+		".sgi",
+		".tga",
+		".tif",
+		".tiff",
+		".vda",
+		".vst",
+		".webp",
+		".wmf",
+		".xbm",
+		".xpm"
+	]
+}
+```
+
+
 ------
 ## 🖥️ Supported Platforms
 

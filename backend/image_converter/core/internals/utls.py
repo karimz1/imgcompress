@@ -1,3 +1,4 @@
+import importlib
 import os
 from typing import List, Set, Dict
 from PIL import Image
@@ -14,6 +15,14 @@ def load_supported_formats() -> List[str]:
         for ext, fmt in Image.registered_extensions().items() 
         if fmt.upper() in Image.OPEN
     ]
+
+    has_heif = importlib.util.find_spec("pillow_heif") is not None
+    if has_heif:
+        supported.extend({
+            '.heic': 'HEIC',
+            '.heif': 'HEIF'
+        })
+        
     return sorted(set(supported))
 
     
