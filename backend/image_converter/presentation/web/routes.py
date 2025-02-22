@@ -14,7 +14,7 @@ from backend.image_converter.infrastructure.cleanup_service import CleanupServic
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
-from backend.image_converter.core.internals.utls import supported_extensions, load_supported_formats_details
+from backend.image_converter.core.internals.utls import supported_extensions
 from backend.image_converter.presentation.web.parse_services import (
     extract_form_data,
     ALLOWED_EXTENSIONS
@@ -168,8 +168,8 @@ def health_live():
 def supported_image_formats():
     load_supported_formats = supported_extensions
     response = {
-        "supported_formats": load_supported_formats,
-        "supported_formats_details": load_supported_formats_details()}
+        "supported_formats": load_supported_formats   
+    }
     return jsonify(response), 200
                              
                   

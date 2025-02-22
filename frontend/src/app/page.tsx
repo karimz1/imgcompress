@@ -41,10 +41,6 @@ function HomePageContent() {
     ext.startsWith(".") ? ext : `.${ext}`
   );
 
-  const acceptObject = {
-    "image/*": formattedExtensions,
-  };
-
   // State for form
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
@@ -67,22 +63,33 @@ function HomePageContent() {
       clearError();
       setConverted([]);
       setDestFolder("");
-      const filteredFiles = acceptedFiles.filter((file) => {
+  
+      const supportedFiles: File[] = [];
+      const unsupportedFiles: string[] = [];
+  
+      acceptedFiles.forEach((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
-        if (ext && formattedExtensions.some((fe) => fe.includes(ext))) {
-          return true;
+        if (ext && formattedExtensions.includes(`.${ext}`)) {
+          console.log(`✅ File type allowed: ${file.name}`);
+          supportedFiles.push(file);
         } else {
-          toast.warn(`File type not allowed: ${file.name}`);
-          return false;
+          console.log(`❌ File type not allowed: ${file.name} (extension: .${ext})`);
+          unsupportedFiles.push(file.name);
         }
       });
-
-      if (filteredFiles.length < acceptedFiles.length) {
+  
+      // Show toast for each unsupported file
+      unsupportedFiles.forEach((fileName) => {
+        toast.error(`Unsupported File Format: ${fileName}`);
+      });
+  
+      if (unsupportedFiles.length > 0) {
         setError({
-          message: "Some files were rejected due to unsupported file types.",
+          message: `${unsupportedFiles.length} file(s) were rejected due to unsupported file types.`,
         });
       }
-      setFiles((prev) => [...prev, ...filteredFiles]);
+
+      setFiles((prev) => [...prev, ...supportedFiles]);
     },
     [clearError, setError, formattedExtensions]
   );
@@ -90,7 +97,6 @@ function HomePageContent() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     disabled: isLoading,
-    accept: acceptObject,
     multiple: true,
   });
 
