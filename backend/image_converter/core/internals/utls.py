@@ -1,30 +1,37 @@
+import importlib
 import os
+from typing import List, Set, Dict
+from PIL import Image
+
+def load_supported_formats() -> List[str]:
+    """
+    Dynamically returns a sorted list of file extensions for which Pillow has a registered
+    decoder (i.e. that Pillow can actually open).
+    """
+    # Image.registered_extensions() returns a dictionary mapping extensions to format names.
+    # Image.OPEN contains the internal formats (in uppercase) that Pillow can decode.
+    supported = [
+        ext.lower() 
+        for ext, fmt in Image.registered_extensions().items() 
+        if fmt.upper() in Image.OPEN
+    ]
+
+    has_heif = importlib.util.find_spec("pillow_heif") is not None
+    if has_heif:
+        supported.extend({
+            '.heic': 'HEIC',
+            '.heif': 'HEIF'
+        })
+        
+    return sorted(set(supported))
+
+    
+supported_extensions = load_supported_formats()
 
 def is_file_supported(file_path: str) -> bool:
     """
     Determines if the given file_path points to a supported image file.
-    This function checks the file extension against a set of extensions
-    corresponding to the most common formats that Pillow supports.
-
-    Supported extensions (case-insensitive):
-      - JPEG: .jpg, .jpeg, .jpe
-      - PNG: .png
-      - GIF: .gif
-      - BMP: .bmp, .dib
-      - TIFF: .tif, .tiff
-      - WebP: .webp
-      - HEIC/HEIF: .heic, .heif (requires pillow-heif)
-      - ICO: .ico
-      - ICNS: .icns
-      - EPS: .eps, .ps  (read-only support)
-      - PDF: .pdf       (read-only support, with extra dependencies)
-      - PCX: .pcx
-      - Portable image formats: .ppm, .pgm, .pbm
-      - XBM/XPM: .xbm, .xpm
-      - SGI: .sgi, .rgb
-      - TGA: .tga
-      - JPEG2000: .jp2   (if OpenJPEG libraries are installed)
-      - MSP: .msp
+    This function checks the file extension against the loaded supported formats.
 
     Args:
         file_path (str): The path to the file.
@@ -32,28 +39,8 @@ def is_file_supported(file_path: str) -> bool:
     Returns:
         bool: True if the file's extension is in the supported list; otherwise False.
     """
-    supported_extensions = {
-        '.jpg', '.jpeg', '.jpe',
-        '.png',
-        '.gif',
-        '.bmp', '.dib',
-        '.tif', '.tiff',
-        '.webp',
-        '.heic', '.heif',
-        '.ico', '.icns',
-        '.eps', '.ps',
-        '.pdf',
-        '.pcx',
-        '.ppm', '.pgm', '.pbm',
-        '.xbm', '.xpm',
-        '.sgi', '.rgb',
-        '.tga',
-        '.jp2',
-        '.msp'
-    }
     _, ext = os.path.splitext(file_path)
     return ext.lower() in supported_extensions
-
 
 class FileUrl:
     """

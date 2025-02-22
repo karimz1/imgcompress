@@ -15,7 +15,8 @@ const selectors = {
   conversionButton: '[data-testid="convert-btn"]',
   downloadLink: '[data-testid="drawer-uploaded-file-item-link"]',
   removeItemFromDropzoneBtn: '[data-testid="dropzone-remove-file-btn"]',
-  dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]'
+  dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]',
+  outputFormatSelect: '#outputFormat'
 };
 
 export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: ImageFileDto): Promise<void> {
@@ -155,4 +156,21 @@ export function AssertDownloadsIsEqualsToSourceImageWidth(downloads: DownloadTyp
       }
     }
   }
+}
+
+/**
+ * setOutputFormatAsync:
+ * 1) Click the trigger button with id="outputFormat"
+ * 2) Then click the corresponding SelectItem (by text)
+ */
+export async function setOutputFormatAsync(page: Page, format: string): Promise<void> {
+  const trigger = page.locator('#outputFormat');
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+
+  const option = page.locator('[data-radix-collection-item][role="option"]', {
+    hasText: new RegExp(format, 'i'),
+  });
+  await expect(option).toBeVisible();
+  await option.click();
 }

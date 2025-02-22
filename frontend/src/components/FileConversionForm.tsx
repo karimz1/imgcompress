@@ -3,9 +3,7 @@
 import React, { useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { Info, Loader2, Trash } from "lucide-react";
-import {
-  Button
-} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -21,6 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 interface FileConversionFormProps {
   isLoading: boolean;
@@ -38,14 +42,20 @@ interface FileConversionFormProps {
   clearFileSelection: () => void;
   onSubmit: (e: React.FormEvent) => void;
   
+  // From useDropzone
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
+
+  // New props for showing supported formats
+  supportedExtensions: string[];
+  extensionsLoading: boolean;
+  extensionsError: Error | null;
 }
 
 const tooltipContent = {
   outputFormat:
-    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.",
+  "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
   quality:
     "Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).",
   resizeWidth:
@@ -70,11 +80,17 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   getRootProps,
   getInputProps,
   isDragActive,
+  supportedExtensions,
+  extensionsLoading,
+  extensionsError,
 }) => {
   const renderError = useMemo(
     () =>
       error && (
-        <div data-testid="error-holder" className="p-2 bg-red-600 text-white rounded-md">
+        <div
+          data-testid="error-holder"
+          className="p-2 bg-red-600 text-white rounded-md"
+        >
           <p data-testid="error-message-holder">
             <strong>Error:</strong> {error.message}
           </p>
@@ -87,7 +103,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       ),
     [error]
   );
-  
 
   const renderFilesList = useMemo(
     () =>
@@ -100,7 +115,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               className="flex items-center justify-between bg-gray-800 rounded-md p-2 text-gray-100"
               data-testid="dropzone-added-file-wrapper"
             >
-              <span className="text-sm" data-testid="dropzone-added-file">{file.name}</span>
+              <span className="text-sm" data-testid="dropzone-added-file">
+                {file.name}
+              </span>
               <Button
                 variant="secondary"
                 size="sm"
@@ -140,7 +157,38 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {}
+      {/*
+        A "Popover" to show all supported file extensions.
+        Triggered by a button in the top-right corner.
+      */}
+      <div className="flex justify-end">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Info className="h-4 w-4" />
+              Supported Formats {supportedExtensions.length > 0 && `(${supportedExtensions.length})`}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="bottom"
+            className="bg-gray-900 text-white p-3 rounded-md shadow-md w-56 border-0 max-h-[300px] overflow-auto"
+          >
+            {extensionsLoading ? (
+              <p>Loading...</p>
+            ) : extensionsError ? (
+              <p className="text-red-400">Error loading formats</p>
+            ) : (
+              // Display them in a comma-separated string:
+              <p className="text-sm">
+                {supportedExtensions.join(", ")}
+              </p>
+            )}
+          </PopoverContent>
+
+        </Popover>
+      </div>
+
+      {/* Output Format */}
       <div className="space-y-1">
         <div className="flex items-center gap-1">
           <Label htmlFor="outputFormat" className="text-sm">
@@ -170,11 +218,12 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
             <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
             <SelectItem value="png">PNG (preserves transparency)</SelectItem>
+            <SelectItem value="ico">ICO (preserves transparency)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {}
+      {/* Quality for JPEG */}
       {outputFormat === "jpeg" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -212,7 +261,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {}
+      {/* Resize Width */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <Label
@@ -235,7 +284,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             </Tooltip>
           </Label>
           <Switch
-            data-testid='resize-width-switch'
+            data-testid="resize-width-switch"
             id="resizeWidthToggle"
             checked={resizeWidthEnabled}
             onCheckedChange={(checked) => {
@@ -251,8 +300,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
         {resizeWidthEnabled && (
           <Input
-            data-testid='resize-width-input'
-            itemProp='data-testid: convert-btn'
+            data-testid="resize-width-input"
+            itemProp="data-testid: convert-btn"
             id="width"
             type="number"
             placeholder="800"
@@ -264,16 +313,16 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
-      {}
+      {/* Error Alert (if any) */}
       {renderError}
 
-      {}
+      {/* Dropzone */}
       {renderDropZone}
 
-      {}
+      {/* Files List */}
       {renderFilesList}
 
-      {}
+      {/* Action Buttons */}
       <div className="flex items-center justify-between gap-4">
         <Button type="submit" variant="default" disabled={isLoading} data-testid="convert-btn">
           {isLoading ? (
@@ -291,7 +340,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           onClick={clearFileSelection}
           disabled={isLoading}
           className="flex items-center gap-2 outline outline-1 outline-gray-700"
-        
         >
           <Trash className="h-4 w-4" />
           Clear

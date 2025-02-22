@@ -77,7 +77,7 @@ class ImageConversionProcessor:
         """
         result = {"file": os.path.basename(file_path)}
         base_name, _ = os.path.splitext(os.path.basename(file_path))
-        extension = ".png" if self.image_format == ImageFormat.PNG else ".jpg"
+        extension = self.image_format.get_file_extension()
         dest_path = os.path.join(self.destination, base_name + extension)
 
         try:
