@@ -30,7 +30,7 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 
-export function HomePageContent() {
+function HomePageContent() {
   const {
     extensions,
     isLoading: extensionsLoading,
@@ -329,7 +329,7 @@ export function HomePageContent() {
         )}
 
         <ErrorModal />
-        
+
         <PageFooter />
       </div>
     </div>
