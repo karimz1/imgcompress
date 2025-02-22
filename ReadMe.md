@@ -45,7 +45,7 @@ Stay up-to-date with the newest improvements:
   Easily convert your iPhone's HEIC images to JPEG or PNG for smaller file sizes and universal compatibility.
 
 - **🖼️ Universal Format Conversion & Resizing:**  
-  Transform almost any photo format to JPEG and resize images effortlessly—ideal for creating thumbnails, web-optimized images, or custom sizes.
+  Transform almost any photo format to JPEG or PNG or ICO and resize images effortlessly—ideal for creating thumbnails, web-optimized images like, or custom sizes.
 
 - **⚙️ Customizable Output Quality:**  
   Fine-tune the compression settings to balance image clarity and file size, ensuring your photos look great while saving space.
