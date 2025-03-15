@@ -213,75 +213,14 @@ docker run --rm karimz1/imgcompress --help
 ## Supported File Formats
 I use the Pillow and Pillow-HEIC libraries in Python to support the following image formats in my app. Whenever Pillow adds support for more formats, the app will reflect those changes, when I do an update release.
 
-Below is a list of all the image formats that are supported at the moment:
+Below is a list of all the **tested image formats*** at the moment:
 
-- **.apng**
-- **.blp**
-- **.bmp**
-- **.bufr**
-- **.bw**
-- **.cur**
-- **.dcx**
-- **.dds**
-- **.dib**
-- **.emf**
-- **.eps**
-- **.fit**
-- **.fits**
-- **.flc**
-- **.fli**
-- **.ftc**
-- **.ftu**
-- **.gbr**
-- **.gif**
-- **.grib**
-- **.h5**
-- **.hdf**
 - **.heic**
 - **.heif**
-- **.icb**
-- **.icns**
 - **.ico**
-- **.iim**
-- **.im**
-- **.j2c**
-- **.j2k**
-- **.jfif**
-- **.jp2**
-- **.jpc**
-- **.jpe**
 - **.jpeg**
-- **.jpf**
 - **.jpg**
-- **.jpx**
-- **.mpeg**
-- **.mpg**
-- **.msp**
-- **.pbm**
-- **.pcd**
-- **.pcx**
-- **.pfm**
-- **.pgm**
 - **.png**
-- **.pnm**
-- **.ppm**
-- **.ps**
-- **.psd**
-- **.pxr**
-- **.qoi**
-- **.ras**
-- **.rgb**
-- **.rgba**
-- **.sgi**
-- **.tga**
-- **.tif**
-- **.tiff**
-- **.vda**
-- **.vst**
-- **.webp**
-- **.wmf**
-- **.xbm**
-- **.xpm**
 
 ------
 ## 🖥️ Supported Platforms
@@ -296,12 +235,6 @@ This Docker image is built and tested via my CI/CD pipeline for the following pl
 
 - ✅ **Windows**
   *Runs via WSL2 with Linux containers enabled – no native Windows container support required.*
-
-- ❌ **linux/arm/v7**
-  *Not supported due to dependency limitations.*
-
-- ❌ **linux/ppc64le** and **linux/s390x**
-  *Not supported due to dependency limitations.*
 
 
 ### 💡 Testing Note
