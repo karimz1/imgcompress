@@ -8,6 +8,8 @@ echo "Using base URL: ${BASE_URL}"
 # Run E2E Tests in Dev Container
 echo "Running E2E Tests..."
 cd frontend 
-npm install && npm run test:e2e
+npm install
+npx playwright install --with-deps
+npm run test:e2e
 
 echo "E2E Tests completed successfully!"
