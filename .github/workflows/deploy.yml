@@ -145,7 +145,27 @@ jobs:
         with:
           name: e2e-test-results-${{ env.ARCH }}
           path: e2e-test-results-${{ env.ARCH }}.zip
-    
+  
+  auto-merge-dependabot:
+    needs: test-e2e
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request' &&
+      (
+        github.actor == 'dependabot[bot]' ||
+        github.actor == 'dependabot-preview[bot]'
+      )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Auto-merge Dependabot
+        uses: pascalgn/automerge-action@v0.16.4
+        with:
+          mergeMethod: squash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+
   deploy-image-to-dockerhub:
     needs: [test-e2e]
     runs-on: ubuntu-latest
@@ -186,6 +206,8 @@ jobs:
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub
     runs-on: ubuntu-latest
+    if: >
+      startsWith(github.ref, 'refs/heads/main')
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -202,40 +224,12 @@ jobs:
 
       - name: Update Docker Hub Description
         run: |
-            BRANCH_NAME=${GITHUB_REF#refs/heads/}
-            if [[ "$BRANCH_NAME" == "main" ]]; then
-              python update_dockerhub_description.py \
-                --readme ReadMe.md \
-                --branch "${{ github.ref }}" \
-                --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main"
-            else
-              echo "Skipping updating Docker Hub description for non-main branch."
-            fi
+          python update_dockerhub_description.py \
+              --readme ReadMe.md \
+              --branch "${{ github.ref }}" \
+              --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main"
          
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: "imgcompress"
-
-
-  auto-merge-dependabot:
-    needs: [test-e2e]
-    runs-on: ubuntu-latest
-
-    if: >
-      github.event_name == 'pull_request' &&
-      (
-        github.actor == 'dependabot[bot]' ||
-        github.actor == 'dependabot-preview[bot]'
-      )
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Auto-merge Dependabot
-        uses: pascalgn/automerge-action@v0.16.4
-        with:
-          mergeMethod: squash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
