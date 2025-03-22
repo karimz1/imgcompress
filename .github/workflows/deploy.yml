@@ -210,3 +210,26 @@ jobs:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: "imgcompress"
+
+
+  auto-merge-dependabot:
+    needs: [test-e2e]
+    runs-on: ubuntu-latest
+
+    if: >
+      github.event_name == 'pull_request' &&
+      (
+        github.actor == 'dependabot[bot]' ||
+        github.actor == 'dependabot-preview[bot]'
+      )
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Auto-merge Dependabot
+        uses: pascalgn/automerge-action@v0.16.4
+        with:
+          mergeMethod: squash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
