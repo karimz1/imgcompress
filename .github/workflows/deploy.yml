@@ -168,7 +168,7 @@ jobs:
 
   deploy-image-to-dockerhub:
     needs: [test-e2e]
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     if: >  
         github.actor != 'dependabot[bot]' ||
         github.actor != 'dependabot-preview[bot]'
