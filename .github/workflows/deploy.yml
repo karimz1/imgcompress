@@ -169,6 +169,10 @@ jobs:
   deploy-image-to-dockerhub:
     needs: [test-e2e]
     runs-on: ubuntu-latest
+    if: >  
+        github.actor != 'dependabot[bot]' ||
+        github.actor != 'dependabot-preview[bot]'
+      
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
