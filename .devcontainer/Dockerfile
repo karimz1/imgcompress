@@ -48,7 +48,7 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.
 
 # Move into the frontend folder and install Node.js dependencies
 WORKDIR /app/frontend
-COPY frontend/package*.json ./
+COPY frontend/package.json ./
 RUN npm ci
 
 # Install Playwright browsers to match the locally installed Playwright version
