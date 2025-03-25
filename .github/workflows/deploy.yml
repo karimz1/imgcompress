@@ -169,9 +169,12 @@ jobs:
   deploy-image-to-dockerhub:
     needs: [test-e2e]
     runs-on: ubuntu-latest
-    if: >  
-        github.actor != 'dependabot[bot]' ||
-        github.actor != 'dependabot-preview[bot]'
+
+    if: ${{ !(
+      github.event_name == 'pull_request' &&
+      github.actor == 'dependabot[bot]' &&
+      startsWith(github.event.pull_request.head.ref, 'dependabot/')
+    ) }}
       
     steps:
       - name: Check out repository
