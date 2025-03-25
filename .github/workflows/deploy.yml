@@ -171,10 +171,10 @@ jobs:
     runs-on: ubuntu-latest
 
     if: ${{ !(
-      github.event_name == 'pull_request' &&
-      github.actor == 'dependabot[bot]' &&
-      startsWith(github.event.pull_request.head.ref, 'dependabot/')
-    ) }}
+              github.event_name == 'pull_request' &&
+              github.actor == 'dependabot[bot]' &&
+              startsWith(github.event.pull_request.head.ref, 'dependabot/')
+          ) }}
       
     steps:
       - name: Check out repository
