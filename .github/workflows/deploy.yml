@@ -163,6 +163,7 @@ jobs:
         uses: pascalgn/automerge-action@v0.16.4
         with:
           mergeMethod: squash
+          label: automerge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
 
