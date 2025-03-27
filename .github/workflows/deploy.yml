@@ -163,12 +163,20 @@ jobs:
         uses: pascalgn/automerge-action@v0.16.4
         with:
           mergeMethod: squash
+          label: automerge
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
 
   deploy-image-to-dockerhub:
     needs: [test-e2e]
     runs-on: ubuntu-latest
+
+    if: ${{ !(
+              github.event_name == 'pull_request' &&
+              github.actor == 'dependabot[bot]' &&
+              startsWith(github.event.pull_request.head.ref, 'dependabot/')
+          ) }}
+      
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
