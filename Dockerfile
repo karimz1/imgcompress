@@ -2,7 +2,7 @@
 ############################################################
 # Use the build platform for this stage so that the Node
 # build tools run on the build host.
-FROM --platform=$BUILDPLATFORM node:22 AS frontend-build
+FROM node:22 AS frontend-build
 
 WORKDIR /app
 # Copy the frontend code into this stage
@@ -19,7 +19,7 @@ RUN npm run build
 # 2) Stage: FINAL PYTHON IMAGE
 ############################################################
 # Build the final image for the target platform.
-FROM --platform=$TARGETPLATFORM python:3.9-slim-buster
+FROM python:3.9-slim-buster
 
 # Metadata labels
 LABEL maintainer="Karim Zouine <mails.karimzouine@gmail.com>"
