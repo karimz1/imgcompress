@@ -149,6 +149,9 @@ jobs:
   auto-merge-dependabot:
     needs: test-e2e
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     if: >
       github.event_name == 'pull_request' &&
       (
@@ -161,11 +164,8 @@ jobs:
 
       - name: Auto-merge Dependabot
         uses: pascalgn/automerge-action@v0.16.4
-        with:
-          mergeMethod: squash
-          label: automerge
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
 
   deploy-image-to-dockerhub:
     needs: [test-e2e]
