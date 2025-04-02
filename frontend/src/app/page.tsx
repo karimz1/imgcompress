@@ -301,12 +301,16 @@ function HomePageContent() {
           </button>
         </div>
 
-        {/* Drawer for File Manager */}
-        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+        {/* Drawer for File Manager with Snap Points enabled */}
+        <Drawer
+          open={fileManagerOpen}
+          onOpenChange={setFileManagerOpen}
+          snapPoints={[0.5, 1]}  // 50% height and full-screen
+        >
           <DrawerTrigger asChild>
             <button className="hidden" />
           </DrawerTrigger>
-          <DrawerContent className="bg-zinc-950 border-0">
+          <DrawerContent className="bg-zinc-950 border-0 h-[100svh]">
             <VisuallyHidden>
               <DrawerHeader>
                 <DrawerTitle className="text-lg font-semibold text-white text-center">
