@@ -13,7 +13,6 @@ WORKDIR /app/frontend
 # Install dependencies and build the static site.
 RUN npm i pnpm -g
 RUN pnpm install --frozen-lockfile
-RUN pnpm approve-builds --yes
 RUN pnpm run build
 
 # The built static files are in /app/frontend/out/
