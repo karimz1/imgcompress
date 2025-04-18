@@ -210,36 +210,48 @@ Display all available options:
 docker run --rm karimz1/imgcompress --help
 ```
 
-## Supported image formats
+## Supported Image Formats
 
-The app uses **Pillow** plus **Pillow‑HEIC**, so it can *recognise* every format those libraries support.  
-When Pillow adds more formats, an app update will pick them up automatically.
+The app relies on **Pillow** and **Pillow‑HEIC**.  
+As those libraries add new formats, a routine app update will pick them up automatically—no extra work required on your side.
 
-> **Heads‑up:** I’ve only had time to verify a handful of formats so far (marked **bold** below).  
-> If something else breaks, please open an issue and attach a sample file—I’ll add tests and a fix.
+### 1  •  Verified in CI
 
-|  |  |  |  |
-|---|---|---|---|
-| **.heic** | **.heif** | **.png** | **.jpg** / **.jpeg** |
-| **.ico** | .apng | .blp | .bmp |
-| .bufr | .bw | .cur | .dcx |
-| .dds | .dib | .emf | .eps |
-| .fit / .fits | .flc / .fli | .ftc / .ftu | .gbr |
-| .gif | .grib | .h5 / .hdf | .icb |
-| .icns | .iim | .im | .j2c / .j2k |
-| .jfif | .jp2 / .jpc | .jpf | .jpx |
-| .mpeg / .mpg | .msp | .pbm | .pcd |
-| .pcx | .pfm | .pgm | .pnm |
-| .ppm | .ps / .psd | .pxr | .qoi |
-| .ras | .rgb / .rgba | .sgi | .tga |
-| .tif / .tiff | .vda / .vst | .webp | .wmf |
-| .xbm | .xpm |   |   |
+These extensions are covered by automated tests and have been exercised with real‑world sample files:
 
-*Bold* = manually tested  
-/ = format aliases
+| &nbsp; | &nbsp; | &nbsp; | &nbsp; |
+|-------|-------|-------|-------|
+| **.heic** | **.heif** | **.png** | **.jpg / .jpeg** |
+| **.ico** |
 
-Need help adding tests for a specific format? Feel free to ping me in the [issues](https://github.com/karimz1/imgcompress/issues)!
+### 2  •  Supported but *Not Yet Verified*
 
+Everything below is *supported by Pillow’s API* but hasn’t gone through my test suite—yet.  
+If you hit a problem, please open an issue and attach a sample; I’ll add a test and patch in my free time.
+
+| &nbsp; | &nbsp; | &nbsp; | &nbsp; |
+|-------|-------|-------|-------|
+| .apng | .blp | .bmp | .bufr |
+| .bw | .cur | .dcx | .dds |
+| .dib | .emf | .eps | .fit / .fits |
+| .flc / .fli | .ftc / .ftu | .gbr | .gif |
+| .grib | .h5 / .hdf | .icb | .icns |
+| .iim | .im | .j2c / .j2k | .jfif |
+| .jp2 / .jpc | .jpf | .jpx | .mpeg / .mpg |
+| .msp | .pbm | .pcd | .pcx |
+| .pfm | .pgm | .pnm | .ppm |
+| .ps / .psd | .pxr | .qoi | .ras |
+| .rgb / .rgba | .sgi | .tga | .tif / .tiff |
+| .vda / .vst | .webp | .wmf | .xbm |
+| .xpm |
+
+*Slash ( / ) indicates format aliases.*
+
+---
+
+Need a format that’s missing or failing?  
+
+Open an [issues](https://github.com/karimz1/imgcompress/issues)! with a sample file and a short description—happy to expand coverage!
 
 ------
 ## 🖥️ Supported Platforms
