@@ -202,7 +202,7 @@ Summary: 2 files processed, 0 errors.
 
 ------
 
-## Need Help?
+### What Options are available in CLI Mode ?
 
 Display all available options:
 
@@ -210,78 +210,36 @@ Display all available options:
 docker run --rm karimz1/imgcompress --help
 ```
 
-## Supported File Formats
-I use the Pillow and Pillow-HEIC libraries in Python to support the following image formats in my app. Whenever Pillow adds support for more formats, the app will reflect those changes, when I do an update release.
+## Supported image formats
 
-Below is a list of all the image formats that are supported at the moment:
+The app uses **Pillow** plus **Pillow‑HEIC**, so it can *recognise* every format those libraries support.  
+When Pillow adds more formats, an app update will pick them up automatically.
 
-- **.apng**
-- **.blp**
-- **.bmp**
-- **.bufr**
-- **.bw**
-- **.cur**
-- **.dcx**
-- **.dds**
-- **.dib**
-- **.emf**
-- **.eps**
-- **.fit**
-- **.fits**
-- **.flc**
-- **.fli**
-- **.ftc**
-- **.ftu**
-- **.gbr**
-- **.gif**
-- **.grib**
-- **.h5**
-- **.hdf**
-- **.heic**
-- **.heif**
-- **.icb**
-- **.icns**
-- **.ico**
-- **.iim**
-- **.im**
-- **.j2c**
-- **.j2k**
-- **.jfif**
-- **.jp2**
-- **.jpc**
-- **.jpe**
-- **.jpeg**
-- **.jpf**
-- **.jpg**
-- **.jpx**
-- **.mpeg**
-- **.mpg**
-- **.msp**
-- **.pbm**
-- **.pcd**
-- **.pcx**
-- **.pfm**
-- **.pgm**
-- **.png**
-- **.pnm**
-- **.ppm**
-- **.ps**
-- **.psd**
-- **.pxr**
-- **.qoi**
-- **.ras**
-- **.rgb**
-- **.rgba**
-- **.sgi**
-- **.tga**
-- **.tif**
-- **.tiff**
-- **.vda**
-- **.vst**
-- **.webp**
-- **.wmf**
-- **.xbm**
-- **.xpm**
+> **Heads‑up:** I’ve only had time to verify a handful of formats so far (marked **bold** below).  
+> If something else breaks, please open an issue and attach a sample file—I’ll add tests and a fix.
+
+|  |  |  |  |
+|---|---|---|---|
+| **.heic** | **.heif** | **.png** | **.jpg** / **.jpeg** |
+| **.ico** | .apng | .blp | .bmp |
+| .bufr | .bw | .cur | .dcx |
+| .dds | .dib | .emf | .eps |
+| .fit / .fits | .flc / .fli | .ftc / .ftu | .gbr |
+| .gif | .grib | .h5 / .hdf | .icb |
+| .icns | .iim | .im | .j2c / .j2k |
+| .jfif | .jp2 / .jpc | .jpf | .jpx |
+| .mpeg / .mpg | .msp | .pbm | .pcd |
+| .pcx | .pfm | .pgm | .pnm |
+| .ppm | .ps / .psd | .pxr | .qoi |
+| .ras | .rgb / .rgba | .sgi | .tga |
+| .tif / .tiff | .vda / .vst | .webp | .wmf |
+| .xbm | .xpm |   |   |
+
+*Bold* = manually tested  
+/ = format aliases
+
+Need help adding tests for a specific format? Feel free to ping me in the [issues](https://github.com/karimz1/imgcompress/issues)!
+
 
 ------
 ## 🖥️ Supported Platforms
@@ -296,12 +254,6 @@ This Docker image is built and tested via my CI/CD pipeline for the following pl
 
 - ✅ **Windows**
   *Runs via WSL2 with Linux containers enabled – no native Windows container support required.*
-
-- ❌ **linux/arm/v7**
-  *Not supported due to dependency limitations.*
-
-- ❌ **linux/ppc64le** and **linux/s390x**
-  *Not supported due to dependency limitations.*
 
 
 ### 💡 Testing Note
