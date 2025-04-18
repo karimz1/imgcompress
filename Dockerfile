@@ -11,8 +11,10 @@ COPY frontend/ ./frontend
 WORKDIR /app/frontend
 
 # Install dependencies and build the static site.
-RUN npm install
-RUN npm run build
+RUN npm i pnpm -g
+RUN pnpm install
+RUN pnpm prune --prod  
+RUN pnpm build
 # The built static files are in /app/frontend/out/
 
 ############################################################

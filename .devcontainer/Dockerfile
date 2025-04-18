@@ -34,7 +34,10 @@ RUN apt-get update && \
     else \ 
       echo "Skipping Docker CLI on unsupported architecture."; \ 
     fi 
- 
+
+# install pnpm
+RUN npm i pnpm -g
+
 # Python virtual environment 
 WORKDIR /app 
 RUN python3 -m venv /venv 
