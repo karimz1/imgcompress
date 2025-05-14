@@ -3,7 +3,7 @@ pillow==11.2.1
 pycparser==2.22
 pyheif==0.8.0
 colorama==0.4.6
-flask==3.1.0
+flask==3.1.1
 apscheduler==3.11.0
 gunicorn==23.0.0
 pillow_heif==0.22.0
