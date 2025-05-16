@@ -1,0 +1,9 @@
+services:
+  imgcompress:
+    image: karimz1/imgcompress:latest
+    container_name: karimz1-imgcompress
+    restart: always
+    ports:
+      - "3001:5000"
+    command:
+      - "web"
