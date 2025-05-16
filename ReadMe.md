@@ -5,12 +5,11 @@
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)  
 [![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml)
 
----
+![Web UI in Action](images/web_ui_2025-02-22_17-54-17.gif)
 
 ## 📋 Table of Contents
 - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
 - [❓Why imgcompress?](#why-imgcompress)
-- [🎬 See It In Action](#-see-it-in-action)
 - [✨ Feature Overview](#-feature-overview)
 - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
 - [✅ Supported Image Formats](#-supported-image-formats)
@@ -32,7 +31,8 @@ services:
     restart: always
     ports:
       - "3001:5000"                  # HOST:CONTAINER — change 3001 if you like
-    command: ["web"]                 # launch the Web UI
+    command:
+      - "web"                        # launch the Web UI
 ````
 ```bash
 docker compose up -d   # start it
@@ -51,11 +51,6 @@ docker run --rm -p 8081:5000 karimz1/imgcompress:latest web
 Ever been frustrated by juggling multiple programs just to convert or compress images?
 **Me too.** I’m **Karim Zouine**, and I built **Imgcompress** as a one-stop solution to compress, convert and resize images—locally, inside Docker, on any OS, with no privacy worries.
 
-
-
-## 🎬 See It In Action
-
-![Web UI in Action](images/web_ui_2025-02-22_17-54-17.gif)
 
 ## ✨ Feature Overview
 

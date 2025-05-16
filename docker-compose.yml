@@ -1,9 +1,9 @@
 services:
   imgcompress:
     image: karimz1/imgcompress:latest
-    container_name: karimz1-imgcompress
+    container_name: imgcompress
     restart: always
     ports:
-      - "3001:5000"
+      - "3001:5000"                  # HOST:CONTAINER — change 3001 if you like
     command:
-      - "web"
+      - "web"                        # launch the Web UI
