@@ -41,7 +41,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.52.0",
-    "@tailwindcss/postcss": "^4.1.6",
+    "@tailwindcss/postcss": "^4.1.7",
     "@types/adm-zip": "^0.5.7",
     "@types/node": "^22",
     "@types/react": "^19",
