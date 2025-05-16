@@ -82,7 +82,7 @@ importers:
         version: 3.3.0
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@4.1.6)
+        version: 1.0.7(tailwindcss@4.1.7)
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.1.5(@types/react@19.1.4))(@types/react@19.1.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -118,8 +118,8 @@ importers:
         specifier: ^1.51.1
         version: 1.52.0
       tailwindcss:
-        specifier: ^4.1.6
-        version: 4.1.6
+        specifier: ^4.1.7
+        version: 4.1.7
       typescript:
         specifier: ^5
         version: 5.8.3
@@ -5074,9 +5074,9 @@ snapshots:
 
   tailwind-merge@3.3.0: {}
 
-  tailwindcss-animate@1.0.7(tailwindcss@4.1.6):
+  tailwindcss-animate@1.0.7(tailwindcss@4.1.7):
     dependencies:
-      tailwindcss: 4.1.6
+      tailwindcss: 4.1.7
 
   tailwindcss@4.1.6: {}
 
