@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y \
     apt-transport-https \ 
     gnupg2 \ 
     lsb-release \ 
+    dos2unix \
     && rm -rf /var/lib/apt/lists/* 
  
 # Docker CLI if on amd64/arm64 

@@ -21,6 +21,12 @@
     "mounts": [
       "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
     ],
-    "postCreateCommand": "echo 'Dev container is ready!'"
+     "postCreateCommand": [
+      "echo 'Prepair dev container using dos2unix...'",
+      "git config --global core.autocrlf true && git config --global core.filemode false",
+      "echo 'reset git...'",
+      "find . -type f -not -path './.git/*' -print0 | xargs -0 dos2unix",
+      "echo 'Dev container is ready!'"
+     ]
   }
   
