@@ -2,4 +2,6 @@
 set -euo pipefail
 
 cd frontend/
-npm i && npm run dev
+
+pnpm install
+pnpm dev

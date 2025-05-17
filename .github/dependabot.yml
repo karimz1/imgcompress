@@ -1,17 +1,29 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/backend" 
+    directories:
+      - "/"
+      - "/.devcontainer"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    labels: ["dependencies"]
+
+  - package-ecosystem: "docker"
+    directories:
+      - "/"
+      - "/.devcontainer"
+    schedule:
+      interval: "weekly"
 
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
-      interval: "daily"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    labels: ["dependencies"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

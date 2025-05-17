@@ -2,7 +2,7 @@
 ############################################################
 # Use the build platform for this stage so that the Node
 # build tools run on the build host.
-FROM node:22 AS frontend-build
+FROM node:24 AS frontend-build
 
 WORKDIR /app
 # Copy the frontend code into this stage
@@ -11,15 +11,17 @@ COPY frontend/ ./frontend
 WORKDIR /app/frontend
 
 # Install dependencies and build the static site.
-RUN npm install
-RUN npm run build
+RUN npm i pnpm -g
+RUN pnpm install --frozen-lockfile
+RUN pnpm run build
+
 # The built static files are in /app/frontend/out/
 
 ############################################################
 # 2) Stage: FINAL PYTHON IMAGE
 ############################################################
 # Build the final image for the target platform.
-FROM python:3.9-slim-buster
+FROM python:3.11-slim-buster
 
 # Metadata labels
 LABEL maintainer="Karim Zouine <mails.karimzouine@gmail.com>"
