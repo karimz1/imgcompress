@@ -52,13 +52,15 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
   onDownloadAll,
 }) => {
   return (
-    <Drawer open={isOpen} onOpenChange={onOpenChange}>
+    <Drawer open={isOpen} onOpenChange={onOpenChange}
+    snapPoints={[0.4, 0.7, 1]}  // 40%, 70% and full-screen draggable height slider
+    >
       <DrawerTrigger asChild>
         <Button variant="secondary" className="mt-8">
           🗃️ Show Compressed {pluralize(converted.length, "Image", "Images")}
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="bg-zinc-950 dark:bg-white border-0">
+      <DrawerContent className="bg-zinc-950 dark:bg-white border-0 h-[100svh]">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
             <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">

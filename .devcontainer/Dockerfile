@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y \
     apt-transport-https \ 
     gnupg2 \ 
     lsb-release \ 
+    dos2unix \
     && rm -rf /var/lib/apt/lists/* 
  
 # Docker CLI if on amd64/arm64 
@@ -48,4 +49,4 @@ COPY requirements-dev.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt 
  
  
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["/bin/sh", "-c"]
