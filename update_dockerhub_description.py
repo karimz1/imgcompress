@@ -134,12 +134,12 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
 def main():
     args = parse_args()
 
-    #try:
+    try:
         dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
         dockerhub_password = os.environ["DOCKERHUB_PASSWORD"]
         dockerhub_repo = os.environ["DOCKERHUB_REPO"]
-    #except KeyError as e:
-        #raise RuntimeError(f"Missing required environment variable: {e}")
+    except KeyError as e:
+        raise RuntimeError(f"Missing required environment variable: {e}")
 
     readme_content = read_file(args.readme)
 
