@@ -5,7 +5,7 @@
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)  
 [![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml)
 
-![Web UI in Action](images/web_ui_2025-02-22_17-54-17.gif)
+<img src="images/web_ui_2025-02-22_17-54-17.gif" alt="imgcompress Web UI in Action" width="400"/>
 
 ## 📋 Table of Contents
 - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
@@ -43,7 +43,7 @@ Open **[http://localhost:3001](http://localhost:3001/)**, drag-and-drop images, 
 🧪 Quick test, easy throw-away one-liner, if you don't like it (<code>Ctrl-C</code> to stop)
 
 ````bash
-docker run --rm -p 8081:5000 karimz1/imgcompress:latest web
+docker run --rm -p 3001:5000 karimz1/imgcompress:latest web
 ````
 
 ## ❓Why imgcompress?
