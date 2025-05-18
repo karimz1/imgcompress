@@ -48,11 +48,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Write summary card
+        if: always()
+        shell: bash
         run: |
           if [[ "${{ needs.deploy-image-to-dockerhub.result }}" == "success" ]]; then
             {
               echo "### 🐳 Deployment Summary"
-              echo ""
+              echo
               echo "Image pushed as \`${{ needs.deploy-image-to-dockerhub.outputs.image_tag }}\`"
             } >> "$GITHUB_STEP_SUMMARY"
           else
@@ -60,6 +62,7 @@ jobs:
               echo "### 🚨 Deployment failed"
               echo "See the *deploy-image-to-dockerhub* job for logs."
             } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   update-dockerhub-description:
     needs: [deploy-image-to-dockerhub, deployment-summary]
