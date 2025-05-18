@@ -2,35 +2,26 @@ name: Deployment for imgcompress to Docker Hub
 
 on:
   push:
-    branches:
-      - main
-      - Improvements/*
+    branches: [main, Improvements/*]
   repository_dispatch:
     types: [deploy]
 
 jobs:
   deploy-image-to-dockerhub:
     runs-on: ubuntu-latest
-
-    # ── make the tag available to downstream jobs ──
     outputs:
       image_tag: ${{ steps.define-tags.outputs.tag }}
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
 
       - name: Define Tags
         id: define-tags
@@ -41,10 +32,10 @@ jobs:
           else
             TAG=karimz1/imgcompress:beta
           fi
-
           echo "ADDITIONAL_TAG=$TAG" >> "$GITHUB_ENV"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-      - name: Build and Push Docker Image
+          echo "tag=$TAG"            >> "$GITHUB_OUTPUT"
+
+      - name: Build & Push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -52,38 +43,45 @@ jobs:
           push: true
           tags: ${{ env.ADDITIONAL_TAG }}
 
-      - name: Deployment Summary
-        if: success()
-        run: |
-          {
-            echo "### 🐳 Deployment Summary"
-            echo ""
-            echo "Image pushed as \`${{ env.ADDITIONAL_TAG }}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  update-dockerhub-description:
+  deployment-summary:
     needs: deploy-image-to-dockerhub
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Write summary card
+        run: |
+          if [[ "${{ needs.deploy-image-to-dockerhub.result }}" == "success" ]]; then
+            {
+              echo "### 🐳 Deployment Summary"
+              echo ""
+              echo "Image pushed as \`${{ needs.deploy-image-to-dockerhub.outputs.image_tag }}\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### 🚨 Deployment failed"
+              echo "See the *deploy-image-to-dockerhub* job for logs."
+            } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+  update-dockerhub-description:
+    needs: [deploy-image-to-dockerhub, deployment-summary]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Install Python dependencies
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Update Docker Hub Description
+      - name: Update Docker Hub description
         run: |
           python update_dockerhub_description.py \
-              --readme ReadMe.md \
-              --branch "${{ github.ref }}" \
-              --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main"
+            --readme ReadMe.md \
+            --branch "${{ github.ref }}" \
+            --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main"
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
