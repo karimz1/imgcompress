@@ -2,6 +2,7 @@ import os
 import re
 import argparse
 import requests
+import json
 import sys
 from datetime import datetime
 
@@ -117,12 +118,16 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
             f"Failed to update description: HTTP {response.status_code}\n{response.text}"
         )
 
+def emit(status: str, message: str = "") -> None:
+    """Single exit-point – always print JSON to stdout."""
+    print(json.dumps({"status": status, "message": message}))
+    sys.exit(0 if status in ("success", "skipped") else 1)
+
 def main():
     args = parse_args()
     
     if args.branch not in ["main", "refs/heads/main"]:
-        print(f"Branch '{args.branch}' is not main. Skipping update.")
-        sys.exit(78) # Code: 78 ⇒ neutral / skipped in GitHub Actions
+        emit("skipped", f"branch {args.branch} is not main")
 
     try:
         dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
@@ -142,6 +147,10 @@ def main():
     print("Obtained token (partially shown):", token[:4] + "...")
 
     update_dockerhub_description(readme_content, dockerhub_username, token, dockerhub_repo)
-
+    emit("success")
+    
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        emit("error", str(exc))

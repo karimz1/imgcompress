@@ -60,10 +60,27 @@ jobs:
 
       - name: Update Docker Hub description
         run: |
-          python update_dockerhub_description.py \
-            --readme ReadMe.md \
-            --branch "${{ github.ref }}" \
-            --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main"
+          result=$(python update_dockerhub_description.py \
+               --readme ReadMe.md \
+               --branch "${{ github.ref }}" \
+               --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main")
+
+          echo "Raw JSON: $result"
+
+          # --- parse the JSON -------------------------------------------------------
+          status=$(echo "$result" | jq -r '.status')
+          message=$(echo "$result" | jq -r '.message')
+
+          # --- classify -------------------------------------------------------------
+          if [ "$status" = "skipped" ]; then
+            echo "::notice::$message"
+            echo "skipped=true"  >> "$GITHUB_OUTPUT"
+          elif [ "$status" = "success" ]; then
+            echo "skipped=false" >> "$GITHUB_OUTPUT"
+          else                               # "error"
+            echo "::error::$message"
+            exit 1                           # fail the step / job
+          fi
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
