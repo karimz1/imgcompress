@@ -1,16 +1,21 @@
 name: Deployment for imgcompress to Docker Hub
 
 on:
- push:
+  push:
     branches:
       - main
       - Improvements/*
- repository_dispatch:
-    types: [ deploy ]
+  repository_dispatch:
+    types: [deploy]
 
 jobs:
   deploy-image-to-dockerhub:
     runs-on: ubuntu-latest
+
+    # ── make the tag available to downstream jobs ──
+    outputs:
+      image_tag: ${{ steps.define-tags.outputs.tag }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,11 +37,13 @@ jobs:
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
+            TAG=karimz1/imgcompress:latest
           else
-            echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
+            TAG=karimz1/imgcompress:beta
           fi
 
+          echo "ADDITIONAL_TAG=$TAG" >> "$GITHUB_ENV"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -44,6 +51,15 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.ADDITIONAL_TAG }}
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          {
+            echo "### 🐳 Deployment Summary"
+            echo ""
+            echo "Image pushed as \`${{ env.ADDITIONAL_TAG }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub
@@ -71,4 +87,5 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
-          DOCKERHUB_REPO: "imgcompress"
+          DOCKERHUB_REPO: imgcompress
+          IMAGE_TAG: ${{ needs.deploy-image-to-dockerhub.outputs.image_tag }}
