@@ -1,32 +1,30 @@
 {
-    "name": "Image Compressor DevContainer",
-    "build": {
-      "dockerfile": "Dockerfile",
-      "context": "."
-    },
-    "containerEnv": {
-      "IS_RUNNING_IN_DEVCONTAINER": "true"
-    },
-    "settings": {
-        "python.defaultInterpreterPath": "/venv"
-    },
-    "extensions": [
-      "ms-python.python",
-      "ms-azuretools.vscode-docker",
-      "formulahendry.code-runner",
-      "dbaeumer.vscode-eslint",
-      "ms-playwright.playwright",
-      "redhat.vscode-yaml"
-    ],
-    "mounts": [
-      "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-    ],
-     "postCreateCommand": [
-      "echo 'Prepair dev container using dos2unix...'",
-      "git config --global core.autocrlf true && git config --global core.filemode false",
-      "echo 'reset git...'",
-      "find . -type f -not -path './.git/*' -print0 | xargs -0 dos2unix",
-      "echo 'Dev container is ready!'"
-     ]
-  }
-  
+  "name": "Image Compressor DevContainer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "containerEnv": {
+    "IS_RUNNING_IN_DEVCONTAINER": "true"
+  },
+  "settings": {
+      "python.defaultInterpreterPath": "/venv"
+  },
+  "extensions": [
+    "ms-python.python",
+    "ms-azuretools.vscode-docker",
+    "formulahendry.code-runner",
+    "dbaeumer.vscode-eslint",
+    "ms-playwright.playwright",
+    "redhat.vscode-yaml"
+  ],
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+    "postCreateCommand": [
+    "echo 'Prepair Dev Container...'",
+    "git config --global core.autocrlf true && git config --global core.filemode false",
+    "find . -type f -not -path './.git/*' -print0 | xargs -0 dos2unix",
+    "echo 'Dev container is ready!'"
+    ]
+}

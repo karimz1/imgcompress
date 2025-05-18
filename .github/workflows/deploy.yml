@@ -4,7 +4,7 @@ on:
  push:
     branches:
       - main
-      - improvements/*
+      - Improvements/*
  repository_dispatch:
     types: [ deploy ]
 
