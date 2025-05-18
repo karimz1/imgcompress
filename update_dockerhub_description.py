@@ -138,12 +138,12 @@ def main():
         print(f"Branch '{args.branch}' is not main. Skipping update.")
         return
 
-    #try:
+    try:
         dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
         dockerhub_password = os.environ["DOCKERHUB_PASSWORD"]
         dockerhub_repo = os.environ["DOCKERHUB_REPO"]
-    #except KeyError as e:
-        #raise RuntimeError(f"Missing required environment variable: {e}")
+    except KeyError as e:
+        raise RuntimeError(f"Missing required environment variable: {e}")
 
     readme_content = read_file(args.readme)
 
