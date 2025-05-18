@@ -4,6 +4,7 @@ on:
  push:
     branches:
       - main
+      - improvements/*
  repository_dispatch:
     types: [ deploy ]
 
@@ -33,7 +34,7 @@ jobs:
           if [[ "$BRANCH_NAME" == "main" ]]; then
             echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
           else
-            echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
+            echo "ADDITIONAL_TAG=karimz1/imgcompress:dev" >> $GITHUB_ENV
           fi
 
       - name: Build and Push Docker Image
