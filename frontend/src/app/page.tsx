@@ -305,7 +305,7 @@ function HomePageContent() {
         <Drawer
           open={fileManagerOpen}
           onOpenChange={setFileManagerOpen}
-          snapPoints={[0.5, 1]}  // 50% height and full-screen
+          snapPoints={[0.5, 0.8, 1]}  // 50%, 80% and full-screen draggable height slider
         >
           <DrawerTrigger asChild>
             <button className="hidden" />

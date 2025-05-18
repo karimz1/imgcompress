@@ -158,7 +158,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                   </p>
                 </div>
                 {}
-                <div className="overflow-y-auto max-h-80 space-y-2">
+                <div className="overflow-y-auto max-h-40 space-y-2">
                   {data.files.map((file, index) => (
                     <div
                       key={index}

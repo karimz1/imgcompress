@@ -53,7 +53,7 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
 }) => {
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}
-    snapPoints={[0.4, 0.7, 1]}  // 40%, 70% and full-screen draggable height slider
+    snapPoints={[0.5, 0.8, 1]}  // 50%, 80% and full-screen draggable height slider
     >
       <DrawerTrigger asChild>
         <Button variant="secondary" className="mt-8">
