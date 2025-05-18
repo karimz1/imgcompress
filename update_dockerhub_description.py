@@ -133,10 +133,6 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
 
 def main():
     args = parse_args()
-    
-    if args.branch not in ["main", "refs/heads/main"]:
-        print(f"Branch '{args.branch}' is not main. Skipping update.")
-        return
 
     #try:
         dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
