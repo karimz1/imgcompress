@@ -61,14 +61,15 @@ def fix_image_links(markdown_content: str, base_url: str) -> str:
     content = re.sub(md_pattern, md_replacer, markdown_content)
 
     # — HTML <img> replacement —
-    html_pattern = r'(<img\s+[^>]*\s+src=["\'])([^"\']+)(["\'])'
+    html_pattern = r'(<img\s[^>]*?\bsrc\s*=\s*["\'])([^"\']+)(["\'])'
     def html_replacer(match):
         prefix, url, suffix = match.groups()
         if url.startswith(("http://", "https://")):
             return match.group(0)
         return f"{prefix}{base_url.rstrip('/')}/{url.lstrip('/')}{suffix}"
 
-    return re.sub(html_pattern, html_replacer, content)
+    content = re.sub(html_pattern, html_replacer, content)
+    return content
     
     
 def login_dockerhub(username: str, password: str) -> str:
@@ -137,12 +138,12 @@ def main():
         print(f"Branch '{args.branch}' is not main. Skipping update.")
         return
 
-    try:
+    #try:
         dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
         dockerhub_password = os.environ["DOCKERHUB_PASSWORD"]
         dockerhub_repo = os.environ["DOCKERHUB_REPO"]
-    except KeyError as e:
-        raise RuntimeError(f"Missing required environment variable: {e}")
+    #except KeyError as e:
+        #raise RuntimeError(f"Missing required environment variable: {e}")
 
     readme_content = read_file(args.readme)
 
