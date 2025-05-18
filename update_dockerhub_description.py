@@ -2,6 +2,7 @@ import os
 import re
 import argparse
 import requests
+import sys
 from datetime import datetime
 
 def parse_args():
@@ -85,7 +86,6 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
     always with a JWT token for write access.
     Appends a timestamp to indicate the last auto-update time.
     """
-    # Append a timestamped note to the bottom of the README content
     timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     final_content = (
         readme_content
@@ -122,7 +122,7 @@ def main():
     
     if args.branch not in ["main", "refs/heads/main"]:
         print(f"Branch '{args.branch}' is not main. Skipping update.")
-        return
+        sys.exit(78) # Code: 78 ⇒ neutral / skipped in GitHub Actions
 
     try:
         dockerhub_username = os.environ["DOCKERHUB_USERNAME"]

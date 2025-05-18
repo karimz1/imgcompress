@@ -43,29 +43,8 @@ jobs:
           push: true
           tags: ${{ env.ADDITIONAL_TAG }}
 
-  deployment-summary:
-    needs: deploy-image-to-dockerhub
-    runs-on: ubuntu-latest
-    steps:
-      - name: Write summary card
-        if: always()
-        shell: bash
-        run: |
-          if [[ "${{ needs.deploy-image-to-dockerhub.result }}" == "success" ]]; then
-            {
-              echo "### 🐳 Deployment Summary"
-              echo
-              echo "Image pushed as \`${{ needs.deploy-image-to-dockerhub.outputs.image_tag }}\`"
-            } >> "$GITHUB_STEP_SUMMARY"
-          else
-            {
-              echo "### 🚨 Deployment failed"
-              echo "See the *deploy-image-to-dockerhub* job for logs."
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
   update-dockerhub-description:
-    needs: [deploy-image-to-dockerhub, deployment-summary]
+    needs: [deploy-image-to-dockerhub]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -89,4 +68,38 @@ jobs:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: imgcompress
-          IMAGE_TAG: ${{ needs.deploy-image-to-dockerhub.outputs.image_tag }}
+
+  
+  deployment-summary:
+    needs: [deploy-image-to-dockerhub, update-dockerhub-description]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write summary card
+        if: always()
+        shell: bash
+        run: |
+          DEPLOY_RESULT="${{ needs.deploy-image-to-dockerhub.result }}"
+          DESC_RESULT="${{ needs.update-dockerhub-description.result }}"
+
+          if [[ "$DEPLOY_RESULT" == "success" ]]; then
+            {
+              echo "### 🐳 Deployment Summary"
+              echo
+              echo "Image pushed as \`${{ needs.deploy-image-to-dockerhub.outputs.image_tag }}\`"
+              if [[ "$DESC_RESULT" == "success" ]]; then
+                echo ""
+                echo "Docker Hub description **updated** :white_check_mark:"
+              elif [[ "$DESC_RESULT" == "skipped" ]]; then
+                echo ""
+                echo "Docker Hub description **skipped** :pause_button:"
+              else
+                echo ""
+                echo "Docker Hub description **failed** :x:"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### 🚨 Deployment failed"
+              echo "See the *deploy-image-to-dockerhub* job for logs."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
