@@ -41,23 +41,36 @@ def read_file(file_path: str) -> str:
     except Exception as e:
         raise RuntimeError(f"Error reading {file_path}: {e}")
 
+
 def fix_image_links(markdown_content: str, base_url: str) -> str:
     """
     Replaces all relative image links in the markdown with absolute links
-    based on the provided base_url.
+    based on the provided base_url. Also handles HTML <img src="…"> attributes.
     
     Markdown image syntax: ![alt text](image_path)
+    HTML image syntax:     <img src="image_path" ...>
     """
-    pattern = r'(!\[[^\]]*\]\()([^)]+)(\))'
-    
-    def replacer(match):
+    # — markdown replacement —
+    md_pattern = r'(!\[[^\]]*\]\()([^)]+)(\))'
+    def md_replacer(match):
         prefix, url, suffix = match.groups()
-        if url.startswith("http://") or url.startswith("https://"):
+        if url.startswith(("http://", "https://")):
             return match.group(0)
         return f"{prefix}{base_url.rstrip('/')}/{url.lstrip('/')}{suffix}"
-    
-    return re.sub(pattern, replacer, markdown_content)
 
+    content = re.sub(md_pattern, md_replacer, markdown_content)
+
+    # — HTML <img> replacement —
+    html_pattern = r'(<img\s+[^>]*\s+src=["\'])([^"\']+)(["\'])'
+    def html_replacer(match):
+        prefix, url, suffix = match.groups()
+        if url.startswith(("http://", "https://")):
+            return match.group(0)
+        return f"{prefix}{base_url.rstrip('/')}/{url.lstrip('/')}{suffix}"
+
+    return re.sub(html_pattern, html_replacer, content)
+    
+    
 def login_dockerhub(username: str, password: str) -> str:
     """
     Log in to Docker Hub to obtain a JWT token.
