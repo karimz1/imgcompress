@@ -26,8 +26,15 @@ def parse_args():
     parser.add_argument(
         "--branch",
         type=str,
-        default="refs/heads/main",
+        default="",
         help="The branch that triggered the update (e.g., refs/heads/main).",
+    )
+
+    parser.add_argument(
+        "--mock",
+        type=bool,
+        default="",
+        help="If Mock do not perform docker desc update",
     )
     return parser.parse_args()
 
@@ -49,6 +56,12 @@ def fix_image_links(markdown_content: str, base_url: str) -> str:
     
     Markdown image syntax: ![alt text](image_path)
     HTML image syntax:     <img src="image_path" ...>
+
+    Tip for later:
+        To convert the raw content into a neatly formatted Markdown file, first save the value of the 'replaced_markdown_content' variable to a file—e.g., replaced-content.txt.
+        Then run the following command in a Unix-like shell:
+
+    ``printf '%b\n' "$(cat replaced-content.txt)" > clean.md``  (Unix-like shells).
     """
     # — markdown replacement —
     md_pattern = r'(!\[[^\]]*\]\()([^)]+)(\))'
@@ -58,7 +71,7 @@ def fix_image_links(markdown_content: str, base_url: str) -> str:
             return match.group(0)
         return f"{prefix}{base_url.rstrip('/')}/{url.lstrip('/')}{suffix}"
 
-    content = re.sub(md_pattern, md_replacer, markdown_content)
+    replaced_markdown_content = re.sub(md_pattern, md_replacer, markdown_content)
 
     # — HTML <img> replacement —
     html_pattern = r'(<img\s[^>]*?\bsrc\s*=\s*["\'])([^"\']+)(["\'])'
@@ -68,8 +81,8 @@ def fix_image_links(markdown_content: str, base_url: str) -> str:
             return match.group(0)
         return f"{prefix}{base_url.rstrip('/')}/{url.lstrip('/')}{suffix}"
 
-    content = re.sub(html_pattern, html_replacer, content)
-    return content
+    replaced_markdown_content = re.sub(html_pattern, html_replacer, replaced_markdown_content)
+    return replaced_markdown_content
     
     
 def login_dockerhub(username: str, password: str) -> str:
@@ -134,12 +147,13 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
 def main():
     args = parse_args()
 
-    try:
-        dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
-        dockerhub_password = os.environ["DOCKERHUB_PASSWORD"]
-        dockerhub_repo = os.environ["DOCKERHUB_REPO"]
-    except KeyError as e:
-        raise RuntimeError(f"Missing required environment variable: {e}")
+    if args.mock == False:
+        try:
+            dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
+            dockerhub_password = os.environ["DOCKERHUB_PASSWORD"]
+            dockerhub_repo = os.environ["DOCKERHUB_REPO"]
+        except KeyError as e:
+            raise RuntimeError(f"Missing required environment variable: {e}")
 
     readme_content = read_file(args.readme)
 
@@ -148,9 +162,11 @@ def main():
     else:
         print("No base URL provided; skipping image link update.")
 
+    if args.mock:
+        return
+    
     token = login_dockerhub(dockerhub_username, dockerhub_password)
     print("Obtained token (partially shown):", token[:4] + "...")
-
     update_dockerhub_description(readme_content, dockerhub_username, token, dockerhub_repo)
 
 if __name__ == "__main__":
