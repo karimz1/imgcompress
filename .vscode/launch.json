@@ -79,6 +79,20 @@
                 "tests/"
             ],
             "justMyCode": false
+        },
+        {
+            "name": "Debug update dockerhub description",
+            "type": "python",
+            "pythonPath": "/venv/bin/python",
+            "request": "launch",
+
+            "program": "${workspaceFolder}/update_dockerhub_description.py",
+            "args": [
+                "--readme", "ReadMe.md",
+                "--branch", "main",
+                "--base-url", "https://raw.githubusercontent.com/karimz1/imgcompress/main",
+                "--mock", "true"
+            ]
         }
     ]
 }

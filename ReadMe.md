@@ -8,16 +8,18 @@
 <img src="images/web_ui_2025-02-22_17-54-17.gif" alt="imgcompress Web UI in Action" width="400"/>
 
 ## 📋 Table of Contents
-- [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
-- [❓Why imgcompress?](#why-imgcompress)
-- [✨ Feature Overview](#-feature-overview)
-- [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
-- [✅ Supported Image Formats](#-supported-image-formats)
-- [🖥️ Supported Platforms](#️-supported-platforms)
-- [🔒 Privacy \& Security](#-privacy--security)
-- [🤝 Contribute](#-contribute)
-- [❤️ Support Development](#️-support-development)
-- [📝 License](#-license)
+- [imgcompress: The Ultimate Docker Image Compression Tool](#imgcompress-the-ultimate-docker-image-compression-tool)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
+  - [❓Why imgcompress?](#why-imgcompress)
+  - [✨ Feature Overview](#-feature-overview)
+  - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
+  - [✅ Supported Image Formats](#-supported-image-formats)
+  - [🖥️ Supported Platforms](#️-supported-platforms)
+  - [🔒 Privacy \& Security](#-privacy--security)
+  - [🤝 Contribute](#-contribute)
+  - [❤️ Support Development](#️-support-development)
+  - [📝 License](#-license)
 
 ## 🚀 Quick Start (Web UI in 30 s)
 
@@ -203,5 +205,5 @@ If Imgcompress saves you time, consider buying me a coffee, every donation keeps
 
 ## 📝 License
 
-Released under the **MIT License**, see [`LICENSE`](LICENSE) for full text.
+Released under the **MIT License**, see [LICENSE](https://github.com/karimz1/imgcompress/blob/main/LICENSE) for full text.
 Third-party libraries remain under their respective licenses.
