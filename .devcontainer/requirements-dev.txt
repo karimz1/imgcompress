@@ -7,7 +7,7 @@ pillow==11.2.1
 pluggy==1.6.0
 pycparser==2.22
 pyheif==0.8.0
-pytest==8.3.5
+pytest==8.4.0
 pytest-cov==6.1.1
 tomli==2.2.1
 colorama==0.4.6
