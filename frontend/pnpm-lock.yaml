@@ -54,8 +54,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       lucide-react:
-        specifier: ^0.513.0
-        version: 0.513.0(react@19.1.0)
+        specifier: ^0.515.0
+        version: 0.515.0(react@19.1.0)
       next:
         specifier: 15.3.3
         version: 15.3.3(@playwright/test@1.52.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -1866,8 +1866,8 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
-  lucide-react@0.513.0:
-    resolution: {integrity: sha512-CJZKq2g8Y8yN4Aq002GahSXbG2JpFv9kXwyiOAMvUBv7pxeOFHUWKB0mO7MiY4ZVFCV4aNjv2BJFq/z3DgKPQg==}
+  lucide-react@0.515.0:
+    resolution: {integrity: sha512-Sy7bY0MeicRm2pzrnoHm2h6C1iVoeHyBU2fjdQDsXGP51fhkhau1/ZV/dzrcxEmAKsxYb6bGaIsMnGHuQ5s0dw==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -4232,7 +4232,7 @@ snapshots:
     dependencies:
       js-tokens: 4.0.0
 
-  lucide-react@0.513.0(react@19.1.0):
+  lucide-react@0.515.0(react@19.1.0):
     dependencies:
       react: 19.1.0
 
