@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.53.0",
     "@tailwindcss/postcss": "^4.1.8",
     "@types/adm-zip": "^0.5.7",
     "@types/node": "^22",
