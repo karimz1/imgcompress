@@ -7,7 +7,7 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 20
-    labels: ["dependencies"]
+    labels: ["dependencies", "backend"]
 
   - package-ecosystem: "docker"
     directories:
@@ -16,13 +16,17 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "pnpm"
+  - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
     rebase-strategy: auto
     open-pull-requests-limit: 20
-    labels: ["dependencies"]
+    groups:
+      pnpm-minor:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    labels: ["dependencies", "frontend"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
