@@ -58,8 +58,8 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 # Copy the built frontend static site from the previous stage.
 COPY --from=frontend-build /app/frontend/out/. /container/backend/image_converter/presentation/web/static_site
 
-# Expose port 5000.
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 EXPOSE 5000
 
-# Define the entrypoint.
-ENTRYPOINT ["image-converter"]
+ENTRYPOINT ["/entrypoint.sh"]
