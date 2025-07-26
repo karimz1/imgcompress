@@ -21,7 +21,8 @@ RUN pnpm run build
 # 2) Stage: FINAL PYTHON IMAGE
 ############################################################
 # Build the final image for the target platform.
-FROM python:3.11-slim-buster
+FROM python:3.11-slim-bookworm
+
 
 # Metadata labels
 LABEL maintainer="Karim Zouine <mails.karimzouine@gmail.com>"
@@ -47,6 +48,10 @@ WORKDIR /container
 COPY backend/ /container/backend
 COPY setup.py /container/
 COPY requirements.txt /container/
+COPY entrypoint.sh /container/entrypoint.sh
+
+
+RUN chmod +x /container/entrypoint.sh
 
 # Install Python dependencies and your package.
 RUN pip install --no-cache-dir -r requirements.txt
@@ -58,8 +63,6 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 # Copy the built frontend static site from the previous stage.
 COPY --from=frontend-build /app/frontend/out/. /container/backend/image_converter/presentation/web/static_site
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 EXPOSE 5000
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/container/entrypoint.sh"]

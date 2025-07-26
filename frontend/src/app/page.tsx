@@ -33,7 +33,9 @@ import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 
 
 function HomePageContent() {
- const [disableLogo, setDisableLogo] = useState(false);
+  const [disableLogo, setDisableLogo] = useState(false);
+  const [configReady, setConfigReady] = useState(false);
+
 
   useEffect(() => {
     const loadRuntimeConfig = async () => {
@@ -43,13 +45,16 @@ function HomePageContent() {
         const config = await res.json();
         setDisableLogo(config.DISABLE_LOGO === 'true');
       } catch (err) {
-        console.warn('DISABLE_LOGO config missing or invalid, defaulting to false');
+        console.warn('DISABLE_LOGO config missing or invalid, defaulting to false', err);
         setDisableLogo(false);
+      } finally {
+        setConfigReady(true);
       }
     };
 
     loadRuntimeConfig();
   }, []);
+
 
 
   const {
@@ -274,7 +279,7 @@ function HomePageContent() {
           <CardTitle className="text-center pt-5">
             An Image Compression Tool
           </CardTitle>
-            {!disableLogo && (
+            {configReady && !disableLogo && (
               <CardHeader>
                 <Image
                   src="/mascot.jpg"
