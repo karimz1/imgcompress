@@ -33,6 +33,8 @@ services:
     restart: always
     ports:
       - "3001:5000"                  # HOST:CONTAINER — change 3001 if you like
+    environment:
+      - DISABLE_LOGO=true            # Don't like the Mascot Logo ? Then you can disable it.
     command:
       - "web"                        # launch the Web UI
 ````
@@ -46,6 +48,14 @@ Open **[http://localhost:3001](http://localhost:3001/)**, drag-and-drop images, 
 
 ````bash
 docker run --rm -p 3001:5000 karimz1/imgcompress:latest web
+````
+
+🚫 Start Web UI Without Logo
+
+To disable the mascot/logo image in the Web UI (useful for white-label use or cleaner UI), pass the DISABLE_LOGO=true environment variable when running the container:
+
+```` bash
+docker run --rm -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest web
 ````
 
 ## ❓Why imgcompress?

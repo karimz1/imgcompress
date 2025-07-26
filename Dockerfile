@@ -50,7 +50,6 @@ COPY setup.py /container/
 COPY requirements.txt /container/
 COPY entrypoint.sh /container/entrypoint.sh
 
-
 RUN chmod +x /container/entrypoint.sh
 
 # Install Python dependencies and your package.

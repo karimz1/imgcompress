@@ -1,13 +1,13 @@
-## 🧪 Local Build & Run – Development Tester
+## 🧪 Local Build & Run – Development Docker Image Tester
 
-To quickly build and run the app locally with feature flags like `DISABLE_LOGO`, use the `localbuildtester.sh` script.
+To quickly build and run the app locally with feature flags like `DISABLE_LOGO`, use the `runLocalDockerBuildTester.sh` script.
 
 ---
 
 ### ▶️ Usage
 
 ```bash
-./localbuildtester.sh
+./runLocalDockerBuildTester.sh
 ```
 
 By default, this builds and runs:
@@ -23,7 +23,7 @@ By default, this builds and runs:
 To **disable** the logo at runtime:
 
 ```bash
-DISABLE_LOGO=true ./localbuildtester.sh
+DISABLE_LOGO=true ./runLocalDockerBuildTester.sh
 ```
 
 ---
@@ -32,4 +32,3 @@ DISABLE_LOGO=true ./localbuildtester.sh
 
 * The container is automatically removed after it stops (`--rm`)
 * Ideal for quickly testing different UI states or environment configurations
-* You can modify the script to add other flags like `MOCK=true` or custom ports if needed
