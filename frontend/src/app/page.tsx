@@ -276,8 +276,9 @@ function HomePageContent() {
       <div className="p-4 flex-grow flex flex-col items-center">
         <ToastContainer />
         <Card className="w-full max-w-xl">
-          <CardTitle className="text-center pt-5">
-            An Image Compression Tool
+          <CardTitle className={`text-center pt-5 ${
+              configReady && disableLogo ? "pb-8" : ""
+          }`}> An Image Compression Tool
           </CardTitle>
             {configReady && !disableLogo && (
               <CardHeader>
