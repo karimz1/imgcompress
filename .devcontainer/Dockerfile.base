@@ -42,10 +42,6 @@ RUN npm i pnpm -g
 WORKDIR /app 
 RUN python3 -m venv /venv 
 ENV PATH="/venv/bin:$PATH" 
- 
-# Install Python dependencies 
-COPY .devcontainer/requirements-dev.txt .
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt 
- 
- 
+
+
 ENTRYPOINT ["/bin/sh"]
