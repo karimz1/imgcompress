@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y \
     tmux \ 
     apt-transport-https \ 
     gnupg2 \ 
+    dos2unix \
     lsb-release \ 
     && rm -rf /var/lib/apt/lists/* 
  
