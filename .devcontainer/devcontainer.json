@@ -1,6 +1,6 @@
 {
    "name": "Image Compressor DevContainer",
-   "image": "ghcr.io/karimz1/devcontainer-image-only-for-devs@sha256:1466f80cb21f351d42664f270faa7182aa6e3eece12dba23a3633168f3785e4c",
+   "image": "ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-07",
    "postCreateCommand": "pip install -r .devcontainer/requirements-dev.txt && pnpm install --dir frontend/ && echo 'Dev container is ready!'",
     "containerEnv": {
       "IS_RUNNING_IN_DEVCONTAINER": "true"
