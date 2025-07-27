@@ -1,9 +1,7 @@
 {
-    "name": "Image Compressor DevContainer",
-    "build": {
-      "dockerfile": "Dockerfile",
-      "context": "."
-    },
+   "name": "Image Compressor DevContainer",
+   "image": "ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-07",
+   "postCreateCommand": "pip install -r .devcontainer/requirements-dev.txt && pnpm install --dir frontend/ && echo 'Dev container is ready!'",
     "containerEnv": {
       "IS_RUNNING_IN_DEVCONTAINER": "true"
     },
@@ -20,7 +18,6 @@
     ],
     "mounts": [
       "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-    ],
-    "postCreateCommand": "echo 'Dev container is ready!'"
+    ]
   }
   

@@ -1,0 +1,15 @@
+# Enforce LF line endings for scripts
+*.sh text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Optional: Treat all text files as LF
+* text=auto
+
+# Binary files should be excluded from text normalization
+*.png binary
+*.jpg binary
+*.gif binary
+*.pdf binary

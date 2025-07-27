@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDropzone } from "react-dropzone";
@@ -30,7 +30,33 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 
+
+
 function HomePageContent() {
+  const [disableLogo, setDisableLogo] = useState(false);
+  const [configReady, setConfigReady] = useState(false);
+
+
+  useEffect(() => {
+    const loadRuntimeConfig = async () => {
+      try {
+        const res = await fetch('/config/runtime.json');
+        if (!res.ok) throw new Error('Config not found');
+        const config = await res.json();
+        setDisableLogo(config.DISABLE_LOGO === 'true');
+      } catch (err) {
+        console.warn('DISABLE_LOGO config missing or invalid, defaulting to false', err);
+        setDisableLogo(false);
+      } finally {
+        setConfigReady(true);
+      }
+    };
+
+    loadRuntimeConfig();
+  }, []);
+
+
+
   const {
     extensions,
     isLoading: extensionsLoading,
@@ -250,18 +276,21 @@ function HomePageContent() {
       <div className="p-4 flex-grow flex flex-col items-center">
         <ToastContainer />
         <Card className="w-full max-w-xl">
-          <CardTitle className="text-center pt-5">
-            An Image Compression Tool
+          <CardTitle className={`text-center pt-5 ${
+              configReady && disableLogo ? "pb-8" : ""
+          }`}> An Image Compression Tool
           </CardTitle>
-          <CardHeader>
-            <Image
-              src="/mascot.jpg"
-              width={600}
-              height={600}
-              alt="Mascot of ImgCompress a Tool by Karim Zouine"
-            />
-            <Separator />
-          </CardHeader>
+            {configReady && !disableLogo && (
+              <CardHeader>
+                <Image
+                  src="/mascot.jpg"
+                  width={600}
+                  height={600}
+                  alt="Mascot of ImgCompress a Tool by Karim Zouine"
+                />
+                <Separator />
+              </CardHeader>
+            )}
           <CardContent>
             <FileConversionForm
               isLoading={isLoading}
