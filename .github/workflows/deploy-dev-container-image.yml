@@ -1,0 +1,42 @@
+name: Build & Push Docker Image Every 2nd Month
+
+on:
+  schedule:
+    - cron: '0 0 1 */2 *'
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set date-based tag
+        id: tag
+        run: |
+          DATE_TAG=$(date +'%Y-%m')
+          echo "tag=$DATE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f .devcontainer/Dockerfile.base \
+            -t ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }} \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.tag }}
