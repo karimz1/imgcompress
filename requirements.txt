@@ -6,4 +6,4 @@ colorama==0.4.6
 flask==3.1.1
 apscheduler==3.11.0
 gunicorn==23.0.0
-pillow_heif==1.0.0
+pillow_heif==1.1.0
