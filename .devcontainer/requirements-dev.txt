@@ -8,7 +8,7 @@ pluggy==1.6.0
 pycparser==2.22
 pyheif==0.8.0
 pytest==8.4.2
-pytest-cov==6.2.1
+pytest-cov==6.3.0
 tomli==2.2.1
 colorama==0.4.6
 flask==3.1.2
