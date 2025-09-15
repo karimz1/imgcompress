@@ -1,4 +1,4 @@
-cffi==1.17.1
+cffi==2.0.0
 pillow==11.3.0
 pycparser==2.22
 pyheif==0.8.0
