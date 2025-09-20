@@ -21,7 +21,7 @@ RUN pnpm run build
 # 2) Stage: FINAL PYTHON IMAGE
 ############################################################
 # Build the final image for the target platform.
-FROM python:3.11-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 
 # Metadata labels
