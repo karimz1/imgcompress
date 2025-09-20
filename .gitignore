@@ -1,3 +1,4 @@
+tests/sample-images/_generated_pillow_sample*
 /.pnpm-store/
 
 # ignore mac file
