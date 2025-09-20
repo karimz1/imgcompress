@@ -12,7 +12,7 @@ WORKDIR /app/frontend
 
 # Install dependencies and build the static site.
 RUN npm i pnpm -g
-RUN pnpm install --frozen-lockfile
+RUN CI=true pnpm install --frozen-lockfile
 RUN pnpm run build
 
 # The built static files are in /app/frontend/out/
@@ -61,6 +61,9 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
 # Copy the built frontend static site from the previous stage.
 COPY --from=frontend-build /app/frontend/out/. /container/backend/image_converter/presentation/web/static_site
+COPY --from=frontend-build /app/frontend/.next /container/backend/image_converter/presentation/web/static_site
+COPY --from=frontend-build /app/frontend/public /container/backend/image_converter/presentation/web/static_site
+
 
 EXPOSE 5000
 
