@@ -56,7 +56,6 @@ function HomePageContent() {
   }, []);
 
 
-
   const {
     extensions,
     isLoading: extensionsLoading,
@@ -76,6 +75,16 @@ function HomePageContent() {
   const [destFolder, setDestFolder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState("jpeg");
+  const [targetSizeMB, setTargetSizeMB] = useState("");
+  const [jpegMode, setJpegMode] = useState<"quality" | "size">("quality");
+
+  // Keep JPEG mode consistent when switching away from JPEG format
+  useEffect(() => {
+    if (outputFormat !== "jpeg") {
+      setJpegMode("quality");
+      setTargetSizeMB("");
+    }
+  }, [outputFormat]);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
@@ -138,7 +147,7 @@ function HomePageContent() {
         return;
       }
 
-      if (outputFormat === "jpeg") {
+      if (outputFormat === "jpeg" && jpegMode === "quality") {
         const qualityNum = parseInt(quality, 10);
         if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
           setError({ message: "Quality must be a number between 1 and 100." });
@@ -166,6 +175,17 @@ function HomePageContent() {
         }
       }
 
+      // Validate max size (MB) when using size-based mode for JPEG
+      if (outputFormat === "jpeg" && jpegMode === "size") {
+        const trimmed = (targetSizeMB || "").trim();
+        const t = parseFloat(trimmed);
+        if (!trimmed || isNaN(t) || t <= 0) {
+          setError({ message: "Please set a positive Max file size (in MB)." });
+          toast.error("Please set a positive Max file size (in MB).");
+          return;
+        }
+      }
+
       setIsLoading(true);
       clearError();
       setConverted([]);
@@ -173,13 +193,19 @@ function HomePageContent() {
 
       const formData = new FormData();
       files.forEach((file) => formData.append("files[]", file));
-      if (outputFormat === "jpeg") {
+      if (outputFormat === "jpeg" && jpegMode === "quality") {
         formData.append("quality", quality);
       }
       if (resizeWidthEnabled) {
         formData.append("width", width);
       }
       formData.append("format", outputFormat);
+      if (outputFormat === "jpeg" && jpegMode === "size") {
+        const kb = Math.round(parseFloat(targetSizeMB) * 1024);
+        if (!isNaN(kb) && kb > 0) {
+          formData.append("target_size_kb", String(kb));
+        }
+      }
 
       try {
         const res = await fetch("/api/compress", {
@@ -226,6 +252,8 @@ function HomePageContent() {
       width,
       clearError,
       setError,
+      jpegMode,
+      targetSizeMB,
     ]
   );
 
@@ -307,6 +335,10 @@ function HomePageContent() {
               removeFile={removeFile}
               clearFileSelection={clearFileSelection}
               onSubmit={handleSubmit}
+              targetSizeMB={targetSizeMB}
+              setTargetSizeMB={setTargetSizeMB}
+              jpegMode={jpegMode}
+              setJpegMode={setJpegMode}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

@@ -45,6 +45,7 @@ def compress_images():
     uploaded_files = data["uploaded_files"]
     quality = data["quality"]
     width = data["width"]
+    target_size_kb = data.get("target_size_kb")
     output_format_str = data["format"]
 
     if not uploaded_files:
@@ -69,7 +70,7 @@ def compress_images():
         return jsonify({"error": "Failed to save uploaded files", "message": save_result.error}), 500
 
                                                           
-    process_result = _process_images(source_folder, dest_folder, image_format, quality, width)
+    process_result = _process_images(source_folder, dest_folder, image_format, quality, width, target_size_kb)
     
                                                                   
     shutil.rmtree(source_folder, ignore_errors=True)
@@ -201,20 +202,20 @@ def _process_images(source_folder: str,
                     dest_folder: str,
                     image_format: ImageFormat, 
                     quality: int, 
-                    width: Optional[int]) -> Result:
+                    width: Optional[int],
+                    target_size_kb: Optional[int]) -> Result:
     """
     For each file in 'source_folder':
       1) Read bytes
       2) Optionally resize
-      3) Use ImageConverterFactory to convert and save the file
+      3) Convert and save the file (optionally targeting a file size for JPEG)
     Returns a Result that contains a summary of processed files and errors.
     """
     logger.log(
-        f"Processing images from {source_folder} -> {dest_folder} (format={image_format.value}, quality={quality}, width={width})",
+        f"Processing images from {source_folder} -> {dest_folder} (format={image_format.value}, quality={quality}, width={width}, target_size_kb={target_size_kb})",
         "info"
     )
 
-    converter = ImageConverterFactory.create_converter(image_format, quality, logger)
     new_ext = image_format.get_file_extension()
 
     conversion_errors = []
@@ -234,7 +235,7 @@ def _process_images(source_folder: str,
             conversion_errors.append(error_msg)
             continue
 
-                                                            
+        # Resize if requested
         if width and width > 0:
             try:
                 resized_data = resizer.resize_image(original_data, width)
@@ -249,7 +250,96 @@ def _process_images(source_folder: str,
         base, _ = os.path.splitext(filename)
         dest_path = os.path.join(dest_folder, base + new_ext)
 
-        conv_result: Result = converter.convert(
+        # If a target size is requested and format is JPEG, try to hit the target by adjusting quality
+        if target_size_kb and image_format == ImageFormat.JPEG:
+            target_bytes = max(1, target_size_kb) * 1024
+            low_q, high_q = 10, 95
+            best_q = None
+            attempts = 0
+            max_attempts = 8
+
+            # Quick check: try current quality first
+            try_quality = min(max(quality, low_q), high_q)
+            while attempts < max_attempts and low_q <= high_q:
+                if attempts == 0:
+                    q = try_quality
+                else:
+                    q = (low_q + high_q) // 2
+                attempts += 1
+
+                converter = ImageConverterFactory.create_converter(ImageFormat.JPEG, q, logger)
+                conv_result = converter.convert(
+                    image_data=resized_data,
+                    source_path=src_file_path,
+                    dest_path=dest_path
+                )
+                if not conv_result.is_successful:
+                    error_msg = f"Conversion failed for {filename} at quality {q}: {conv_result.error}"
+                    logger.log(error_msg, "error")
+                    conversion_errors.append(error_msg)
+                    break
+
+                try:
+                    out_size = os.path.getsize(dest_path)
+                except Exception as e:
+                    error_msg = f"Failed to stat output file for {filename}: {e}"
+                    logger.log(error_msg, "error")
+                    conversion_errors.append(error_msg)
+                    break
+
+                logger.log(f"{filename}: quality={q} -> size={out_size} bytes (target={target_bytes})", "debug")
+
+                if out_size <= target_bytes:
+                    best_q = q
+                    # try to increase quality while staying <= target
+                    low_q = q + 1
+                else:
+                    # need smaller size -> reduce quality
+                    high_q = q - 1
+
+            if best_q is None:
+                # Could not reach target; use the smallest allowed quality to minimize size
+                final_q = 10
+                converter = ImageConverterFactory.create_converter(ImageFormat.JPEG, final_q, logger)
+                conv_result = converter.convert(
+                    image_data=resized_data,
+                    source_path=src_file_path,
+                    dest_path=dest_path
+                )
+                if not conv_result.is_successful:
+                    error_msg = f"Conversion failed for {filename} at fallback quality {final_q}: {conv_result.error}"
+                    logger.log(error_msg, "error")
+                    conversion_errors.append(error_msg)
+                    continue
+                # note inability to meet target
+                try:
+                    actual = os.path.getsize(dest_path)
+                    if actual > target_bytes:
+                        conversion_errors.append(
+                            f"{filename}: Could not meet target size {target_size_kb}KB even at lowest quality. Actual: {actual // 1024}KB."
+                        )
+                except Exception:
+                    pass
+            else:
+                # Ensure final encode at best_q (it may already be encoded at best_q, but safe to re-encode once)
+                converter = ImageConverterFactory.create_converter(ImageFormat.JPEG, best_q, logger)
+                conv_result = converter.convert(
+                    image_data=resized_data,
+                    source_path=src_file_path,
+                    dest_path=dest_path
+                )
+                if not conv_result.is_successful:
+                    error_msg = f"Conversion failed for {filename} at best quality {best_q}: {conv_result.error}"
+                    logger.log(error_msg, "error")
+                    conversion_errors.append(error_msg)
+                    continue
+
+            processed_files.append(filename)
+            continue
+
+        # Non-JPEG or no target size -> normal conversion path
+        converter = ImageConverterFactory.create_converter(image_format, quality, logger)
+        conv_result = converter.convert(
             image_data=resized_data,
             source_path=src_file_path,
             dest_path=dest_path
@@ -260,6 +350,10 @@ def _process_images(source_folder: str,
             logger.log(error_msg, "error")
             conversion_errors.append(error_msg)
         else:
+            if target_size_kb and image_format != ImageFormat.JPEG:
+                conversion_errors.append(
+                    f"{filename}: target_size_kb is currently only supported for JPEG output."
+                )
             processed_files.append(filename)
 
     if len(processed_files) == 0:
