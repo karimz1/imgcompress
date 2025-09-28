@@ -364,7 +364,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               />
               <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400 pointer-events-none">MB</span>
             </div>
-            <p className="text-xs text-gray-400">We'll try to keep each JPEG at or below this size by automatically adjusting quality.</p>
+            <p className="text-xs text-gray-400">It will try to keep each JPEG at or below this size by automatically adjusting quality.</p>
           </div>
         </div>
       )}
