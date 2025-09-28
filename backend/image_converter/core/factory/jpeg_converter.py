@@ -39,7 +39,7 @@ class JpegConverter(IImageConverter):
                     img = background
 
                                             
-                img.save(dest_path, "JPEG", quality=self.quality)
+                img.save(dest_path, "JPEG", quality=self.quality, optimize=True, progressive=True, subsampling=2)
                 self.logger.log(f"Saved JPEG: {dest_path} (Quality={self.quality})", "debug")
             
                                                             
