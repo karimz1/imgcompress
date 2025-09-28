@@ -36,16 +36,14 @@ export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: Im
     }
   }
 
-  export async function setMaxSizeInMB(page: Page, sizeInMB: Number): Promise<void> {
-  {
-    const input = page.locator(selectors.targetSizeMBInput);
-    input.fill(sizeInMB.toString());
-  }
-
-
   throw new Error(`Remove button not found for image: ${imageFile.fileName}`);
 }
 
+export function setMaxSizeInMB(page: Page, sizeInMB: Number): void {
+{
+  const input = page.locator(selectors.targetSizeMBInput);
+  input.fill(sizeInMB.toString());
+}
 
 export function GetFullFilePathOfImageFile(fileName: ImageFileDto): string {
   const filePath = path.resolve(__dirname, '../fixtures/sample-images', fileName.fileName);
