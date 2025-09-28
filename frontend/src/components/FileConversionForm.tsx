@@ -314,10 +314,13 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
       {/* Max file size (MB) - only for JPEG in size mode */}
       {outputFormat === "jpeg" && jpegMode === "size" && (
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Label htmlFor="targetSizeMB" className="text-sm flex items-center gap-1">
-              Max file size (MB)
+            <Label
+              htmlFor="targetSizeMBRange"
+              className="text-sm flex items-center gap-1"
+            >
+              Max file size (for JPEG only)
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -332,40 +335,47 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 </TooltipContent>
               </Tooltip>
             </Label>
+            {/* value next to label, like quality */}
+            <span className="text-sm text-gray-400">
+              {(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB
+            </span>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm text-gray-400">
-              <span>Selected:</span>
-              <span className="text-gray-200 font-medium">{(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB</span>
-            </div>
-            <input
-              id="targetSizeMBRange"
-              type="range"
-              min="0.05"
-              max="10"
-              step="0.05"
-              value={parseFloat(targetSizeMB || "0.50")}
+
+          {/* slider first */}
+          <input
+            id="targetSizeMBRange"
+            type="range"
+            min="0.05"
+            max="10"
+            step="0.05"
+            value={parseFloat(targetSizeMB || "0.50")}
+            onChange={(e) => setTargetSizeMB(e.target.value)}
+            disabled={isLoading}
+            className="w-full accent-blue-500"
+          />
+
+          {/* optional number field */}
+          <div className="relative">
+            <Input
+              id="targetSizeMB"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0.01"
+              placeholder="e.g., 0.50"
+              value={targetSizeMB}
               onChange={(e) => setTargetSizeMB(e.target.value)}
               disabled={isLoading}
-              className="w-full accent-blue-500"
+              className="bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-12"
             />
-            <div className="relative">
-              <Input
-                id="targetSizeMB"
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0.01"
-                placeholder="e.g., 0.50"
-                value={targetSizeMB}
-                onChange={(e) => setTargetSizeMB(e.target.value)}
-                disabled={isLoading}
-                className="bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-12"
-              />
-              <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400 pointer-events-none">MB</span>
-            </div>
-            <p className="text-xs text-gray-400">It will try to keep each JPEG at or below this size by automatically adjusting quality.</p>
+            <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400 pointer-events-none">
+              MB
+            </span>
           </div>
+
+          <p className="text-xs text-gray-400">
+            It will try to keep each JPEG at or below this size by automatically adjusting quality.
+          </p>
         </div>
       )}
 
