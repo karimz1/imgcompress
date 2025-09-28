@@ -357,6 +357,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           {/* optional number field */}
           <div className="relative">
             <Input
+              data-testid="targetSizeMBInput"
               id="targetSizeMB"
               type="number"
               inputMode="decimal"
