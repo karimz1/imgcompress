@@ -39,10 +39,9 @@ export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: Im
   throw new Error(`Remove button not found for image: ${imageFile.fileName}`);
 }
 
-export function setMaxSizeInMB(page: Page, sizeInMB: Number): void {
-{
+export async function setMaxSizeInMBAsync(page: Page, sizeInMB: Number): Promise<void> {
   const input = page.locator(selectors.targetSizeMBInput);
-  input.fill(sizeInMB.toString());
+  await input.fill(sizeInMB.toString());
 }
 
 export function GetFullFilePathOfImageFile(fileName: ImageFileDto): string {

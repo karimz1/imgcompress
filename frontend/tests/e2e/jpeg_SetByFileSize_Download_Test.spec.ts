@@ -8,7 +8,7 @@ import {
   assertZipButtonNotRenderedAsync,
   assertDownloadLinksAsync,
   setOutputFormatAsync,
-  setMaxSizeInMB
+  setMaxSizeInMBAsync
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -43,7 +43,7 @@ import { ImageFileDto } from './utls/ImageFileDto';
   const sizeModeBtn = page.getByRole('button', { name: /Set by File Size/i });
   await sizeModeBtn.click();
 
-  setMaxSizeInMB(page, targetMB);
+  await setMaxSizeInMBAsync(page, targetMB);
   
   // Optional: verify the numeric display reflects the chosen MB (rounded to 2 decimals tolerance)
   const numeric = page.locator('#targetSizeMB');
