@@ -26,17 +26,13 @@ import { ImageFileDto } from './utls/ImageFileDto';
   await page.goto('/');
 
   const files: ImageFileDto[] = [new ImageFileDto('pexels-pealdesign-28594392.jpg')];
-  
-  const targetMB = 0.20; // 0.20 MB ≈ 204.8 KB
-
+  const targetMB = 0.20;
 
   const targetBytes = Math.round(targetMB * 1024 * 1024);
 
-  // Upload a sample image and verify it is listed
   await uploadFilesToDropzoneAsync(page, files);
   await assertFilesPresentInDropzoneAsync(page, files);
 
-  // Set output format to JPEG
   await setOutputFormatAsync(page, 'JPEG');
 
   // Switch JPEG settings mode to Set by File Size
@@ -44,12 +40,7 @@ import { ImageFileDto } from './utls/ImageFileDto';
   await sizeModeBtn.click();
 
   await setMaxSizeInMBAsync(page, targetMB);
-  
-  // Optional: verify the numeric display reflects the chosen MB (rounded to 2 decimals tolerance)
-  const numeric = page.locator('#targetSizeMB');
-  //await expect(numeric).toBeVisible();
 
-  // Convert
   await clickConversionButtonAsync(page);
   await assertZipButtonNotRenderedAsync(page);
 
@@ -65,6 +56,5 @@ import { ImageFileDto } from './utls/ImageFileDto';
   const stat = fs.statSync(downloadedPath);
   expect(stat.size).toBeLessThanOrEqual(targetBytes + 2048); // +2KB tolerance for headers/metadata
 
-  // Also assert file has .jpg extension
   expect(path.extname(downloadedPath).toLowerCase()).toBe('.jpg');
 });
