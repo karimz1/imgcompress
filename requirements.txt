@@ -1,3 +1,4 @@
+werkzeug
 cffi==2.0.0
 pillow==11.3.0
 pycparser==2.23

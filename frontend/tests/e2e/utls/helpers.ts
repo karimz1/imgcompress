@@ -15,6 +15,7 @@ const selectors = {
   conversionButton: '[data-testid="convert-btn"]',
   downloadLink: '[data-testid="drawer-uploaded-file-item-link"]',
   removeItemFromDropzoneBtn: '[data-testid="dropzone-remove-file-btn"]',
+  targetSizeMBInput: '[data-testid="targetSizeMBInput"]',
   dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]',
   outputFormatSelect: '#outputFormat'
 };
@@ -38,6 +39,10 @@ export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: Im
   throw new Error(`Remove button not found for image: ${imageFile.fileName}`);
 }
 
+export async function setMaxSizeInMBAsync(page: Page, sizeInMB: Number): Promise<void> {
+  const input = page.locator(selectors.targetSizeMBInput);
+  await input.fill(sizeInMB.toString());
+}
 
 export function GetFullFilePathOfImageFile(fileName: ImageFileDto): string {
   const filePath = path.resolve(__dirname, '../fixtures/sample-images', fileName.fileName);

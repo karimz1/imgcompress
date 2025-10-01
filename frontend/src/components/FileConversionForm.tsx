@@ -41,6 +41,12 @@ interface FileConversionFormProps {
   removeFile: (name: string) => void;
   clearFileSelection: () => void;
   onSubmit: (e: React.FormEvent) => void;
+
+  targetSizeMB: string;
+  setTargetSizeMB: (val: string) => void;
+
+  jpegMode: "quality" | "size";
+  setJpegMode: (val: "quality" | "size") => void;
   
   // From useDropzone
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
@@ -60,6 +66,8 @@ const tooltipContent = {
     "Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).",
   resizeWidth:
     "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
+  targetSize:
+    "Set an optional maximum output size (in MB). Applies to JPEG output only.",
 };
 
 const FileConversionForm: React.FC<FileConversionFormProps> = ({
@@ -77,6 +85,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   removeFile,
   clearFileSelection,
   onSubmit,
+  targetSizeMB,
+  setTargetSizeMB,
+  jpegMode,
+  setJpegMode,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -223,8 +235,33 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </Select>
       </div>
 
-      {/* Quality for JPEG */}
+      {/* JPEG controls mode */}
       {outputFormat === "jpeg" && (
+        <div className="space-y-2">
+          <Label className="text-sm">JPEG settings mode</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant={jpegMode === "quality" ? "default" : "outline"}
+              disabled={isLoading}
+              onClick={() => setJpegMode("quality")}
+            >
+              Set by Quality
+            </Button>
+            <Button
+              type="button"
+              variant={jpegMode === "size" ? "default" : "outline"}
+              disabled={isLoading}
+              onClick={() => setJpegMode("size")}
+            >
+              Set by File Size
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Quality for JPEG */}
+      {outputFormat === "jpeg" && jpegMode === "quality" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -258,6 +295,88 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             disabled={isLoading}
             className="w-full accent-blue-500"
           />
+          <div className="flex gap-2 pt-2 flex-wrap">
+            <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("60")}>
+              Smaller (60)
+            </Button>
+            <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("75")}>
+              Balanced (75)
+            </Button>
+            <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("85")}>
+              High (85)
+            </Button>
+            <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("100")}>
+              Max (100)
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Max file size (MB) - only for JPEG in size mode */}
+      {outputFormat === "jpeg" && jpegMode === "size" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="targetSizeMBRange"
+              className="text-sm flex items-center gap-1"
+            >
+              Max file size (for JPEG only)
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
+                >
+                  <p className="text-sm">{tooltipContent.targetSize}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            {/* value next to label, like quality */}
+            <span className="text-sm text-gray-400">
+              {(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB
+            </span>
+          </div>
+
+          {/* slider first */}
+          <input
+            id="targetSizeMBRange"
+            type="range"
+            min="0.05"
+            max="10"
+            step="0.05"
+            value={parseFloat(targetSizeMB || "0.50")}
+            onChange={(e) => setTargetSizeMB(e.target.value)}
+            disabled={isLoading}
+            className="w-full accent-blue-500"
+          />
+
+          {/* optional number field */}
+          <div className="relative">
+            <Input
+              data-testid="targetSizeMBInput"
+              id="targetSizeMB"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0.01"
+              placeholder="e.g., 0.50"
+              value={targetSizeMB}
+              onChange={(e) => setTargetSizeMB(e.target.value)}
+              disabled={isLoading}
+              className="bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-12"
+            />
+            <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400 pointer-events-none">
+              MB
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-400">
+            It will try to keep each JPEG at or below this size by automatically adjusting quality.
+          </p>
         </div>
       )}
 
