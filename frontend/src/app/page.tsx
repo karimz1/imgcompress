@@ -8,9 +8,9 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ReleaseNotesButton } from "@/components/ReleaseNotesButton";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-
 import {
   Drawer,
   DrawerContent,
@@ -313,7 +313,7 @@ function HomePageContent() {
             {configReady && !disableLogo && (
               <CardHeader>
                 <Image
-                  src={resolvedTheme === "dark" ? "/mascot_dark.jpg" : "/mascot.jpg"}
+                  src={resolvedTheme === "dark" ? "/mascot_dark.png" : "/mascot.jpg"}
                   width={600}
                   height={600}
                   alt="Mascot of ImgCompress a Tool by Karim Zouine"
@@ -361,6 +361,10 @@ function HomePageContent() {
           >
             <HardDrive className="h-6 w-6" />
           </button>
+        </div>
+        {/* Release Notes - subtle, bottom-left */}
+        <div className="fixed bottom-4 left-4 z-40">
+          <ReleaseNotesButton />
         </div>
 
         {/* Drawer for File Manager */}

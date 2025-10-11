@@ -30,7 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="fixed right-3 top-3 z-50">
+          <div className="fixed right-3 top-3 z-50 flex gap-2 items-center">
             <ThemeToggle />
           </div>
           {children}
