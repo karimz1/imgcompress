@@ -58,20 +58,20 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
           🗃️ Show Compressed {pluralize(converted.length, "Image", "Images")}
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="bg-zinc-950 dark:bg-white border-0">
+      <DrawerContent className="border-0">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
-            <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-white text-center">
+            <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-center">
               Compressed {pluralize(converted.length, "Image", "Images")}
             </DrawerTitle>
-            <DrawerDescription className="text-center text-gray-500">
+            <DrawerDescription className="text-center">
               Download your compressed {pluralize(converted.length, "Image", "Images")} individually or all at once.
             </DrawerDescription>
           </DrawerHeader>
           <div className="p-1 pb-0 flex flex-col items-center">
             {converted.length > 1 && (
               <div className="text-center p-5">
-                <Button variant="secondary" onClick={onDownloadAll} data-testid="drawer-download-all-as-zip-btn">
+                <Button variant="default" onClick={onDownloadAll} data-testid="drawer-download-all-as-zip-btn">
                   Download All as Zip
                 </Button>
               </div>

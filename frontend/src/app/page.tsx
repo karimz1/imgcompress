@@ -372,10 +372,10 @@ function HomePageContent() {
           <DrawerTrigger asChild>
             <button className="hidden" />
           </DrawerTrigger>
-          <DrawerContent className="bg-zinc-950 border-0">
+          <DrawerContent className="border-0">
             <VisuallyHidden>
               <DrawerHeader>
-                <DrawerTitle className="text-lg font-semibold text-white text-center">
+                <DrawerTitle className="text-lg font-semibold text-center">
                   Admin Tools
                 </DrawerTitle>
               </DrawerHeader>
