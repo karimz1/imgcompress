@@ -5,11 +5,12 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+
 import {
   Drawer,
   DrawerContent,
@@ -92,6 +93,7 @@ function HomePageContent() {
 
   const { error, setError, clearError } = useErrorStore();
   const backendDown = useBackendHealth();
+  const { resolvedTheme } = useTheme();
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -301,7 +303,7 @@ function HomePageContent() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
       <BackendStatusBanner backendDown={backendDown} />
-      <div className="p-4 flex-grow flex flex-col items-center">
+      <div className="p-4 flex-grow flex flex-col items-center text-foreground">
         <ToastContainer />
         <Card className="w-full max-w-xl">
           <CardTitle className={`text-center pt-5 ${
@@ -311,12 +313,11 @@ function HomePageContent() {
             {configReady && !disableLogo && (
               <CardHeader>
                 <Image
-                  src="/mascot.jpg"
+                  src={resolvedTheme === "dark" ? "/mascot_dark.jpg" : "/mascot.jpg"}
                   width={600}
                   height={600}
                   alt="Mascot of ImgCompress a Tool by Karim Zouine"
                 />
-                <Separator />
               </CardHeader>
             )}
           <CardContent>
@@ -367,10 +368,10 @@ function HomePageContent() {
           <DrawerTrigger asChild>
             <button className="hidden" />
           </DrawerTrigger>
-          <DrawerContent className="bg-zinc-950 border-0">
+          <DrawerContent className="border-0">
             <VisuallyHidden>
               <DrawerHeader>
-                <DrawerTitle className="text-lg font-semibold text-white text-center">
+                <DrawerTitle className="text-lg font-semibold text-center">
                   Admin Tools
                 </DrawerTitle>
               </DrawerHeader>
