@@ -63,25 +63,59 @@ const LinkText = ({ text }: { text: string }) => {
 }
 
 const parseMarkdown = (md: string): ReleaseEntry[] => {
-  const sectionRegex = /^##\s+v?(\d+\.\d+\.\d+)\s+[—-]\s+(\d{4}-\d{2}-\d{2})\s*[\r\n]+([\s\S]*?)(?=^##\s+|$)/gm
+  const lines = md.split(/\r?\n/)
   const releases: ReleaseEntry[] = []
-  let match: RegExpExecArray | null
-  while ((match = sectionRegex.exec(md)) !== null) {
-    const [, version, date, body] = match
-    const lines = body.trim().split(/\r?\n/)
-    const notes: string[] = []
-    let i = 0
-    while (i < lines.length) {
-      if (!lines[i].trim()) { i++; continue }
-      const bullet = lines[i].match(/^\s*[-*+]\s+(.*)$/)
-      let text = bullet ? bullet[1] : lines[i]
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i].trim()
+
+    // Check for version header: ## v0.2.0 — 2025-10-11
+    const headerMatch = line.match(/^##\s+v?(\d+\.\d+\.\d+)\s+[—-]\s+(\d{4}-\d{2}-\d{2})\s*$/)
+
+    if (headerMatch) {
+      const version = headerMatch[1]
+      const date = headerMatch[2]
+      const notes: string[] = []
       i++
-      while (i < lines.length && !/^\s*([-*+]\s+|#{1,6}\s+|$)/.test(lines[i])) text += "\n" + lines[i++].trimEnd()
-      notes.push(text.trim())
+
+      // Parse bullet points for this version
+      while (i < lines.length) {
+        const currentLine = lines[i].trim()
+
+        // Stop if we hit another version header or end
+        if (currentLine.startsWith('##')) break
+
+        // Check if this is a bullet point
+        const bulletMatch = currentLine.match(/^[-*+]\s+(.*)$/)
+        if (bulletMatch) {
+          let noteText = bulletMatch[1]
+          i++
+
+          // Collect continuation lines (lines that don't start with bullet or ##)
+          while (i < lines.length) {
+            const nextLine = lines[i].trim()
+            if (!nextLine || nextLine.startsWith('##') || /^[-*+]\s+/.test(nextLine)) {
+              break
+            }
+            noteText += '\n' + nextLine
+            i++
+          }
+
+          notes.push(noteText.trim())
+        } else {
+          i++
+        }
+      }
+
+      if (notes.length > 0) {
+        releases.push({ version, date, notes })
+      }
+    } else {
+      i++
     }
-    if (!notes.length && body) notes.push(body.trim())
-    releases.push({ version, date, notes })
   }
+
   return releases
 }
 
@@ -131,6 +165,19 @@ export function ReleaseNotesButton() {
         <DialogHeader>
           <DialogTitle>Release Notes</DialogTitle>
         </DialogHeader>
+        <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Only the latest changes are listed here. For older release notes and all resolved issues, visit{" "}
+            <a
+              href="https://github.com/karimz1/imgcompress/issues?q=is%3Aissue%20state%3Aclosed"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              GitHub Issues
+            </a>.
+          </p>
+        </div>
         <div className="space-y-3">
           {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
           {error && <p className="text-sm text-destructive">{error}</p>}
