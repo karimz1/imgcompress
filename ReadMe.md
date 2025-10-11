@@ -215,6 +215,10 @@ If Imgcompress saves you time, consider buying me a coffee, every donation keeps
 
 ---
 
+## 📓 Release Notes
+
+See the full release history in [frontend/public/release-notes.md](frontend/public/release-notes.md).
+
 ## 📝 License
 
 Released under the **MIT License**, see [LICENSE](https://github.com/karimz1/imgcompress/blob/main/LICENSE) for full text.
