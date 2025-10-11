@@ -362,7 +362,7 @@ function HomePageContent() {
             <HardDrive className="h-6 w-6" />
           </button>
         </div>
-        {/* Release Notes - subtle, bottom-left */}
+          
         <div className="fixed bottom-4 left-4 z-40">
           <ReleaseNotesButton />
         </div>
