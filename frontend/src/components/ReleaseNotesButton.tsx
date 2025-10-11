@@ -15,101 +15,167 @@ interface ReleaseNotesData {
   releases: ReleaseEntry[]
 }
 
-const LinkText = ({ text }: { text: string }) => {
-  const mdLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
+const renderLinksInText = (text: string, keyPrefix = 0): React.ReactNode[] => {
   const urlRegex = /(https?:\/\/[^\s)]+)/g
+  const nodes: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
 
-  const renderLinks = (t: string, key = 0): React.ReactNode[] => {
-    const nodes: React.ReactNode[] = []
-    let last = 0
-    let match: RegExpExecArray | null
-    while ((match = urlRegex.exec(t)) !== null) {
-      if (match.index > last) nodes.push(<React.Fragment key={`t-${key}-${last}`}>{t.slice(last, match.index)}</React.Fragment>)
-      const url = match[1]
-      nodes.push(<a key={`u-${key}-${match.index}`} href={url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{url}</a>)
-      last = match.index + match[0].length
+  while ((match = urlRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(
+        <React.Fragment key={`t-${keyPrefix}-${lastIndex}`}>
+          {text.slice(lastIndex, match.index)}
+        </React.Fragment>
+      )
     }
-    if (last < t.length) nodes.push(<React.Fragment key={`t-end-${key}`}>{t.slice(last)}</React.Fragment>)
-    return nodes
+    const url = match[1]
+    nodes.push(
+      <a
+        key={`u-${keyPrefix}-${match.index}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2"
+      >
+        {url}
+      </a>
+    )
+    lastIndex = match.index + match[0].length
   }
 
-  const renderMarkdown = (t: string): React.ReactNode[] => {
-    const parts: React.ReactNode[] = []
-    let last = 0
-    let m: RegExpExecArray | null
-    let key = 0
-    while ((m = mdLinkRegex.exec(t)) !== null) {
-      const [full, label, url] = m
-      if (m.index > last) parts.push(...renderLinks(t.slice(last, m.index), key++))
-      parts.push(<a key={`md-${key}-${m.index}`} href={url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{label}</a>)
-      last = m.index + full.length
-    }
-    if (last < t.length) parts.push(...renderLinks(t.slice(last), key++))
-    return parts
+  if (lastIndex < text.length) {
+    nodes.push(<React.Fragment key={`t-end-${keyPrefix}`}>{text.slice(lastIndex)}</React.Fragment>)
   }
 
-  const render = (t: string): React.ReactNode => (
+  return nodes
+}
+
+const renderMarkdownLinks = (text: string): React.ReactNode[] => {
+  const mdLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
+  const parts: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  let key = 0
+
+  while ((match = mdLinkRegex.exec(text)) !== null) {
+    const [full, label, url] = match
+
+    if (match.index > lastIndex) {
+      parts.push(...renderLinksInText(text.slice(lastIndex, match.index), key++))
+    }
+
+    parts.push(
+      <a
+        key={`md-${key}-${match.index}`}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2"
+      >
+        {label}
+      </a>
+    )
+    lastIndex = match.index + full.length
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(...renderLinksInText(text.slice(lastIndex), key++))
+  }
+
+  return parts
+}
+
+const LinkText = ({ text }: { text: string }) => {
+  const lines = text.split(/\r?\n/)
+
+  return (
     <>
-      {t.split(/\r?\n/).map((ln, i, arr) => (
-        <React.Fragment key={i}>
-          {renderMarkdown(ln)}
-          {i < arr.length - 1 && <br />}
+      {lines.map((line, index) => (
+        <React.Fragment key={index}>
+          {renderMarkdownLinks(line)}
+          {index < lines.length - 1 && <br />}
         </React.Fragment>
       ))}
     </>
   )
-
-  return <>{render(text)}</>
 }
 
-const parseMarkdown = (md: string): ReleaseEntry[] => {
-  const lines = md.split(/\r?\n/)
+const isVersionHeader = (line: string) => {
+  return /^##\s+v?\d+\.\d+\.\d+\s+[—-]\s+\d{4}-\d{2}-\d{2}\s*$/.test(line)
+}
+
+const isBulletPoint = (line: string) => {
+  return /^[-*+]\s+/.test(line)
+}
+
+const extractVersionInfo = (line: string) => {
+  const match = line.match(/^##\s+v?(\d+\.\d+\.\d+)\s+[—-]\s+(\d{4}-\d{2}-\d{2})\s*$/)
+  if (!match) return null
+  return { version: match[1], date: match[2] }
+}
+
+const extractBulletText = (line: string) => {
+  const match = line.match(/^[-*+]\s+(.*)$/)
+  return match ? match[1] : ""
+}
+
+const collectBulletNotes = (lines: string[], startIndex: number) => {
+  const notes: string[] = []
+  let i = startIndex
+
+  while (i < lines.length) {
+    const currentLine = lines[i].trim()
+
+    if (isVersionHeader(currentLine)) break
+
+    if (isBulletPoint(currentLine)) {
+      let noteText = extractBulletText(currentLine)
+      i++
+
+      while (i < lines.length) {
+        const nextLine = lines[i].trim()
+        if (!nextLine || isVersionHeader(nextLine) || isBulletPoint(nextLine)) {
+          break
+        }
+        noteText += '\n' + nextLine
+        i++
+      }
+
+      notes.push(noteText.trim())
+    } else {
+      i++
+    }
+  }
+
+  return { notes, nextIndex: i }
+}
+
+const parseMarkdown = (markdown: string): ReleaseEntry[] => {
+  const lines = markdown.split(/\r?\n/)
   const releases: ReleaseEntry[] = []
   let i = 0
 
   while (i < lines.length) {
     const line = lines[i].trim()
 
-    // Check for version header: ## v0.2.0 — 2025-10-11
-    const headerMatch = line.match(/^##\s+v?(\d+\.\d+\.\d+)\s+[—-]\s+(\d{4}-\d{2}-\d{2})\s*$/)
+    if (isVersionHeader(line)) {
+      const versionInfo = extractVersionInfo(line)
 
-    if (headerMatch) {
-      const version = headerMatch[1]
-      const date = headerMatch[2]
-      const notes: string[] = []
-      i++
+      if (versionInfo) {
+        const { notes, nextIndex } = collectBulletNotes(lines, i + 1)
 
-      // Parse bullet points for this version
-      while (i < lines.length) {
-        const currentLine = lines[i].trim()
-
-        // Stop if we hit another version header or end
-        if (currentLine.startsWith('##')) break
-
-        // Check if this is a bullet point
-        const bulletMatch = currentLine.match(/^[-*+]\s+(.*)$/)
-        if (bulletMatch) {
-          let noteText = bulletMatch[1]
-          i++
-
-          // Collect continuation lines (lines that don't start with bullet or ##)
-          while (i < lines.length) {
-            const nextLine = lines[i].trim()
-            if (!nextLine || nextLine.startsWith('##') || /^[-*+]\s+/.test(nextLine)) {
-              break
-            }
-            noteText += '\n' + nextLine
-            i++
-          }
-
-          notes.push(noteText.trim())
-        } else {
-          i++
+        if (notes.length > 0) {
+          releases.push({
+            version: versionInfo.version,
+            date: versionInfo.date,
+            notes
+          })
         }
-      }
 
-      if (notes.length > 0) {
-        releases.push({ version, date, notes })
+        i = nextIndex
+      } else {
+        i++
       }
     } else {
       i++
@@ -119,8 +185,62 @@ const parseMarkdown = (md: string): ReleaseEntry[] => {
   return releases
 }
 
-export function ReleaseNotesButton() {
-  const [open, setOpen] = React.useState(false)
+const InfoBox = () => (
+  <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+    <p className="text-xs text-muted-foreground leading-relaxed">
+      Only the latest changes are listed here. For older release notes and all resolved issues, visit{" "}
+      <a
+        href="https://github.com/karimz1/imgcompress/issues?q=is%3Aissue%20state%3Aclosed"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline underline-offset-2 hover:text-foreground transition-colors"
+      >
+        GitHub Issues
+      </a>.
+    </p>
+  </div>
+)
+
+const LoadingState = () => (
+  <p className="text-sm text-muted-foreground">Loading…</p>
+)
+
+const ErrorState = ({ message }: { message: string }) => (
+  <p className="text-sm text-destructive">{message}</p>
+)
+
+const EmptyState = () => (
+  <p className="text-sm text-muted-foreground">No release notes available.</p>
+)
+
+const ReleaseNote = ({ note }: { note: string }) => (
+  <li className="text-sm leading-relaxed">
+    <LinkText text={note} />
+  </li>
+)
+
+const ReleaseSection = ({ release }: { release: ReleaseEntry }) => (
+  <div className="space-y-2">
+    <div className="text-sm font-semibold">
+      {`v${release.version}${release.date ? ` · ${release.date}` : ""}`}
+    </div>
+    <ul className="list-disc pl-5 space-y-2">
+      {release.notes.map((note, index) => (
+        <ReleaseNote key={index} note={note} />
+      ))}
+    </ul>
+  </div>
+)
+
+const ReleasesList = ({ releases }: { releases: ReleaseEntry[] }) => (
+  <div className="space-y-5">
+    {releases.map((release, index) => (
+      <ReleaseSection key={index} release={release} />
+    ))}
+  </div>
+)
+
+const useFetchReleaseNotes = () => {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [data, setData] = React.useState<ReleaseNotesData | null>(null)
@@ -129,11 +249,13 @@ export function ReleaseNotesButton() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch("/release-notes.md", { cache: "no-store" })
-      if (res.ok) {
-        const md = await res.text()
-        const releases = parseMarkdown(md)
-        if (releases.length) setData({ releases })
+      const response = await fetch("/release-notes.md", { cache: "no-store" })
+      if (response.ok) {
+        const markdown = await response.text()
+        const releases = parseMarkdown(markdown)
+        if (releases.length) {
+          setData({ releases })
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load release notes")
@@ -142,9 +264,18 @@ export function ReleaseNotesButton() {
     }
   }, [])
 
-  const handleOpenChange = (next: boolean) => {
-    setOpen(next)
-    if (next && !data && !loading && !error) void loadNotes()
+  return { loading, error, data, loadNotes }
+}
+
+export function ReleaseNotesButton() {
+  const [open, setOpen] = React.useState(false)
+  const { loading, error, data, loadNotes } = useFetchReleaseNotes()
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (nextOpen && !data && !loading && !error) {
+      void loadNotes()
+    }
   }
 
   const releases = data?.releases ?? []
@@ -165,39 +296,12 @@ export function ReleaseNotesButton() {
         <DialogHeader>
           <DialogTitle>Release Notes</DialogTitle>
         </DialogHeader>
-        <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Only the latest changes are listed here. For older release notes and all resolved issues, visit{" "}
-            <a
-              href="https://github.com/karimz1/imgcompress/issues?q=is%3Aissue%20state%3Aclosed"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
-            >
-              GitHub Issues
-            </a>.
-          </p>
-        </div>
+        <InfoBox />
         <div className="space-y-3">
-          {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {!loading && !error && releases.length > 0 && (
-            <div className="space-y-5">
-              {releases.map((r, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="text-sm font-semibold">{`v${r.version}${r.date ? ` · ${r.date}` : ""}`}</div>
-                  <ul className="list-disc pl-5 space-y-2">
-                    {r.notes.map((n, j) => (
-                      <li key={j} className="text-sm leading-relaxed"><LinkText text={n} /></li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-          {!loading && !error && !releases.length && (
-            <p className="text-sm text-muted-foreground">No release notes available.</p>
-          )}
+          {loading && <LoadingState />}
+          {error && <ErrorState message={error} />}
+          {!loading && !error && releases.length > 0 && <ReleasesList releases={releases} />}
+          {!loading && !error && !releases.length && <EmptyState />}
         </div>
       </DialogContent>
     </Dialog>
