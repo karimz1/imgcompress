@@ -1,12 +1,20 @@
-# imgcompress: The Ultimate Docker Image Compression Tool
+# imgcompress — Fast, Private Image Compression & Conversion Tool in Docker
+
+Instantly **compress, convert, and resize images** — all **locally**, inside a lightweight Docker container.  
+No installs. No uploads. No data ever leaves your machine.
+
+👉 One command to start the web app — drag & drop your images, and download optimized results in seconds.
+
+## Demo Example:
+<img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="400"/>
+
+> **Demo show:** Import → Convert → Download in 7 seconds.  
+> Works with HEIC, JPG, PNG, WebP, and so much more.
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)  
 [![Docker Image Version](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress)  
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)  
 [![Build and Test Docker Image](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/karimz1/imgcompress/actions/workflows/deploy.yml)
-
-<img src="images/web_ui_2025-02-22_17-54-17.gif" alt="imgcompress Web UI in Action" width="400"/>
-
 ## 📋 Table of Contents
 - [imgcompress: The Ultimate Docker Image Compression Tool](#imgcompress-the-ultimate-docker-image-compression-tool)
   - [📋 Table of Contents](#-table-of-contents)
