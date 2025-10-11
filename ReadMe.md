@@ -6,7 +6,7 @@ No installs. No uploads. No data ever leaves your machine.
 👉 One command to start the web app — drag & drop your images, and download optimized results in seconds.
 
 ## Demo Example:
-<img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="400"/>
+<img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
 
 > **Demo show:** Import → Convert → Download in seconds.  
 > Works with HEIC, JPG, PNG, WebP, and so much more.
