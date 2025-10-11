@@ -301,7 +301,7 @@ function HomePageContent() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
       <BackendStatusBanner backendDown={backendDown} />
-      <div className="p-4 flex-grow flex flex-col items-center">
+      <div className="p-4 flex-grow flex flex-col items-center text-foreground">
         <ToastContainer />
         <Card className="w-full max-w-xl">
           <CardTitle className={`text-center pt-5 ${
