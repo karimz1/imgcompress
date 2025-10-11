@@ -313,7 +313,7 @@ function HomePageContent() {
             {configReady && !disableLogo && (
               <CardHeader>
                 <Image
-                  src={resolvedTheme === "dark" ? "/mascot_dark.png" : "/mascot.jpg"}
+                  src={resolvedTheme === "dark" ? "/mascot_dark.jpg" : "/mascot.jpg"}
                   width={600}
                   height={600}
                   alt="Mascot of ImgCompress a Tool by Karim Zouine"
