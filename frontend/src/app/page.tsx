@@ -10,7 +10,7 @@ import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+
 import {
   Drawer,
   DrawerContent,
