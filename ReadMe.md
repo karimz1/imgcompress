@@ -8,7 +8,7 @@ No installs. No uploads. No data ever leaves your machine.
 ## Demo Example:
 <img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="400"/>
 
-> **Demo show:** Import → Convert → Download in 7 seconds.  
+> **Demo show:** Import → Convert → Download in seconds.  
 > Works with HEIC, JPG, PNG, WebP, and so much more.
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)  
