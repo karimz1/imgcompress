@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -92,6 +93,7 @@ function HomePageContent() {
 
   const { error, setError, clearError } = useErrorStore();
   const backendDown = useBackendHealth();
+  const { resolvedTheme } = useTheme();
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -311,12 +313,11 @@ function HomePageContent() {
             {configReady && !disableLogo && (
               <CardHeader>
                 <Image
-                  src="/mascot.jpg"
+                  src={resolvedTheme === "dark" ? "/mascot_dark.png" : "/mascot.jpg"}
                   width={600}
                   height={600}
                   alt="Mascot of ImgCompress a Tool by Karim Zouine"
                 />
-                <Separator />
               </CardHeader>
             )}
           <CardContent>
