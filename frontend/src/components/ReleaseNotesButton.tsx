@@ -67,7 +67,7 @@ const parseMarkdown = (md: string): ReleaseEntry[] => {
   const releases: ReleaseEntry[] = []
   let match: RegExpExecArray | null
   while ((match = sectionRegex.exec(md)) !== null) {
-    const [_, version, date, body] = match
+    const [, version, date, body] = match
     const lines = body.trim().split(/\r?\n/)
     const notes: string[] = []
     let i = 0
