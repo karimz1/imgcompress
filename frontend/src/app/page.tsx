@@ -361,6 +361,7 @@ function HomePageContent() {
           <ReleaseNotesButton />
         </div>
 
+        {/* Drawer for File Manager */}
         <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
           <DrawerTrigger asChild>
             <button className="hidden" />
