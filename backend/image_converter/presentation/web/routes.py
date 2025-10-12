@@ -183,3 +183,20 @@ def health_live():
 @api_blueprint.route("/images_supported", methods=["GET"])
 def supported_image_formats():
     return jsonify({"supported_formats": supported_extensions}), 200
+
+
+@api_blueprint.route("/images_verified", methods=["GET"])
+def verified_image_formats():
+    """Return the list of test-verified image extensions.
+
+    This is a subset of /images_supported that is covered by tests.
+    """
+    verified = [
+        ".heic",
+        ".heif",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".ico",
+    ]
+    return jsonify({"verified_formats": verified}), 200
