@@ -33,7 +33,7 @@ export function SupportedFormatsDialog({
     return (
         <Dialog>
             <DialogTrigger asChild>
-               <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
                     <Info className="h-4 w-4"/>
                     Supported Formats{" "}
                     {extensionsLoading ? "(…)" : total ? `(${total})` : ""}
