@@ -224,7 +224,7 @@ If Imgcompress saves you time, consider buying me a coffee, every donation keeps
 
 ## 📓 Release Notes
 
-See the full release history in [frontend/public/release-notes.md](frontend/public/release-notes.md).
+See the full release history in [frontend/public/release-notes.md](https://github.com/karimz1/imgcompress/blob/main/frontend/public/release-notes.md).
 
 ## 📝 License
 
