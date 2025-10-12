@@ -9,7 +9,6 @@ import { useTheme } from "next-themes";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ReleaseNotesButton } from "@/components/ReleaseNotesButton";
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Drawer,
@@ -31,22 +30,19 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 
-
-
 function HomePageContent() {
   const [disableLogo, setDisableLogo] = useState(false);
   const [configReady, setConfigReady] = useState(false);
 
-
   useEffect(() => {
     const loadRuntimeConfig = async () => {
       try {
-        const res = await fetch('/config/runtime.json');
-        if (!res.ok) throw new Error('Config not found');
+        const res = await fetch("/config/runtime.json");
+        if (!res.ok) throw new Error("Config not found");
         const config = await res.json();
-        setDisableLogo(config.DISABLE_LOGO === 'true');
+        setDisableLogo(config.DISABLE_LOGO === "true");
       } catch (err) {
-        console.warn('DISABLE_LOGO config missing or invalid, defaulting to false', err);
+        console.warn("DISABLE_LOGO config missing or invalid, defaulting to false", err);
         setDisableLogo(false);
       } finally {
         setConfigReady(true);
@@ -56,18 +52,20 @@ function HomePageContent() {
     loadRuntimeConfig();
   }, []);
 
-
   const {
-    extensions,
+    supportedExtensions,
+    verifiedExtensions,
     isLoading: extensionsLoading,
     error: extensionsError,
   } = useSupportedExtensions();
 
-  const formattedExtensions = extensions.map((ext) =>
+  const formattedSupportedExtensions = supportedExtensions.map((ext) =>
+    ext.startsWith(".") ? ext : `.${ext}`
+  );
+  const formattedVerifiedExtensions = verifiedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
   );
 
-  // State for form
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
@@ -78,15 +76,6 @@ function HomePageContent() {
   const [outputFormat, setOutputFormat] = useState("jpeg");
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [jpegMode, setJpegMode] = useState<"quality" | "size">("quality");
-
-  // Keep JPEG mode consistent when switching away from JPEG format
-  useEffect(() => {
-    if (outputFormat !== "jpeg") {
-      setJpegMode("quality");
-      setTargetSizeMB("");
-    }
-  }, [outputFormat]);
-
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
@@ -95,31 +84,35 @@ function HomePageContent() {
   const backendDown = useBackendHealth();
   const { resolvedTheme } = useTheme();
 
+  useEffect(() => {
+    if (outputFormat !== "jpeg") {
+      setJpegMode("quality");
+      setTargetSizeMB("");
+    }
+  }, [outputFormat]);
+
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       clearError();
       setConverted([]);
       setDestFolder("");
-  
+
       const supportedFiles: File[] = [];
       const unsupportedFiles: string[] = [];
-  
+
       acceptedFiles.forEach((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
-        if (ext && formattedExtensions.includes(`.${ext}`)) {
-          console.log(`✅ File type allowed: ${file.name}`);
+        if (ext && formattedSupportedExtensions.includes(`.${ext}`)) {
           supportedFiles.push(file);
         } else {
-          console.log(`❌ File type not allowed: ${file.name} (extension: .${ext})`);
           unsupportedFiles.push(file.name);
         }
       });
-  
-      // Show toast for each unsupported file
+
       unsupportedFiles.forEach((fileName) => {
         toast.error(`Unsupported File Format: ${fileName}`);
       });
-  
+
       if (unsupportedFiles.length > 0) {
         setError({
           message: `${unsupportedFiles.length} file(s) were rejected due to unsupported file types.`,
@@ -128,7 +121,7 @@ function HomePageContent() {
 
       setFiles((prev) => [...prev, ...supportedFiles]);
     },
-    [clearError, setError, formattedExtensions]
+    [clearError, setError, formattedSupportedExtensions]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -166,9 +159,6 @@ function HomePageContent() {
           return;
         }
 
-        // ------------------------------------------------
-        //  Clamping logic for ICO if width is > 256
-        // ------------------------------------------------
         if (outputFormat === "ico" && widthNum > 256) {
           toast.info(
             "ICO format is limited to a max width of 256px. Your input has been clamped to 256."
@@ -177,7 +167,6 @@ function HomePageContent() {
         }
       }
 
-      // Validate max size (MB) when using size-based mode for JPEG
       if (outputFormat === "jpeg" && jpegMode === "size") {
         const trimmed = (targetSizeMB || "").trim();
         const t = parseFloat(trimmed);
@@ -306,20 +295,23 @@ function HomePageContent() {
       <div className="p-4 flex-grow flex flex-col items-center text-foreground">
         <ToastContainer />
         <Card className="w-full max-w-xl">
-          <CardTitle className={`text-center pt-5 ${
+          <CardTitle
+            className={`text-center pt-5 ${
               configReady && disableLogo ? "pb-8" : ""
-          }`}> An Image Compression Tool
+            }`}
+          >
+            An Image Compression Tool
           </CardTitle>
-            {configReady && !disableLogo && (
-              <CardHeader>
-                <Image
-                  src={resolvedTheme === "dark" ? "/mascot_dark.jpg" : "/mascot.jpg"}
-                  width={600}
-                  height={600}
-                  alt="Mascot of ImgCompress a Tool by Karim Zouine"
-                />
-              </CardHeader>
-            )}
+          {configReady && !disableLogo && (
+            <CardHeader>
+              <Image
+                src={resolvedTheme === "dark" ? "/mascot_dark.jpg" : "/mascot.jpg"}
+                width={600}
+                height={600}
+                alt="Mascot of ImgCompress a Tool by Karim Zouine"
+              />
+            </CardHeader>
+          )}
           <CardContent>
             <FileConversionForm
               isLoading={isLoading}
@@ -343,13 +335,15 @@ function HomePageContent() {
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}
-              supportedExtensions={formattedExtensions}
+              supportedExtensions={formattedSupportedExtensions}
+              verifiedExtensions={formattedVerifiedExtensions}
               extensionsLoading={extensionsLoading}
               extensionsError={extensionsError}
             />
           </CardContent>
         </Card>
-        {/* A floating button to open the FileManager drawer */}
+
+         {/* A floating button to open the FileManager drawer */}
         <div className="fixed bottom-4 right-4">
           <button
             disabled={isLoading}
@@ -381,15 +375,11 @@ function HomePageContent() {
               </DrawerHeader>
             </VisuallyHidden>
             <div className="p-4">
-              <FileManager
-                onForceClean={onForceCleanCallback}
-                key={fileManagerRefresh}
-              />
+              <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
             </div>
           </DrawerContent>
         </Drawer>
 
-        {/* Drawer for Compressed Files */}
         {converted.length > 0 && (
           <CompressedFilesDrawer
             converted={converted}
@@ -401,7 +391,6 @@ function HomePageContent() {
         )}
 
         <ErrorModal />
-
         <PageFooter />
       </div>
     </div>

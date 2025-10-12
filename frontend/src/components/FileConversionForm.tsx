@@ -20,11 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
+import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog"
 
 interface FileConversionFormProps {
   isLoading: boolean;
@@ -53,10 +49,11 @@ interface FileConversionFormProps {
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
 
-  // New props for showing supported formats
-  supportedExtensions: string[];
-  extensionsLoading: boolean;
-  extensionsError: Error | null;
+  // ✅ Extended API data
+  supportedExtensions: string[]
+  verifiedExtensions: string[]
+  extensionsLoading: boolean
+  extensionsError: Error | null
 }
 
 const tooltipContent = {
@@ -93,6 +90,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   getInputProps,
   isDragActive,
   supportedExtensions,
+  verifiedExtensions,
   extensionsLoading,
   extensionsError,
 }) => {
@@ -169,35 +167,13 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {/*
-        A "Popover" to show all supported file extensions.
-        Triggered by a button in the top-right corner.
-      */}
       <div className="flex justify-end">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <Info className="h-4 w-4" />
-              Supported Formats {supportedExtensions.length > 0 && `(${supportedExtensions.length})`}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            className="bg-gray-900 text-white p-3 rounded-md shadow-md w-56 border-0 max-h-[300px] overflow-auto"
-          >
-            {extensionsLoading ? (
-              <p>Loading...</p>
-            ) : extensionsError ? (
-              <p className="text-red-400">Error loading formats</p>
-            ) : (
-              // Display them in a comma-separated string:
-              <p className="text-sm">
-                {supportedExtensions.join(", ")}
-              </p>
-            )}
-          </PopoverContent>
-
-        </Popover>
+        <SupportedFormatsDialog
+          supportedExtensions={supportedExtensions}
+          verifiedExtensions={verifiedExtensions}
+          extensionsLoading={extensionsLoading}
+          extensionsError={extensionsError}
+        />
       </div>
 
       {/* Output Format */}
