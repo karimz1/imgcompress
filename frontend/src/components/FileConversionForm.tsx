@@ -20,11 +20,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog"
 
 interface FileConversionFormProps {
