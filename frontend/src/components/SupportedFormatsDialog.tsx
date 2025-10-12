@@ -115,27 +115,12 @@ export function SupportedFormatsDialog({
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs hover:underline mt-2"
                             >
-                                View full format documentation <ExternalLink className="h-3 w-3"/>
+                                imgcompress compatibility documentaion <ExternalLink className="h-3 w-3"/>
                             </a>
                         </section>
                     </div>
                 )}
-
-                <div className="pt-3 text-[11px] text-muted-foreground text-right">
-                    Format support may evolve automatically through dependency updates in the CI pipeline.{" "}
-                    <a
-                        href="https://github.com/karimz1/imgcompress"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline underline-offset-2 hover:text-foreground transition-colors"
-                    >
-                        View on GitHub
-                    </a>
-                    .
-                </div>
-
-
-            </DialogContent>
+           </DialogContent>
         </Dialog>
     )
 }
