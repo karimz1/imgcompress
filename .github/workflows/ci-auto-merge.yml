@@ -141,7 +141,7 @@ jobs:
           fi
 
       - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: e2e-test-results-${{ env.ARCH }}
           path: e2e-test-results-${{ env.ARCH }}.zip
