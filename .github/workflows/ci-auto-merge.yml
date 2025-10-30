@@ -145,6 +145,7 @@ jobs:
         with:
           name: e2e-test-results-${{ env.ARCH }}
           path: e2e-test-results-${{ env.ARCH }}.zip
+          retention-days: 3
   
   auto-merge-dependabot:
     needs: test-e2e
