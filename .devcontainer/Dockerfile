@@ -1,4 +1,4 @@
-FROM ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-09
+FROM ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-11
   
 # Python virtual environment  
 WORKDIR /app  
