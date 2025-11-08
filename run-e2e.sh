@@ -6,6 +6,9 @@ BASE_URL=${PLAYWRIGHT_BASE_URL:-http://localhost:5000}
 echo "Using base URL: ${BASE_URL}"
 
 # Run E2E Tests in Dev Container
+echo install pnpm
+RUN npm i pnpm -g
+
 echo "Running E2E Tests..."
 cd frontend 
 pnpm install
