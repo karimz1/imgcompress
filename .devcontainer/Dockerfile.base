@@ -47,6 +47,8 @@ RUN NODE_DIR=$(find /root/.nvm/versions/node -maxdepth 1 -type d -name "v${NODE_
 
 ENV PATH="$(find /root/.nvm/versions/node -maxdepth 1 -type d -name 'v${NODE_VERSION}*' | head -n 1)/bin:${PATH}"
 
+RUN npm i -g pnpm
+
 # Docker CLI if on amd64/arm64 
 RUN apt-get update && \ 
     if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \ 
