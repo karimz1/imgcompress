@@ -1,3 +1,7 @@
+## v0.2.2 — 2025-11-08
+- New Feature "Implement .EPS file format support and verification: ([#343](https://github.com/karimz1/imgcompress/issues/343))
+
+
 ## v0.2.1 — 2025-10-12
 - Enhances "Support Formats" by using Dialog: ([#325](https://github.com/karimz1/imgcompress/issues/325))
 

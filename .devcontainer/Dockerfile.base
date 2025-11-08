@@ -1,5 +1,5 @@
 FROM debian:bookworm-slim 
- 
+
 # Install essential system packages needed for both Python and Node.js 
 RUN apt-get update && apt-get install -y \ 
     python3 python3-pip python3-venv python3-dev \ 
@@ -19,14 +19,20 @@ RUN apt-get update && apt-get install -y \
     libxshmfence1 \ 
     ca-certificates \ 
     xvfb \ 
-    nodejs npm \ 
     tmux \ 
     apt-transport-https \ 
     gnupg2 \ 
     dos2unix \
     lsb-release \ 
+    ghostscript \ 
     && rm -rf /var/lib/apt/lists/* 
  
+# --- NVM + Node.js ---
+ARG NODE_VERSION=22
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION"
+
 # Docker CLI if on amd64/arm64 
 RUN apt-get update && \ 
     if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \ 
@@ -35,9 +41,6 @@ RUN apt-get update && \
     else \ 
       echo "Skipping Docker CLI on unsupported architecture."; \ 
     fi 
-
-# install pnpm
-RUN npm i pnpm -g
 
 # Python virtual environment 
 WORKDIR /app 

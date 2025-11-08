@@ -40,7 +40,7 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "./backend/image_converter/web_app/app.py",
+                "FLASK_APP": "./backend/image_converter/presentation/web/server.py",
                 "FLASK_ENV": "development"
             },
             "args": [
