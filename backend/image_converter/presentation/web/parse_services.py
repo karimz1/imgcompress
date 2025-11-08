@@ -5,7 +5,7 @@ from backend.image_converter.core.internals.utls import Result, is_file_supporte
 
 def extract_form_data(request: Request, logger: Logger) -> Result[Dict[str, Any]]:
     uploaded_files = request.files.getlist("files[]")
-    output_format = request.form.get("format").lower()
+    output_format = request.form.get("format", "jpeg").lower()
     quality = _parse_quality(request.form.get("quality", "85"), logger)
     width = _parse_width(request.form.get("width", ""), logger)
     target_size_kb = _parse_target_size_kb(request.form.get("target_size_kb", ""), logger)
