@@ -7,7 +7,7 @@ echo "Using base URL: ${BASE_URL}"
 
 # Run E2E Tests in Dev Container
 echo install pnpm
-RUN npm i pnpm -g
+npm i pnpm -g
 
 echo "Running E2E Tests..."
 cd frontend 
