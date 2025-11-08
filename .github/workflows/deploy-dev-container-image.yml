@@ -1,8 +1,6 @@
 name: Build & Push Multi-Arch Docker Image Every 2nd Month
 
 on:
-  push:
-    branches: [ "release/devcontainer/*" ]
   schedule:
     - cron: '0 0 1 */2 *'  # Every 2nd month on the 1st
   workflow_dispatch:
@@ -43,4 +41,4 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/imgcompress-devcontainer-image:${{ steps.tag.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/devcontainer-image-only-for-devs:${{ steps.tag.outputs.tag }}
