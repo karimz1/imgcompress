@@ -8,7 +8,7 @@ ENV PATH="/venv/bin:$PATH"
   
 # Install Python dependencies  
 COPY requirements-dev.txt .  
-RUN npm i pnpm -g && pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt  
+RUN npm i pnpm -g && pip install --upgrade pip && pip install -r ./devcontainer/requirements-dev.txt  
   
   
 ENTRYPOINT ["/bin/sh"]
