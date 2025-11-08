@@ -39,6 +39,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Install system dependencies needed for HEIC support.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libheif-dev \
+    ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory.
