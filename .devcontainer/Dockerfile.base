@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \ 
     dos2unix \
     lsb-release \ 
+    ghostscript \ 
     && rm -rf /var/lib/apt/lists/* 
  
 # --- NVM + Node.js ---
