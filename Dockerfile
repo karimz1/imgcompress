@@ -36,10 +36,24 @@ LABEL org.opencontainers.image.source="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.licenses="MIT"
 
-# Install system dependencies needed for HEIC support.
+# 🧩 Install system dependencies required for full Pillow image format support
+# 
+# This layer installs libraries that enable reading/writing many image formats:
+#   - libjpeg, libpng, libtiff, libwebp, libopenjp2: common raster formats (JPEG, PNG, TIFF, WebP, JPEG2000)
+#   - libimagequant: high-quality PNG quantization
+#   - libheif: enables HEIF / HEIC / AVIF image decoding
+#   - ghostscript: enables reading vector formats like .EPS, .PS, and .PDF
+#   - liblcms2, libfreetype, libharfbuzz, libfribidi: color management + advanced text rendering
+#   - libxcb, zlib, libgif: core compression and GIF/X11 support
+#
+# Together, these libraries ensure Pillow (PIL) can handle nearly every major image type used in production.
+# But I haven't tested all in CI, yet.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libheif-dev \
-    ghostscript \
+    python3-dev python3-pip \
+    libjpeg-dev libpng-dev libtiff-dev libwebp-dev libopenjp2-7-dev \
+    libimagequant-dev libheif-dev liblcms2-dev \
+    libfreetype6-dev libharfbuzz-dev libfribidi-dev \
+    libxcb1-dev zlib1g-dev libgif-dev ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory.
