@@ -18,6 +18,7 @@ test('should upload two files, verify individual downloads by clicking and ZIP d
         new ImageFileDto("pexels-pealdesign-28594392.jpg", 3486),
         new ImageFileDto("pexels-willianjusten-29944187.jpg", 3648),
         new ImageFileDto("IMG_0935.heic", 4284),
+        new ImageFileDto("vecteezy_new-update-logo-template-illustration_5412356-0.eps", 4000)
     ];
 
     await uploadFilesToDropzoneAsync(page, imageFileNames);
