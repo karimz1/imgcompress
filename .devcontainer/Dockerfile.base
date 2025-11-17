@@ -25,8 +25,31 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \ 
     dos2unix \
     lsb-release \ 
+    ghostscript \ 
     && rm -rf /var/lib/apt/lists/* 
  
+# --- NVM + Node.js ---
+ARG NODE_VERSION=22
+ENV NVM_DIR=/root/.nvm
+
+RUN bash -c '\
+    set -e; \
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && \
+    . "$NVM_DIR/nvm.sh" && \
+    nvm install ${NODE_VERSION} && \
+    nvm alias default ${NODE_VERSION} && \
+    nvm use default && \
+    node -v && npm -v \
+'
+
+RUN NODE_DIR=$(find /root/.nvm/versions/node -maxdepth 1 -type d -name "v${NODE_VERSION}*" | head -n 1) && \
+    echo "Resolved Node path: $NODE_DIR" && \
+    echo "export PATH=$NODE_DIR/bin:\$PATH" >> /etc/profile.d/nvm-node-path.sh
+
+ENV PATH="$(find /root/.nvm/versions/node -maxdepth 1 -type d -name 'v${NODE_VERSION}*' | head -n 1)/bin:${PATH}"
+
+RUN npm i -g pnpm
+
 # Docker CLI if on amd64/arm64 
 RUN apt-get update && \ 
     if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \ 

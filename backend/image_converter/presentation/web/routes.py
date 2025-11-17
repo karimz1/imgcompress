@@ -64,7 +64,11 @@ def _in_temp(path: str) -> bool:
 def compress_images():
     cleanup_service.cleanup_temp_folders()
 
-    data = extract_form_data(request, logger)
+    dataResult = extract_form_data(request, logger)
+    if dataResult.is_successful == False:
+         return jsonify({"error": str(dataResult.error)}), 400
+   
+    data = dataResult.value
     files = data["uploaded_files"]
     if not files:
         return jsonify({"error": "No valid files uploaded."}), 400
@@ -198,5 +202,6 @@ def verified_image_formats():
         ".jpg",
         ".jpeg",
         ".ico",
+        ".eps"
     ]
     return jsonify({"verified_formats": verified}), 200
