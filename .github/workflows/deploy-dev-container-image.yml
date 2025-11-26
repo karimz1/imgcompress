@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '0 0 1 */2 *'  # Every 2nd month on the 1st
   workflow_dispatch:
+  push:
+    branches:
+      - 'devcontainer/*'
+      - 'devcontainer/**'
 
 jobs:
   build-and-push:

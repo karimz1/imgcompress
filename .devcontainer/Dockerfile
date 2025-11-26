@@ -1,5 +1,5 @@
-#FROM ghcr.io/karimz1/imgcompress-devcontainer-image:2025-11
-FROM my-base-image
+FROM ghcr.io/karimz1/imgcompress-devcontainer-image:2025-11
+#FROM my-base-image
 
 # Python virtual environment  
 WORKDIR /app  
