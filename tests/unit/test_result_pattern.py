@@ -34,7 +34,7 @@ def dummy_function_failure():
                                                      
     import traceback
     try:
-        raise ValueError("Something went wrong!")
+        raise ValueError("Something went wrong, but on purpose!")
     except Exception as e:
         tb = traceback.format_exc()
         return Result.failure(tb)
