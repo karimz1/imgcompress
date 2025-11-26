@@ -25,6 +25,44 @@ class TestDockerIntegration:
     EXPECTED_IMAGE_WIDTH = 800
     DEVCONTAINER_NAME = "devcontainer"
 
+    def _container_exists(self, name: str) -> bool:
+        """Return True if a docker container with the given name is running or exists."""
+        try:
+            result = subprocess.run(
+                ["docker", "container", "inspect", name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
+
+    def _mounting_strategy(self):
+        """
+        When running inside a container (devcontainer/CI) we need to use
+        --volumes-from to reuse the mounted workspace. Otherwise, fall back
+        to binding the host paths directly.
+        """
+        running_in_container = os.path.exists("/.dockerenv")
+        use_shared_volumes = is_github_actions() or running_in_container
+        if use_shared_volumes:
+            container_name = os.getenv("DEVCONTAINER_NAME", self.DEVCONTAINER_NAME)
+            if self._container_exists(container_name):
+                return {
+                    "volume_args": ["--volumes-from", container_name],
+                    "input_path": self.SAMPLE_IMAGES_DIR,
+                    "output_path": self.OUTPUT_DIR,
+                }
+        return {
+            "volume_args": [
+                "-v", f"{self.SAMPLE_IMAGES_DIR}:/container/input_folder",
+                "-v", f"{self.OUTPUT_DIR}:/container/output_folder",
+            ],
+            "input_path": "/container/input_folder",
+            "output_path": "/container/output_folder",
+        }
+
     @pytest.fixture(scope="session", autouse=True)
     def build_docker_image(self):
         """
@@ -72,29 +110,16 @@ class TestDockerIntegration:
         """
         Processes the entire folder: SAMPLE_IMAGES_DIR -> OUTPUT_DIR.
         """
-        if is_github_actions():
-            print("Running within GitHub Actions.")
-            cmd = [
-                "docker", "run", "--rm",
-                "--volumes-from", self.DEVCONTAINER_NAME,
-                self.DOCKER_IMAGE_NAME,
-                self.SAMPLE_IMAGES_DIR,
-                self.OUTPUT_DIR,
-                "--quality", str(80),
-                "--width", str(self.EXPECTED_IMAGE_WIDTH),
-            ]
-        else:
-            print("Running locally...")
-            cmd = [
-                "docker", "run", "--rm",
-                "-v", f"{self.SAMPLE_IMAGES_DIR}:/container/input_folder",
-                "-v", f"{self.OUTPUT_DIR}:/container/output_folder",
-                self.DOCKER_IMAGE_NAME,
-                "/container/input_folder/",
-                "/container/output_folder",
-                "--quality", str(80),
-                "--width", str(self.EXPECTED_IMAGE_WIDTH),
-            ]
+        strategy = self._mounting_strategy()
+        cmd = [
+            "docker", "run", "--rm",
+            *strategy["volume_args"],
+            self.DOCKER_IMAGE_NAME,
+            strategy["input_path"],
+            strategy["output_path"],
+            "--quality", str(80),
+            "--width", str(self.EXPECTED_IMAGE_WIDTH),
+        ]
         print("Docker run command:", shlex.join(cmd))
         subprocess.run(cmd, check=True)
 
@@ -105,32 +130,21 @@ class TestDockerIntegration:
         Default is jpeg.
         """
         extra_args = extra_args or []
-        if is_github_actions():
-            cmd = [
-                "docker", "run", "--rm",
-                "--volumes-from", self.DEVCONTAINER_NAME,
-                self.DOCKER_IMAGE_NAME,
-                os.path.join(self.SAMPLE_IMAGES_DIR, single_file_name),
-                self.OUTPUT_DIR,
-                "--quality", "80",
-                "--width", str(self.EXPECTED_IMAGE_WIDTH),
-            ] + extra_args
-        else:
-            cmd = [
-                "docker", "run", "--rm",
-                "-v", f"{self.SAMPLE_IMAGES_DIR}:/container/input_folder",
-                "-v", f"{self.OUTPUT_DIR}:/container/output_folder",
-                self.DOCKER_IMAGE_NAME,
-                f"/container/input_folder/{single_file_name}",
-                "/container/output_folder",
-                "--quality", "80",
-                "--width", str(self.EXPECTED_IMAGE_WIDTH),
-            ] + extra_args
+        strategy = self._mounting_strategy()
+        cmd = [
+            "docker", "run", "--rm",
+            *strategy["volume_args"],
+            self.DOCKER_IMAGE_NAME,
+            os.path.join(strategy["input_path"], single_file_name),
+            strategy["output_path"],
+            "--quality", "80",
+            "--width", str(self.EXPECTED_IMAGE_WIDTH),
+        ] + extra_args
         print("Docker single-file command:", shlex.join(cmd))
         subprocess.run(cmd, check=True)
 
 
-    def test_files_created(self):
+    def test_run_docker_folder_processing_withValidImages_createsOutputFiles(self):
         """
         Ensures at least one file is created in OUTPUT_DIR after folder processing.
         """
@@ -139,7 +153,7 @@ class TestDockerIntegration:
         print(f"Contents of OUTPUT_DIR after run: {output_files}")
         assert output_files, "No files were created in the output directory."
 
-    def test_file_count_matches(self):
+    def test_run_docker_folder_processing_withSupportedImages_matchesOutputCount(self):
         """
         Ensures the number of processed files in OUTPUT_DIR 
         matches the number of supported images in SAMPLE_IMAGES_DIR.
@@ -157,7 +171,7 @@ class TestDockerIntegration:
             f"Expected {len(sample_files)} processed files, got {len(output_files)}."
         )
 
-    def test_validate_output_dimensions(self):
+    def test_run_docker_folder_processing_withResizing_setsExpectedWidth(self):
         """
         Ensures that each file in OUTPUT_DIR has the expected width.
         """
@@ -171,7 +185,7 @@ class TestDockerIntegration:
             validate_image_dimensions(path, self.EXPECTED_IMAGE_WIDTH)
             print(f"{filename}: {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
 
-    def test_single_file_processing(self):
+    def test_run_docker_singlefile_processing_withSingleImage_createsResizedOutput(self):
         """
         Tests converting just a single file (pexels-pealdesign-28594392.jpg).
         """
@@ -187,8 +201,24 @@ class TestDockerIntegration:
         validate_image_dimensions(out_path, self.EXPECTED_IMAGE_WIDTH)
         print(f"Single file '{out_path}' validated at {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
 
+    def test_run_docker_singlefile_processing_withEpsImage_convertsToRasterOutput(self):
+        """
+        Tests converting a vector EPS file to a raster output while respecting resize width.
+        """
+        eps_file = "vecteezy_new-update-logo-template-illustration_5412356-0.eps"
+        local_path = os.path.join(self.SAMPLE_IMAGES_DIR, eps_file)
+        assert os.path.exists(local_path), f"Missing EPS test image: {local_path}"
 
-    def test_png_transparency_preserved(self):
+        self.run_docker_singlefile_processing(eps_file)
+
+        output_files = os.listdir(self.OUTPUT_DIR)
+        assert len(output_files) == 1, f"Expected 1 output file, found {len(output_files)}."
+        out_path = os.path.join(self.OUTPUT_DIR, output_files[0])
+        validate_image_dimensions(out_path, self.EXPECTED_IMAGE_WIDTH)
+        print(f"EPS file '{out_path}' validated at {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
+
+
+    def test_run_docker_singlefile_processing_withTransparentPng_preservesAlphaChannel(self):
         """
         Creates a PNG image with transparency, processes only that file with --format png,
         and validates that the output image is PNG and preserves its transparency.

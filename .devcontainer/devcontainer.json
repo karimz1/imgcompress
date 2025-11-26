@@ -1,7 +1,14 @@
 {
    "name": "Image Compressor DevContainer",
-   "image": "ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-07",
-   "postCreateCommand": "pip install -r .devcontainer/requirements-dev.txt && pnpm install --dir frontend/ && echo 'Dev container is ready!'",
+   "image": "ghcr.io/karimz1/imgcompress-devcontainer-image:2025-11",
+   /*
+   // I use the cached / prebuild image version for better performance less cold start :) ^_^
+   "build": {
+    "dockerfile": "Dockerfile.base",
+    "context": "." 
+   },
+   */
+   "postCreateCommand": "npm i pnpm -g && pip install -r .devcontainer/requirements-dev.txt && pnpm install --dir frontend/ && echo 'Dev container is ready!'",
     "containerEnv": {
       "IS_RUNNING_IN_DEVCONTAINER": "true"
     },
