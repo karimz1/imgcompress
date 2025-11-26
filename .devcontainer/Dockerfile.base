@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y \
     dos2unix \
     lsb-release \ 
     ghostscript \ 
+    git \ 
+    htop \ 
     && rm -rf /var/lib/apt/lists/* 
  
 # --- NVM + Node.js ---
@@ -40,6 +42,17 @@ RUN bash -c '\
     nvm alias default ${NODE_VERSION} && \
     nvm use default && \
     node -v && npm -v \
+'
+
+# Make Node/npm/pnpm available globally (not relying on nvm sourcing at runtime)
+RUN bash -c '\
+    set -e; \
+    NODE_DIR=$(find /root/.nvm/versions/node -maxdepth 1 -type d -name "v${NODE_VERSION}*" | head -n 1); \
+    if [ -z "$NODE_DIR" ]; then echo "Node install missing at /root/.nvm; aborting" >&2; exit 1; fi; \
+    ln -sf "$NODE_DIR/bin/node" /usr/local/bin/node; \
+    ln -sf "$NODE_DIR/bin/npm" /usr/local/bin/npm; \
+    ln -sf "$NODE_DIR/bin/npx" /usr/local/bin/npx; \
+    if [ -x "$NODE_DIR/bin/pnpm" ]; then ln -sf "$NODE_DIR/bin/pnpm" /usr/local/bin/pnpm; fi; \
 '
 
 RUN NODE_DIR=$(find /root/.nvm/versions/node -maxdepth 1 -type d -name "v${NODE_VERSION}*" | head -n 1) && \
