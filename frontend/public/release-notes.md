@@ -1,3 +1,6 @@
+## v0.2.3 — 2025-11-27
+- New Improvement "Support .PSD file format with verification: ([#361](https://github.com/karimz1/imgcompress/issues/361))
+
 ## v0.2.2 — 2025-11-08
 - New Feature "Implement .EPS file format support and verification: ([#343](https://github.com/karimz1/imgcompress/issues/343))
 

@@ -138,7 +138,21 @@ docker run --rm \
 
 **Verified in CI**
 
-`*.heic · *.heif · *.png · *.jpg · *.jpeg · *.ico`
+to see latest changes feel free to search for: ``def verified_image_formats():`` in the code.
+
+Status 27.11.25
+````
+ verified = [
+        ".heic",
+        ".heif",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".ico",
+        ".eps",
+        ".psd"
+    ]
+````
 
 
 <details>

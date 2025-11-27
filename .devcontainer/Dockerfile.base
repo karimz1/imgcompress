@@ -64,13 +64,17 @@ ENV PATH="$(find /root/.nvm/versions/node -maxdepth 1 -type d -name 'v${NODE_VER
 RUN npm i -g pnpm
 
 # Docker CLI if on amd64/arm64 
-RUN apt-get update && \ 
-    if [ "$(dpkg --print-architecture)" = "amd64" ] || [ "$(dpkg --print-architecture)" = "arm64" ]; then \ 
-      echo "Installing Docker CLI (docker.io) for $(dpkg --print-architecture)."; \ 
-      apt-get install -y --no-install-recommends docker.io; \ 
-    else \ 
-      echo "Skipping Docker CLI on unsupported architecture."; \ 
-    fi 
+RUN apt-get update && apt-get install -y \
+    ca-certificates curl gnupg lsb-release && \
+    mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+RUN echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install latest Docker CLI only (NOT the daemon)
+RUN apt-get update && apt-get install -y --no-install-recommends docker-ce-cli
 
 # install pnpm
 RUN npm i pnpm -g
