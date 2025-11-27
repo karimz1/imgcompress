@@ -13,7 +13,7 @@ No installs. No uploads. No data ever leaves your machine.
 <img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
 
 > **Demo show:** Import → Convert → Download in seconds.  
-> Works with HEIC, JPG, PNG, WebP, and so much more.
+> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, Tiff, Eps, ICO, and so much more.
 
 ## 📋 Table of Contents
 - [imgcompress: The Ultimate Docker Image Compression Tool](#imgcompress-the-ultimate-docker-image-compression-tool)
@@ -91,14 +91,15 @@ Ever needed to turn a vector graphic—or even a full Photoshop PSD—into a cle
 That’s exactly what imgcompress does: fast, simple, and ridiculously flexible.
 
 📱 Instant HEIC → Anything
-Convert iPhone HEIC/HEIF photos to JPEG, PNG, WebP and more—instantly, with zero plugins or extra apps.
+Convert iPhone HEIC/HEIF photos to JPEG, PNG and more—instantly, with zero plugins or extra apps all using imgcompress web interface.
 
 🖼️ Universal convert + resize
-Feed imgcompress almost any format Pillow understands—SVG, PSD, TIFF, WEBP, ICO, etc.—and convert it to JPEG, PNG, ICO, WEBP, and more.
+Feed imgcompress almost any format Pillow understands, PSD, TIFF, PNG, JPEG, ICO, etc.—and convert it to JPEG, PNG, ICO more.
+
 Ideal for thumbnails, favicons, hero images, and size-specific assets.
 
 ⚙️ Pixel-perfect quality control
-Choose exact JPEG quality (1–100), enable lossless PNG/WebP, or generate multiple variants for testing size vs clarity.
+Choose exact JPEG quality (1–100), enable lossless PNG, or generate multiple variants for testing size vs clarity.
 
 🚀 Multi-core batch processing
 Drop a single file or an entire directory—imgcompress automatically parallelizes work across CPU cores for maximum speed.
@@ -171,32 +172,12 @@ Status 27.11.25
 ````
 
 
-<details>
-<summary>🗂️ Supported (not yet verified)</summary>
+### 🗂️ Supported (not yet verified)</summary>
 
-The formats below are available through [Pillow Doc](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#) but haven’t gone through my test-suite ***yet***.  
-
-Open an issue with a sample file if you hit problems; I’ll add a test and patch it.
-
-| Extension(s) | Extension(s) | Extension(s) | Extension(s) |
-| ------------ | ------------ | ------------ | ------------ |
-| .apng        | .blp         | .bmp         | .bufr        |
-| .bw          | .cur         | .dcx         | .dds         |
-| .dib         | .emf         | .eps         | .fit / .fits |
-| .flc / .fli  | .ftc / .ftu  | .gbr         | .gif         |
-| .grib        | .h5 / .hdf   | .icb         | .icns        |
-| .iim         | .im          | .j2c / .j2k  | .jfif        |
-| .jp2 / .jpc  | .jpf         | .jpx         | .mpeg / .mpg |
-| .msp         | .pbm         | .pcd         | .pcx         |
-| .pfm         | .pgm         | .pnm         | .ppm         |
-| .ps / .psd   | .pxr         | .qoi         | .ras         |
-| .rgb / .rgba | .sgi         | .tga         | .tif / .tiff |
-| .vda / .vst  | .webp        | .wmf         | .xbm         |
-| .xpm         |              |              |              |
+The tool supports all formats that Pillow can do: [Pillow Doc](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#) but keep in mind not all have benn gone through my test-suite ***yet*** but I'm on it: [Improvement: Test matrix over all Pillow-supported formats #312](https://github.com/karimz1/imgcompress/issues/312)  
 
 Need a format that’s missing or failing?
-[Open an issue](https://github.com/karimz1/imgcompress/issues) with a sample file and short description—happy to expand coverage!
-</details>
+[Open an issue](https://github.com/karimz1/imgcompress/issues) with a sample file and short description. Happy to expand coverage!
 
 ------
 
@@ -242,7 +223,7 @@ All contributions follow the standard *Fork & PR* workflow plus. Thank you for m
 
 ---
 
-## ❤️ Support Development
+## ❤️ Donate to Support Development
 
 If Imgcompress saves you time, consider buying me a coffee, every donation keeps CI minutes ticking and pays for test data storage.
 
