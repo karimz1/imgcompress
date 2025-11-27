@@ -1,5 +1,5 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
-[![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)  
+[![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)
 
 # imgcompress — Fast, Private Image Compression & Conversion Tool in Docker
 
@@ -51,13 +51,13 @@ docker compose up -d   # start it
 
 Open **[http://localhost:3001](http://localhost:3001/)**, drag-and-drop images, enjoy!
 
-🧪 Quick test, easy throw-away one-liner, if you don't like it (<code>Ctrl-C</code> to stop)
+## 🧪 Quick test, easy throw-away one-liner, if you don't like it (<code>Ctrl-C</code> to stop)
 
 ````bash
 docker run --rm -p 3001:5000 karimz1/imgcompress:latest web
 ````
 
-🧼 Minimal Mode: Hide the Mascot
+### 🧼 Minimal Mode: Hide the Mascot
 
 Prefer a cleaner look without the anime mascot in the Web UI?
 
@@ -67,34 +67,49 @@ Set the ``DISABLE_LOGO=true`` environment variable when starting the container:
 docker run --rm -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest web
 ````
 
+#### 🐳 Can I pin to a specific version?
+
+Prefer `latest` to stay current, but you can pin any published release:
+
+```bash
+# replace 0.2.3 with the version you want
+docker pull karimz1/imgcompress:0.2.3
+```
+
+See all available tags at https://hub.docker.com/r/karimz1/imgcompress/tags.
+
 ## ❓Why imgcompress?
 
 Ever been frustrated by juggling multiple programs just to convert or compress images?
 **Me too.** I’m **Karim Zouine**, and I built **Imgcompress** as a one-stop solution to compress, convert and resize images—locally, inside Docker, on any OS, with no privacy worries.
 
 
-## ✨ Feature Overview
+### ✨ Feature Overview
 
-- **📱 HEIC-to-Anything in one click**  
-  Convert iPhone HEIC/HEIF photos to JPEG, PNG—or any other format—instantly, with zero plugins.
+Ever needed to turn a vector graphic—or even a full Photoshop PSD—into a clean, optimized JPEG in seconds?
+That’s exactly what imgcompress does: fast, simple, and ridiculously flexible.
 
-- **🖼️ Universal conversion + resize**  
-  Turn *nearly* any image type Pillow supports into JPEG, PNG, ICO, WebP and more; perfect for thumbnails, favicons, hero banners or custom sizes.
+📱 Instant HEIC → Anything
+Convert iPhone HEIC/HEIF photos to JPEG, PNG, WebP and more—instantly, with zero plugins or extra apps.
 
-- **⚙️ Precision quality control**  
-  Dial in exact JPEG quality (1-100) or choose lossless PNG/WebP; strike the perfect balance between clarity and file size.
+🖼️ Universal convert + resize
+Feed imgcompress almost any format Pillow understands—SVG, PSD, TIFF, WEBP, ICO, etc.—and convert it to JPEG, PNG, ICO, WEBP, and more.
+Ideal for thumbnails, favicons, hero images, and size-specific assets.
 
-- **🚀 Parallel batch engine**  
-  Drop a single file *or* an entire directory; Imgcompress fans out the work across CPU cores for maximum throughput.
+⚙️ Pixel-perfect quality control
+Choose exact JPEG quality (1–100), enable lossless PNG/WebP, or generate multiple variants for testing size vs clarity.
 
-- **🛠️ Scriptable CLI for advanced workflows**  
-  Stream **millions** of images from Bash, cron or CI pipelines, chain transformations, and capture structured JSON logs for downstream automation.
+🚀 Multi-core batch processing
+Drop a single file or an entire directory—imgcompress automatically parallelizes work across CPU cores for maximum speed.
 
-- **🔄 Automation-friendly logging**
-  Human-readable by default; flip `--json-output` to feed dashboards, tests or ETL jobs.
+🛠️ Script-friendly CLI
+Perfect for automation: run from Bash, cron, Node, Python, CI pipelines—process thousands or millions of images with consistent flags and behavior.
 
-  **📦 Runs anywhere Docker does**
-  Same image on Linux, macOS, Windows (WSL 2), x86-64 or ARM64.
+🔄 Log formats for humans and machines
+Human-readable by default; flip --json-output to integrate with dashboards, tests, monitoring, or ETL pipelines.
+
+📦 Runs anywhere Docker runs
+Same image on Linux, macOS, Windows (WSL2), x86_64, ARM64—local or in production.
   
 
 ## 🛠️ Scriptable CLI — Advanced Guide
