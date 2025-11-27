@@ -3,6 +3,12 @@ import re
 import argparse
 import requests
 from datetime import datetime
+import requests
+
+# leave for debugging using .env file
+# from dotenv import load_dotenv
+# load_dotenv()
+
 
 def parse_args():
     """
@@ -29,13 +35,12 @@ def parse_args():
         default="",
         help="The branch that triggered the update (e.g., refs/heads/main).",
     )
-
     parser.add_argument(
         "--mock",
-        type=bool,
-        default="",
-        help="If Mock do not perform docker desc update",
+        action="store_true",
+        help="Do not perform Docker Hub update"
     )
+
     return parser.parse_args()
 
 def read_file(file_path: str) -> str:
@@ -85,26 +90,34 @@ def fix_image_links(markdown_content: str, base_url: str) -> str:
     return replaced_markdown_content
     
     
-def login_dockerhub(username: str, password: str) -> str:
+def get_access_token(username: str, password: str) -> str:
     """
-    Log in to Docker Hub to obtain a JWT token.
+    # use doc: https://docs.docker.com/reference/api/hub/latest/#tag/authentication-api/operation/AuthCreateAccessToken
+    
+    Creates and returns a short-lived access token in JWT format for use as a bearer when calling Docker APIs.
     
     Returns:
         token (str): JWT token string.
     """
-    login_url = "https://hub.docker.com/v2/users/login/"
-    payload = {"username": username, "password": password}
+    
+    login_url = "https://hub.docker.com/v2/auth/token"
+
+    payload = {"identifier": username, "secret": password}
+    
     response = requests.post(login_url, json=payload)
+
     if response.status_code != 200:
         raise RuntimeError(
             f"Login failed: HTTP {response.status_code}\n{response.text}"
         )
     
-    token = response.json().get("token")
+    token = response.json().get("access_token")
     if not token:
         raise RuntimeError("Login succeeded but no token was found in the response.")
     
     return token
+
+
 
 def update_dockerhub_description(readme_content: str, username: str, token: str, repo: str) -> None:
     """
@@ -165,8 +178,10 @@ def main():
     if args.mock:
         return
     
-    token = login_dockerhub(dockerhub_username, dockerhub_password)
+    token = get_access_token(dockerhub_username, dockerhub_password)
+
     print("Obtained token (partially shown):", token[:4] + "...")
+
     update_dockerhub_description(readme_content, dockerhub_username, token, dockerhub_repo)
 
 if __name__ == "__main__":
