@@ -202,6 +202,7 @@ def verified_image_formats():
         ".jpg",
         ".jpeg",
         ".ico",
-        ".eps"
+        ".eps",
+        ".psd"
     ]
     return jsonify({"verified_formats": verified}), 200
