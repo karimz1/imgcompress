@@ -112,6 +112,9 @@ jobs:
             -t devcontainer:local-test \
             .
 
+      - name: Make E2E script executable
+        run: chmod +x ./run-e2e.sh
+
       - name: Run E2E Tests in Dev Container (Host Networking)
         run: |
           docker run --rm \
