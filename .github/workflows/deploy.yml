@@ -1,15 +1,20 @@
 name: Deployment for imgcompress to Docker Hub
 
 on:
- push:
+  push:
     branches:
       - main
- repository_dispatch:
+    tags:
+      - release_*
+  workflow_dispatch:
+  repository_dispatch:
     types: [ deploy ]
 
 jobs:
   deploy-image-to-dockerhub:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -26,15 +31,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Define Tags
-        id: define-tags
+      - name: Compute image tags
+        id: tags
+        shell: bash
         run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          if [[ "$BRANCH_NAME" == "main" ]]; then
-            echo "ADDITIONAL_TAG=karimz1/imgcompress:latest" >> $GITHUB_ENV
-          else
-            echo "ADDITIONAL_TAG=karimz1/imgcompress:beta" >> $GITHUB_ENV
+          IMAGE="karimz1/imgcompress"
+          TAGS=("$IMAGE:latest")
+          VERSION=""
+
+          # If this is a release tag like refs/tags/release_1.0.3
+          if [[ "${GITHUB_REF:-}" == refs/tags/release_* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/release_}"
+            TAGS+=("$IMAGE:${VERSION}")
           fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
+
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
@@ -42,11 +55,11 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.ADDITIONAL_TAG }}
+          tags: ${{ steps.tags.outputs.tags }}
 
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/release_')
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -62,13 +75,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
+      - name: Choose README ref
+        id: readme-ref
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF:-}" == refs/tags/release_* ]]; then
+            README_REF="${GITHUB_REF#refs/tags/}"
+          else
+            README_REF="main"
+          fi
+          echo "README_REF=$README_REF" >> "$GITHUB_ENV"
+
       - name: Update Docker Hub Description
         run: |
           python update_dockerhub_description.py \
               --readme ReadMe.md \
-              --branch "${{ github.ref }}" \
-              --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/main"
+              --branch "$README_REF" \
+              --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/$README_REF"
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: "imgcompress"
+
