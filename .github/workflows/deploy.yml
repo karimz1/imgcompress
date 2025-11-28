@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: write  # needed for pushing to GHCR with GITHUB_TOKEN
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -25,6 +26,13 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -34,22 +42,34 @@ jobs:
       - name: Compute image tags
         id: tags
         shell: bash
+        env:
+          GITHUB_OWNER: ${{ github.repository_owner }}
         run: |
-          IMAGE="karimz1/imgcompress"
+          set -euo pipefail
+
+          # Docker Hub image
+          IMAGE_DH="karimz1/imgcompress"
+
+          # GitHub Container Registry image
+          IMAGE_GH="ghcr.io/${GITHUB_OWNER}/imgcompress"
+
           TAGS=()
           VERSION=""
 
           # If this is a release tag like refs/tags/release_1.0.3
           if [[ "${GITHUB_REF:-}" == refs/tags/release_* ]]; then
             VERSION="${GITHUB_REF#refs/tags/release_}"
-            
-            # For releases: versioned tag + latest
-            TAGS+=("$IMAGE:${VERSION}")
-            TAGS+=("$IMAGE:latest")
-          else
 
-            # Main (or other branches): nightly
-            TAGS+=("$IMAGE:nightly")
+            # For releases: versioned tag + latest (both registries)
+            TAGS+=("$IMAGE_DH:${VERSION}")
+            TAGS+=("$IMAGE_DH:latest")
+            
+            TAGS+=("$IMAGE_GH:${VERSION}")
+            TAGS+=("$IMAGE_GH:latest")
+          else
+            # Main (or other branches): nightly (both registries)
+            TAGS+=("$IMAGE_DH:nightly")
+            TAGS+=("$IMAGE_GH:nightly")
           fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
