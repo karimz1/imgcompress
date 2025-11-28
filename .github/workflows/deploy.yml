@@ -36,18 +36,24 @@ jobs:
         shell: bash
         run: |
           IMAGE="karimz1/imgcompress"
-          TAGS=("$IMAGE:latest")
+          TAGS=()
           VERSION=""
 
           # If this is a release tag like refs/tags/release_1.0.3
           if [[ "${GITHUB_REF:-}" == refs/tags/release_* ]]; then
             VERSION="${GITHUB_REF#refs/tags/release_}"
+            
+            # For releases: versioned tag + latest
             TAGS+=("$IMAGE:${VERSION}")
+            TAGS+=("$IMAGE:latest")
+          else
+
+            # Main (or other branches): nightly
+            TAGS+=("$IMAGE:nightly")
           fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
-
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
@@ -59,7 +65,7 @@ jobs:
 
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/release_')
+    if: startsWith(github.ref, 'refs/tags/release_')
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -79,11 +85,7 @@ jobs:
         id: readme-ref
         shell: bash
         run: |
-          if [[ "${GITHUB_REF:-}" == refs/tags/release_* ]]; then
-            README_REF="${GITHUB_REF#refs/tags/}"
-          else
-            README_REF="main"
-          fi
+          README_REF="${GITHUB_REF#refs/tags/}"
           echo "README_REF=$README_REF" >> "$GITHUB_ENV"
 
       - name: Update Docker Hub Description
@@ -96,4 +98,3 @@ jobs:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: "imgcompress"
-
