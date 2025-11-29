@@ -12,7 +12,7 @@ No installs. No uploads. No data ever leaves your machine.
 ## Demo Example:
 <img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
 
-> **Demo shows:** Import → Convert → Download in seconds.  
+> **Demo shows:** Import → Convert → Download — all processed locally.
 > Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, Tiff, Eps, ICO, and so much more.
 
 ## 📋 Table of Contents
@@ -93,6 +93,8 @@ Ever been frustrated juggling multiple tools just to convert or compress images?
 - batch processing
 
 All locally, via Docker — for complete privacy.
+
+___
 
 ### ✨ Feature Overview
 
