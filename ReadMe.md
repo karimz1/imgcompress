@@ -20,15 +20,14 @@ No installs. No uploads. No data ever leaves your machine.
   - [Demo Example:](#demo-example)
   - [📋 Table of Contents](#-table-of-contents)
   - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
-  - [🧪 Quick Start (Docker CLI)](#-quick-start-docker-cli)
+  - [🧪 Quick Start (docker run)](#-quick-start-docker-run)
   - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
   - [❓ Why imgcompress?](#-why-imgcompress)
     - [✨ Feature Overview](#-feature-overview)
-  - [**� Choosing Your Version**](#-choosing-your-version)
-    - [🔧 How to use a specific version](#-how-to-use-a-specific-version)
-    - [**Stable (latest)**](#stable-latest)
-    - [**Pinned Release (X.Y.Z)**](#pinned-release-xyz)
-    - [**Nightly (nightly)**](#nightly-nightly)
+  - [**🔖 Choosing Your Version**](#-choosing-your-version)
+    - [**Stable (``latest``)**](#stable-latest)
+    - [**Pinned Release (for example: `0.2.3`)**](#pinned-release-for-example-023)
+    - [**Nightly (``nightly``)**](#nightly-nightly)
   - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
   - [✅ Supported Image Formats](#-supported-image-formats)
     - [🗂️ Supported (not yet verified)](#️-supported-not-yet-verified)
@@ -66,7 +65,7 @@ Then open:
 
 👉 **[http://localhost:3001](http://localhost:3001/)**
 
-## 🧪 Quick Start (Docker CLI)
+## 🧪 Quick Start (docker run)
 
 ````bash
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
@@ -116,47 +115,31 @@ ____
 
 ## **🔖 Choosing Your Version**
 
-imgcompress provides **three tags**, depending on how stable or cutting-edge you want to use it:
+imgcompress provides **three tags**, depending on your needs:
 
 | **Version**        | **Tag** | **What’s Included**           | **Best For**                     |
 | ------------------ | ------- | ----------------------------- | -------------------------------- |
-| **Stable**         | latest  | Fully tested release          | Most users — recommended         |
-| **Pinned Release** | X.Y.Z   | Exact version, never changes | Reproducible deployments, historic versions |
-| **Nightly**        | nightly | Latest changes & dependency bumps | Testing new features (may break) |
-
-___
-
-### 🔧 How to use a specific version
-
-See all available tags: https://hub.docker.com/r/karimz1/imgcompress/tags
-
-| **Tag**     | **Command**                             | **Notes**      |
-| ----------- | --------------------------------------- | -------------- |
-| **latest**  | docker pull karimz1/imgcompress:latest  | Stable build   |
-| **X.Y.Z**   | docker pull karimz1/imgcompress:X.Y.Z   | Pinned release |
-| **nightly** | docker pull karimz1/imgcompress:nightly | Public beta    |
-
-### **Stable (latest)**
-
-The safest and most reliable build.
-Every ``latest`` release passes <strong>QA tests by the author (Karim Zouine)</strong> before publication.
+| **Stable**         | ``latest``  | Fully tested release          | Most users — recommended         |
+| **Pinned Release** | ``X.Y.Z``   | Exact version, never changes | Reproducible deployments, historic versions |
+| **Nightly**        | ``nightly`` | Latest changes & dependency bumps | Testing new features (may break) |
 
 
-### **Pinned Release (X.Y.Z)**
+[See all available tags](https://hub.docker.com/r/karimz1/imgcompress/tags)
 
-A snapshot of a specific ``stable`` version that <strong>never updates</strong>.
-Ideal for reproducible deployments or sticking to a version you trust.
+---
 
-Most users should still choose latest.
+### **Stable (``latest``)**
+The safest and most reliable choice.  
+Every latest release passes **QA checks by the author (Karim Zouine)** before publication.
 
+### **Pinned Release (for example: `0.2.3`)**
+A frozen version that **never updates**.  
+Ideal for locked-down deployments or staying on a version you trust.
 
-### **Nightly (nightly)**
+### **Nightly (``nightly``)**
+Includes the newest changes and dependency updates.  
+⚠️ May include breaking changes — think of it as a **public beta**.
 
-For testing the newest changes, dependency bumps, and experimental updates.
-
-⚠️ Nightly builds may break — think of it as a <strong>public beta</strong>.
-
-___
 
 ## 🛠️ Scriptable CLI — Advanced Guide
 
