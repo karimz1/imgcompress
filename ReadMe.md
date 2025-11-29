@@ -80,6 +80,7 @@ docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgco
 ````
 ___
 
+All locally, via Docker — for complete privacy.
 
 ## ❓ Why imgcompress?
 
