@@ -24,7 +24,7 @@ No installs. No uploads. No data ever leaves your machine.
   - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
   - [❓ Why imgcompress?](#-why-imgcompress)
     - [✨ Feature Overview](#-feature-overview)
-  - [**📦 Choosing Your Version**](#-choosing-your-version)
+  - [**� Choosing Your Version**](#-choosing-your-version)
     - [🔧 How to use a specific version](#-how-to-use-a-specific-version)
     - [**Stable (latest)**](#stable-latest)
     - [**Pinned Release (X.Y.Z)**](#pinned-release-xyz)
@@ -114,7 +114,7 @@ ___
   
 ____  
 
-## **📦 Choosing Your Version**
+## **🔖 Choosing Your Version**
 
 imgcompress provides **three tags**, depending on how stable or cutting-edge you want to use it:
 
