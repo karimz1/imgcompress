@@ -52,10 +52,10 @@ docker compose up -d   # start it
 
 Open **[http://localhost:3001](http://localhost:3001/)**, drag-and-drop images, enjoy!
 
-## 🧪 Quick test, easy throw-away one-liner, if you don't like it (<code>Ctrl-C</code> to stop)
+## 🧪 Quick Start
 
 ````bash
-docker run --rm -p 3001:5000 karimz1/imgcompress:latest web
+docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
 ````
 
 ### 🧼 Minimal Mode: Hide the Mascot
@@ -65,19 +65,53 @@ Prefer a cleaner look without the anime mascot in the Web UI?
 Set the ``DISABLE_LOGO=true`` environment variable when starting the container:
 
 ```` bash
-docker run --rm -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest web
+docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest web
 ````
 
-#### 🐳 Can I pin to a specific version?
+# **📦 Choosing Your Version**
 
-Prefer `latest` to stay current, but you can pin any published release:
+imgcompress provides **three tags**, depending on how stable or cutting-edge you want to use it:
 
-```bash
-# replace 0.2.3 with the version you want
-docker pull karimz1/imgcompress:0.2.3
-```
+| **Version**        | **Tag** | **What’s Included**           | **Best For**                     |
+| ------------------ | ------- | ----------------------------- | -------------------------------- |
+| **Stable**         | latest  | Fully tested release          | Most users — recommended         |
+| **Pinned Release** | X.Y.Z   | Exact version, never changes | Reproducible deployments, historic versions |
+| **Nightly**        | nightly | Latest changes & dependency bumps | Testing new features (may break) |
 
-See all available tags at https://hub.docker.com/r/karimz1/imgcompress/tags.
+___
+
+
+To use a specific version, replace the tag:
+
+See all available tags: https://hub.docker.com/r/karimz1/imgcompress/tags
+
+```` bash
+docker pull karimz1/imgcompress:latest    # ✅ stable
+docker pull karimz1/imgcompress:0.2.3     # 📌 pinned older release (replace 0.2.3 with a version you prefer)
+docker pull karimz1/imgcompress:nightly   # ⚠️ experimental build (public beta)
+````
+
+### **Stable (latest)**
+
+The safest and most reliable build.
+Every ``latest`` release passes <strong>QA tests by the author (Karim Zouine)</strong> before publication.
+
+
+### **Pinned Release (X.Y.Z)**
+
+A snapshot of a specific ``stable`` imgcompress version that <strong>never updates</strong>.
+Use pinned versions if you want <strong>predictable behavior</strong> or want to stay on a version you liked.
+
+Most users should still use ``latest``, but pinned versions give you full control.
+
+
+### **Nightly (nightly)**
+
+For users who want to test the newest updates, dependency changes, and upcoming features.
+
+⚠️ Nightly builds can include experimental changes and may break — think of it as a <strong>public beta</strong>.
+
+
 
 ## ❓Why imgcompress?
 
