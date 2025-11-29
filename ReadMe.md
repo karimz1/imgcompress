@@ -12,26 +12,37 @@ No installs. No uploads. No data ever leaves your machine.
 ## Demo Example:
 <img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
 
-> **Demo show:** Import → Convert → Download in seconds.  
+> **Demo shows:** Import → Convert → Download in seconds.  
 > Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, Tiff, Eps, ICO, and so much more.
 
 ## 📋 Table of Contents
-- [imgcompress: The Ultimate Docker Image Compression Tool](#imgcompress-the-ultimate-docker-image-compression-tool)
+- [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
+  - [Demo Example:](#demo-example)
   - [📋 Table of Contents](#-table-of-contents)
   - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
-  - [❓Why imgcompress?](#why-imgcompress)
-  - [✨ Feature Overview](#-feature-overview)
+  - [🧪 Quick Start (Docker CLI)](#-quick-start-docker-cli)
+  - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
+  - [❓ Why imgcompress?](#-why-imgcompress)
+    - [✨ Feature Overview](#-feature-overview)
+  - [**📦 Choosing Your Version**](#-choosing-your-version)
+    - [🔧 How to use a specific version](#-how-to-use-a-specific-version)
+    - [**Stable (latest)**](#stable-latest)
+    - [**Pinned Release (X.Y.Z)**](#pinned-release-xyz)
+    - [**Nightly (nightly)**](#nightly-nightly)
   - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
   - [✅ Supported Image Formats](#-supported-image-formats)
+    - [🗂️ Supported (not yet verified)](#️-supported-not-yet-verified)
   - [🖥️ Supported Platforms](#️-supported-platforms)
   - [🔒 Privacy \& Security](#-privacy--security)
   - [🤝 Contribute](#-contribute)
-  - [❤️ Support Development](#️-support-development)
+  - [❤️ Donate to Support Development](#️-donate-to-support-development)
+  - [📓 Release Notes](#-release-notes)
   - [📝 License](#-license)
+
 
 ## 🚀 Quick Start (Web UI in 30 s)
 
-Spin up **Imgcompress** with Docker Compose (auto-updates via Watchtower are optional):
+Run **imgcompress** via Docker Compose:
 
 ```yaml
 services:
@@ -40,35 +51,68 @@ services:
     container_name: imgcompress
     restart: always
     ports:
-      - "3001:5000"                  # HOST:CONTAINER — change 3001 if you like
+      - "3001:5000"                  # HOST:CONTAINER — change 3001 if needed
     environment:
-      - DISABLE_LOGO=true            # Not a fan of the logo mascot? Disable it with one flag.
+      - DISABLE_LOGO=true            # Optional: disable mascot
     command:
-      - "web"                        # launch the Web UI
+      - "web"                        # Launch the Web UI
 ````
+Start:
 ```bash
-docker compose up -d   # start it
+docker compose up -d 
 ```
 
-Open **[http://localhost:3001](http://localhost:3001/)**, drag-and-drop images, enjoy!
+Then open:
 
-## 🧪 Quick Start
+👉 **[http://localhost:3001](http://localhost:3001/)**
+
+## 🧪 Quick Start (Docker CLI)
 
 ````bash
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
 ````
 
-### 🧼 Minimal Mode: Hide the Mascot
+## 🧼 Minimal Mode: Hide the Mascot
 
-Prefer a cleaner look without the anime mascot in the Web UI?
-
-Set the ``DISABLE_LOGO=true`` environment variable when starting the container:
+Prefer a cleaner UI?
 
 ```` bash
 docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest web
 ````
+___
 
-# **📦 Choosing Your Version**
+
+## ❓ Why imgcompress?
+
+Ever been frustrated juggling multiple tools just to convert or compress images?
+**Me too**. I’m **Karim Zouine**, and I built imgcompress as a simple, unified tool for:
+
+- compression
+- conversion
+- resizing
+- batch processing
+
+All locally, via Docker — for complete privacy.
+
+### ✨ Feature Overview
+
+📱 Instant HEIC → Anything: Convert HEIC/HEIF to JPG, PNG, ICO, and more.
+
+🖼️ Universal convert + resize: Supports PSD, TIFF, PNG, JPEG, ICO and more.
+
+⚙️ Full control: Set JPEG quality, PNG lossless mode, target width, and more.
+
+🚀 Multi-core batch processing: Automatically uses all CPU cores.
+
+🛠️ Automation-ready CLI: Perfect for scripts, CI/CD, cronjobs.
+
+🔄 Machine-friendly logs: Use --json-output for automation & dashboards.
+
+📦 Runs everywhere: Linux, macOS, Windows (WSL2), ARM64, AMD64.
+  
+____  
+
+## **📦 Choosing Your Version**
 
 imgcompress provides **three tags**, depending on how stable or cutting-edge you want to use it:
 
@@ -80,16 +124,15 @@ imgcompress provides **three tags**, depending on how stable or cutting-edge you
 
 ___
 
-
-To use a specific version, replace the tag:
+### 🔧 How to use a specific version
 
 See all available tags: https://hub.docker.com/r/karimz1/imgcompress/tags
 
-```` bash
-docker pull karimz1/imgcompress:latest    # ✅ stable
-docker pull karimz1/imgcompress:0.2.3     # 📌 pinned older release (replace 0.2.3 with a version you prefer)
-docker pull karimz1/imgcompress:nightly   # ⚠️ experimental build (public beta)
-````
+| **Tag**     | **Command**                             | **Notes**      |
+| ----------- | --------------------------------------- | -------------- |
+| **latest**  | docker pull karimz1/imgcompress:latest  | Stable build   |
+| **X.Y.Z**   | docker pull karimz1/imgcompress:X.Y.Z   | Pinned release |
+| **nightly** | docker pull karimz1/imgcompress:nightly | Public beta    |
 
 ### **Stable (latest)**
 
@@ -99,60 +142,25 @@ Every ``latest`` release passes <strong>QA tests by the author (Karim Zouine)</s
 
 ### **Pinned Release (X.Y.Z)**
 
-A snapshot of a specific ``stable`` imgcompress version that <strong>never updates</strong>.
-Use pinned versions if you want <strong>predictable behavior</strong> or want to stay on a version you liked.
+A snapshot of a specific ``stable`` version that <strong>never updates</strong>.
+Ideal for reproducible deployments or sticking to a version you trust.
 
-Most users should still use ``latest``, but pinned versions give you full control.
+Most users should still choose latest.
 
 
 ### **Nightly (nightly)**
 
-For users who want to test the newest updates, dependency changes, and upcoming features.
+For testing the newest changes, dependency bumps, and experimental updates.
 
-⚠️ Nightly builds can include experimental changes and may break — think of it as a <strong>public beta</strong>.
+⚠️ Nightly builds may break — think of it as a <strong>public beta</strong>.
 
-
-
-## ❓Why imgcompress?
-
-Ever been frustrated by juggling multiple programs just to convert or compress images?
-**Me too.** I’m **Karim Zouine**, and I built **Imgcompress** as a one-stop solution to compress, convert and resize images—locally, inside Docker, on any OS, with no privacy worries.
-
-
-### ✨ Feature Overview
-
-Ever needed to turn a vector graphic—or even a full Photoshop PSD—into a clean, optimized JPEG in seconds?
-That’s exactly what imgcompress does: fast, simple, and ridiculously flexible.
-
-📱 Instant HEIC → Anything
-Convert iPhone HEIC/HEIF photos to JPEG, PNG and more—instantly, with zero plugins or extra apps all using imgcompress web interface.
-
-🖼️ Universal convert + resize
-Feed imgcompress almost any format Pillow understands, PSD, TIFF, PNG, JPEG, ICO, etc.—and convert it to JPEG, PNG, ICO more.
-
-Ideal for thumbnails, favicons, hero images, and size-specific assets.
-
-⚙️ Pixel-perfect quality control
-Choose exact JPEG quality (1–100), enable lossless PNG, or generate multiple variants for testing size vs clarity.
-
-🚀 Multi-core batch processing
-Drop a single file or an entire directory—imgcompress automatically parallelizes work across CPU cores for maximum speed.
-
-🛠️ Script-friendly CLI
-Perfect for automation: run from Bash, cron, Node, Python, CI pipelines—process thousands or millions of images with consistent flags and behavior.
-
-🔄 Log formats for humans and machines
-Human-readable by default; flip --json-output to integrate with dashboards, tests, monitoring, or ETL pipelines.
-
-📦 Runs anywhere Docker runs
-Same image on Linux, macOS, Windows (WSL2), x86_64, ARM64—local or in production.
-  
+___
 
 ## 🛠️ Scriptable CLI — Advanced Guide
 
-Need to crunch **millions** of images? Fire up the CLI, no limits, fully scriptable.
+Need to crunch **thousands or millions** of images? Use the CLI:
 
-**Single File Processing:**
+**Single File**
 
 ``` bash
 docker run --rm \
@@ -162,7 +170,7 @@ docker run --rm \
   /container/images/example.jpg /container/converted --quality 80 --width 1920
 ```
 
-**Folder Processing:**
+**Folder**
 
 ``` bash
 docker run --rm \
@@ -187,28 +195,20 @@ docker run --rm \
 
 ## ✅ Supported Image Formats
 
-**Verified in CI**
+✔ Verified in CI
 
-to see latest changes feel free to search for: ``def verified_image_formats():`` in the code.
+See function: def verified_image_formats()
 
-Status 27.11.25
+Current list (as of 27.11.2025):
 ````
- verified = [
-        ".heic",
-        ".heif",
-        ".png",
-        ".jpg",
-        ".jpeg",
-        ".ico",
-        ".eps",
-        ".psd"
-    ]
+.heic .heif .png .jpg .jpeg .ico .eps .psd
 ````
 
 
 ### 🗂️ Supported (not yet verified)</summary>
 
-The tool supports all formats that Pillow can do: [Pillow Doc](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#) but keep in mind not all have benn gone through my test-suite ***yet*** but I'm on it: [Improvement: Test matrix over all Pillow-supported formats #312](https://github.com/karimz1/imgcompress/issues/312)  
+imgcompress supports all formats provided by Pillow.
+[Full list](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#) but keep in mind not all have been tested in the suite ***yet*** but I'm on it: [Improvement: Test matrix over all Pillow-supported formats #312](https://github.com/karimz1/imgcompress/issues/312)  
 
 Need a format that’s missing or failing?
 [Open an issue](https://github.com/karimz1/imgcompress/issues) with a sample file and short description. Happy to expand coverage!
@@ -237,33 +237,35 @@ That means the images pass automated tests, but not every architecture has been 
 
 ## 🔒 Privacy & Security
 
-- **100 % local processing** — images never leave your machine.
+- **100 % local processing** — no uploads, no telemetry
 - **No telemetry, no tracking** — the container has zero outbound analytics.
-- **Open-source code & reproducible builds** — inspect, audit, fork at will.
+- **Open-source and auditable**
+- **Run fully offline**
 - **Docker isolation** — run with read-only volumes or network-disabled mode for extra peace of mind.
 
 ---
 
 ## 🤝 Contribute
 
-Want to make Imgcompress even better?
+Want to make imgcompress even better?
 
-1. **Star** the repo to spread the word.  
-2. **Fork → Branch → PR** — small patches are welcome!  
-3. Browse ⚡ **`good first issue`** and **`help wanted`** tags for starter tasks.  
-4. File a bug or feature request on the [issue tracker](https://github.com/karimz1/imgcompress/issues).
+1. ⭐ Star the repo to support the project  
+2. **Fork → Branch → PR** — developers are welcome to contribute!  
+3. Browse `good first issue` or `help wanted` labels for starter tasks  
+4. File bugs or feature requests on the [issue tracker](https://github.com/karimz1/imgcompress/issues)
 
-All contributions follow the standard *Fork & PR* workflow plus. Thank you for making open-source better!
+Thank you for supporting open source ❤️
 
 ---
 
 ## ❤️ Donate to Support Development
 
-If Imgcompress saves you time, consider buying me a coffee, every donation keeps CI minutes ticking and pays for test data storage.
+If imgcompress saves you time, consider donating.  
+Every contribution helps support development, testing, and ongoing maintenance.
 
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
 
-*(Completely optional, always appreciated.)*
+*(Completely optional, and always appreciated.)*
 
 ---
 
