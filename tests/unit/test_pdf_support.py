@@ -3,18 +3,23 @@ from io import BytesIO
 from PIL import Image
 import pytest
 
-from backend.image_converter.core.internals.utls import Result, supported_extensions
+from backend.image_converter.core.internals.utls import (
+    Result,
+    supported_extensions,
+    EXTRA_SUPPORTED_EXTENSIONS,
+)
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.application.file_payload_expander import FilePayloadExpander
 
 SAMPLE_PDF = "tests/sample-images/imgcompress_screenshot.pdf"
 
 
-def test_supported_extensions_includes_pdf():
-    assert ".pdf" in supported_extensions
+def test_When_LoadingSupportedExtensions_Expect_AllExtraFormatsIncluded():
+    for extra in EXTRA_SUPPORTED_EXTENSIONS:
+        assert extra in supported_extensions
 
 
-def test_pdf_page_extractor_renders_sample_pdf():
+def test_When_PdfPageExtractorProcessesSample_Expect_PageRendered():
     extractor = PdfPageExtractor(dpi=144)
     with open(SAMPLE_PDF, "rb") as f:
         data = f.read()
@@ -28,7 +33,7 @@ def test_pdf_page_extractor_renders_sample_pdf():
         assert img.height > 0
 
 
-def test_pdf_page_extractor_failure(monkeypatch):
+def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
     def boom(*args, **kwargs):
         raise RuntimeError("boom")
 
@@ -44,7 +49,7 @@ def test_pdf_page_extractor_failure(monkeypatch):
     assert "boom" in result.error
 
 
-def test_payload_expander_for_pdf(monkeypatch):
+def test_When_ExpandingPdfPayload_Expect_PageMetadataCreated(monkeypatch):
     fake_pages = [b"a", b"b"]
 
     class DummyExtractor:
@@ -60,7 +65,7 @@ def test_payload_expander_for_pdf(monkeypatch):
     assert payloads[0].page_index == 1
 
 
-def test_payload_expander_failure(monkeypatch):
+def test_When_ExtractorFails_Expect_PayloadExpansionFailure(monkeypatch):
     class DummyExtractor:
         def extract_pages(self, data, source_hint):
             return Result.failure("invalid pdf")
@@ -71,7 +76,7 @@ def test_payload_expander_failure(monkeypatch):
     assert "invalid pdf" in result.error
 
 
-def test_payload_expander_non_pdf():
+def test_When_FileIsNonPdf_Expect_ExpanderReturnsOriginalPayload():
     expander = FilePayloadExpander(PdfPageExtractor())
     result = expander.expand("image.png", b"bytes")
     assert result.is_successful

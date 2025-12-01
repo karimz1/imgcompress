@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.domain.units import TargetSize
 
@@ -19,3 +20,21 @@ class CompressResult:
 
     def to_summary(self):
         return {"processed_files": self.processed_files, "errors": self.errors}
+
+
+@dataclass(frozen=True)
+class ConversionDetails:
+    source: str
+    destination: str
+    bytes_written: int
+
+
+@dataclass
+class PageProcessingResult:
+    file: str
+    source: str
+    destination: str
+    original_width: Optional[int]
+    resized_width: Optional[int]
+    is_successful: bool
+    error: Optional[str] = None

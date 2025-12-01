@@ -5,6 +5,7 @@ from backend.image_converter.core.image_convertsion_processor import ImageConver
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.enums.image_format import ImageFormat
 from tests.test_utils import capture_stdout, capture_logger_output
+from backend.image_converter.application.dtos import PageProcessingResult
 import pytest
 
 @pytest.fixture
@@ -29,7 +30,7 @@ def mock_converter():
     """
     return MagicMock(spec=JpegConverter)
 
-def test_success_json_output(mock_converter, mock_file_manager):
+def test_When_OutputResultsRunsInJsonMode_Expect_SummarySerialized(mock_converter, mock_file_manager):
     """
     Test that output_results prints valid JSON when json_output=True,
     capturing the printed JSON via capture_stdout.
@@ -45,18 +46,22 @@ def test_success_json_output(mock_converter, mock_file_manager):
     processor.logger.logs = []
     processor.converter = mock_converter
     processor.results = [
-        {
-            "file": "test1.jpg",
-            "source": "/mock/source/test1.jpg", "destination": "/mock/destination/test1.jpg",
-            "original_width": 2000, "resized_width": 800,
-            "is_successful": True, "error": None
-        },
-        {
-            "file": "test2.jpg",
-            "source": "/mock/source/test2.jpg", "destination": "/mock/destination/test2.jpg",
-            "original_width": 3000, "resized_width": 800,
-            "is_successful": True, "error": None
-        },
+        PageProcessingResult(
+            file="test1.jpg",
+            source="/mock/source/test1.jpg",
+            destination="/mock/destination/test1.jpg",
+            original_width=2000,
+            resized_width=800,
+            is_successful=True,
+        ),
+        PageProcessingResult(
+            file="test2.jpg",
+            source="/mock/source/test2.jpg",
+            destination="/mock/destination/test2.jpg",
+            original_width=3000,
+            resized_width=800,
+            is_successful=True,
+        ),
     ]
 
     summary = processor.generate_summary()
@@ -71,7 +76,7 @@ def test_success_json_output(mock_converter, mock_file_manager):
     assert conv_results["file_processing_summary"]["failed_files_count"] == 0
 
 
-def test_failure_text_output(mock_converter, mock_file_manager):
+def test_When_OutputResultsRunsInTextModeWithErrors_Expect_FailuresLogged(mock_converter, mock_file_manager):
     """
     Test that output_results logs plain text when json_output=False,
     capturing logger-based messages via capture_logger_output.
@@ -89,18 +94,23 @@ def test_failure_text_output(mock_converter, mock_file_manager):
     processor.converter = mock_converter
 
     processor.results = [
-        {
-            "file": "test1.jpg",
-            "source": "/mock/source/test1.jpg", "destination": "/mock/destination/test1.jpg",
-            "original_width": 2000, "resized_width": 800,
-            "is_successful": True, "error": None
-        },
-        {
-            "file": "test2.jpg",
-            "source": "/mock/source/test2.jpg", "destination": "/mock/destination/test2.jpg",
-            "original_width": None, "resized_width": None,
-            "is_successful": False, "error": "Mock failure"
-        },
+        PageProcessingResult(
+            file="test1.jpg",
+            source="/mock/source/test1.jpg",
+            destination="/mock/destination/test1.jpg",
+            original_width=2000,
+            resized_width=800,
+            is_successful=True,
+        ),
+        PageProcessingResult(
+            file="test2.jpg",
+            source="/mock/source/test2.jpg",
+            destination="/mock/destination/test2.jpg",
+            original_width=None,
+            resized_width=None,
+            is_successful=False,
+            error="Mock failure",
+        ),
     ]
 
     summary = processor.generate_summary()
@@ -108,7 +118,7 @@ def test_failure_text_output(mock_converter, mock_file_manager):
     assert "Summary: 2 file(s) processed, 1 error(s)." in output
     assert "Failed: test2.jpg - Error: Mock failure" in output
 
-def test_debug_mode_logging(mock_logger):
+def test_When_DebugModeEnabled_Expect_LogsBypassStorage(mock_logger):
     """
     Test debug mode logs different levels but doesn't store them 
     in json_output=False mode.

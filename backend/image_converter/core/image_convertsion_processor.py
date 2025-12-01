@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import List, Dict, Optional
 import os
 import json
@@ -11,6 +12,8 @@ from backend.image_converter.core.enums.conversion_error import ConversionError
 from backend.image_converter.core.enums.log_level import LogLevel
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.application.file_payload_expander import FilePayloadExpander, PagePayload
+from backend.image_converter.application.dtos import PageProcessingResult
+from backend.image_converter.core.internals.utls import Result
 from PIL import Image
 from io import BytesIO
 
@@ -44,7 +47,7 @@ class ImageConversionProcessor:
             quality=self.quality,
             logger=self.logger
         )
-        self.results: List[Dict] = []
+        self.results: List[PageProcessingResult] = []
 
     def run(self) -> None:
         if os.path.isfile(self.source):
@@ -72,7 +75,7 @@ class ImageConversionProcessor:
             result = self._convert_file(path)
             self.results.extend(result)
 
-    def _convert_file(self, file_path: str) -> List[Dict]:
+    def _convert_file(self, file_path: str) -> List[PageProcessingResult]:
         """
         1) Load file bytes,
         2) Expand into per-page payloads (PDF aware),
@@ -96,7 +99,7 @@ class ImageConversionProcessor:
             self.logger.log(error_msg, LogLevel.ERROR.value)
             return [self._build_error_result(file_path, default_dest, str(e))]
 
-        results: List[Dict] = []
+        results: List[PageProcessingResult] = []
         for payload in page_payloads:
             dest_name = self._build_dest_name(base_name, extension, payload.page_index)
             dest_path = os.path.join(self.destination, dest_name)
@@ -117,9 +120,8 @@ class ImageConversionProcessor:
         dest_path: str,
         dest_name: str,
         payload: PagePayload,
-    ) -> Dict:
+    ) -> PageProcessingResult:
         page_label = payload.label
-        result = {"file": dest_name}
 
         try:
             with Image.open(BytesIO(payload.data)) as temp_img:
@@ -129,8 +131,7 @@ class ImageConversionProcessor:
             new_width = original_width
 
             if self.width and self.width > 0:
-                resized = self.image_resizer.resize_image(payload.data, self.width)
-                data = self._unwrap_result(resized)
+                data = self.image_resizer.resize_image(payload.data, self.width)
                 with Image.open(BytesIO(data)) as resized_img:
                     new_width, _ = resized_img.size
 
@@ -141,29 +142,32 @@ class ImageConversionProcessor:
             )
             conv_result = self._unwrap_result(convert_result)
 
-            result.update(conv_result)
-            result["file"] = dest_name
-            result["original_width"] = original_width
-            result["resized_width"] = new_width
-
+            return PageProcessingResult(
+                file=dest_name,
+                source=file_path,
+                destination=conv_result.destination,
+                original_width=original_width,
+                resized_width=new_width,
+                is_successful=True,
+                error=None,
+            )
         except Exception as e:
             error_msg = f"Error converting {page_label}: {e}"
             self.logger.log(error_msg, LogLevel.ERROR.value)
-            result.update({
-                "source": file_path,
-                "destination": dest_path,
-                "original_width": None,
-                "resized_width": None,
-                "is_successful": False,
-                "error": str(e)
-            })
-
-        return result
+            return PageProcessingResult(
+                file=dest_name,
+                source=file_path,
+                destination=dest_path,
+                original_width=None,
+                resized_width=None,
+                is_successful=False,
+                error=str(e),
+            )
 
     def generate_summary(self) -> Dict:
-        error_count = sum(not r.get("is_successful", False) for r in self.results)
+        error_count = sum(not r.is_successful for r in self.results)
         return {
-            "summary": self.results,
+            "summary": [asdict(r) for r in self.results],
             "errors_count": error_count
         }
 
@@ -174,11 +178,11 @@ class ImageConversionProcessor:
                 "status": "complete",
                 **({"logs": self.logger.logs} if self.debug else {}),
                 "conversion_results": {
-                    "files": self.results,
+                    "files": [asdict(r) for r in self.results],
                     "file_processing_summary": {
                         "total_files_count": len(self.results),
-                        "successful_files_count": len([r for r in self.results if r.get("is_successful")]),
-                        "failed_files_count": len([r for r in self.results if not r.get("is_successful")])
+                        "successful_files_count": len([r for r in self.results if r.is_successful]),
+                        "failed_files_count": len([r for r in self.results if not r.is_successful])
                     }
                 }
             }
@@ -187,8 +191,8 @@ class ImageConversionProcessor:
             message = f"Summary: {len(self.results)} file(s) processed, {summary['errors_count']} error(s)."
             self.logger.log(message, LogLevel.INFO.value)
             for result in self.results:
-                if not result.get("is_successful"):
-                    error_message = f"Failed: {result['file']} - Error: {result.get('error')}"
+                if not result.is_successful:
+                    error_message = f"Failed: {result.file} - Error: {result.error}"
                     self.logger.log(error_message, LogLevel.ERROR.value)
 
     @staticmethod
@@ -199,21 +203,19 @@ class ImageConversionProcessor:
 
     @staticmethod
     def _unwrap_result(result_obj):
-        if hasattr(result_obj, "value"):
-            value = result_obj.value
-            if isinstance(value, dict) and "is_successful" in value:
-                if not value.get("is_successful", False):
-                    raise Exception(value.get("error"))
-            return value
+        if isinstance(result_obj, Result):
+            if not result_obj.is_successful:
+                raise Exception(result_obj.error)
+            return result_obj.value
         return result_obj
 
-    def _build_error_result(self, file_path: str, dest_path: str, message: str) -> Dict:
-        return {
-            "file": os.path.basename(file_path),
-            "source": file_path,
-            "destination": dest_path,
-            "original_width": None,
-            "resized_width": None,
-            "is_successful": False,
-            "error": message,
-        }
+    def _build_error_result(self, file_path: str, dest_path: str, message: str) -> PageProcessingResult:
+        return PageProcessingResult(
+            file=os.path.basename(file_path),
+            source=file_path,
+            destination=dest_path,
+            original_width=None,
+            resized_width=None,
+            is_successful=False,
+            error=message,
+        )

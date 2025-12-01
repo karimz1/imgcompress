@@ -3,33 +3,31 @@ import os
 from typing import List, Set, Dict
 from PIL import Image
 
+# Formats that are ingest via custom pipelines (e.g. PdfPageExtractor)
 EXTRA_SUPPORTED_EXTENSIONS = {".pdf"}
+
 
 def load_supported_formats() -> List[str]:
     """
     Dynamically returns a sorted list of file extensions for which Pillow has a registered
-    decoder (i.e. that Pillow can actually open). Adds a curated list of additional formats
-    that we can ingest via custom pipelines.
+    decoder (i.e. that Pillow can actually open). Adds optional HEIF support and curated
+    formats handled via custom pipelines.
     """
-    # Image.registered_extensions() returns a dictionary mapping extensions to format names.
-    # Image.OPEN contains the internal formats (in uppercase) that Pillow can decode.
-    supported = [
-        ext.lower() 
-        for ext, fmt in Image.registered_extensions().items() 
+    pillow_formats = [
+        ext.lower()
+        for ext, fmt in Image.registered_extensions().items()
         if fmt.upper() in Image.OPEN
     ]
 
-    has_heif = importlib.util.find_spec("pillow_heif") is not None
-    if has_heif:
-        supported.extend({
-            '.heic': 'HEIC',
-            '.heif': 'HEIF'
-        })
-        
+    supported: List[str] = list(pillow_formats)
+
+    if importlib.util.find_spec("pillow_heif") is not None:
+        supported.extend([".heic", ".heif"])
+
     supported.extend(EXTRA_SUPPORTED_EXTENSIONS)
     return sorted(set(supported))
 
-    
+
 supported_extensions = load_supported_formats()
 
 def is_file_supported(file_path: str) -> bool:

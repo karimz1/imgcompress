@@ -3,6 +3,7 @@ from io import BytesIO
 from PIL import Image, ImageFile, ImageOps
 import traceback
 
+from backend.image_converter.application.dtos import ConversionDetails
 from backend.image_converter.core.internals.utls import Result
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.interfaces.iconverter import IImageConverter
@@ -65,28 +66,21 @@ class JpegConverter(IImageConverter):
             )
             return out.getvalue()
 
-    def convert(self, image_data: bytes, source_path: str, dest_path: str) -> Result[Dict]:
-        """
-        Converts image data to JPEG format and writes to disk.
-        Returns Result[Dict] with details on success, or Result.failure with traceback text.
-        """
-        result_dict: Dict = {
-            "source": source_path,
-            "destination": dest_path,
-            "is_successful": True,
-            "error": None,
-        }
+    def convert(self, image_data: bytes, source_path: str, dest_path: str) -> Result[ConversionDetails]:
+        """Convert bytes to JPEG on disk and return typed details."""
         try:
             data = self.encode_bytes(image_data)
             with open(dest_path, "wb") as f:
                 f.write(data)
 
             self.logger.log(f"Saved JPEG: {dest_path} (quality={self.quality}, bytes={len(data)})", "debug")
-            return Result.success(result_dict)
-
+            details = ConversionDetails(
+                source=source_path,
+                destination=dest_path,
+                bytes_written=len(data),
+            )
+            return Result.success(details)
         except Exception:
             tb = traceback.format_exc()
             self.logger.log(f"Failed to convert to JPEG: {tb}", "error")
-            result_dict["is_successful"] = False
-            result_dict["error"] = tb
             return Result.failure(tb)
