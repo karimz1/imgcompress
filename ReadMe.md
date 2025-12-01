@@ -17,9 +17,6 @@ No installs. No uploads. No data ever leaves your machine.
 > **Demo shows:** Import → Convert → Download — all processed locally.  
 > Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, PDFs (each page), and so much more.
 
-> **Demo shows:** Import → Convert → Download — all processed locally.  
-> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, PDFs (each page), and so much more.
-
 ## 📋 Table of Contents
 - [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
   - [Demo Example:](#demo-example)
