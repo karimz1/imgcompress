@@ -47,10 +47,10 @@ export function SupportedFormatsDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
                         <Info className="h-5 w-5 text-blue-500 dark:text-blue-400"/>
-                        Supported Image Formats
+                    Supported Formats (Images & PDFs)
                     </DialogTitle>
                     <DialogDescription className="text-sm text-muted-foreground">
-                        Verified and experimental image formats available in this tool.
+                        Verified and experimental upload formats available in this tool.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -65,7 +65,7 @@ export function SupportedFormatsDialog({
                         {/* ✅ Verified Formats */}
                         <section>
                             <h3 className="font-semibold text-green-600 dark:text-green-400 text-base mb-1">
-                                ✅ Verified Image Formats
+                                ✅ Verified Formats
                             </h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
                                 These formats have been thoroughly tested and verified to work

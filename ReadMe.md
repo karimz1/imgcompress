@@ -13,7 +13,7 @@ No installs. No uploads. No data ever leaves your machine.
 <img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
 
 > **Demo shows:** Import → Convert → Download — all processed locally.
-> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, Tiff, Eps, ICO, and so much more.
+> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, Tiff, Eps, ICO, PDFs (each page), and so much more.
 
 ## 📋 Table of Contents
 - [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
@@ -99,6 +99,8 @@ ___
 ### ✨ Feature Overview
 
 📱 Instant HEIC → Anything: Convert HEIC/HEIF to JPG, PNG, ICO, and more.
+
+📰 PDF ingestion: Upload PDFs and automatically rasterize every page before compressing or converting.
 
 🖼️ Universal convert + resize: Supports PSD, TIFF, PNG, JPEG, ICO and more.
 
@@ -187,7 +189,7 @@ See function: def verified_image_formats()
 
 Current list (as of 27.11.2025):
 ````
-.heic .heif .png .jpg .jpeg .ico .eps .psd
+.heic .heif .png .jpg .jpeg .ico .eps .psd .pdf
 ````
 
 

@@ -3,10 +3,13 @@ import os
 from typing import List, Set, Dict
 from PIL import Image
 
+EXTRA_SUPPORTED_EXTENSIONS = {".pdf"}
+
 def load_supported_formats() -> List[str]:
     """
     Dynamically returns a sorted list of file extensions for which Pillow has a registered
-    decoder (i.e. that Pillow can actually open).
+    decoder (i.e. that Pillow can actually open). Adds a curated list of additional formats
+    that we can ingest via custom pipelines.
     """
     # Image.registered_extensions() returns a dictionary mapping extensions to format names.
     # Image.OPEN contains the internal formats (in uppercase) that Pillow can decode.
@@ -23,6 +26,7 @@ def load_supported_formats() -> List[str]:
             '.heif': 'HEIF'
         })
         
+    supported.extend(EXTRA_SUPPORTED_EXTENSIONS)
     return sorted(set(supported))
 
     

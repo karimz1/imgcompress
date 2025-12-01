@@ -154,11 +154,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       >
         <input {...getInputProps()} data-testid="dropzone-input" />
         {isDragActive ? (
-          <p className="text-blue-300">Drop Images here...</p>
+          <p className="text-blue-300">Drop images or PDFs here...</p>
         ) : isLoading ? (
-          <p>Cannot drop Images while processing...</p>
+          <p>Cannot drop files while processing...</p>
         ) : (
-          <p>Drag & drop Images here, or click to select</p>
+          <p>Drag & drop images or PDFs here, or click to select</p>
         )}
       </div>
     ),

@@ -10,6 +10,7 @@ setup(
     install_requires=[
         'Pillow>=9.0.0',
         'pyheif>=0.6.0',
+        'pypdfium2>=4.30.0',
     ],
     entry_points={
         'console_scripts': [
