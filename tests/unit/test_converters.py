@@ -1,6 +1,9 @@
 import pytest
-from PIL import Image
 from io import BytesIO
+
+from PIL import Image
+
+from backend.image_converter.application.dtos import ConversionDetails
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
 from backend.image_converter.infrastructure.logger import Logger
@@ -19,7 +22,7 @@ def mock_logger():
     """A basic logger stub."""
     return Logger(debug=True, json_output=False)
 
-def test_jpeg_converter_alpha(sample_rgba_png, tmp_path, mock_logger):
+def test_When_ImageContainsTransparency_Expect_JpegConverterFlattensAlpha(sample_rgba_png, tmp_path, mock_logger):
     """
     Ensure JpegConverter composites alpha over white.
     """
@@ -30,6 +33,8 @@ def test_jpeg_converter_alpha(sample_rgba_png, tmp_path, mock_logger):
     result = converter.convert(sample_rgba_png, source_path, dest_path)
     assert result.is_successful is True
     assert result.error is None
+    assert isinstance(result.value, ConversionDetails)
+    assert result.value.destination == dest_path
 
                                              
     with open(dest_path, "rb") as f:
@@ -39,7 +44,7 @@ def test_jpeg_converter_alpha(sample_rgba_png, tmp_path, mock_logger):
                                            
         assert out_img.size == (64, 64)
 
-def test_png_converter_preserves_alpha(sample_rgba_png, tmp_path, mock_logger):
+def test_When_ImageContainsTransparency_Expect_PngConverterPreservesAlpha(sample_rgba_png, tmp_path, mock_logger):
     """
     Ensure PngConverter preserves alpha channel.
     """
@@ -50,6 +55,8 @@ def test_png_converter_preserves_alpha(sample_rgba_png, tmp_path, mock_logger):
     result = converter.convert(sample_rgba_png, source_path, dest_path)
     assert result.is_successful is True
     assert result.error is None
+    assert isinstance(result.value, ConversionDetails)
+    assert result.value.destination == dest_path
 
     with open(dest_path, "rb") as f:
         output_data = f.read()

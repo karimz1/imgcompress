@@ -11,7 +11,7 @@ def sample_png_bytes():
     img.save(buf, format="PNG")
     return buf.getvalue()
 
-def test_resize_image(sample_png_bytes):
+def test_When_ImageNeedsResize_Expect_WidthMatchesTarget(sample_png_bytes):
     resizer = ImageResizer()
     target_width = 50
 
@@ -23,7 +23,7 @@ def test_resize_image(sample_png_bytes):
                                                                           
         assert img.height == 25
 
-def test_resize_invalid_width(sample_png_bytes):
+def test_When_InvalidResizeWidthProvided_Expect_ValueError(sample_png_bytes):
     resizer = ImageResizer()
 
     with pytest.raises(ValueError):

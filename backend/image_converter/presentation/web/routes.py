@@ -17,6 +17,8 @@ from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.presentation.web.parse_services import extract_form_data
+from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
+from backend.image_converter.application.file_payload_expander import FilePayloadExpander
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.dtos import CompressRequest
@@ -31,7 +33,9 @@ logger = Logger(debug=False, json_output=False)
 cleanup_service = CleanupService(TEMP_DIR, EXPIRATION_TIME, logger)
 resizer = ImageResizer()
 storage = LocalStorage()
-use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage)
+pdf_extractor = PdfPageExtractor(logger=logger)
+payload_expander = FilePayloadExpander(pdf_extractor)
+use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
 
 
 def _save_uploaded_files(files, folder: str) -> Result[None]:
@@ -203,6 +207,7 @@ def verified_image_formats():
         ".jpeg",
         ".ico",
         ".eps",
-        ".psd"
+        ".psd",
+        ".pdf"
     ]
     return jsonify({"verified_formats": verified}), 200

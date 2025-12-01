@@ -3,29 +3,31 @@ import os
 from typing import List, Set, Dict
 from PIL import Image
 
+# Formats that are ingest via custom pipelines (e.g. PdfPageExtractor)
+EXTRA_SUPPORTED_EXTENSIONS = {".pdf"}
+
+
 def load_supported_formats() -> List[str]:
     """
     Dynamically returns a sorted list of file extensions for which Pillow has a registered
-    decoder (i.e. that Pillow can actually open).
+    decoder (i.e. that Pillow can actually open). Adds optional HEIF support and curated
+    formats handled via custom pipelines.
     """
-    # Image.registered_extensions() returns a dictionary mapping extensions to format names.
-    # Image.OPEN contains the internal formats (in uppercase) that Pillow can decode.
-    supported = [
-        ext.lower() 
-        for ext, fmt in Image.registered_extensions().items() 
+    pillow_formats = [
+        ext.lower()
+        for ext, fmt in Image.registered_extensions().items()
         if fmt.upper() in Image.OPEN
     ]
 
-    has_heif = importlib.util.find_spec("pillow_heif") is not None
-    if has_heif:
-        supported.extend({
-            '.heic': 'HEIC',
-            '.heif': 'HEIF'
-        })
-        
+    supported: List[str] = list(pillow_formats)
+
+    if importlib.util.find_spec("pillow_heif") is not None:
+        supported.extend([".heic", ".heif"])
+
+    supported.extend(EXTRA_SUPPORTED_EXTENSIONS)
     return sorted(set(supported))
 
-    
+
 supported_extensions = load_supported_formats()
 
 def is_file_supported(file_path: str) -> bool:
@@ -106,16 +108,23 @@ class Result(Generic[T]):
 
     @staticmethod
     def success(value: T) -> 'Result[T]':
-        if isinstance(value, dict):
-            value["is_successful"] = True
-            value["error"] = None
-        return Result(True, value=value)
+        safe_value = Result._clone_with_flags(value, True)
+        return Result(True, value=safe_value)
 
     @staticmethod
-    def failure(error: str) -> 'Result[T]':
-        if isinstance(error, dict):
-            error["is_successful"] = False
-        return Result(False, error=str(error))
+    def failure(error: Any) -> 'Result[T]':
+        safe_error = Result._clone_with_flags(error, False)
+        return Result(False, error=str(safe_error))
+
+    @staticmethod
+    def _clone_with_flags(payload: Any, is_successful: bool) -> Any:
+        if isinstance(payload, dict):
+            cloned = payload.copy()
+            cloned["is_successful"] = is_successful
+            if is_successful:
+                cloned["error"] = None
+            return cloned
+        return payload
 
     @property 
     def is_successful(self) -> bool:

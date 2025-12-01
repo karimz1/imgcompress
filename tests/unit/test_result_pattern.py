@@ -10,13 +10,13 @@ from backend.image_converter.infrastructure.logger import Logger
                                                                      
 
 class TestImageFormatResult(unittest.TestCase):
-    def test_from_string_result_success(self):
+    def test_When_FormatIsValid_Expect_ImageFormatResolved(self):
                                           
         result = ImageFormat.from_string_result("jpeg")
         self.assertTrue(result.is_successful)
         self.assertEqual(result.value, ImageFormat.JPEG)
 
-    def test_from_string_result_failure(self):
+    def test_When_FormatIsUnsupported_Expect_ErrorResult(self):
                                              
         result = ImageFormat.from_string_result("unsupported_format")
         self.assertFalse(result.is_successful)
@@ -55,7 +55,7 @@ class TestLoggerAndResultIntegration(unittest.TestCase):
         for handler in self.logger.logger.handlers:
             self.logger.logger.removeHandler(handler)
 
-    def test_dummy_function_success_logs(self):
+    def test_When_ResultIsSuccessful_Expect_InfoLogged(self):
         result = dummy_function_success()
         self.assertTrue(result.is_successful)
                                         
@@ -64,7 +64,7 @@ class TestLoggerAndResultIntegration(unittest.TestCase):
         self.assertIn("Success:", output)
         self.assertIn("Everything went fine", output)
 
-    def test_dummy_function_failure_logs(self):
+    def test_When_ResultIsFailure_Expect_ErrorLogged(self):
         result = dummy_function_failure()
         self.assertFalse(result.is_successful)
         self.logger.log(f"Failure: {result.error}", "error")

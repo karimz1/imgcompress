@@ -4,6 +4,8 @@
 
 # imgcompress — Fast, Private Image Compression & Conversion Tool in Docker
 
+Self-hosted TinyPNG alternative to compress, convert, and resize images. The ultimate image compression and convert tool on the web — but running 100% locally on your own server for maximum privacy. Over 69+ formats are supported including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, PDF & more. Runs entirely in Docker for easy deployment.
+
 Instantly **compress, convert, and resize images** — all **locally**, inside a lightweight Docker container.  
 No installs. No uploads. No data ever leaves your machine.
 
@@ -12,8 +14,11 @@ No installs. No uploads. No data ever leaves your machine.
 ## Demo Example:
 <img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
 
-> **Demo shows:** Import → Convert → Download — all processed locally.
-> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, Tiff, Eps, ICO, and so much more.
+> **Demo shows:** Import → Convert → Download — all processed locally.  
+> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, PDFs (each page), and so much more.
+
+> **Demo shows:** Import → Convert → Download — all processed locally.  
+> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, PDFs (each page), and so much more.
 
 ## 📋 Table of Contents
 - [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
@@ -100,7 +105,9 @@ ___
 
 📱 Instant HEIC → Anything: Convert HEIC/HEIF to JPG, PNG, ICO, and more.
 
-🖼️ Universal convert + resize: Supports PSD, TIFF, PNG, JPEG, ICO and more.
+📰 PDF ingestion: Upload PDFs and automatically rasterize every page before compressing or converting.
+
+🖼️ Universal convert + resize: Supports HEIC, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, PDF and more.
 
 ⚙️ Full control: Set JPEG quality, PNG lossless mode, target width, and more.
 
@@ -185,9 +192,9 @@ docker run --rm \
 
 See function: def verified_image_formats()
 
-Current list (as of 27.11.2025):
+Current list (as of 01.12.2025):
 ````
-.heic .heif .png .jpg .jpeg .ico .eps .psd
+.heic .heif .png .jpg .jpeg .ico .eps .psd .pdf
 ````
 
 
