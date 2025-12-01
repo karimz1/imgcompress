@@ -53,13 +53,12 @@ class PdfPageExtractor:
         return rendered_pages
 
     def _render_single_page(self, page: Any, scale: float) -> bytes:
-        buffer = BytesIO()
         try:
             pil_image = page.render(scale=scale).to_pil()
-            pil_image.save(buffer, format=self.image_format)
-            return buffer.getvalue()
+            with BytesIO() as buffer:
+                pil_image.save(buffer, format=self.image_format)
+                return buffer.getvalue()
         finally:
-            buffer.close()
             page.close()
 
     def _dpi_to_scale(self) -> float:

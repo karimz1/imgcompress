@@ -23,6 +23,9 @@ from backend.image_converter.core.internals.utls import Result
 from PIL import Image
 from io import BytesIO
 
+class PayloadExpansionError(RuntimeError):
+    """Raised when result-wrapped operations fail during payload processing."""
+
 class ImageConversionProcessor:
     def __init__(
         self,
@@ -194,10 +197,7 @@ class ImageConversionProcessor:
                 logs=self.logger.logs if self.debug else None,
             )
 
-            response_dict = asdict(response)
-            if not self.debug:
-                response_dict.pop("logs", None)
-
+            response_dict = {k: v for k, v in asdict(response).items() if v is not None}
             print(json.dumps(response_dict, indent=4))
         else:
             message = f"Summary: {len(summary.processed_pages)} file(s) processed, {summary.errors_count} error(s)."
@@ -217,7 +217,7 @@ class ImageConversionProcessor:
     def _unwrap_result(result_obj):
         if isinstance(result_obj, Result):
             if not result_obj.is_successful:
-                raise Exception(result_obj.error)
+                raise PayloadExpansionError(result_obj.error or "Unknown result failure.")
             return result_obj.value
         return result_obj
 

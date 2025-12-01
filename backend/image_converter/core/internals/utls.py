@@ -108,16 +108,23 @@ class Result(Generic[T]):
 
     @staticmethod
     def success(value: T) -> 'Result[T]':
-        if isinstance(value, dict):
-            value["is_successful"] = True
-            value["error"] = None
-        return Result(True, value=value)
+        safe_value = Result._clone_with_flags(value, True)
+        return Result(True, value=safe_value)
 
     @staticmethod
-    def failure(error: str) -> 'Result[T]':
-        if isinstance(error, dict):
-            error["is_successful"] = False
-        return Result(False, error=str(error))
+    def failure(error: Any) -> 'Result[T]':
+        safe_error = Result._clone_with_flags(error, False)
+        return Result(False, error=str(safe_error))
+
+    @staticmethod
+    def _clone_with_flags(payload: Any, is_successful: bool) -> Any:
+        if isinstance(payload, dict):
+            cloned = payload.copy()
+            cloned["is_successful"] = is_successful
+            if is_successful:
+                cloned["error"] = None
+            return cloned
+        return payload
 
     @property 
     def is_successful(self) -> bool:
