@@ -65,15 +65,41 @@ def test_When_OutputResultsRunsInJsonMode_Expect_SummarySerialized(mock_converte
     ]
 
     summary = processor.generate_summary()
-    output = capture_stdout(processor.output_results, summary) 
+    output = capture_stdout(processor.output_results, summary)
 
     import json
     output_json = json.loads(output)
-    assert output_json["status"] == "complete"
-    conv_results = output_json["conversion_results"]
-    assert conv_results["file_processing_summary"]["total_files_count"] == 2
-    assert conv_results["file_processing_summary"]["successful_files_count"] == 2
-    assert conv_results["file_processing_summary"]["failed_files_count"] == 0
+    expected_json = {
+        "status": "complete",
+        "conversion_results": {
+            "files": [
+                {
+                    "file": "test1.jpg",
+                    "source": "/mock/source/test1.jpg",
+                    "destination": "/mock/destination/test1.jpg",
+                    "original_width": 2000,
+                    "resized_width": 800,
+                    "is_successful": True,
+                    "error": None,
+                },
+                {
+                    "file": "test2.jpg",
+                    "source": "/mock/source/test2.jpg",
+                    "destination": "/mock/destination/test2.jpg",
+                    "original_width": 3000,
+                    "resized_width": 800,
+                    "is_successful": True,
+                    "error": None,
+                },
+            ],
+            "file_processing_summary": {
+                "total_files_count": 2,
+                "successful_files_count": 2,
+                "failed_files_count": 0,
+            },
+        },
+    }
+    assert output_json == expected_json
 
 
 def test_When_OutputResultsRunsInTextModeWithErrors_Expect_FailuresLogged(mock_converter, mock_file_manager):

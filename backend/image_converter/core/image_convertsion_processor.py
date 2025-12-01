@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from typing import List, Dict, Optional
+from typing import List, Optional
 import os
 import json
 from backend.image_converter.infrastructure.logger import Logger
@@ -12,7 +12,13 @@ from backend.image_converter.core.enums.conversion_error import ConversionError
 from backend.image_converter.core.enums.log_level import LogLevel
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.application.file_payload_expander import FilePayloadExpander, PagePayload
-from backend.image_converter.application.dtos import PageProcessingResult
+from backend.image_converter.application.dtos import (
+    PageProcessingResult,
+    ConversionSummary,
+    FileProcessingSummary,
+    ConversionResultsDto,
+    ConversionOutputDto,
+)
 from backend.image_converter.core.internals.utls import Result
 from PIL import Image
 from io import BytesIO
@@ -164,33 +170,39 @@ class ImageConversionProcessor:
                 error=str(e),
             )
 
-    def generate_summary(self) -> Dict:
+    def generate_summary(self) -> ConversionSummary:
         error_count = sum(not r.is_successful for r in self.results)
-        return {
-            "summary": [asdict(r) for r in self.results],
-            "errors_count": error_count
-        }
+        return ConversionSummary(processed_pages=list(self.results), errors_count=error_count)
 
-    def output_results(self, summary: Dict) -> None:
+    def output_results(self, summary: ConversionSummary) -> None:
         """Output final results either in JSON or plain text."""
         if self.json_output:
-            final_output = {
-                "status": "complete",
-                **({"logs": self.logger.logs} if self.debug else {}),
-                "conversion_results": {
-                    "files": [asdict(r) for r in self.results],
-                    "file_processing_summary": {
-                        "total_files_count": len(self.results),
-                        "successful_files_count": len([r for r in self.results if r.is_successful]),
-                        "failed_files_count": len([r for r in self.results if not r.is_successful])
-                    }
-                }
-            }
-            print(json.dumps(final_output, indent=4))
+            summary_payload = FileProcessingSummary(
+                total_files_count=len(summary.processed_pages),
+                successful_files_count=len([r for r in summary.processed_pages if r.is_successful]),
+                failed_files_count=len([r for r in summary.processed_pages if not r.is_successful]),
+            )
+
+            results_payload = ConversionResultsDto(
+                files=list(summary.processed_pages),
+                file_processing_summary=summary_payload,
+            )
+
+            response = ConversionOutputDto(
+                status="complete",
+                conversion_results=results_payload,
+                logs=self.logger.logs if self.debug else None,
+            )
+
+            response_dict = asdict(response)
+            if not self.debug:
+                response_dict.pop("logs", None)
+
+            print(json.dumps(response_dict, indent=4))
         else:
-            message = f"Summary: {len(self.results)} file(s) processed, {summary['errors_count']} error(s)."
+            message = f"Summary: {len(summary.processed_pages)} file(s) processed, {summary.errors_count} error(s)."
             self.logger.log(message, LogLevel.INFO.value)
-            for result in self.results:
+            for result in summary.processed_pages:
                 if not result.is_successful:
                     error_message = f"Failed: {result.file} - Error: {result.error}"
                     self.logger.log(error_message, LogLevel.ERROR.value)
