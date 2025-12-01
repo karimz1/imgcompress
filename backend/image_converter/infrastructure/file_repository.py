@@ -1,6 +1,11 @@
 import os
 import traceback
+from typing import Callable, TypeVar
+
 from backend.image_converter.core.internals.utls import Result
+
+T = TypeVar("T")
+
 
 class FileRepository:
     """
@@ -8,20 +13,25 @@ class FileRepository:
     """
 
     def read_file(self, path: str) -> Result[bytes]:
-        try:
-            with open(path, "rb") as f:
-                data = f.read()
-            return Result.success(data)
-        except Exception as e:
-            tb = traceback.format_exc()
-            return Result.failure(tb)
+        return self._execute(lambda: self._read_bytes(path), f"read '{path}'")
 
     def write_file(self, path: str, data: bytes) -> Result[None]:
+        return self._execute(lambda: self._write_bytes(path, data), f"write '{path}'")
+
+    def _read_bytes(self, path: str) -> bytes:
+        with open(path, "rb") as f:
+            return f.read()
+
+    def _write_bytes(self, path: str, data: bytes) -> None:
+        directory = os.path.dirname(path)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(data)
+
+    def _execute(self, action: Callable[[], T], context: str) -> Result[T]:
         try:
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, "wb") as f:
-                f.write(data)
-            return Result.success(None)
-        except Exception as e:
+            return Result.success(action())
+        except Exception:
             tb = traceback.format_exc()
-            return Result.failure(tb)
+            return Result.failure(f"Failed to {context}: {tb}")

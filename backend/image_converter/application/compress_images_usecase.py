@@ -27,7 +27,11 @@ class CompressImagesUseCase:
 
         for item in self.storage.iter_files(req.source_folder):
             try:
-                original = self.storage.read_bytes(item.path)
+                read_result = self.storage.read_bytes(item.path)
+                if not read_result.is_successful:
+                    raise ValueError(read_result.error)
+                original = read_result.value
+
                 expand_result = self.payload_expander.expand(item.name, original)
                 if not expand_result.is_successful:
                     raise ValueError(expand_result.error)
@@ -59,8 +63,11 @@ class CompressImagesUseCase:
                                 "warn"
                             )
 
-                        self.storage.write_bytes(dest_path, out)
-                        processed.append(dest_name)
+                        write_result = self.storage.write_bytes(dest_path, out)
+                        if not write_result.is_successful:
+                            errors.append(f"{page_label}: {write_result.error}")
+                        else:
+                            processed.append(dest_name)
                     else:
                         converter = self.converter_factory.create_converter(req.image_format, req.quality, self.logger)
                         result = converter.convert(
