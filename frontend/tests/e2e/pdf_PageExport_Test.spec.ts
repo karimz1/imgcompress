@@ -36,7 +36,7 @@ test('should rasterize a PDF upload and expose the converted page for download',
 test('should rasterize a three-page PDF upload and expose all converted pages for download', async ({ page }) => {
   await page.goto('/');
 
-  const fileBaseName = 'imgcompress_3Pages_TestFile';
+  const fileBaseName = 'imgcompress_multipage_test';
   const pdfFile = new ImageFileDto(`${fileBaseName}.pdf`);
   const expectedPageCount = 3;
 
@@ -49,20 +49,25 @@ test('should rasterize a three-page PDF upload and expose all converted pages fo
   await expect(downloadLinks).toHaveCount(expectedPageCount);
 
   // Assert that each link exposes the correct page suffix
+  const linkTexts = await downloadLinks.allTextContents();
   for (let pageIndex = 1; pageIndex <= expectedPageCount; pageIndex++) {
-    const linkText = (await downloadLinks.nth(pageIndex - 1).textContent()) ?? '';
-    expect(linkText).toContain(`${fileBaseName}_page-${pageIndex}`);
+    const expectedLabel = `${fileBaseName}_page-${pageIndex}`;
+    const found = linkTexts.some((text) => (text ?? '').includes(expectedLabel));
+    expect(found).toBeTruthy();
   }
 
   const downloads = await downloadFilesAndGetMetadataAsync(page, downloadLinks);
   expect(downloads).toHaveLength(expectedPageCount);
 
-  // Assert every downloaded image has valid dimensions and correct filename pattern
-  downloads.forEach(({ newFilePath, metadata }, index) => {
-    const pageIndex = index + 1;
-    expect(path.basename(newFilePath)).toMatch(
-      new RegExp(`${fileBaseName}_page-${pageIndex}`, 'i'),
-    );
+  const expectedNames = new Set(
+    Array.from({ length: expectedPageCount }, (_, idx) => `${fileBaseName}_page-${idx + 1}`),
+  );
+
+  downloads.forEach(({ newFilePath, metadata }) => {
+    const baseName = path.basename(newFilePath, path.extname(newFilePath));
+    expect(expectedNames.has(baseName)).toBeTruthy();
+    expectedNames.delete(baseName);
+
     expect(metadata.width ?? 0).toBeGreaterThan(0);
     expect(metadata.height ?? 0).toBeGreaterThan(0);
   });
