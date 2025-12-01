@@ -1,3 +1,6 @@
+## v0.2.4 — 2025-12-01
+- New Feature: Add support for extracting PDF pages as images in imgcompress ([#374](https://github.com/karimz1/imgcompress/issues/374))
+
 ## v0.2.3 — 2025-11-27
 - New Improvement "Support .PSD file format with verification: ([#361](https://github.com/karimz1/imgcompress/issues/361))
 

@@ -192,7 +192,7 @@ docker run --rm \
 
 See function: def verified_image_formats()
 
-Current list (as of 27.11.2025):
+Current list (as of 01.12.2025):
 ````
 .heic .heif .png .jpg .jpeg .ico .eps .psd .pdf
 ````
