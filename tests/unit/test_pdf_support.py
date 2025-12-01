@@ -24,7 +24,7 @@ def test_When_PdfPageExtractorProcessesSample_Expect_PageRendered():
     with open(SAMPLE_PDF, "rb") as f:
         data = f.read()
 
-    result = extractor.extract_pages(data, "imgcompress_screenshot.pdf")
+    result = extractor.rasterize_pages(data, "imgcompress_screenshot.pdf")
     assert result.is_successful
     assert len(result.value) == 1
     page_bytes = result.value[0]
@@ -43,7 +43,7 @@ def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
     )
 
     extractor = PdfPageExtractor()
-    result = extractor.extract_pages(b"", "broken.pdf")
+    result = extractor.rasterize_pages(b"", "broken.pdf")
 
     assert result.is_successful is False
     assert "boom" in result.error
@@ -53,7 +53,7 @@ def test_When_ExpandingPdfPayload_Expect_PageMetadataCreated(monkeypatch):
     fake_pages = [b"a", b"b"]
 
     class DummyExtractor:
-        def extract_pages(self, data, source_hint):
+        def rasterize_pages(self, data, source_hint):
             return Result.success(fake_pages)
 
     expander = FilePayloadExpander(DummyExtractor())
@@ -67,7 +67,7 @@ def test_When_ExpandingPdfPayload_Expect_PageMetadataCreated(monkeypatch):
 
 def test_When_ExtractorFails_Expect_PayloadExpansionFailure(monkeypatch):
     class DummyExtractor:
-        def extract_pages(self, data, source_hint):
+        def rasterize_pages(self, data, source_hint):
             return Result.failure("invalid pdf")
 
     expander = FilePayloadExpander(DummyExtractor())

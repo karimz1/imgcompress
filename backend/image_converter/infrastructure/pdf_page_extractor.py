@@ -1,6 +1,6 @@
 from io import BytesIO
 import traceback
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import pypdfium2 as pdfium
 
@@ -19,35 +19,54 @@ class PdfPageExtractor:
         self.dpi = dpi
         self.image_format = image_format
 
-    def extract_pages(self, data: bytes, source_hint: str = "") -> Result[List[bytes]]:
+    def rasterize_pages(self, pdf_bytes: bytes, source_hint: str = "") -> Result[List[bytes]]:
         """
         Convert the provided PDF bytes into a list of image-encoded page bytes.
         """
-        doc = None
+        document = None
         try:
-            doc = pdfium.PdfDocument(data)
-            if len(doc) == 0:
-                return Result.failure("PDF contains no renderable pages.")
-
-            scale = self.dpi / 72.0
-            rendered_pages: List[bytes] = []
-
-            for page_index in range(len(doc)):
-                page = doc[page_index]
-                pil_image = page.render(scale=scale).to_pil()
-                buffer = BytesIO()
-                pil_image.save(buffer, format=self.image_format)
-                rendered_pages.append(buffer.getvalue())
-                buffer.close()
-                page.close()
-
-            return Result.success(rendered_pages)
+            document = self._open_document(pdf_bytes)
+            pages = self._render_document(document)
+            return Result.success(pages)
         except Exception:
             tb = traceback.format_exc()
-            if self.logger:
-                hint = f" for '{source_hint}'" if source_hint else ""
-                self.logger.log(f"PDF conversion failed{hint}: {tb}", "error")
+            self._log_failure(tb, source_hint)
             return Result.failure(tb)
         finally:
-            if doc is not None:
-                doc.close()
+            if document is not None:
+                document.close()
+
+    def _open_document(self, pdf_bytes: bytes) -> pdfium.PdfDocument:
+        document = pdfium.PdfDocument(pdf_bytes)
+        if len(document) == 0:
+            raise ValueError("PDF contains no renderable pages.")
+        return document
+
+    def _render_document(self, document: pdfium.PdfDocument) -> List[bytes]:
+        scale = self._dpi_to_scale()
+        rendered_pages: List[bytes] = []
+
+        for page_index in range(len(document)):
+            page = document[page_index]
+            rendered_pages.append(self._render_single_page(page, scale))
+
+        return rendered_pages
+
+    def _render_single_page(self, page: Any, scale: float) -> bytes:
+        buffer = BytesIO()
+        try:
+            pil_image = page.render(scale=scale).to_pil()
+            pil_image.save(buffer, format=self.image_format)
+            return buffer.getvalue()
+        finally:
+            buffer.close()
+            page.close()
+
+    def _dpi_to_scale(self) -> float:
+        return self.dpi / 72.0
+
+    def _log_failure(self, traceback_text: str, source_hint: str) -> None:
+        if not self.logger:
+            return
+        hint = f" for '{source_hint}'" if source_hint else ""
+        self.logger.log(f"PDF conversion failed{hint}: {traceback_text}", "error")

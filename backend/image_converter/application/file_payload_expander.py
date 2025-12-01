@@ -25,7 +25,7 @@ class FilePayloadExpander:
         Returns a list of PagePayload objects for the given source.
         """
         if source_name.lower().endswith(".pdf"):
-            pdf_pages = self.pdf_extractor.extract_pages(data, source_name)
+            pdf_pages = self.pdf_extractor.rasterize_pages(data, source_name)
             if not pdf_pages.is_successful:
                 return Result.failure(pdf_pages.error)
 
