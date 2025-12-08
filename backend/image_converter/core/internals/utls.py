@@ -1,5 +1,6 @@
 import importlib
 import os
+import socket
 from typing import List, Set, Dict
 from PIL import Image
 
@@ -29,6 +30,13 @@ def load_supported_formats() -> List[str]:
 
 
 supported_extensions = load_supported_formats()
+
+def has_internet():
+    try:
+        socket.create_connection(("1.1.1.1", 53), 1)
+        return True
+    except:
+        return False
 
 def is_file_supported(file_path: str) -> bool:
     """
