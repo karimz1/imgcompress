@@ -1,33 +1,51 @@
 import { useEffect, useState } from "react";
 
 
-export function useBackendHealth(minDelay: number = 5000, maxDelay: number = 15000): boolean {
-  const [backendDown, setBackendDown] = useState(false);
+export interface HealthResponse {
+  utc_time: string;
+  internet: boolean;
+  status: string;
+}
+
+export function useBackendHealth(
+  minDelay: number = 5000,
+  maxDelay: number = 15000
+) {
+  const [isDown, setDown] = useState(false);
+  const [hasInternet, setInternet] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout;
 
-    const checkHealth = async () => {
+    const check = async () => {
       try {
         const res = await fetch("/api/health/live");
-        if (!res.ok) {
-          setBackendDown(true);
-        } else {
-          setBackendDown(false);
-        }
-      } catch{
-        setBackendDown(true);
+        if (!res.ok) throw new Error("Backend unreachable");
+
+        const data: HealthResponse = await res.json();
+
+        setDown(false);
+        setInternet(data.internet);
+        setStatus(data.status);
+        setLastUpdate(data.utc_time);
+
+      } catch {
+        setDown(true);
+        setInternet(null);
+        setStatus(null);
       }
 
-      
-      const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-      timeoutId = setTimeout(checkHealth, randomDelay);
+      timeout = setTimeout(
+        check,
+        Math.random() * (maxDelay - minDelay) + minDelay
+      );
     };
 
-    checkHealth();
-
-    return () => clearTimeout(timeoutId);
+    check();
+    return () => clearTimeout(timeout);
   }, [minDelay, maxDelay]);
 
-  return backendDown;
+  return { isDown, hasInternet, status, lastUpdate };
 }
