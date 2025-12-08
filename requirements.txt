@@ -8,4 +8,4 @@ flask==3.1.2
 apscheduler==3.11.1
 gunicorn==23.0.0
 pillow_heif==1.1.1
-pypdfium2==4.30.0
+pypdfium2==5.1.0
