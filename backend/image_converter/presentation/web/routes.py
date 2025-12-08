@@ -10,7 +10,7 @@ from flask import Blueprint, request, jsonify, send_from_directory
 from setuptools.command.build_ext import use_stubs
 from werkzeug.utils import secure_filename
 
-from backend.image_converter.core.internals.utls import Result, supported_extensions
+from backend.image_converter.core.internals.utls import Result, supported_extensions,  has_internet
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.domain.image_resizer import ImageResizer
@@ -185,7 +185,11 @@ def container_files():
 
 @api_blueprint.route("/health/live", methods=["GET"])
 def health_live():
-    return jsonify({"status": "live", "UTC_Time": datetime.now(timezone.utc).isoformat()}), 200
+    return jsonify({
+        "status": "running",
+        "internet": has_internet(),
+        "utc_time": datetime.now(timezone.utc).isoformat()
+    }), 200
 
 
 @api_blueprint.route("/images_supported", methods=["GET"])
