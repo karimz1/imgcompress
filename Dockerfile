@@ -54,7 +54,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libimagequant-dev libheif-dev liblcms2-dev \
     libfreetype6-dev libharfbuzz-dev libfribidi-dev \
     libxcb1-dev zlib1g-dev libgif-dev ghostscript \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory.

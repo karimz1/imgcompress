@@ -6,9 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash, HardDrive } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { BackendStatusFloating } from "@/components/BackendStatusFloating";
-
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -191,7 +188,6 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
           </div>
         </div>
       </CardContent>
-      <BackendStatusFloating />
     </Card>
   );
 }
