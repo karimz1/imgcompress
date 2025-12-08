@@ -30,6 +30,7 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 
+
 function HomePageContent() {
   const [disableLogo, setDisableLogo] = useState(false);
   const [configReady, setConfigReady] = useState(false);
@@ -81,7 +82,7 @@ function HomePageContent() {
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
 
   const { error, setError, clearError } = useErrorStore();
-  const backendDown = useBackendHealth();
+  const { isDown } = useBackendHealth();
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
@@ -291,7 +292,8 @@ function HomePageContent() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
-      <BackendStatusBanner backendDown={backendDown} />
+      <BackendStatusBanner backendDown={isDown} />
+
       <div className="p-4 flex-grow flex flex-col items-center text-foreground">
         <ToastContainer />
         <Card className="w-full max-w-xl">
