@@ -265,5 +265,11 @@ See the full release history in [frontend/public/release-notes.md](https://githu
 
 ## 📝 License
 
-Released under the **MIT License**, see [LICENSE](https://github.com/karimz1/imgcompress/blob/main/LICENSE) for full text.
-Third-party libraries remain under their respective licenses.
+Released under the [MIT License](https://github.com/karimz1/imgcompress/blob/main/LICENSE).  
+Third-party dependencies are subject to their own licenses.
+
+### Credits (optional)
+
+If you fork or build on this project, you’re very welcome (but not obliged) to add a note such as:
+
+> This project is based on **imgcompress** – https://github.com/karimz1/imgcompress
