@@ -1,6 +1,3 @@
-
-
-
 export interface ErrorMessage {
   message: string;
   details?: string;
