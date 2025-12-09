@@ -1,5 +1,8 @@
+## v0.2.5.1 — 2025-12-09
+- Improvement: Internet Check Changed from Auto to Manual Trigger ([#384](https://github.com/karimz1/imgcompress/issues/384))
+
 ## v0.2.5 — 2025-12-08
-- New Feature: Add Container Status & Connectivity Indicator UI ([#374](https://github.com/karimz1/imgcompress/issues/382))
+- New Feature: Add Container Status & Connectivity Indicator UI ([#382](https://github.com/karimz1/imgcompress/issues/382))
 
 ## v0.2.4 — 2025-12-01
 - New Feature: Add support for extracting PDF pages as images in imgcompress ([#374](https://github.com/karimz1/imgcompress/issues/374))

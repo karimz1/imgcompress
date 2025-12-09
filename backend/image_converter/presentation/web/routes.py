@@ -182,12 +182,18 @@ def force_cleanup():
 def container_files():
     return jsonify(cleanup_service.get_container_files()), 200
 
+@api_blueprint.route("/health/internet", methods=["GET"])
+def health_internet():
+    return jsonify({
+        "internet": has_internet(),
+        "utc_time": datetime.now(timezone.utc).isoformat()
+    }), 200
 
-@api_blueprint.route("/health/live", methods=["GET"])
+
+@api_blueprint.route("/health/backend", methods=["GET"])
 def health_live():
     return jsonify({
         "status": "running",
-        "internet": has_internet(),
         "utc_time": datetime.now(timezone.utc).isoformat()
     }), 200
 
