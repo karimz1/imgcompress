@@ -12,8 +12,8 @@ interface SplashScreenProps {
 
 const MESSAGES = [
   "Working on it, gimme a few seconds~",
-  "I'm squeezing your pixels nice and gentle…",
-  "So many images! Compression mode, full power!!",
+  "I'm squeezing the pixels…",
+  "So many pixels! Compression mode, full power!!",
   "Sorry it's taking a bit, I'm still compressing every last pixel…",
   "Almost done! Just finishing the final squish on your files~",
 ];
@@ -29,7 +29,7 @@ export function SplashScreen({ isVisible, onAbort }: SplashScreenProps) {
 
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % MESSAGES.length);
-    }, 6000); // change every 6 seconds
+    }, 12000); // change every 12 seconds
 
     return () => clearInterval(interval);
   }, [isVisible]);
@@ -109,7 +109,7 @@ export function SplashScreen({ isVisible, onAbort }: SplashScreenProps) {
 
             {/* Static label */}
             <div className="text-[11px] uppercase tracking-[0.25em] text-blue-200/80 mb-2">
-              ImgCompress-chan is squeezing your pixels
+              ImgCompress is working on your pixels
             </div>
 
             {/* Anime-style Status Text */}
