@@ -26,6 +26,7 @@ import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
 import PageFooter from "@/components/PageFooter";
 import FileConversionForm from "@/components/FileConversionForm";
 import { DownloadZipToast } from "@/components/CustomToast";
+import { SplashScreen } from "@/components/SplashScreen";
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
@@ -79,7 +80,9 @@ function HomePageContent() {
   const [jpegMode, setJpegMode] = useState<"quality" | "size">("quality");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
+
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   const { error, setError, clearError } = useErrorStore();
   const { isDown } = useBackendHealth();
@@ -200,31 +203,52 @@ function HomePageContent() {
       }
 
       try {
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         const res = await fetch("/api/compress", {
           method: "POST",
           body: formData,
+          signal: controller.signal,
         });
         if (!res.ok) {
-          const err = await res.json();
+          let errorMsg = "Error uploading files.";
+          let detailMsg = undefined;
+          try {
+            const err = await res.json();
+            errorMsg = err.error || errorMsg;
+            detailMsg = err.message;
+          } catch (jsonError) {
+            // Fallback if backend returns HTML (e.g. 500/502/413)
+            console.error("Failed to parse JSON error:", jsonError);
+            const textText = await res.text();
+            console.error("Raw response:", textText);
+            detailMsg = `Server returned ${res.status}: ${textText.substring(0, 100)}`;
+          }
+
           setError({
-            message: err.error || "Error uploading files.",
-            details: err.message || undefined,
+            message: errorMsg,
+            details: detailMsg,
             isApiError: true,
           });
-          toast.error(err.error || "Error uploading files.");
+          toast.error(errorMsg);
           return;
         }
+
         const data = await res.json();
         setConverted(data.converted_files);
         setDestFolder(data.dest_folder);
         setDrawerOpen(true);
         await delay(600);
         toast.success(
-          `${data.converted_files.length} Image${
-            data.converted_files.length > 1 ? "s" : ""
+          `${data.converted_files.length} Image${data.converted_files.length > 1 ? "s" : ""
           } compressed successfully!`
         );
       } catch (err) {
+        if ((err as Error).name === "AbortError") {
+          console.log("Upload aborted");
+          return;
+        }
         console.error(err);
         setError({
           message: "Something went wrong. Please try again.",
@@ -290,17 +314,26 @@ function HomePageContent() {
     }
   }, []);
 
+  const handleAbort = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsLoading(false);
+      toast.info("Compression cancelled.");
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
+      <SplashScreen isVisible={isLoading} onAbort={handleAbort} />
       <BackendStatusBanner backendDown={isDown} />
 
       <div className="p-4 flex-grow flex flex-col items-center text-foreground">
         <ToastContainer />
         <Card className="w-full max-w-xl">
           <CardTitle
-            className={`text-center pt-5 ${
-              configReady && disableLogo ? "pb-8" : ""
-            }`}
+            className={`text-center pt-5 ${configReady && disableLogo ? "pb-8" : ""
+              }`}
           >
             An Image Compression Tool
           </CardTitle>
@@ -345,15 +378,14 @@ function HomePageContent() {
           </CardContent>
         </Card>
 
-         {/* A floating button to open the FileManager drawer */}
+        {/* A floating button to open the FileManager drawer */}
         <div className="fixed bottom-4 right-4">
           <button
             disabled={isLoading}
             onClick={() => setFileManagerOpen(true)}
             data-testid="storage-management-btn"
-            className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
-              isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
-            }`}
+            className={`rounded-full p-3 shadow-lg hover:shadow-xl ${isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
+              }`}
           >
             <HardDrive className="h-6 w-6" />
           </button>
