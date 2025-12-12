@@ -38,6 +38,14 @@ payload_expander = FilePayloadExpander(pdf_extractor)
 use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
 
 
+def _storage_management_enabled() -> bool:
+    return os.environ.get("DISABLE_STORAGE_MANAGEMENT", "false").lower() != "true"
+
+
+def _storage_management_disabled_response():
+    return jsonify({"error": "Storage management endpoints are disabled in this mode."}), 403
+
+
 def _save_uploaded_files(files, folder: str) -> Result[None]:
     try:
         os.makedirs(folder, exist_ok=True)
@@ -161,6 +169,9 @@ def download_all():
 
 @api_blueprint.route("/storage_info", methods=["GET"])
 def storage_info():
+    if not _storage_management_enabled():
+        return _storage_management_disabled_response()
+
     total, used, free = shutil.disk_usage("/")
     mib = 1024 * 1024
     return jsonify({
@@ -172,6 +183,9 @@ def storage_info():
 
 @api_blueprint.route("/force_cleanup", methods=["POST"])
 def force_cleanup():
+    if not _storage_management_enabled():
+        return _storage_management_disabled_response()
+
     res = cleanup_service.cleanup_temp_folders(force=True)
     if not res.is_successful:
         return jsonify({"error": "Forced cleanup failed", "message": res.error}), 500
@@ -180,6 +194,9 @@ def force_cleanup():
 
 @api_blueprint.route("/container_files", methods=["GET"])
 def container_files():
+    if not _storage_management_enabled():
+        return _storage_management_disabled_response()
+
     return jsonify(cleanup_service.get_container_files()), 200
 
 @api_blueprint.route("/health/internet", methods=["GET"])

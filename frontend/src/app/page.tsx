@@ -34,6 +34,7 @@ import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 function HomePageContent() {
   const [disableLogo, setDisableLogo] = useState(false);
   const [configReady, setConfigReady] = useState(false);
+  const [storageManagementDisabled, setStorageManagementDisabled] = useState(false);
 
   useEffect(() => {
     const loadRuntimeConfig = async () => {
@@ -42,9 +43,13 @@ function HomePageContent() {
         if (!res.ok) throw new Error("Config not found");
         const config = await res.json();
         setDisableLogo(config.DISABLE_LOGO === "true");
+        const disableStorage =
+          config.DISABLE_STORAGE_MANAGEMENT === "true";
+        setStorageManagementDisabled(disableStorage);
       } catch (err) {
         console.warn("DISABLE_LOGO config missing or invalid, defaulting to false", err);
         setDisableLogo(false);
+        setStorageManagementDisabled(false);
       } finally {
         setConfigReady(true);
       }
@@ -345,42 +350,46 @@ function HomePageContent() {
           </CardContent>
         </Card>
 
-         {/* A floating button to open the FileManager drawer */}
-        <div className="fixed bottom-4 right-4">
-          <button
-            disabled={isLoading}
-            onClick={() => setFileManagerOpen(true)}
-            data-testid="storage-management-btn"
-            className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
-              isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
-            }`}
-          >
-            <HardDrive className="h-6 w-6" />
-          </button>
-        </div>
+        {!storageManagementDisabled && (
+          <>
+            {/* A floating button to open the FileManager drawer */}
+            <div className="fixed bottom-4 right-4">
+              <button
+                disabled={isLoading}
+                onClick={() => setFileManagerOpen(true)}
+                data-testid="storage-management-btn"
+                className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
+                }`}
+              >
+                <HardDrive className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Drawer for File Manager */}
+            <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+              <DrawerTrigger asChild>
+                <button className="hidden" />
+              </DrawerTrigger>
+              <DrawerContent className="border-0">
+                <VisuallyHidden>
+                  <DrawerHeader>
+                    <DrawerTitle className="text-lg font-semibold text-center">
+                      Admin Tools
+                    </DrawerTitle>
+                  </DrawerHeader>
+                </VisuallyHidden>
+                <div className="p-4">
+                  <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </>
+        )}
 
         <div className="fixed bottom-4 left-4 z-40">
           <ReleaseNotesButton />
         </div>
-
-        {/* Drawer for File Manager */}
-        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
-          <DrawerTrigger asChild>
-            <button className="hidden" />
-          </DrawerTrigger>
-          <DrawerContent className="border-0">
-            <VisuallyHidden>
-              <DrawerHeader>
-                <DrawerTitle className="text-lg font-semibold text-center">
-                  Admin Tools
-                </DrawerTitle>
-              </DrawerHeader>
-            </VisuallyHidden>
-            <div className="p-4">
-              <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
-            </div>
-          </DrawerContent>
-        </Drawer>
 
         {converted.length > 0 && (
           <CompressedFilesDrawer
