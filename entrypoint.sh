@@ -9,7 +9,8 @@ mkdir -p "$CONFIG_DIR"
 # Generate runtime.json dynamically using ENV
 cat <<EOF > "$CONFIG_DIR/runtime.json"
 {
-  "DISABLE_LOGO": "${DISABLE_LOGO:-false}"
+  "DISABLE_LOGO": "${DISABLE_LOGO:-false}",
+  "DISABLE_STORAGE_MANAGEMENT": "${DISABLE_STORAGE_MANAGEMENT:-false}"
 }
 EOF
 
