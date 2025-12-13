@@ -99,7 +99,12 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
           <div className="pt-10">
             <DrawerFooter>
               <DrawerClose asChild>
-                <Button variant="destructive">Close</Button>
+                <Button
+                  variant="destructive"
+                  data-testid="compressed-files-drawer-close-btn"
+                >
+                  Close
+                </Button>
               </DrawerClose>
             </DrawerFooter>
           </div>
