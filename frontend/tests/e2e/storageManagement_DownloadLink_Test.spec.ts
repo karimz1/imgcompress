@@ -23,6 +23,11 @@ test('storage management download link allows downloading converted files', asyn
   await assertZipButtonNotRenderedAsync(page);
   await assertDownloadLinksAsync(page, files);
 
+  const compressedFilesDrawerCloseButton = page.getByTestId('compressed-files-drawer-close-btn');
+  await expect(compressedFilesDrawerCloseButton).toBeVisible();
+  await compressedFilesDrawerCloseButton.click();
+  await expect(compressedFilesDrawerCloseButton).toBeHidden();
+
   const storageManagementButton = page.getByTestId('storage-management-btn');
   await expect(storageManagementButton).toBeVisible();
   await storageManagementButton.click();
