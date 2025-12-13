@@ -175,6 +175,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                         <span>
                           <a
                             href={downloadUrl}
+                            data-testid="storage-management-file-download-link"
                             className="text-blue-400 underline text-xs"
                             title={`Download ${file.filename}`}
                           >
