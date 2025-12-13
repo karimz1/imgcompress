@@ -89,6 +89,7 @@ class CleanupService:
                         size_mb = round(os.path.getsize(file_path) / (1024 * 1024), 2)
                         files_list.append({
                             "folder": folder,
+                            "folder_path": folder_path,
                             "filename": fname,
                             "size_mb": size_mb
                         })
@@ -103,6 +104,7 @@ class CleanupService:
                     size_mb = round(os.path.getsize(file_path) / (1024 * 1024), 2)
                     files_list.append({
                         "folder": "zip",
+                        "folder_path": self.temp_dir,
                         "filename": fname,
                         "size_mb": size_mb
                     })
