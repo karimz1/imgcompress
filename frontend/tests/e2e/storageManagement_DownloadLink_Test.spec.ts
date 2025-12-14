@@ -20,9 +20,8 @@ import { ImageFileDto } from './utls/ImageFileDto';
 
 test('storage management download link allows downloading converted files', async ({ page, request }
 ) => {
-    console.log("Before cleanup, file count:", await getStorageManagerFileCountAsync(request));
     await clearStorageManagerAsync(request);
-    console.log("After cleanup, file count:", await getStorageManagerFileCountAsync(request));
+    await assertStorageManagerFileCountAsync(request, 0);
 
     await page.goto('/');
 
