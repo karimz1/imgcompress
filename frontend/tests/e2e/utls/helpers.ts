@@ -109,7 +109,7 @@ export async function setMaxSizeInMBAsync(page: Page, sizeInMB: number): Promise
 }
 
 
-export async function GetFullFilePathOfImageFile(fileName: ImageFileDto): Promise<string> {
+export async function GetFullFilePathOfImageFileAsync(fileName: ImageFileDto): Promise<string> {
     const filePath = path.resolve(__dirname, '../fixtures/sample-images', fileName.fileName);
 
     try {
@@ -141,11 +141,10 @@ export async function setResizeWidthAsync(page: Page, width: number): Promise<vo
 
 
 export async function uploadFilesToDropzoneAsync(page: Page, fileNames: ImageFileDto[]): Promise<void> {
-  const dropzoneInput = page.locator(selectors.dropzoneInput);
-  const filePaths = fileNames.map(GetFullFilePathOfImageFile);
-  await dropzoneInput.setInputFiles(filePaths);
+    const dropzoneInput = page.locator(selectors.dropzoneInput);
+    const filePaths = await Promise.all(fileNames.map(GetFullFilePathOfImageFileAsync));
+    await dropzoneInput.setInputFiles(filePaths);
 }
-
 
 export async function clickDownloadZipButtonAndGetUrlAsync(page: Page): Promise<string> {
   const zipButton = page.locator(selectors.zipDownloadButton);
