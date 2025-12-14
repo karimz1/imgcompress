@@ -9,7 +9,8 @@ import {
   clearStorageManagerAsync,
   assertCloseDrawerBtnClickAsync,
   openStorageManagerAsync,
-  getStorageManagementDownloadLinkLocator
+  getStorageManagementDownloadLinkLocator,
+  assertStorageManagerFileCountAsync
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -30,6 +31,7 @@ test('storage management download link allows downloading converted files', asyn
   await clickConversionButtonAsync(page);
   await assertZipButtonNotRenderedAsync(page);
   await assertDownloadLinksAsync(page, files);
+  await assertStorageManagerFileCountAsync(request, files.length);
 
   await assertCloseDrawerBtnClickAsync(page);
 

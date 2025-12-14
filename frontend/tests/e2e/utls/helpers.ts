@@ -28,6 +28,29 @@ export async function clearStorageManagerAsync(request: APIRequestContext): Prom
 
   const payload = await response.json();
   expect(payload.status).toBe('ok');
+
+  // Poll until storage is empty (IO cleanup can take time).
+  await expect
+    .poll(() => getStorageManagerFileCountAsync(request), {
+      timeout: 10_000,
+      intervals: [500],
+    })
+    .toBe(0);
+}
+
+export async function assertStorageManagerFileCountAsync(
+  request: APIRequestContext,
+  expectedCount: number
+): Promise<void> {
+  const totalCount = await getStorageManagerFileCountAsync(request);
+  expect(totalCount).toBe(expectedCount);
+}
+
+export async function getStorageManagerFileCountAsync(request: APIRequestContext): Promise<number> {
+  const storageState = await request.get('/api/container_files');
+  expect(storageState.ok()).toBeTruthy();
+  const storagePayload = await storageState.json();
+  return storagePayload.total_count;
 }
 
 export async function assertCloseDrawerBtnClickAsync(page: Page) {
