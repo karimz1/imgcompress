@@ -7,7 +7,6 @@ import traceback
 from typing import Optional
 
 from flask import Blueprint, request, jsonify, send_from_directory
-from setuptools.command.build_ext import use_stubs
 from werkzeug.utils import secure_filename
 
 from backend.image_converter.core.internals.utls import Result, supported_extensions,  has_internet
@@ -17,7 +16,6 @@ from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.presentation.web.parse_services import extract_form_data
-from backend.image_converter.application.file_payload_expander import FilePayloadExpander
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.dtos import CompressRequest

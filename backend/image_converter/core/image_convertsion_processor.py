@@ -10,7 +10,7 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.enums.conversion_error import ConversionError
 from backend.image_converter.core.enums.log_level import LogLevel
-from backend.image_converter.application.file_payload_expander import FilePayloadExpander, PagePayload
+from backend.image_converter.application.file_payload_expander import PagePayload
 from backend.image_converter.application.dtos import (
     PageProcessingResult,
     ConversionSummary,
