@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { expect, Page, Locator } from '@playwright/test';
+import {expect, Page, Locator, APIRequestContext} from '@playwright/test';
 import AdmZip, { IZipEntry } from 'adm-zip';
 import sharp from 'sharp';
 import { ImageFileDto } from './ImageFileDto';
@@ -17,8 +17,37 @@ const selectors = {
   removeItemFromDropzoneBtn: '[data-testid="dropzone-remove-file-btn"]',
   targetSizeMBInput: '[data-testid="targetSizeMBInput"]',
   dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]',
-  outputFormatSelect: '#outputFormat'
+  outputFormatSelect: '#outputFormat',
+  storageManagementButton: '[data-testid="storage-management-btn"]',
+  storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]'
 };
+
+export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
+  const response = await request.post('/api/force_cleanup');
+  expect(response.ok()).toBeTruthy();
+
+  const payload = await response.json();
+  expect(payload.status).toBe('ok');
+}
+
+export async function assertCloseDrawerBtnClickAsync(page: Page) {
+  const compressedFilesDrawerCloseButton = page.getByTestId('compressed-files-drawer-close-btn');
+  await expect(compressedFilesDrawerCloseButton).toBeVisible();
+  await compressedFilesDrawerCloseButton.click();
+  await expect(compressedFilesDrawerCloseButton).toBeHidden();
+}
+
+export async function openStorageManagerAsync(page: Page): Promise<void> {
+  const storageManagementButton = page.locator(selectors.storageManagementButton);
+  await expect(storageManagementButton).toBeVisible();
+  await storageManagementButton.click();
+}
+
+export function getStorageManagementDownloadLinkLocator(page: Page, expectedFileName: string): Locator {
+  return page
+    .locator(selectors.storageManagementDownloadLink)
+    .filter({ hasText: expectedFileName });
+}
 
 export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: ImageFileDto): Promise<void> {
   const fileWrappers = page.locator(selectors.dropzoneAddedFileWrapper);

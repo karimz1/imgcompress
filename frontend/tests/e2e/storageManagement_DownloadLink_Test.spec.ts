@@ -6,11 +6,19 @@ import {
   clickConversionButtonAsync,
   assertZipButtonNotRenderedAsync,
   assertDownloadLinksAsync,
+  clearStorageManagerAsync,
+  assertCloseDrawerBtnClickAsync,
+  openStorageManagerAsync,
+  getStorageManagementDownloadLinkLocator
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
 
-test('storage management download link allows downloading converted files', async ({ page }) => {
+
+
+
+test('storage management download link allows downloading converted files', async ({ page, request }) => {
+  await clearStorageManagerAsync(request);
   await page.goto('/');
 
   const files: ImageFileDto[] = [new ImageFileDto('pexels-pealdesign-28594392.jpg')];
@@ -23,18 +31,10 @@ test('storage management download link allows downloading converted files', asyn
   await assertZipButtonNotRenderedAsync(page);
   await assertDownloadLinksAsync(page, files);
 
-  const compressedFilesDrawerCloseButton = page.getByTestId('compressed-files-drawer-close-btn');
-  await expect(compressedFilesDrawerCloseButton).toBeVisible();
-  await compressedFilesDrawerCloseButton.click();
-  await expect(compressedFilesDrawerCloseButton).toBeHidden();
+  await assertCloseDrawerBtnClickAsync(page);
 
-  const storageManagementButton = page.getByTestId('storage-management-btn');
-  await expect(storageManagementButton).toBeVisible();
-  await storageManagementButton.click();
-
-  const storageDownloadLinkLocator = page
-    .getByTestId('storage-management-file-download-link')
-    .filter({ hasText: expectedFileName });
+  await openStorageManagerAsync(page);
+  const storageDownloadLinkLocator = getStorageManagementDownloadLinkLocator(page, expectedFileName);
 
   await expect(storageDownloadLinkLocator).toHaveCount(1);
 
