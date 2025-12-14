@@ -29,11 +29,11 @@ export async function clearStorageManagerAsync(request: APIRequestContext): Prom
   const payload = await response.json();
   expect(payload.status).toBe('ok');
 
-  // Poll until storage is empty (IO cleanup can take time).
+  // Poll until storage is empty (IO cleanup can take time, especially on github actions, my pipeline).
   await expect
     .poll(() => getStorageManagerFileCountAsync(request), {
-      timeout: 10_000,
-      intervals: [500],
+      timeout: 30_000, // wait for maximal 30 sec
+      intervals: [500], // I'm checking it every 500 ms.
     })
     .toBe(0);
 }
