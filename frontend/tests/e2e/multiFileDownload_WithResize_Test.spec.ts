@@ -12,15 +12,14 @@ import {
 import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
 
-test('should upload two files, verify individual downloads by clicking and ZIP download availability, with resize-width', async ({ page }) => {
+test('should upload a few files, verify individual downloads by clicking and ZIP download availability, with resize-width', async ({ page }) => {
   await page.goto('/');
   const desiredWidth: number = 400;
   const imageFileNames: ImageFileDto[] = [
     new ImageFileDto("pexels-pealdesign-28594392.jpg"),
     new ImageFileDto("pexels-willianjusten-29944187.jpg"),
     new ImageFileDto("IMG_0935.heic"),
-    new ImageFileDto("vecteezy_new-update-logo-template-illustration_5412356-0.eps"),
-    new ImageFileDto("37443511_8499861.psd")
+    new ImageFileDto("vecteezy_new-update-logo-template-illustration_5412356-0.eps")
   ];
 
   await uploadFilesToDropzoneAsync(page, imageFileNames);

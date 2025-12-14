@@ -209,17 +209,35 @@ function HomePageContent() {
           method: "POST",
           body: formData,
         });
+
+        const contentType = res.headers.get("content-type") || "";
+        const responseText = await res.text();
+
+        let payload: any | null = null;
+        if (contentType.includes("application/json") && responseText) {
+          try {
+            payload = JSON.parse(responseText);
+          } catch (jsonErr) {
+            console.warn("Failed to parse JSON response:", jsonErr);
+          }
+        }
+
         if (!res.ok) {
-          const err = await res.json();
+          const fallbackMessage = responseText || "Error uploading files.";
+          const message = payload?.error || payload?.message || fallbackMessage;
           setError({
-            message: err.error || "Error uploading files.",
-            details: err.message || undefined,
+            message,
+            details: payload?.message || (!payload ? fallbackMessage : undefined),
             isApiError: true,
           });
-          toast.error(err.error || "Error uploading files.");
+          toast.error(message);
           return;
         }
-        const data = await res.json();
+
+        if (!payload) {
+          throw new Error("Received unexpected response from server.");
+        }
+        const data = payload;
         setConverted(data.converted_files);
         setDestFolder(data.dest_folder);
         setDrawerOpen(true);

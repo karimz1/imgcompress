@@ -18,6 +18,7 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.presentation.web.parse_services import extract_form_data
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
+from backend.image_converter.infrastructure.psd_renderer import PsdRenderer
 from backend.image_converter.application.file_payload_expander import FilePayloadExpander
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
@@ -34,7 +35,8 @@ cleanup_service = CleanupService(TEMP_DIR, EXPIRATION_TIME, logger)
 resizer = ImageResizer()
 storage = LocalStorage()
 pdf_extractor = PdfPageExtractor(logger=logger)
-payload_expander = FilePayloadExpander(pdf_extractor)
+psd_renderer = PsdRenderer(logger=logger)
+payload_expander = FilePayloadExpander(pdf_extractor, psd_renderer)
 use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
 
 
