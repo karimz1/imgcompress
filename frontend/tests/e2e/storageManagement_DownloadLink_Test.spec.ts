@@ -11,18 +11,17 @@ import {
     openStorageManagerAsync,
     getStorageManagementDownloadLinkLocator,
     assertStorageManagerFileCountAsync,
-    getStorageManagerFileCountAsync
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
 
-
+test.beforeEach(async ({ request }) => {
+    await clearStorageManagerAsync(request);
+    await assertStorageManagerFileCountAsync(request, 0);
+});
 
 test('storage management download link allows downloading converted files', async ({ page, request }
 ) => {
-    await clearStorageManagerAsync(request);
-    await assertStorageManagerFileCountAsync(request, 0);
-
     await page.goto('/');
 
     const files: ImageFileDto[] = [new ImageFileDto('pexels-pealdesign-28594392.jpg')];
