@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -e  # Exit immediately if a command exits with a non-zero status
 
 . /venv/bin/activate
 
