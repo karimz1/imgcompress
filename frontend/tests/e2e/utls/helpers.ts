@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import {expect, Page, Locator, APIRequestContext} from '@playwright/test';
 import AdmZip, { IZipEntry } from 'adm-zip';
 import sharp from 'sharp';
@@ -30,12 +30,17 @@ export async function clearStorageManagerAsync(request: APIRequestContext): Prom
   expect(payload.status).toBe('ok');
 
   // Poll until storage is empty (IO cleanup can take time, especially on github actions, my pipeline).
-  await expect
-    .poll(() => getStorageManagerFileCountAsync(request), {
-      timeout: 30_000, // wait for maximal 30 sec
-      intervals: [500], // I'm checking it every 500 ms.
-    })
-    .toBe(0);
+    await expect
+        .poll(async () => {
+            const totalCount = await getStorageManagerFileCountAsync(request);
+            console.log("Polling file count:", totalCount); // Log the count each time
+            return totalCount;
+        }, {
+            timeout: 30_000,  // Wait for a max of 30 seconds
+            intervals: [500], // Check every 500 ms
+        })
+        .toBe(0);  // Expect the storage to be empty
+
 }
 
 export async function assertStorageManagerFileCountAsync(
@@ -73,35 +78,47 @@ export function getStorageManagementDownloadLinkLocator(page: Page, expectedFile
 }
 
 export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: ImageFileDto): Promise<void> {
-  const fileWrappers = page.locator(selectors.dropzoneAddedFileWrapper);
-  const count = await fileWrappers.count();
+    const fileWrappers = page.locator(selectors.dropzoneAddedFileWrapper);
+    const count = await fileWrappers.count();
 
-  for (let i = 0; i < count; i++) {
-    const wrapper = fileWrappers.nth(i);
-    const fileNameElement = wrapper.locator(selectors.dropzoneAddedFile);
-    const fileNameText = await fileNameElement.textContent();
+    for (let i = 0; i < count; i++) {
+        const wrapper = fileWrappers.nth(i);
+        const fileNameElement = wrapper.locator(selectors.dropzoneAddedFile);
+        const fileNameText = await fileNameElement.textContent();
 
-    if (fileNameText && fileNameText.trim() === imageFile.fileName.trim()) {
-      const removeButton = wrapper.locator(selectors.removeItemFromDropzoneBtn);
-      await removeButton.click();
-      return;
+        if (fileNameText && fileNameText.trim().toLowerCase() === imageFile.fileName.trim().toLowerCase()) {
+            const removeButton = wrapper.locator(selectors.removeItemFromDropzoneBtn);
+            await removeButton.click();
+
+            // Retry logic to check if file has been removed (with delay)
+            const newCount = await fileWrappers.count();
+            if (newCount === count - 1) {
+                return; // File removed successfully
+            }
+
+            throw new Error(`File not removed: ${imageFile.fileName}`);
+        }
     }
-  }
 
-  throw new Error(`Remove button not found for image: ${imageFile.fileName}`);
+    throw new Error(`Remove button not found for image: ${imageFile.fileName}`);
 }
 
-export async function setMaxSizeInMBAsync(page: Page, sizeInMB: Number): Promise<void> {
-  const input = page.locator(selectors.targetSizeMBInput);
-  await input.fill(sizeInMB.toString());
+export async function setMaxSizeInMBAsync(page: Page, sizeInMB: number): Promise<void> {
+    const input = page.locator(selectors.targetSizeMBInput);
+    await input.fill(sizeInMB.toString());
 }
 
-export function GetFullFilePathOfImageFile(fileName: ImageFileDto): string {
-  const filePath = path.resolve(__dirname, '../fixtures/sample-images', fileName.fileName);
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Test file does not exist: ${filePath}`);
-  }
-  return filePath;
+
+export async function GetFullFilePathOfImageFile(fileName: ImageFileDto): Promise<string> {
+    const filePath = path.resolve(__dirname, '../fixtures/sample-images', fileName.fileName);
+
+    try {
+        await fsPromises.access(filePath); // Non-blocking async check
+    } catch (error) {
+        throw new Error(`Test file does not exist: ${filePath}`);
+    }
+
+    return filePath;
 }
 
 
@@ -146,21 +163,22 @@ export async function clickDownloadZipButtonAndGetUrlAsync(page: Page): Promise<
 
 
 export async function assertZipContentAsync(zipFilePath: string, expectedFiles: ImageFileDto[]): Promise<void> {
-  const zip = new AdmZip(zipFilePath);
-  const entries = zip.getEntries();
-  expect(entries.length).toBeGreaterThan(0);
+    const zip = new AdmZip(zipFilePath);
+    const entries = zip.getEntries();
+    expect(entries.length).toBeGreaterThan(0);
 
-  const zipFileNames: string[] = entries.map((entry: IZipEntry) => entry.entryName);
-  for (const expectedFileDto of expectedFiles) {
-    
-    const expectedBaseName = path.basename(expectedFileDto.fileName, path.extname(expectedFileDto.fileName));
-    const found = zipFileNames.some(zipFile => {
-      const zipBaseName = path.basename(zipFile, path.extname(zipFile));
-      return zipBaseName === expectedBaseName;
-    });
-    expect(found).toBeTruthy();
-  }
+    const zipFileNames: string[] = entries.map((entry: IZipEntry) => entry.entryName);
+
+    for (const expectedFileDto of expectedFiles) {
+        const expectedBaseName = path.basename(expectedFileDto.fileName, path.extname(expectedFileDto.fileName));
+        const found = zipFileNames.some(zipFile => {
+            const zipBaseName = path.basename(zipFile, path.extname(zipFile));
+            return zipBaseName === expectedBaseName;
+        });
+        expect(found).toBeTruthy();
+    }
 }
+
 
 
 export async function assertFilesPresentInDropzoneAsync(page: Page, imageFileDto: ImageFileDto[]): Promise<void> {
