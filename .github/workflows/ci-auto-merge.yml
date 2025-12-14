@@ -36,7 +36,7 @@ jobs:
             --load \
             -t devcontainer:local-test .
 
-      - name: Run Tests on ${{ matrix.platform }}
+      - name: Run Backend Unit Tests on ${{ matrix.platform }}
         run: |
           docker run --rm \
             --entrypoint /bin/sh \
@@ -44,8 +44,19 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
-            devcontainer:local-test /app/runTests.sh
-        continue-on-error: false
+            devcontainer:local-test /app/runUnitTests.sh
+        env:
+          IS_RUNNING_IN_GITHUB_ACTIONS: true
+
+      - name: Run Backend Integration (Docker) Tests on ${{ matrix.platform }}
+        run: |
+          docker run --rm \
+            --entrypoint /bin/sh \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$(pwd):/app/" \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
+            --name devcontainer \
+            devcontainer:local-test /app/runIntegrationTests.sh
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
   
