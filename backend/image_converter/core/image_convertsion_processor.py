@@ -10,7 +10,6 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.enums.conversion_error import ConversionError
 from backend.image_converter.core.enums.log_level import LogLevel
-from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.application.file_payload_expander import FilePayloadExpander, PagePayload
 from backend.image_converter.application.dtos import (
     PageProcessingResult,
@@ -20,6 +19,7 @@ from backend.image_converter.application.dtos import (
     ConversionOutputDto,
 )
 from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.application.payload_expander_factory import create_payload_expander
 from PIL import Image
 from io import BytesIO
 
@@ -49,8 +49,7 @@ class ImageConversionProcessor:
         self.file_manager = FileManager(self.source, self.destination, self.logger)
         self.image_loader = ImageLoader()
         self.image_resizer = ImageResizer()
-        self.pdf_page_extractor = PdfPageExtractor(logger=self.logger)
-        self.payload_expander = FilePayloadExpander(self.pdf_page_extractor)
+        self.payload_expander = create_payload_expander(self.logger)
         self.converter = ImageConverterFactory.create_converter(
             image_format=self.image_format,
             quality=self.quality,
