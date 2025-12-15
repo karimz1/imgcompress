@@ -49,6 +49,11 @@ def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
     assert "boom" in result.error
 
 
+class DummyRenderer:
+    def render(self, source_name, data):
+        return Result.success(data)
+
+
 def test_When_ExpandingPdfPayload_Expect_PageMetadataCreated(monkeypatch):
     fake_pages = [b"a", b"b"]
 
@@ -56,7 +61,7 @@ def test_When_ExpandingPdfPayload_Expect_PageMetadataCreated(monkeypatch):
         def rasterize_pages(self, data, source_hint):
             return Result.success(fake_pages)
 
-    expander = FilePayloadExpander(DummyExtractor())
+    expander = FilePayloadExpander(DummyExtractor(), DummyRenderer())
     result = expander.expand("demo.pdf", b"bytes")
     assert result.is_successful
     payloads = result.value
@@ -70,14 +75,14 @@ def test_When_ExtractorFails_Expect_PayloadExpansionFailure(monkeypatch):
         def rasterize_pages(self, data, source_hint):
             return Result.failure("invalid pdf")
 
-    expander = FilePayloadExpander(DummyExtractor())
+    expander = FilePayloadExpander(DummyExtractor(), DummyRenderer())
     result = expander.expand("demo.pdf", b"bytes")
     assert result.is_successful is False
     assert "invalid pdf" in result.error
 
 
 def test_When_FileIsNonPdf_Expect_ExpanderReturnsOriginalPayload():
-    expander = FilePayloadExpander(PdfPageExtractor())
+    expander = FilePayloadExpander(PdfPageExtractor(), DummyRenderer())
     result = expander.expand("image.png", b"bytes")
     assert result.is_successful
     payloads = result.value

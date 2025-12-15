@@ -78,12 +78,10 @@ class TestDockerIntegration:
             self.DOCKER_CONTEXT,
             "--no-cache"
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
         print("docker build command:", shlex.join(cmd))
-        print("Docker build stdout:\n", result.stdout)
-        print("Docker build stderr:\n", result.stderr)
+        result = subprocess.run(cmd)
         if result.returncode != 0:
-            raise RuntimeError(f"Docker build failed:\n{result.stderr}")
+            raise RuntimeError("Docker build failed")
 
     @pytest.fixture(scope="function", autouse=True)
     def setup_environment(self):

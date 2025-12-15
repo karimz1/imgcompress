@@ -1,7 +1,10 @@
-
 const getNextConfig = () => {
+  var proxyClientMaxBodySizeValue = '4000mb';
   if (process.env.IS_RUNNING_IN_DEVCONTAINER === 'true') {
     return {
+      experimental: {
+        proxyClientMaxBodySize: proxyClientMaxBodySizeValue,
+      },
       async rewrites() {
         console.warn('IS_RUNNING_IN_DEVCONTAINER');
         return [
@@ -14,6 +17,9 @@ const getNextConfig = () => {
     };
   } else {
     return {
+       experimental: {
+          proxyClientMaxBodySize: proxyClientMaxBodySizeValue
+       },
       output: 'export',
       images: {
         unoptimized: true,

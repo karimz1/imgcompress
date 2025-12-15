@@ -8,7 +8,18 @@ docker build -f Dockerfile.base -t my-base-image .
 docker build -t devcontainer:local-test .
 
 cd ..
-docker run --rm --entrypoint /bin/sh  -v /var/run/docker.sock:/var/run/docker.sock  -v "$(pwd):/app/"  -e IS_RUNNING_IN_GITHUB_ACTIONS=false  --name devcontainer  devcontainer:local-test /app/runTests.sh
+docker run --rm --entrypoint /bin/sh  -v /var/run/docker.sock:/var/run/docker.sock  -v "$(pwd):/app/"  -e IS_RUNNING_IN_GITHUB_ACTIONS=false  --name devcontainer  devcontainer:local-test /app/runIntegrationTests.sh
+```
+
+## unit tests
+
+``` bash
+cd .devcontainer/
+docker build -f Dockerfile.base -t my-base-image .
+docker build -t devcontainer:local-test .
+
+cd ..
+docker run --rm --entrypoint /bin/sh  -v /var/run/docker.sock:/var/run/docker.sock  -v "$(pwd):/app/"  -e IS_RUNNING_IN_GITHUB_ACTIONS=false  --name devcontainer  devcontainer:local-test /app/runUnitTests.sh
 ```
 
 

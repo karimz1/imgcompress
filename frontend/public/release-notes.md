@@ -1,3 +1,14 @@
+## v0.2.6 — 2025-12-15
+
+- Feature: Enables file downloads from storage management([#388](https://github.com/karimz1/imgcompress/issues/388))
+- Feature: Improve Release Notes UI for Latest and Archive([#393](https://github.com/karimz1/imgcompress/issues/393))
+- BugFix issue where PSD Rendering was not perfect moved to psd-tools py library([#391](https://github.com/karimz1/imgcompress/issues/391))
+- BugFix: Issue in Processing large Files in imgcompress([#390](https://github.com/karimz1/imgcompress/issues/390))
+- Internal Enhancement: Seperation of Tests (Unit + Docker Integration)([#392](https://github.com/karimz1/imgcompress/issues/392))
+
+## 0.2.5.2 — 2025-12-10
+- Feature: Disable Storage Management via Environment Flag([#387](https://github.com/karimz1/imgcompress/issues/387))
+
 ## v0.2.5.1 — 2025-12-09
 - Improvement: Internet Check Changed from Auto to Manual Trigger ([#384](https://github.com/karimz1/imgcompress/issues/384))
 

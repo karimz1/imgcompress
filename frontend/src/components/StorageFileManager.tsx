@@ -23,6 +23,7 @@ import {
 
 interface ContainerFile {
   folder: string;
+  folder_path: string;
   filename: string;
   size_mb: number;
 }
@@ -162,25 +163,35 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                 </div>
                 {}
                 <div className="overflow-y-auto max-h-40 space-y-2">
-                  {data.files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between bg-gray-800 rounded-md p-2"
-                    >
-                      <span>
-                        <strong className="text-xs text-gray-400">
-                          {file.filename}
-                        </strong>{" "}
-                        <span className="text-xs text-gray-400">
-                          ({file.size_mb} MB)
+                  {data.files.map((file, index) => {
+                    const downloadUrl = `/api/download?folder=${encodeURIComponent(
+                      file.folder_path
+                    )}&file=${encodeURIComponent(file.filename)}`;
+                    return (
+                      <div
+                        key={index}
+                        className="flex justify-between bg-gray-800 rounded-md p-2"
+                      >
+                        <span>
+                          <a
+                            href={downloadUrl}
+                            data-testid="storage-management-file-download-link"
+                            className="text-blue-400 underline text-xs"
+                            title={`Download ${file.filename}`}
+                          >
+                            <strong className="text-xs">{file.filename}</strong>
+                          </a>{" "}
+                          <span className="text-xs text-gray-400">
+                            ({file.size_mb} MB)
+                          </span>
+                          {file.folder === "zip" && (
+                            <span className="ml-2 text-xs text-blue-400">(ZIP)</span>
+                          )}
                         </span>
-                        {file.folder === "zip" && (
-                          <span className="ml-2 text-xs text-blue-400">(ZIP)</span>
-                        )}
-                      </span>
-                      <span className="text-xs text-gray-400">{file.folder}</span>
-                    </div>
-                  ))}
+                        <span className="text-xs text-gray-400">{file.folder}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ) : (

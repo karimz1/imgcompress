@@ -15,6 +15,8 @@ export default defineConfig({
   expect: {
     timeout: 60000 *2, 
   },
+  // Run tests sequentially so storage cleanup calls do not race with other specs.
+  workers: 1,
   use: {
     actionTimeout: 60000 *2, 
     headless: true,

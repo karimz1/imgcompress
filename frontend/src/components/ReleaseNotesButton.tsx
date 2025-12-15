@@ -101,8 +101,11 @@ const LinkText = ({ text }: { text: string }) => {
   )
 }
 
+const versionPattern = '\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?'
+
 const isVersionHeader = (line: string) => {
-  return /^##\s+v?\d+\.\d+\.\d+\s+[—-]\s+\d{4}-\d{2}-\d{2}\s*$/.test(line)
+  const regex = new RegExp(`^##\\s+v?${versionPattern}\\s+[—-]\\s+\\d{4}-\\d{2}-\\d{2}\\s*$`)
+  return regex.test(line)
 }
 
 const isBulletPoint = (line: string) => {
@@ -110,7 +113,7 @@ const isBulletPoint = (line: string) => {
 }
 
 const extractVersionInfo = (line: string) => {
-  const match = line.match(/^##\s+v?(\d+\.\d+\.\d+)\s+[—-]\s+(\d{4}-\d{2}-\d{2})\s*$/)
+  const match = line.match(new RegExp(`^##\\s+v?(${versionPattern})\\s+[—-]\\s+(\\d{4}-\\d{2}-\\d{2})\\s*$`))
   if (!match) return null
   return { version: match[1], date: match[2] }
 }
@@ -269,6 +272,7 @@ const useFetchReleaseNotes = () => {
 
 export function ReleaseNotesButton() {
   const [open, setOpen] = React.useState(false)
+  const [view, setView] = React.useState<"latest" | "archive">("latest")
   const { loading, error, data, loadNotes } = useFetchReleaseNotes()
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -279,6 +283,8 @@ export function ReleaseNotesButton() {
   }
 
   const releases = data?.releases ?? []
+  const latestRelease = releases[0]
+  const archivedReleases = releases.slice(1)
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -297,11 +303,41 @@ export function ReleaseNotesButton() {
           <DialogTitle>Release Notes</DialogTitle>
         </DialogHeader>
         <InfoBox />
-        <div className="space-y-3">
+        {releases.length > 0 && (
+          <div className="flex gap-2 pb-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={view === "latest" ? "default" : "outline"}
+              onClick={() => setView("latest")}
+            >
+              Latest
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={view === "archive" ? "default" : "outline"}
+              onClick={() => setView("archive")}
+              disabled={!archivedReleases.length}
+            >
+              Archive
+            </Button>
+          </div>
+        )}
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {loading && <LoadingState />}
           {error && <ErrorState message={error} />}
-          {!loading && !error && releases.length > 0 && <ReleasesList releases={releases} />}
-          {!loading && !error && !releases.length && <EmptyState />}
+          {!loading && !error && releases.length === 0 && <EmptyState />}
+          {!loading && !error && releases.length > 0 && view === "latest" && latestRelease && (
+            <ReleaseSection release={latestRelease} />
+          )}
+          {!loading && !error && view === "archive" && (
+            archivedReleases.length > 0 ? (
+              <ReleasesList releases={archivedReleases} />
+            ) : (
+              <p className="text-sm text-muted-foreground">No archived releases yet.</p>
+            )
+          )}
         </div>
       </DialogContent>
     </Dialog>
