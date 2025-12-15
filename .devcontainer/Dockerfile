@@ -1,4 +1,4 @@
-FROM ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-11
+FROM ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-12
 #FROM my-base-image
 
 # Python virtual environment  
