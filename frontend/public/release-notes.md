@@ -1,5 +1,8 @@
-## v0.2.6 — 2025-12-15
+## v0.2.6.1 — 2025-12-15
+- DevContainer Integration Tests not same as Github Actions ([#397](https://github.com/karimz1/imgcompress/issues/397))
+- DEPRECATED Migrate to Docker BuildX in Integration Test ([#398](https://github.com/karimz1/imgcompress/issues/398))
 
+## v0.2.6 — 2025-12-15
 - Feature: Enables file downloads from storage management([#388](https://github.com/karimz1/imgcompress/issues/388))
 - Feature: Improve Release Notes UI for Latest and Archive([#393](https://github.com/karimz1/imgcompress/issues/393))
 - BugFix issue where PSD Rendering was not perfect moved to psd-tools py library([#391](https://github.com/karimz1/imgcompress/issues/391))
