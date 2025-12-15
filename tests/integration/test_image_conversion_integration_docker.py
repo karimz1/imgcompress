@@ -79,14 +79,18 @@ class TestDockerIntegration:
         """
         print(f"Building Docker image from context: {self.DOCKER_CONTEXT}")
         cmd = [
-            "docker", "build",
+            "docker", "buildx", "build",
             "-t", self.DOCKER_IMAGE_NAME,
             "-f", self.DOCKERFILE_PATH,
-            self.DOCKER_CONTEXT,
-            "--no-cache"
+            "--no-cache",
+            "--load",
+            self.DOCKER_CONTEXT
         ]
+        
         print("docker build command:", shlex.join(cmd))
+
         result = subprocess.run(cmd)
+
         if result.returncode != 0:
             raise RuntimeError("Docker build failed")
 
