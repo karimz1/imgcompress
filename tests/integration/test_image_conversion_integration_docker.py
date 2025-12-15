@@ -82,10 +82,7 @@ class TestDockerIntegration:
         
         print("docker build command:", shlex.join(cmd))
 
-        env = os.environ.copy()
-        env["NEXT_BUILD_MODE"] = "export"
-
-        result = subprocess.run(cmd, env=env)
+        result = subprocess.run(cmd)
 
         if result.returncode != 0:
             raise RuntimeError("Docker build failed")
