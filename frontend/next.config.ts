@@ -1,12 +1,25 @@
 const getNextConfig = () => {
-  var proxyClientMaxBodySizeValue = '4000mb';
-  if (process.env.IS_RUNNING_IN_DEVCONTAINER === 'true') {
+  const proxyClientMaxBodySizeValue = '4000mb';
+
+  const lifecycle = process.env.npm_lifecycle_event;
+  const explicitMode = process.env.NEXT_BUILD_MODE;
+
+  // ------------------------------
+  // Decide build mode
+  // ------------------------------
+  const buildMode =
+    explicitMode ??
+    (lifecycle === 'dev' ? 'dev' : 'export');
+
+  // ------------------------------
+  // DEV MODE
+  // ------------------------------
+  if (buildMode === 'dev') {
     return {
       experimental: {
         proxyClientMaxBodySize: proxyClientMaxBodySizeValue,
       },
       async rewrites() {
-        console.warn('IS_RUNNING_IN_DEVCONTAINER');
         return [
           {
             source: '/api/:path*',
@@ -15,17 +28,20 @@ const getNextConfig = () => {
         ];
       },
     };
-  } else {
-    return {
-       experimental: {
-          proxyClientMaxBodySize: proxyClientMaxBodySizeValue
-       },
-      output: 'export',
-      images: {
-        unoptimized: true,
-      },
-    };
   }
+
+  // ------------------------------
+  // EXPORT MODE (build / CI / prod)
+  // ------------------------------
+  return {
+    experimental: {
+      proxyClientMaxBodySize: proxyClientMaxBodySizeValue,
+    },
+    output: 'export',
+    images: {
+      unoptimized: true,
+    },
+  };
 };
 
 module.exports = getNextConfig();
