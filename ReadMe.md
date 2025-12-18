@@ -39,6 +39,7 @@ No installs. No uploads. No data ever leaves your machine.
   - [❤️ Donate to Support Development](#️-donate-to-support-development)
   - [📓 Release Notes](#-release-notes)
   - [📝 License](#-license)
+    - [Credits (optional)](#credits-optional)
 
 
 ## 🚀 Quick Start (Web UI in 30 s)
@@ -52,11 +53,12 @@ services:
     container_name: imgcompress
     restart: always
     ports:
-      - "3001:5000"                  # HOST:CONTAINER — change 3001 if needed
+      - "3001:5000"                     # HOST:CONTAINER — change 3001 if needed
     environment:
-      - DISABLE_LOGO=true            # Optional: disable mascot
+      - DISABLE_LOGO=true               # Optional: disable mascot
+      - DISABLE_STORAGE_MANAGEMENT=true # Optional: disable the Storage Management
     command:
-      - "web"                        # Launch the Web UI
+      - "web"                           # Launch the Web UI
 ````
 Start:
 ```bash

@@ -74,7 +74,7 @@ RUN echo \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Install latest Docker CLI only (NOT the daemon)
-RUN apt-get update && apt-get install -y --no-install-recommends docker-ce-cli
+RUN apt-get update && apt-get install -y --no-install-recommends docker-ce-cli docker-buildx-plugin
 
 # install pnpm
 RUN npm i pnpm -g

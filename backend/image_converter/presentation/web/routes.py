@@ -7,7 +7,6 @@ import traceback
 from typing import Optional
 
 from flask import Blueprint, request, jsonify, send_from_directory
-from setuptools.command.build_ext import use_stubs
 from werkzeug.utils import secure_filename
 
 from backend.image_converter.core.internals.utls import Result, supported_extensions,  has_internet
@@ -17,13 +16,12 @@ from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.presentation.web.parse_services import extract_form_data
-from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
-from backend.image_converter.application.file_payload_expander import FilePayloadExpander
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.dtos import CompressRequest
 from backend.image_converter.domain.units import TargetSize, to_bytes
 from backend.image_converter.infrastructure.local_storage import LocalStorage
+from backend.image_converter.application.payload_expander_factory import create_payload_expander
 
 api_blueprint = Blueprint("api", __name__)
 
@@ -33,9 +31,16 @@ logger = Logger(debug=False, json_output=False)
 cleanup_service = CleanupService(TEMP_DIR, EXPIRATION_TIME, logger)
 resizer = ImageResizer()
 storage = LocalStorage()
-pdf_extractor = PdfPageExtractor(logger=logger)
-payload_expander = FilePayloadExpander(pdf_extractor)
+payload_expander = create_payload_expander(logger)
 use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
+
+
+def _storage_management_enabled() -> bool:
+    return os.environ.get("DISABLE_STORAGE_MANAGEMENT", "false").lower() != "true"
+
+
+def _storage_management_disabled_response():
+    return jsonify({"error": "Storage management endpoints are disabled in this mode."}), 403
 
 
 def _save_uploaded_files(files, folder: str) -> Result[None]:
@@ -161,6 +166,9 @@ def download_all():
 
 @api_blueprint.route("/storage_info", methods=["GET"])
 def storage_info():
+    if not _storage_management_enabled():
+        return _storage_management_disabled_response()
+
     total, used, free = shutil.disk_usage("/")
     mib = 1024 * 1024
     return jsonify({
@@ -172,6 +180,9 @@ def storage_info():
 
 @api_blueprint.route("/force_cleanup", methods=["POST"])
 def force_cleanup():
+    if not _storage_management_enabled():
+        return _storage_management_disabled_response()
+
     res = cleanup_service.cleanup_temp_folders(force=True)
     if not res.is_successful:
         return jsonify({"error": "Forced cleanup failed", "message": res.error}), 500
@@ -180,6 +191,9 @@ def force_cleanup():
 
 @api_blueprint.route("/container_files", methods=["GET"])
 def container_files():
+    if not _storage_management_enabled():
+        return _storage_management_disabled_response()
+
     return jsonify(cleanup_service.get_container_files()), 200
 
 @api_blueprint.route("/health/internet", methods=["GET"])

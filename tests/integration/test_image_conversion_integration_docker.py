@@ -40,20 +40,27 @@ class TestDockerIntegration:
 
     def _mounting_strategy(self):
         """
-        When running inside a container (devcontainer/CI) we need to use
-        --volumes-from to reuse the mounted workspace. Otherwise, fall back
-        to binding the host paths directly.
+            When running inside a container (devcontainer/CI) we need to use
+            --volumes-from to reuse the mounted workspace. Otherwise, fall back
+            to binding the host paths directly.
         """
+                
         running_in_container = os.path.exists("/.dockerenv")
-        use_shared_volumes = is_github_actions() or running_in_container
-        if use_shared_volumes:
-            container_name = os.getenv("DEVCONTAINER_NAME", self.DEVCONTAINER_NAME)
-            if self._container_exists(container_name):
+
+        if running_in_container:
+            # Use the container we are currently running in
+            container_name = os.environ.get("HOSTNAME")
+            if container_name and self._container_exists(container_name):
                 return {
                     "volume_args": ["--volumes-from", container_name],
                     "input_path": self.SAMPLE_IMAGES_DIR,
                     "output_path": self.OUTPUT_DIR,
                 }
+            raise RuntimeError(
+                "Running inside a container but could not determine container name for --volumes-from"
+            )
+
+        # Host execution (no container)
         return {
             "volume_args": [
                 "-v", f"{self.SAMPLE_IMAGES_DIR}:/container/input_folder",
@@ -72,18 +79,23 @@ class TestDockerIntegration:
         """
         print(f"Building Docker image from context: {self.DOCKER_CONTEXT}")
         cmd = [
-            "docker", "build",
+            "docker", "buildx", "build",
             "-t", self.DOCKER_IMAGE_NAME,
             "-f", self.DOCKERFILE_PATH,
-            self.DOCKER_CONTEXT,
-            "--no-cache"
+            "--no-cache",
+            "--load",
+            self.DOCKER_CONTEXT
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        
         print("docker build command:", shlex.join(cmd))
-        print("Docker build stdout:\n", result.stdout)
-        print("Docker build stderr:\n", result.stderr)
+
+        env = os.environ.copy()
+        env["NEXT_BUILD_MODE"] = "export"
+
+        result = subprocess.run(cmd, env=env)
+
         if result.returncode != 0:
-            raise RuntimeError(f"Docker build failed:\n{result.stderr}")
+            raise RuntimeError("Docker build failed")
 
     @pytest.fixture(scope="function", autouse=True)
     def setup_environment(self):

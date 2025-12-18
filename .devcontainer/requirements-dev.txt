@@ -1,5 +1,5 @@
 cffi==2.0.0
-coverage==7.12.0
+coverage==7.13.0
 exceptiongroup==1.3.1
 iniconfig==2.3.0
 packaging==25.0
@@ -16,4 +16,4 @@ jsonify==0.5
 apscheduler==3.11.1
 gunicorn==23.0.0
 pillow_heif==1.1.1
-pypdfium2==5.1.0
+pypdfium2==5.2.0

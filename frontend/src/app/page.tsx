@@ -35,6 +35,7 @@ import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 function HomePageContent() {
   const [disableLogo, setDisableLogo] = useState(false);
   const [configReady, setConfigReady] = useState(false);
+  const [storageManagementDisabled, setStorageManagementDisabled] = useState(false);
 
   useEffect(() => {
     const loadRuntimeConfig = async () => {
@@ -43,9 +44,13 @@ function HomePageContent() {
         if (!res.ok) throw new Error("Config not found");
         const config = await res.json();
         setDisableLogo(config.DISABLE_LOGO === "true");
+        const disableStorage =
+          config.DISABLE_STORAGE_MANAGEMENT === "true";
+        setStorageManagementDisabled(disableStorage);
       } catch (err) {
         console.warn("DISABLE_LOGO config missing or invalid, defaulting to false", err);
         setDisableLogo(false);
+        setStorageManagementDisabled(false);
       } finally {
         setConfigReady(true);
       }
@@ -211,31 +216,35 @@ function HomePageContent() {
           body: formData,
           signal: controller.signal,
         });
-        if (!res.ok) {
-          let errorMsg = "Error uploading files.";
-          let detailMsg = undefined;
-          try {
-            const err = await res.json();
-            errorMsg = err.error || errorMsg;
-            detailMsg = err.message;
-          } catch (jsonError) {
-            // Fallback if backend returns HTML (e.g. 500/502/413)
-            console.error("Failed to parse JSON error:", jsonError);
-            const textText = await res.text();
-            console.error("Raw response:", textText);
-            detailMsg = `Server returned ${res.status}: ${textText.substring(0, 100)}`;
-          }
 
+        const contentType = res.headers.get("content-type") || "";
+        const responseText = await res.text();
+
+        let payload: any | null = null;
+        if (contentType.includes("application/json") && responseText) {
+          try {
+            payload = JSON.parse(responseText);
+          } catch (jsonErr) {
+            console.warn("Failed to parse JSON response:", jsonErr);
+          }
+        }
+
+        if (!res.ok) {
+          const fallbackMessage = responseText || "Error uploading files.";
+          const message = payload?.error || payload?.message || fallbackMessage;
           setError({
-            message: errorMsg,
-            details: detailMsg,
+            message,
+            details: payload?.message || (!payload ? fallbackMessage : undefined),
             isApiError: true,
           });
-          toast.error(errorMsg);
+          toast.error(message);
           return;
         }
 
-        const data = await res.json();
+        if (!payload) {
+          throw new Error("Received unexpected response from server.");
+        }
+        const data = payload;
         setConverted(data.converted_files);
         setDestFolder(data.dest_folder);
         setDrawerOpen(true);
@@ -378,41 +387,46 @@ function HomePageContent() {
           </CardContent>
         </Card>
 
-        {/* A floating button to open the FileManager drawer */}
-        <div className="fixed bottom-4 right-4">
-          <button
-            disabled={isLoading}
-            onClick={() => setFileManagerOpen(true)}
-            data-testid="storage-management-btn"
-            className={`rounded-full p-3 shadow-lg hover:shadow-xl ${isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
-              }`}
-          >
-            <HardDrive className="h-6 w-6" />
-          </button>
-        </div>
+        {!storageManagementDisabled && (
+          <>
+            {/* A floating button to open the FileManager drawer */}
+            <div className="fixed bottom-4 right-4">
+              <button
+                disabled={isLoading}
+                onClick={() => setFileManagerOpen(true)}
+                data-testid="storage-management-btn"
+                className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
+                }`}
+              >
+                <HardDrive className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Drawer for File Manager */}
+            <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
+              <DrawerTrigger asChild>
+                <button className="hidden" />
+              </DrawerTrigger>
+              <DrawerContent className="border-0">
+                <VisuallyHidden>
+                  <DrawerHeader>
+                    <DrawerTitle className="text-lg font-semibold text-center">
+                      Admin Tools
+                    </DrawerTitle>
+                  </DrawerHeader>
+                </VisuallyHidden>
+                <div className="p-4">
+                  <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </>
+        )}
 
         <div className="fixed bottom-4 left-4 z-40">
           <ReleaseNotesButton />
         </div>
-
-        {/* Drawer for File Manager */}
-        <Drawer open={fileManagerOpen} onOpenChange={setFileManagerOpen}>
-          <DrawerTrigger asChild>
-            <button className="hidden" />
-          </DrawerTrigger>
-          <DrawerContent className="border-0">
-            <VisuallyHidden>
-              <DrawerHeader>
-                <DrawerTitle className="text-lg font-semibold text-center">
-                  Admin Tools
-                </DrawerTitle>
-              </DrawerHeader>
-            </VisuallyHidden>
-            <div className="p-4">
-              <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
-            </div>
-          </DrawerContent>
-        </Drawer>
 
         {converted.length > 0 && (
           <CompressedFilesDrawer
