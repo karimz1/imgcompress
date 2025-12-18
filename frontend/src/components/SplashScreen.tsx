@@ -11,11 +11,19 @@ interface SplashScreenProps {
 }
 
 const MESSAGES = [
-  "Working on it, gimme a few seconds~",
-  "I'm squeezing the pixels…",
-  "So many pixels! Compression mode, full power!!",
-  "Sorry it's taking a bit, I'm still compressing every last pixel…",
-  "Almost done! Just finishing the final squish on your files~",
+  "ImgCompress-chan is on the case!",
+  "Pixel-squish time… squish squish~",
+  "Compression mode: ON! Full sparkle power!!",
+  "Hold up, I’m taming the pixels right now~",
+  "So many pixels… but I won’t lose!!",
+  "Shh… I’m carefully squeezing the file size~",
+  "Calculating… optimizing… kawaii-fying… (just kidding)",
+  "Almost done! Final squish incoming~",
+  "Just a moment—quality protection spell active!",
+  "Still working! These pixels are stubborn…",
+  "Loading… tiny computer noises",
+  "Okay okay, I’m speeding up!!",
+  "Nearly there—wrapping up the last bits~"
 ];
 
 export function SplashScreen({ isVisible, onAbort }: SplashScreenProps) {
@@ -109,12 +117,17 @@ export function SplashScreen({ isVisible, onAbort }: SplashScreenProps) {
 
             {/* Static label */}
             <div className="text-[11px] uppercase tracking-[0.25em] text-blue-200/80 mb-2">
-              ImgCompress is working on your pixels
+              <strong className="text-cyan-200">ImgCompress-chan</strong> is compressing your images.
             </div>
 
             {/* Anime-style Status Text */}
             <div className="text-sm text-gray-200 mb-6 font-medium tracking-wide text-center max-w-xs">
               {statusMessage}
+            </div>
+
+            {/* Reassurance line */}  
+            <div className="text-xs text-gray-400/90 text-center max-w-xs">
+              Bigger images or lots of files can take a moment — thanks for hanging out~
             </div>
 
             {/* Loader */}
