@@ -15,6 +15,8 @@ on:
         type: boolean
         required: false
         default: false
+  issue_comment:
+    types: [created]
 
 jobs:
   test-backend:
@@ -170,8 +172,14 @@ jobs:
 
   deploy-nightly:
     needs: test-e2e
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true
+    if: >
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true) ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       contains(github.event.comment.body, '/deploy-nightly'))
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Trigger Deployment Workflow (nightly)
         env:
