@@ -3,20 +3,30 @@
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useInternetHealth } from "@/hooks/useInternetHealth";
 import { Network, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function BackendStatusFloating() {
   const { isDown, status, backendLastUpdate } = useBackendHealth();
   const { hasInternet, lastUpdate, loading, checkInternet } = useInternetHealth();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  const content = (
     <>
       {!open && (
         <button
           onClick={() => setOpen(true)}
           title="System Status"
-          className={`fixed bottom-4 right-4 z-50 p-3 rounded-full shadow-lg transition 
+          className={`fixed bottom-4 right-4 z-[70] p-3 rounded-full shadow-lg transition 
           ${isDown ? "bg-red-600 hover:bg-red-500" : "bg-neutral-900 hover:bg-neutral-700"} 
           text-white active:scale-95`}
         >
@@ -25,7 +35,7 @@ export function BackendStatusFloating() {
       )}
 
       {open && (
-        <div className="fixed bottom-4 right-4 z-50 w-80 p-4 rounded-xl shadow-xl
+        <div className="fixed bottom-4 right-4 z-[70] w-80 p-4 rounded-xl shadow-xl
           bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700
           animate-in slide-in-from-bottom fade-in space-y-3 text-sm font-medium"
         >
@@ -111,4 +121,6 @@ export function BackendStatusFloating() {
       )}
     </>
   );
+
+  return createPortal(content, document.body);
 }
