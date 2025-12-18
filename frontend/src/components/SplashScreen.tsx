@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
+import { cn } from "@/lib/utils";
 
 interface SplashScreenProps {
   isVisible: boolean;
@@ -29,11 +30,6 @@ const waitMessages = [
 
 const helpfulTips = [
   "Keep working—I’ll notify you once downloads are ready.",
-  "You can cancel anytime and restart with different settings.",
-  "Balanced JPEG quality (75) keeps things sharp with tiny files.",
-  "Use Resize Width to speed up uploads of extremely large images.",
-  "PNG output is best when you need to preserve transparency.",
-  "Stay on this tab to maintain the fastest processing speed.",
 ];
 
 type ParticleConfig = {
@@ -295,15 +291,20 @@ export function SplashScreen({
                 <div className="w-full max-w-2xl">
                   <div className="flex items-center justify-between gap-2">
                     {["Starting", "Compressing", "Packaging"].map((label, index) => (
-                      <div key={label} className="flex flex-col items-center text-xs uppercase tracking-[0.2em] text-gray-400">
+                      <div
+                        key={label}
+                        className="flex flex-col items-center text-xs uppercase tracking-[0.2em] text-gray-400"
+                      >
                         <div
-                          className={`w-8 h-8 rounded-full border flex items-center justify-center mb-2 transition ${
+                          className={cn(
+                            "w-11 h-11 rounded-full mb-2 transition text-base font-semibold tracking-tight",
+                            "flex items-center justify-center text-center",
                             index === 1
-                              ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white border-transparent shadow-lg shadow-blue-500/40"
-                              : "border-white/30 text-white/70 bg-black/30"
-                          }`}
+                              ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white border border-transparent shadow-lg shadow-blue-500/40"
+                              : "border border-white/30 text-white/70 bg-black/30"
+                          )}
                         >
-                          {index + 1}
+                          <span className="mt-[1px]">{index + 1}</span>
                         </div>
                         <span className="text-[11px] sm:text-xs">{label}</span>
                       </div>
