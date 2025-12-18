@@ -209,7 +209,3 @@ pyrightconfig.json
 frontend/test-results/
 tmp/
 node_modules/
-
-reproduce_issue.py
-
-verify_error_handler.py
