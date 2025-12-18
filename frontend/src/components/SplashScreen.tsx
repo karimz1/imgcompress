@@ -267,8 +267,7 @@ export function SplashScreen({
 
               {/* Static label */}
               <div className="text-[11px] uppercase tracking-[0.25em] text-blue-200/80 text-center">
-                <strong className="text-cyan-200">ImgCompress</strong> is
-                compressing your files.
+              I'm compressing your files.
               </div>
 
               {/* Animated message area */}
@@ -286,11 +285,6 @@ export function SplashScreen({
               {/* Loader */}
               <div className="w-full max-w-2xl h-2.5 bg-white/5 rounded-full overflow-hidden relative backdrop-blur-md ring-1 ring-white/10">
                 <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 rounded-full animate-loading-bar shadow-[0_4px_18px_rgba(79,70,229,0.45)]" />
-              </div>
-
-              {/* Reassurance line */}
-              <div className="text-[11px] text-gray-300/90 text-center max-w-md">
-                Larger files or many uploads may take a minute. Thanks for waiting.
               </div>
 
               {/* Abort Button */}
