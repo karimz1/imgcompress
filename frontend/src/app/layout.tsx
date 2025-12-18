@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "imgcompress: Web UI",
   description: "imgcompress: Image Compression Tool",
   icons: {
-    icon: "/favicon.png",
+    icon: "/favicon.ico?v2",
   },
 };
 
