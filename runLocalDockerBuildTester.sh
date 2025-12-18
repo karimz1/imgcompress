@@ -9,7 +9,7 @@ DISABLE_LOGO=${DISABLE_LOGO:-false}
 DISABLE_STORAGE_MANAGEMENT=${DISABLE_STORAGE_MANAGEMENT:-true}
 
 echo "🚧 Building Docker image: $IMAGE_NAME"
-docker build -t "$IMAGE_NAME" .
+docker buildx build -t "$IMAGE_NAME" .
 
 echo "🚀 Running container on http://localhost:$PORT_LOCAL with DISABLE_LOGO=$DISABLE_LOGO"
 docker run --rm \
