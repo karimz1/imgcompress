@@ -29,7 +29,7 @@ const waitMessages = [
 ];
 
 const helpfulTips = [
-  "Keep working—I’ll notify you once downloads are ready.",
+  "Keep working—leave this window open and I’ll drop your compressed files here when they’re ready.",
 ];
 
 type ParticleConfig = {
