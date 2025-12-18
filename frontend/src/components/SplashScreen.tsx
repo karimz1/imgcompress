@@ -27,6 +27,15 @@ const waitMessages = [
   "Making sure everything looks good.",
 ];
 
+const helpfulTips = [
+  "Keep working—I’ll notify you once downloads are ready.",
+  "You can cancel anytime and restart with different settings.",
+  "Balanced JPEG quality (75) keeps things sharp with tiny files.",
+  "Use Resize Width to speed up uploads of extremely large images.",
+  "PNG output is best when you need to preserve transparency.",
+  "Stay on this tab to maintain the fastest processing speed.",
+];
+
 type ParticleConfig = {
   id: number;
   size: number;
@@ -57,6 +66,10 @@ export function SplashScreen({
   const [displayText, setDisplayText] = useState("");
 
   const statusMessage = useMemo(() => waitMessages[messageIndex], [messageIndex]);
+  const tipMessage = useMemo(
+    () => helpfulTips[Math.floor(Math.random() * helpfulTips.length)],
+    [isVisible]
+  );
 
   // Rotate messages while visible
   useEffect(() => {
@@ -250,10 +263,10 @@ export function SplashScreen({
               })}
             </div>
 
-            <div className="relative z-10 flex flex-col items-center w-full max-w-3xl gap-6">
+            <div className="relative z-10 flex flex-col items-center w-full max-w-4xl gap-8">
               {!disableLogo && (
                 <div className="w-full flex justify-center animate-breathe">
-                  <div className="relative w-[460px] h-[220px] max-w-[92vw] sm:w-[520px] sm:h-[240px] animate-glow">
+                  <div className="relative w-[460px] h-[220px] max-w-[92vw] sm:w-[520px] sm:h-[240px] animate-glow after:absolute after:inset-0 after:rounded-[36%] after:bg-gradient-to-r after:from-blue-500/20 after:to-fuchsia-500/20 after:blur-3xl after:-z-10">
                     <Image
                       src="/logo_transparent.png"
                       alt="ImgCompress Logo"
@@ -265,15 +278,37 @@ export function SplashScreen({
                 </div>
               )}
 
-              {/* Animated message area */}
-              <div className="min-h-[3.25rem] flex items-center justify-center">
-                <div
-                  key={messageIndex}
-                  className="text-sm text-gray-100 font-medium tracking-wide text-center max-w-md animate-text-pop"
-                  aria-live="polite"
-                >
-                  {displayText}
-                  <span className="inline-block w-[0.6ch] cursor-blink">▍</span>
+              <div className="w-full flex flex-col items-center gap-5">
+                {/* Animated message area */}
+                <div className="min-h-[3.25rem] flex items-center justify-center">
+                  <div
+                    key={messageIndex}
+                    className="text-base sm:text-lg text-gray-50 font-medium tracking-wide text-center max-w-2xl animate-text-pop bg-white/5 px-6 py-3 rounded-full shadow-lg shadow-blue-500/10 ring-1 ring-white/15 backdrop-blur-md"
+                    aria-live="polite"
+                  >
+                    {displayText}
+                    <span className="inline-block w-[0.6ch] cursor-blink">▍</span>
+                  </div>
+                </div>
+
+                {/* Progress steps */}
+                <div className="w-full max-w-2xl">
+                  <div className="flex items-center justify-between gap-2">
+                    {["Starting", "Compressing", "Packaging"].map((label, index) => (
+                      <div key={label} className="flex flex-col items-center text-xs uppercase tracking-[0.2em] text-gray-400">
+                        <div
+                          className={`w-8 h-8 rounded-full border flex items-center justify-center mb-2 transition ${
+                            index === 1
+                              ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white border-transparent shadow-lg shadow-blue-500/40"
+                              : "border-white/30 text-white/70 bg-black/30"
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                        <span className="text-[11px] sm:text-xs">{label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -282,13 +317,21 @@ export function SplashScreen({
                 <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 rounded-full animate-loading-bar shadow-[0_4px_18px_rgba(79,70,229,0.45)]" />
               </div>
 
-              {/* Abort Button */}
-              <button
-                onClick={onAbort}
-                className="px-8 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-red-500/50 hover:text-red-200 text-gray-300 text-sm transition-all duration-200 backdrop-blur-md active:scale-95 outline-none focus:ring-2 focus:ring-white/20"
-              >
-                Cancel
-              </button>
+              {/* Tips & actions */}
+              <div className="w-full max-w-3xl flex flex-col md:flex-row gap-4 items-start md:items-center">
+                <div className="flex-1 bg-white/5 rounded-2xl p-4 text-left text-sm text-gray-100 ring-1 ring-white/10 shadow-inner shadow-black/30 backdrop-blur-md">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-blue-200 mb-1">
+                    Tip
+                  </p>
+                  <p className="text-base font-medium text-white/90">{tipMessage}</p>
+                </div>
+                <button
+                  onClick={onAbort}
+                  className="px-8 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-red-500/50 hover:text-red-200 text-gray-100 text-sm transition-all duration-200 backdrop-blur-md active:scale-95 outline-none focus:ring-2 focus:ring-white/20"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </DialogPrimitive.Content>
