@@ -37,7 +37,7 @@ test('should display detailed error modal when backend returns 500 with stacktra
     await expect(errorModal.getByText('Error Occurred')).toBeVisible();
 
     // Assert Error Message
-    await expect(errorModal.getByText('Simulated Backend Crash')).toBeVisible();
+    await expect(errorModal.getByTestId('error-message')).toHaveText('Simulated Backend Crash');
 
     // Assert Stacktrace (details) is visible
     // The details are inside a <pre> tag in the modal

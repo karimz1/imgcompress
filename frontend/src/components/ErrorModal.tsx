@@ -65,7 +65,7 @@ const ErrorModal = () => {
           <div>
             <div className="w-full font-medium text-xl mb-2 flex items-center space-x-2">
               <XCircle className="h-6 w-6 text-red-400" />
-              <span>{error.message}</span>
+              <span data-testid="error-message">{error.message}</span>
             </div>
             {error.details && (
               <div className="mt-2 w-full p-4 bg-gray-800 rounded-md border border-gray-700 max-h-60 overflow-y-auto">
