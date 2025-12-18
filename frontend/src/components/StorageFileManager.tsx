@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash, HardDrive } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { BackendStatusFloating } from "@/components/BackendStatusFloating";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 
 import {
@@ -48,6 +50,16 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
   const [data, setData] = useState<ContainerData | null>(null);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [loading, setLoading] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const isDarkTheme = resolvedTheme !== "light";
+  const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-500";
+  const cardSurface = isDarkTheme
+    ? "bg-gray-900/80 border-white/10 text-gray-100"
+    : "bg-white border-slate-200 text-slate-900";
+  const fileRowClass = isDarkTheme
+    ? "bg-gray-800 border border-gray-700 text-gray-100"
+    : "bg-slate-100 border border-slate-200 text-slate-900";
+  const linkColor = isDarkTheme ? "text-blue-300" : "text-blue-600";
 
   
   const fetchContainerFiles = useCallback(async () => {
@@ -82,7 +94,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
   }, [fetchContainerFiles, fetchStorageInfo]);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto mt-4">
+    <Card className={cn("w-full max-w-2xl mx-auto mt-4 border transition-colors", cardSurface)}>
       <CardHeader className="flex flex-col">
         <CardTitle className="text-center">
           <div className="flex items-center justify-center gap-2">
@@ -95,7 +107,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
         {}
         {storage && (
           <div className="mb-4 space-y-2">
-            <div className="text-center text-sm text-gray-400">
+            <div className={cn("text-center text-sm", subtleText)}>
               <p>
                 Total Storage: <strong>{storage.total_storage_mb} MB</strong>
               </p>
@@ -105,7 +117,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-gray-400">
+              <p className={cn("text-xs", subtleText)}>
                 Storage Usage: {storage.used_storage_mb} MB / {storage.total_storage_mb} MB
               </p>
               <Progress
@@ -153,7 +165,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
             ) : data?.files?.length ? (
               <div>
                 {}
-                <div className="mb-4 text-sm text-gray-400 text-center">
+                <div className={cn("mb-4 text-sm text-center", subtleText)}>
                   <p>
                     Total Files: <strong>{data.total_count}</strong>
                   </p>
@@ -162,7 +174,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                   </p>
                 </div>
                 {}
-                <div className="overflow-y-auto max-h-40 space-y-2">
+                <div className="overflow-y-auto max-h-40 space-y-2 pr-1">
                   {data.files.map((file, index) => {
                     const downloadUrl = `/api/download?folder=${encodeURIComponent(
                       file.folder_path
@@ -170,32 +182,35 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                     return (
                       <div
                         key={index}
-                        className="flex justify-between bg-gray-800 rounded-md p-2"
+                        className={cn(
+                          "flex justify-between rounded-md p-2 text-xs",
+                          fileRowClass
+                        )}
                       >
                         <span>
                           <a
                             href={downloadUrl}
                             data-testid="storage-management-file-download-link"
-                            className="text-blue-400 underline text-xs"
+                            className={cn("underline", linkColor)}
                             title={`Download ${file.filename}`}
                           >
-                            <strong className="text-xs">{file.filename}</strong>
+                            <strong>{file.filename}</strong>
                           </a>{" "}
-                          <span className="text-xs text-gray-400">
+                          <span className={cn(subtleText)}>
                             ({file.size_mb} MB)
                           </span>
                           {file.folder === "zip" && (
-                            <span className="ml-2 text-xs text-blue-400">(ZIP)</span>
+                            <span className={cn("ml-2", linkColor)}>(ZIP)</span>
                           )}
                         </span>
-                        <span className="text-xs text-gray-400">{file.folder}</span>
+                        <span className={cn(subtleText)}>{file.folder}</span>
                       </div>
                     );
                   })}
                 </div>
               </div>
             ) : (
-              <p className="text-center text-gray-400">
+              <p className={cn("text-center", subtleText)}>
                 No converted files found.
               </p>
             )}

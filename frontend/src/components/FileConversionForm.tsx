@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { Info, Loader2, Trash } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog"
+import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
+import { cn } from "@/lib/utils";
 
 interface FileConversionFormProps {
   isLoading: boolean;
@@ -94,6 +96,21 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   extensionsLoading,
   extensionsError,
 }) => {
+  const { resolvedTheme } = useTheme();
+  const isDarkTheme = resolvedTheme !== "light";
+  const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
+  const surfaceInputClass = isDarkTheme
+    ? "bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+    : "bg-white text-slate-900 placeholder-slate-400 border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-400";
+  const selectSurface = isDarkTheme
+    ? "bg-gray-800 text-gray-300 border-gray-700"
+    : "bg-white text-slate-900 border-slate-300";
+  const tooltipSurface = isDarkTheme
+    ? "bg-gray-800 text-white border-white/10"
+    : "bg-white text-slate-900 border-slate-200";
+  const filePillClass = isDarkTheme
+    ? "bg-gray-800 text-gray-100 border border-gray-700"
+    : "bg-slate-100 text-slate-900 border border-slate-200";
   const renderError = useMemo(
     () =>
       error && (
@@ -122,7 +139,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           {files.map((file) => (
             <div
               key={file.name}
-              className="flex items-center justify-between bg-gray-800 rounded-md p-2 text-gray-100"
+              className={cn(
+                "flex items-center justify-between rounded-md p-2 transition-colors",
+                filePillClass
+              )}
               data-testid="dropzone-added-file-wrapper"
             >
               <span className="text-sm" data-testid="dropzone-added-file">
@@ -141,20 +161,25 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           ))}
         </div>
       ),
-    [files, isLoading, removeFile]
+    [files, isDarkTheme, isLoading, removeFile, filePillClass]
   );
 
   const renderDropZone = useMemo(
     () => (
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-md p-6 text-center transition-colors ${
-          isDragActive ? "border-blue-400" : "border-gray-700"
-        } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={cn(
+          "border-2 border-dashed rounded-md p-6 text-center transition-colors",
+          isDragActive ? "border-blue-400" : isDarkTheme ? "border-gray-700" : "border-slate-300",
+          isDarkTheme ? "bg-black/30 text-gray-100" : "bg-white/80 text-slate-800 shadow-inner",
+          isLoading && "opacity-50 cursor-not-allowed"
+        )}
       >
         <input {...getInputProps()} data-testid="dropzone-input" />
         {isDragActive ? (
-          <p className="text-blue-300">Drop images or PDFs here...</p>
+          <p className={cn("font-semibold", isDarkTheme ? "text-blue-300" : "text-blue-600")}>
+            Drop images or PDFs here...
+          </p>
         ) : isLoading ? (
           <p>Cannot drop files while processing...</p>
         ) : (
@@ -162,7 +187,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
     ),
-    [getInputProps, getRootProps, isDragActive, isLoading]
+    [getInputProps, getRootProps, isDarkTheme, isDragActive, isLoading]
   );
 
   return (
@@ -185,12 +210,12 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
-                <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
+                <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
               </span>
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="bg-gray-800 text-white p-2 rounded shadow-lg border-0 whitespace-pre-line"
+              className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
             >
               {tooltipContent.outputFormat}
             </TooltipContent>
@@ -199,11 +224,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         <Select value={outputFormat} onValueChange={setOutputFormat}>
           <SelectTrigger
             id="outputFormat"
-            className="bg-gray-800 text-gray-300 border-gray-700 focus:border-blue-500"
+            className={cn(
+              selectSurface,
+              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            )}
           >
             <SelectValue placeholder="Select format" />
           </SelectTrigger>
-          <SelectContent className="bg-gray-800 text-gray-300 border-gray-700">
+          <SelectContent className={selectSurface}>
             <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
             <SelectItem value="png">PNG (preserves transparency)</SelectItem>
             <SelectItem value="ico">ICO (preserves transparency)</SelectItem>
@@ -248,18 +276,18 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
-                >
-                  <p className="text-sm">{tooltipContent.quality}</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <span className="text-sm text-gray-400">{quality}</span>
+                <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+            >
+              <p className="text-sm">{tooltipContent.quality}</p>
+            </TooltipContent>
+          </Tooltip>
+        </Label>
+        <span className={cn("text-sm", subtleText)}>{quality}</span>
           </div>
           <input
             id="quality"
@@ -300,21 +328,21 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
-                >
-                  <p className="text-sm">{tooltipContent.targetSize}</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
+                <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+            >
+              <p className="text-sm">{tooltipContent.targetSize}</p>
+            </TooltipContent>
+          </Tooltip>
+        </Label>
             {/* value next to label, like quality */}
-            <span className="text-sm text-gray-400">
-              {(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB
-            </span>
+        <span className={cn("text-sm", subtleText)}>
+          {(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB
+        </span>
           </div>
 
           {/* slider first */}
@@ -343,17 +371,17 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               value={targetSizeMB}
               onChange={(e) => setTargetSizeMB(e.target.value)}
               disabled={isLoading}
-              className="bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed pr-12"
-            />
-            <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-400 pointer-events-none">
-              MB
-            </span>
-          </div>
-
-          <p className="text-xs text-gray-400">
-            It will try to keep each JPEG at or below this size by automatically adjusting quality.
-          </p>
+            className={cn(surfaceInputClass, "disabled:opacity-50 disabled:cursor-not-allowed pr-12")}
+          />
+          <span className={cn("absolute inset-y-0 right-3 flex items-center text-sm pointer-events-none", subtleText)}>
+            MB
+          </span>
         </div>
+
+        <p className={cn("text-xs", subtleText)}>
+          It will try to keep each JPEG at or below this size by automatically adjusting quality.
+        </p>
+      </div>
       )}
 
       {/* Resize Width */}
@@ -367,17 +395,17 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent
-                side="top"
-                className="bg-gray-800 text-white p-2 rounded shadow-lg border-0"
-              >
-                <p className="text-sm">{tooltipContent.resizeWidth}</p>
-              </TooltipContent>
-            </Tooltip>
-          </Label>
+                <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+            >
+              <p className="text-sm">{tooltipContent.resizeWidth}</p>
+            </TooltipContent>
+          </Tooltip>
+        </Label>
           <Switch
             data-testid="resize-width-switch"
             id="resizeWidthToggle"
@@ -403,7 +431,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             value={width}
             onChange={(e) => setWidth(e.target.value)}
             disabled={isLoading}
-            className="bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={cn(
+              surfaceInputClass,
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
           />
         )}
       </div>
@@ -434,7 +465,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           variant="outline"
           onClick={clearFileSelection}
           disabled={isLoading}
-          className="flex items-center gap-2 outline outline-1 outline-gray-700"
+          className={cn(
+            "flex items-center gap-2 outline outline-1",
+            isDarkTheme ? "outline-gray-700" : "outline-slate-300"
+          )}
         >
           <Trash className="h-4 w-4" />
           Clear

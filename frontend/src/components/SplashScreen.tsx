@@ -253,7 +253,7 @@ export function SplashScreen({
             <div className="relative z-10 flex flex-col items-center w-full max-w-3xl gap-6">
               {!disableLogo && (
                 <div className="w-full flex justify-center animate-breathe">
-                  <div className="relative w-[420px] h-[200px] max-w-[90vw] animate-glow">
+                  <div className="relative w-[460px] h-[220px] max-w-[92vw] sm:w-[520px] sm:h-[240px] animate-glow">
                     <Image
                       src="/logo_transparent.png"
                       alt="ImgCompress Logo"
@@ -264,11 +264,6 @@ export function SplashScreen({
                   </div>
                 </div>
               )}
-
-              {/* Static label */}
-              <div className="text-[11px] uppercase tracking-[0.25em] text-blue-200/80 text-center">
-              I'm compressing your files.
-              </div>
 
               {/* Animated message area */}
               <div className="min-h-[3.25rem] flex items-center justify-center">
