@@ -12,8 +12,9 @@ on:
     inputs:
       deploy_nightly:
         description: "After E2E tests succeed, trigger the nightly deployment workflow"
+        type: boolean
         required: false
-        default: "false"
+        default: false
 
 jobs:
   test-backend:
@@ -169,7 +170,7 @@ jobs:
 
   deploy-nightly:
     needs: test-e2e
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_nightly == 'true'
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Deployment Workflow (nightly)
