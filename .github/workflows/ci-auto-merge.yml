@@ -8,6 +8,12 @@ on:
       - bugfix/*
       - enhancements/*
   pull_request:
+  workflow_dispatch:
+    inputs:
+      deploy_nightly:
+        description: "After E2E tests succeed, trigger the nightly deployment workflow"
+        required: false
+        default: "false"
 
 jobs:
   test-backend:
@@ -160,6 +166,21 @@ jobs:
           name: e2e-test-results-${{ env.ARCH }}
           path: e2e-test-results-${{ env.ARCH }}.zip
           retention-days: 3
+
+  deploy-nightly:
+    needs: test-e2e
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_nightly == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Deployment Workflow (nightly)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${GH_TOKEN}" \
+            https://api.github.com/repos/${{ github.repository }}/dispatches \
+            -d '{"event_type": "deploy"}'
   
   auto-merge-dependabot:
     needs: test-e2e
