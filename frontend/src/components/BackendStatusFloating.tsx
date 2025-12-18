@@ -3,24 +3,13 @@
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useInternetHealth } from "@/hooks/useInternetHealth";
 import { Network, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 
 export function BackendStatusFloating() {
   const { isDown, status, backendLastUpdate } = useBackendHealth();
   const { hasInternet, lastUpdate, loading, checkInternet } = useInternetHealth();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
-
-  const content = (
+  return (
     <>
       {!open && (
         <button
@@ -121,6 +110,4 @@ export function BackendStatusFloating() {
       )}
     </>
   );
-
-  return createPortal(content, document.body);
 }
