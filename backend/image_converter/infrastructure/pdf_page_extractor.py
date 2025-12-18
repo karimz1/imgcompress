@@ -19,38 +19,33 @@ class PdfPageExtractor:
         self.dpi = dpi
         self.image_format = image_format
 
-    def rasterize_pages(self, pdf_bytes: bytes, source_hint: str = "") -> Result[List[bytes]]:
+    def rasterize_pages(self, pdf_bytes: bytes, source_hint: str = "") -> Result[Any]:
         """
-        Convert the provided PDF bytes into a list of image-encoded page bytes.
+        Convert the provided PDF bytes into a generator of image-encoded page bytes.
         """
-        document = None
         try:
             document = self._open_document(pdf_bytes)
-            pages = self._render_document(document)
-            return Result.success(pages)
+            
+            def page_generator():
+                try:
+                    scale = self._dpi_to_scale()
+                    for page_index in range(len(document)):
+                        page = document[page_index]
+                        yield self._render_single_page(page, scale)
+                finally:
+                    document.close()
+            
+            return Result.success(page_generator())
         except Exception:
             tb = traceback.format_exc()
             self._log_failure(tb, source_hint)
             return Result.failure(tb)
-        finally:
-            if document is not None:
-                document.close()
 
     def _open_document(self, pdf_bytes: bytes) -> pdfium.PdfDocument:
         document = pdfium.PdfDocument(pdf_bytes)
         if len(document) == 0:
             raise ValueError("PDF contains no renderable pages.")
         return document
-
-    def _render_document(self, document: pdfium.PdfDocument) -> List[bytes]:
-        scale = self._dpi_to_scale()
-        rendered_pages: List[bytes] = []
-
-        for page_index in range(len(document)):
-            page = document[page_index]
-            rendered_pages.append(self._render_single_page(page, scale))
-
-        return rendered_pages
 
     def _render_single_page(self, page: Any, scale: float) -> bytes:
         try:

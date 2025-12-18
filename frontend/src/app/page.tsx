@@ -231,10 +231,14 @@ function HomePageContent() {
 
         if (!res.ok) {
           const fallbackMessage = responseText || "Error uploading files.";
-          const message = payload?.error || payload?.message || fallbackMessage;
+          const message = payload?.message || payload?.error || fallbackMessage;
+          const details =
+            payload?.stacktrace ||
+            payload?.details ||
+            (!payload ? fallbackMessage : undefined);
           setError({
             message,
-            details: payload?.message || (!payload ? fallbackMessage : undefined),
+            details,
             isApiError: true,
           });
           toast.error(message);
@@ -334,7 +338,11 @@ function HomePageContent() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
-      <SplashScreen isVisible={isLoading} onAbort={handleAbort} />
+      <SplashScreen
+        isVisible={isLoading}
+        onAbort={handleAbort}
+        disableLogo={configReady ? disableLogo : false}
+      />
       <BackendStatusBanner backendDown={isDown} />
 
       <div className="p-4 flex-grow flex flex-col items-center text-foreground">
@@ -395,9 +403,8 @@ function HomePageContent() {
                 disabled={isLoading}
                 onClick={() => setFileManagerOpen(true)}
                 data-testid="storage-management-btn"
-                className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
-                  isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
-                }`}
+                className={`rounded-full p-3 shadow-lg hover:shadow-xl ${isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
+                  }`}
               >
                 <HardDrive className="h-6 w-6" />
               </button>

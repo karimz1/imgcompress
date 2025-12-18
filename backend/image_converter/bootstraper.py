@@ -4,9 +4,10 @@ import subprocess
 import traceback
 from backend.image_converter.presentation.web.server import start_scheduler
 from backend.image_converter.presentation.cli.app import main as cli_main
+from backend.image_converter.infrastructure.logger import Logger
 import pillow_heif
 
-
+app_logger = Logger(debug=False, json_output=False)
 
 def get_workers_count(cpu_multiplier: int = 2, extra_workers: int = 1, min_workers: int = 1) -> int:
     """
@@ -79,6 +80,7 @@ def main():
 
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()
+        app_logger.log(f"started using mode: {mode}")
         if mode == "web":
             launch_web_prod()
             return
