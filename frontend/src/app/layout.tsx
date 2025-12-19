@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "imgcompress: Web UI",
+  title: "imgcompress",
   description: "imgcompress: Image Compression Tool"
 };
 
