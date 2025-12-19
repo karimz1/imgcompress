@@ -1,3 +1,6 @@
+## v0.2.7.1 — 2025-12-19
+- BugFix: Broken CLI Mode [#409](https://github.com/karimz1/imgcompress/issues/409))
+
 ## v0.2.7 — 2025-12-19
 - Feature: Modernize UI Elements + Splash Screen Animation with Particles [#405](https://github.com/karimz1/imgcompress/issues/405))
 - Internal: Improve PDF Processing for better Memory optimization ([#407](https://github.com/karimz1/imgcompress/issues/407))
