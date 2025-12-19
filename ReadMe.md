@@ -3,7 +3,7 @@
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
 
-# imgcompress — Fast, Private Image Compression & Conversion Tool in Docker
+# imgcompress — Fast, Private Image Compression & Conversion Docker Image.
 
 <img src="images/logo_transparent.png" alt="imgcompress logo" width="490"/>
 
