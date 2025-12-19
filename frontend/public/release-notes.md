@@ -1,6 +1,8 @@
-## v0.2.6.1 — 2025-12-15
-- DevContainer Integration Tests not same as Github Actions ([#397](https://github.com/karimz1/imgcompress/issues/397))
-- DEPRECATED Migrate to Docker BuildX in Integration Test ([#398](https://github.com/karimz1/imgcompress/issues/398))
+## v0.2.7 — 2025-12-19
+- Feature: Modernize UI Elements + Splash Screen Animation with Particles [#405](https://github.com/karimz1/imgcompress/issues/405))
+- Internal: Improve PDF Processing for better Memory optimization ([#407](https://github.com/karimz1/imgcompress/issues/407))
+- Internal: DevContainer Integration Tests not same as Github Actions ([#397](https://github.com/karimz1/imgcompress/issues/397))
+- Internal: DEPRECATED Migrate to Docker BuildX in Integration Test ([#398](https://github.com/karimz1/imgcompress/issues/398))
 
 ## v0.2.6 — 2025-12-15
 - Feature: Enables file downloads from storage management([#388](https://github.com/karimz1/imgcompress/issues/388))
