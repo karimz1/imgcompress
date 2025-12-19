@@ -9,12 +9,7 @@
 
 **imgcompress** is a self-hosted image processing tool designed to **compress, convert, and resize images entirely on your own infrastructure.** It delivers fast, high-quality results while keeping your data **100% local and private.**
 
-Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease. It runs fully inside Docker, making deployment simple, portable, and reproducible.
-
-Instantly **compress, convert, and resize images** — all **locally**, inside a lightweight Docker container.
-No installations. No uploads. No external services. Your data never leaves your machine.
-
-👉 **One command** starts the web app — drag & drop your images and download optimized results in seconds.
+Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease.
 
 ___
 
