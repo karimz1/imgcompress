@@ -16,10 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "imgcompress: Web UI",
-  description: "imgcompress: Image Compression Tool",
-  icons: {
-    icon: "/favicon.ico?v2",
-  },
+  description: "imgcompress: Image Compression Tool"
 };
 
 export default function RootLayout({
