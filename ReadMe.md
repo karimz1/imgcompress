@@ -7,17 +7,14 @@
 
 <img src="images/logo_transparent.png" alt="imgcompress logo" width="490"/>
 
-Self-hosted TinyPNG alternative to compress, convert, and resize images. The ultimate image compression and convert tool on the web — but running 100% locally on your own server for maximum privacy. Over 70+ formats are supported including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, PDF & more. Runs entirely in Docker for easy deployment.
+**imgcompress** is a self-hosted image processing tool designed to **compress, convert, and resize images entirely on your own infrastructure.** It delivers fast, high-quality results while keeping your data **100% local and private.**
 
-Instantly **compress, convert, and resize images** — all **locally**, inside a lightweight Docker container.  
-No installs. No uploads. No data ever leaves your machine.
+Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease. It runs fully inside Docker, making deployment simple, portable, and reproducible.
 
-👉 One command to start the web app — drag & drop your images, and download optimized results in seconds.
+Instantly **compress, convert, and resize images** — all **locally**, inside a lightweight Docker container.
+No installations. No uploads. No external services. Your data never leaves your machine.
 
-
-> **Quick overview**
-> - Use `web` → interactive Web UI (drag & drop)
-> - Use `cli` → automation, scripts, CI/CD
+👉 **One command** starts the web app — drag & drop your images and download optimized results in seconds.
 
 ___
 
