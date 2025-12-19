@@ -22,7 +22,6 @@ No installs. No uploads. No data ever leaves your machine.
 ___
 
 - [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
-  - [Demo Example:](#demo-example)
   - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
   - [🧪 Quick Start (docker run)](#-quick-start-docker-run)
   - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
