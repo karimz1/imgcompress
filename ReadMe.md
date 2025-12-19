@@ -39,6 +39,7 @@ ___
     - [**Pinned Release (for example: `0.2.3`)**](#pinned-release-for-example-023)
     - [**Nightly (``nightly``)**](#nightly-nightly)
   - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
+    - [🔀 CLI vs Web Mode](-cli-vs-web-mode)
   - [✅ Supported Image Formats](#-supported-image-formats)
     - [🗂️ Supported (not yet verified)](#️-supported-not-yet-verified)
   - [🖥️ Supported Platforms](#️-supported-platforms)
