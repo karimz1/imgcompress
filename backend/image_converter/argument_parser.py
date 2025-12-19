@@ -10,8 +10,9 @@ def parse_arguments():
         metavar="{cli,web}"
     )
 
-    subparsers.add_parser("cli", help="Run CLI mode")
-    subparsers.add_parser("web", help="Run web app")
+    # Disable subparser help so `cli --help` reaches the CLI parser instead.
+    subparsers.add_parser("cli", help="Run CLI mode", add_help=False)
+    subparsers.add_parser("web", help="Run web app", add_help=False)
 
     args, remaining = parser.parse_known_args()
 
