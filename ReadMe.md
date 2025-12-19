@@ -11,6 +11,9 @@
 
 Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease.
 
+## Video Example (Click on the Image to open the video):
+[![Demo Video](images/DemoScreenshotFrom2025-12-19.png)](images/DemoVideoFrom2025-12-19.mp4)
+
 ___
 
 - [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
