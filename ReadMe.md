@@ -1,26 +1,21 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
+[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
 
-# imgcompress — Fast, Private Image Compression & Conversion Tool in Docker
+# imgcompress — Fast, Private Image Compression & Conversion Docker Image.
 
-Self-hosted TinyPNG alternative to compress, convert, and resize images. The ultimate image compression and convert tool on the web — but running 100% locally on your own server for maximum privacy. Over 69+ formats are supported including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, PDF & more. Runs entirely in Docker for easy deployment.
+<img src="images/logo_transparent.png" alt="imgcompress logo" width="490"/>
 
-Instantly **compress, convert, and resize images** — all **locally**, inside a lightweight Docker container.  
-No installs. No uploads. No data ever leaves your machine.
+**imgcompress** is a self-hosted image processing tool designed to **compress, convert, and resize images entirely on your own infrastructure.** It delivers fast, high-quality results while keeping your data **100% local and private.**
 
-👉 One command to start the web app — drag & drop your images, and download optimized results in seconds.
+Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease.
 
-## Demo Example:
-<img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
+-> [Video Demo of Imgcompress](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/DemoVideoFrom2025-12-19.mp4)
 
-> **Demo shows:** Import → Convert → Download — all processed locally.  
-> Works with HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, PDFs (each page), and so much more.
+___
 
-## 📋 Table of Contents
 - [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
-  - [Demo Example:](#demo-example)
-  - [📋 Table of Contents](#-table-of-contents)
   - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
   - [🧪 Quick Start (docker run)](#-quick-start-docker-run)
   - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
@@ -31,6 +26,10 @@ No installs. No uploads. No data ever leaves your machine.
     - [**Pinned Release (for example: `0.2.3`)**](#pinned-release-for-example-023)
     - [**Nightly (``nightly``)**](#nightly-nightly)
   - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
+    - [🔀 CLI vs Web Mode](#-cli-vs-web-mode)
+      - [Help](#help)
+        - [Global help](#global-help)
+        - [CLI help](#cli-help)
   - [✅ Supported Image Formats](#-supported-image-formats)
     - [🗂️ Supported (not yet verified)](#️-supported-not-yet-verified)
   - [🖥️ Supported Platforms](#️-supported-platforms)
@@ -40,6 +39,7 @@ No installs. No uploads. No data ever leaves your machine.
   - [📓 Release Notes](#-release-notes)
   - [📝 License](#-license)
     - [Credits (optional)](#credits-optional)
+
 
 
 ## 🚀 Quick Start (Web UI in 30 s)
@@ -159,6 +159,7 @@ docker run --rm \
   -v "$(pwd):/container/images" \
   -v "$(pwd)/converted:/container/converted" \
   karimz1/imgcompress:latest \
+  cli \
   /container/images/example.jpg /container/converted --quality 80 --width 1920
 ```
 
@@ -169,6 +170,7 @@ docker run --rm \
   -v "$(pwd):/container/images" \
   -v "$(pwd)/converted:/container/converted" \
   karimz1/imgcompress:latest \
+  cli \
   /container/images /container/converted --quality 85 --width 800
 ```
 **How it works**
@@ -184,6 +186,35 @@ docker run --rm \
 
 
 ---
+
+### 🔀 CLI vs Web Mode
+
+imgcompress supports **two execution modes**:
+
+| Mode | Description | When to use |
+|----|----|----|
+| `web` | Starts the Web UI | Interactive usage, drag & drop |
+| `cli` | Runs the image processor | Automation, scripts, CI/CD |
+
+
+⚠ The mode must always be specified when running the container.
+
+#### Help
+
+##### Global help
+``` bash
+docker run --rm karimz1/imgcompress:latest --help
+```
+
+##### CLI help
+``` bash
+docker run --rm karimz1/imgcompress:latest cli --help
+```
+
+Common mistake:
+Forgetting `cli` or `web` will show global help instead of processing images.
+
+___
 
 ## ✅ Supported Image Formats
 
@@ -275,3 +306,4 @@ Third-party dependencies are subject to their own licenses.
 If you fork or build on this project, you’re very welcome (but not obliged) to add a note such as:
 
 > This project is based on **imgcompress** – https://github.com/karimz1/imgcompress
+

@@ -1,6 +1,6 @@
 import argparse
 
-def parse_arguments() -> argparse.Namespace:
+def parse_arguments(argv=None) -> argparse.Namespace:
     """Parse command-line arguments for the image conversion script."""
     parser = argparse.ArgumentParser(
         description="Convert images to JPEG or PNG (optionally resizing to a given width)."
@@ -42,4 +42,4 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="Output logs in JSON format"
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)

@@ -5,16 +5,10 @@ from backend.image_converter.core.image_convertsion_processor import ImageConver
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.infrastructure.logger import Logger
 
-def main():
+def main(argv=None):
     """Main entry point of the script."""
-    try:
-        args = parse_arguments()
-    except Exception as e:
-        tb = traceback.format_exc()
-        print("Error parsing arguments:")
-        print(tb)
-        sys.exit(1)
 
+    args = parse_arguments(argv)
     logger = Logger(debug=args.debug, json_output=args.json_output)
 
     try:

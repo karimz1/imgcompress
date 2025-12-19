@@ -1,4 +1,4 @@
-from http.client import HTTPException
+from werkzeug.exceptions import HTTPException
 import tempfile
 import traceback
 from flask import Flask, jsonify
@@ -11,7 +11,6 @@ from backend.image_converter.presentation.web.routes import api_blueprint
 from backend.image_converter.presentation.web.error_handlers import (
     handle_request_entity_too_large,
     handle_http_exception,
-    handle_exception,
     not_found
 )
 from backend.image_converter.presentation.web.static_routes import static_blueprint
@@ -27,6 +26,7 @@ app = Flask(
     static_url_path="/static"
 )
 app.config["MAX_FORM_MEMORY_SIZE"] = None
+app.config["MAX_CONTENT_LENGTH"] = 40 * 1024 * 1024 * 1024  # 40GB upload limit of api
 
                             
 app_logger = Logger(debug=False, json_output=False)
@@ -50,11 +50,7 @@ app.register_error_handler(500, handle_http_exception)
 @app.errorhandler(Exception)
 def global_handle_exception(e):
     if isinstance(e, HTTPException):
-        response = {
-            "error": e.name,
-            "message": e.description
-        }
-        return jsonify(response), e.code
+        return handle_http_exception(e)
 
     response = {
         "error": type(e).__name__,
@@ -92,4 +88,4 @@ def start_scheduler():
                                                               
 if __name__ == "__main__":
     start_scheduler()
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, threaded=True)

@@ -17,3 +17,4 @@ apscheduler==3.11.1
 gunicorn==23.0.0
 pillow_heif==1.1.1
 pypdfium2==5.2.0
+psd-tools==1.12.1
