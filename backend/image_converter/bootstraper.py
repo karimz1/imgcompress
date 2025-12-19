@@ -1,13 +1,13 @@
 import multiprocessing
-import sys
 import subprocess
 import traceback
-from backend.image_converter.presentation.web.server import start_scheduler
-from backend.image_converter.presentation.cli.app import main as cli_main
-from backend.image_converter.infrastructure.logger import Logger
 import pillow_heif
+from backend.image_converter.argument_parser import parse_arguments
+from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.presentation.cli.app import main as cli_main
+from backend.image_converter.presentation.web.server import start_scheduler
 
-app_logger = Logger(debug=False, json_output=False)
+
 
 def get_workers_count(cpu_multiplier: int = 2, extra_workers: int = 1, min_workers: int = 1) -> int:
     """
@@ -39,7 +39,6 @@ def get_workers_count(cpu_multiplier: int = 2, extra_workers: int = 1, min_worke
     return max(workers, min_workers)
 
 
-
 def launch_web_prod():
     start_scheduler()
     subprocess.run([
@@ -51,54 +50,28 @@ def launch_web_prod():
     ], check=True)
 
 
-
-def launch_web_dev():
-    """
-    Launch Flask's built-in dev server (not for production).
-    """
-    start_scheduler()
-    subprocess.run([
-        "python",
-        "-m",
-        "flask",
-        "--app", "backend.image_converter.presentation.web.server",
-        "run",
-        "--host=0.0.0.0",
-        "--port=5000"
-    ], check=True)
-
-
-
 def main():
-    """
-    If "web" is provided, run Gunicorn (production).
-    If "web_dev" is provided, run the Flask dev server.
-    Otherwise, run the CLI.
-    """
-
+    app_logger = Logger(debug=False, json_output=False)
     pillow_heif.register_heif_opener()
+    args, remaining = parse_arguments()
+    app_logger.log(f"started using mode: {args.mode}")
 
-    if len(sys.argv) > 1:
-        mode = sys.argv[1].lower()
-        app_logger.log(f"started using mode: {mode}")
-        if mode == "web":
-            launch_web_prod()
-            return
-        elif mode == "web_dev":
-            launch_web_dev()
-            return
+    if args.mode == "web":
+        launch_web_prod()
+        return
 
-                          
-    cli_main()
+    if args.mode == "cli":
+        cli_main(remaining)
+        return
+
 
 if __name__ == "__main__":
     try:
         main()
+    except SystemExit:
+        raise
     except Exception as e:
-                                                               
-                                 
         tb_list = traceback.extract_tb(e.__traceback__)
         last_frame = tb_list[-1]
         print(f"Exception occurred in file {last_frame.filename} at line {last_frame.lineno}")
         print(traceback.format_exc())
-                                                

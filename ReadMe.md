@@ -1,15 +1,23 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
+[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
 
 # imgcompress — Fast, Private Image Compression & Conversion Tool in Docker
 
-Self-hosted TinyPNG alternative to compress, convert, and resize images. The ultimate image compression and convert tool on the web — but running 100% locally on your own server for maximum privacy. Over 69+ formats are supported including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, PDF & more. Runs entirely in Docker for easy deployment.
+Self-hosted TinyPNG alternative to compress, convert, and resize images. The ultimate image compression and convert tool on the web — but running 100% locally on your own server for maximum privacy. Over 70+ formats are supported including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, PDF & more. Runs entirely in Docker for easy deployment.
 
 Instantly **compress, convert, and resize images** — all **locally**, inside a lightweight Docker container.  
 No installs. No uploads. No data ever leaves your machine.
 
 👉 One command to start the web app — drag & drop your images, and download optimized results in seconds.
+
+
+> **Quick overview**
+> - Use `web` → interactive Web UI (drag & drop)
+> - Use `cli` → automation, scripts, CI/CD
+
+___
 
 ## Demo Example:
 <img src="images/web-ui.gif" alt="imgcompress Web UI in Action" width="490"/>
@@ -159,6 +167,7 @@ docker run --rm \
   -v "$(pwd):/container/images" \
   -v "$(pwd)/converted:/container/converted" \
   karimz1/imgcompress:latest \
+  cli \
   /container/images/example.jpg /container/converted --quality 80 --width 1920
 ```
 
@@ -169,6 +178,7 @@ docker run --rm \
   -v "$(pwd):/container/images" \
   -v "$(pwd)/converted:/container/converted" \
   karimz1/imgcompress:latest \
+  cli \
   /container/images /container/converted --quality 85 --width 800
 ```
 **How it works**
@@ -184,6 +194,35 @@ docker run --rm \
 
 
 ---
+
+### 🔀 CLI vs Web Mode
+
+imgcompress supports **two execution modes**:
+
+| Mode | Description | When to use |
+|----|----|----|
+| `web` | Starts the Web UI | Interactive usage, drag & drop |
+| `cli` | Runs the image processor | Automation, scripts, CI/CD |
+
+
+⚠ The mode must always be specified when running the container.
+
+#### Help
+
+##### Global help
+``` bash
+docker run --rm karimz1/imgcompress:latest --help
+```
+
+##### CLI help
+``` bash
+docker run --rm karimz1/imgcompress:latest cli --help
+```
+
+Common mistake:
+Forgetting `cli` or `web` will show global help instead of processing images.
+
+___
 
 ## ✅ Supported Image Formats
 
