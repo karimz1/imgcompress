@@ -17,4 +17,4 @@ EOF
 echo "Generated runtime config:"
 cat "$CONFIG_DIR/runtime.json"
 
-exec image-converter "$@"
+exec python -m backend.image_converter.bootstraper "$@"

@@ -51,6 +51,7 @@ class TestDockerIntegration:
             # Use the container we are currently running in
             container_name = os.environ.get("HOSTNAME")
             if container_name and self._container_exists(container_name):
+                print(f"Volume Strategy: within devcontainer")
                 return {
                     "volume_args": ["--volumes-from", container_name],
                     "input_path": self.SAMPLE_IMAGES_DIR,
@@ -60,6 +61,7 @@ class TestDockerIntegration:
                 "Running inside a container but could not determine container name for --volumes-from"
             )
 
+        print(f"Volume Strategy: no devcontainer")
         # Host execution (no container)
         return {
             "volume_args": [
@@ -82,7 +84,6 @@ class TestDockerIntegration:
             "docker", "buildx", "build",
             "-t", self.DOCKER_IMAGE_NAME,
             "-f", self.DOCKERFILE_PATH,
-            "--no-cache",
             "--load",
             self.DOCKER_CONTEXT
         ]
@@ -127,6 +128,7 @@ class TestDockerIntegration:
             "docker", "run", "--rm",
             *strategy["volume_args"],
             self.DOCKER_IMAGE_NAME,
+            "cli",
             strategy["input_path"],
             strategy["output_path"],
             "--quality", str(80),
@@ -147,6 +149,7 @@ class TestDockerIntegration:
             "docker", "run", "--rm",
             *strategy["volume_args"],
             self.DOCKER_IMAGE_NAME,
+            "cli",
             os.path.join(strategy["input_path"], single_file_name),
             strategy["output_path"],
             "--quality", "80",

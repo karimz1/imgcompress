@@ -202,7 +202,9 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
           </div>
         </div>
       </CardContent>
-      <BackendStatusFloating />
+      <div className="relative mt-4">
+        <BackendStatusFloating />
+      </div>
     </Card>
   );
 }

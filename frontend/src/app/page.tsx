@@ -26,9 +26,11 @@ import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
 import PageFooter from "@/components/PageFooter";
 import FileConversionForm from "@/components/FileConversionForm";
 import { DownloadZipToast } from "@/components/CustomToast";
+import { SplashScreen } from "@/components/SplashScreen";
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
+import { cn } from "@/lib/utils";
 
 
 function HomePageContent() {
@@ -84,11 +86,25 @@ function HomePageContent() {
   const [jpegMode, setJpegMode] = useState<"quality" | "size">("quality");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
+
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   const { error, setError, clearError } = useErrorStore();
   const { isDown } = useBackendHealth();
   const { resolvedTheme } = useTheme();
+  const isDarkTheme = resolvedTheme !== "light";
+  const backgroundClass = isDarkTheme
+    ? "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-gray-50"
+    : "bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-900";
+  const cardClass = isDarkTheme
+    ? "border-white/10 bg-gray-900/80 shadow-[0_45px_120px_rgba(15,23,42,0.85)] text-gray-100"
+    : "border-slate-200 bg-white/95 shadow-[0_30px_80px_rgba(15,23,42,0.2)] text-slate-900";
+  const cardTitleClass = isDarkTheme
+    ? "text-white"
+    : "text-slate-900";
+  const accentOneClass = isDarkTheme ? "bg-sky-500/20" : "bg-sky-300/30";
+  const accentTwoClass = isDarkTheme ? "bg-fuchsia-500/20" : "bg-pink-300/30";
 
   useEffect(() => {
     if (outputFormat !== "jpeg") {
@@ -205,9 +221,13 @@ function HomePageContent() {
       }
 
       try {
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         const res = await fetch("/api/compress", {
           method: "POST",
           body: formData,
+          signal: controller.signal,
         });
 
         const contentType = res.headers.get("content-type") || "";
@@ -224,10 +244,14 @@ function HomePageContent() {
 
         if (!res.ok) {
           const fallbackMessage = responseText || "Error uploading files.";
-          const message = payload?.error || payload?.message || fallbackMessage;
+          const message = payload?.message || payload?.error || fallbackMessage;
+          const details =
+            payload?.stacktrace ||
+            payload?.details ||
+            (!payload ? fallbackMessage : undefined);
           setError({
             message,
-            details: payload?.message || (!payload ? fallbackMessage : undefined),
+            details,
             isApiError: true,
           });
           toast.error(message);
@@ -243,11 +267,14 @@ function HomePageContent() {
         setDrawerOpen(true);
         await delay(600);
         toast.success(
-          `${data.converted_files.length} Image${
-            data.converted_files.length > 1 ? "s" : ""
+          `${data.converted_files.length} Image${data.converted_files.length > 1 ? "s" : ""
           } compressed successfully!`
         );
       } catch (err) {
+        if ((err as Error).name === "AbortError") {
+          console.log("Upload aborted");
+          return;
+        }
         console.error(err);
         setError({
           message: "Something went wrong. Please try again.",
@@ -313,31 +340,52 @@ function HomePageContent() {
     }
   }, []);
 
+  const handleAbort = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsLoading(false);
+      toast.info("Compression cancelled.");
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-50 flex flex-col">
+    <div className={cn("min-h-screen flex flex-col transition-colors", backgroundClass)}>
+      <SplashScreen
+        isVisible={isLoading}
+        onAbort={handleAbort}
+        disableLogo={configReady ? disableLogo : false}
+      />
       <BackendStatusBanner backendDown={isDown} />
 
-      <div className="p-4 flex-grow flex flex-col items-center text-foreground">
+      <div className="relative w-full px-4 py-10 sm:px-6 flex-grow flex flex-col items-center text-foreground">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+        >
+          <div className={cn("absolute -top-28 right-0 h-64 w-64 rounded-full blur-[120px]", accentOneClass)} />
+          <div className={cn("absolute bottom-0 left-0 h-72 w-72 rounded-full blur-[140px]", accentTwoClass)} />
+        </div>
         <ToastContainer />
-        <Card className="w-full max-w-xl">
+        <Card className={cn("w-full max-w-3xl border backdrop-blur-xl transition-colors", cardClass)}>
           <CardTitle
-            className={`text-center pt-5 ${
-              configReady && disableLogo ? "pb-8" : ""
-            }`}
+            className={`text-center text-3xl md:text-4xl font-bold drop-shadow pt-6 ${cardTitleClass} ${configReady && disableLogo ? "pb-8" : "pb-2"
+              }`}
           >
             An Image Compression Tool
           </CardTitle>
           {configReady && !disableLogo && (
-            <CardHeader>
+            <CardHeader className="pt-2 flex flex-col items-center">
               <Image
                 src={resolvedTheme === "dark" ? "/mascot_dark.jpg" : "/mascot.jpg"}
                 width={600}
                 height={600}
                 alt="Mascot of ImgCompress a Tool by Karim Zouine"
+                className="rounded-lg shadow-lg"
               />
             </CardHeader>
           )}
-          <CardContent>
+          <CardContent className="p-6 pt-0 sm:p-10 sm:pt-2">
             <FileConversionForm
               isLoading={isLoading}
               error={error}
@@ -376,9 +424,8 @@ function HomePageContent() {
                 disabled={isLoading}
                 onClick={() => setFileManagerOpen(true)}
                 data-testid="storage-management-btn"
-                className={`rounded-full p-3 shadow-lg hover:shadow-xl ${
-                  isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
-                }`}
+                className={`rounded-full p-3 shadow-lg hover:shadow-xl ${isLoading ? "opacity-50 cursor-not-allowed" : "bg-blue-500"
+                  }`}
               >
                 <HardDrive className="h-6 w-6" />
               </button>
@@ -390,15 +437,15 @@ function HomePageContent() {
                 <button className="hidden" />
               </DrawerTrigger>
               <DrawerContent className="border-0">
-                <VisuallyHidden>
-                  <DrawerHeader>
-                    <DrawerTitle className="text-lg font-semibold text-center">
-                      Admin Tools
-                    </DrawerTitle>
-                  </DrawerHeader>
-                </VisuallyHidden>
-                <div className="p-4">
-                  <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
+                  <VisuallyHidden>
+                    <DrawerHeader>
+                      <DrawerTitle className="text-lg font-semibold text-center">
+                        Admin Tools
+                      </DrawerTitle>
+                    </DrawerHeader>
+                  </VisuallyHidden>
+                  <div className="p-4">
+                    <FileManager onForceClean={onForceCleanCallback} key={fileManagerRefresh} />
                 </div>
               </DrawerContent>
             </Drawer>

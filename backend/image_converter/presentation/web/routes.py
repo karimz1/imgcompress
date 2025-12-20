@@ -87,44 +87,61 @@ def compress_images():
         return jsonify({"error": fmt_res.error}), 400
     fmt = fmt_res.value
 
-    src = tempfile.mkdtemp(prefix="source_")
-    dst = tempfile.mkdtemp(prefix="converted_")
+    src: Optional[str] = None
+    dst: Optional[str] = None
+    dest_ready = False
 
-    save_res = _save_uploaded_files(files, src)
-    if not save_res.is_successful:
-        shutil.rmtree(src, ignore_errors=True)
-        return jsonify({"error": "Failed to save uploaded files", "message": save_res.error}), 500
+    try:
+        src = tempfile.mkdtemp(prefix="source_")
+        dst = tempfile.mkdtemp(prefix="converted_")
 
-    target: Optional[TargetSize] = None
-    if data.get("target_size_kb"):
-        target = TargetSize(bytes=to_bytes(float(data["target_size_kb"]), unit="KB", system="IEC"))
+        save_res = _save_uploaded_files(files, src)
+        if not save_res.is_successful:
+            return jsonify({"error": "Failed to save uploaded files", "message": save_res.error}), 500
 
-    req = CompressRequest(
-        source_folder=src,
-        dest_folder=dst,
-        image_format=fmt,
-        quality=data["quality"],
-        width=data["width"],
-        target_size=target,
-    )
+        target: Optional[TargetSize] = None
+        if data.get("target_size_kb"):
+            target = TargetSize(bytes=to_bytes(float(data["target_size_kb"]), unit="KB", system="IEC"))
 
-    result = use_case.execute(req)
+        req = CompressRequest(
+            source_folder=src,
+            dest_folder=dst,
+            image_format=fmt,
+            quality=data["quality"],
+            width=data["width"],
+            target_size=target,
+        )
 
-    shutil.rmtree(src, ignore_errors=True)
+        result = use_case.execute(req)
 
-    if not result.processed_files:
-        return jsonify({"error": "Image processing failed", "message": "; ".join(result.errors)}), 500
+        if not result.processed_files:
+            return jsonify({"error": "Image processing failed", "message": "; ".join(result.errors)}), 500
 
-    converted = [f for f in os.listdir(dst) if os.path.isfile(os.path.join(dst, f))]
-    if not converted:
-        return jsonify({"error": "No files were converted"}), 500
+        converted = [f for f in os.listdir(dst) if os.path.isfile(os.path.join(dst, f))]
+        if not converted:
+            return jsonify({"error": "No files were converted"}), 500
 
-    return jsonify({
-        "status": "ok",
-        "converted_files": converted,
-        "dest_folder": dst,
-        "process_summary": result.to_summary(),
-    }), 200
+        dest_ready = True
+        return jsonify({
+            "status": "ok",
+            "converted_files": converted,
+            "dest_folder": dst,
+            "process_summary": result.to_summary(),
+        }), 200
+    except Exception as exc:
+        tb = traceback.format_exc()
+        logger.log(f"Unexpected compression failure: {tb}", "error")
+        message = str(exc) or "Unexpected compression failure."
+        return jsonify({
+            "error": "Compression failed",
+            "message": message,
+            "details": tb,
+        }), 500
+    finally:
+        if src:
+            shutil.rmtree(src, ignore_errors=True)
+        if dst and not dest_ready:
+            shutil.rmtree(dst, ignore_errors=True)
 
 
 @api_blueprint.route("/download", methods=["GET"])

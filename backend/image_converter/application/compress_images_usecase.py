@@ -40,6 +40,7 @@ class CompressImagesUseCase:
                 errors.append(f"{item.name}: {e}")
                 continue
 
+            # page_payloads is now an iterable (generator for PDFs) to save memory
             for payload in page_payloads:
                 dest_name = self._build_dest_name(item.stem, new_ext, payload.page_index)
                 dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)

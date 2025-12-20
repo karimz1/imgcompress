@@ -26,8 +26,9 @@ def test_When_PdfPageExtractorProcessesSample_Expect_PageRendered():
 
     result = extractor.rasterize_pages(data, "imgcompress_screenshot.pdf")
     assert result.is_successful
-    assert len(result.value) == 1
-    page_bytes = result.value[0]
+    pages = list(result.value)
+    assert len(pages) == 1
+    page_bytes = pages[0]
     with Image.open(BytesIO(page_bytes)) as img:
         assert img.width > 0
         assert img.height > 0
@@ -64,7 +65,7 @@ def test_When_ExpandingPdfPayload_Expect_PageMetadataCreated(monkeypatch):
     expander = FilePayloadExpander(DummyExtractor(), DummyRenderer())
     result = expander.expand("demo.pdf", b"bytes")
     assert result.is_successful
-    payloads = result.value
+    payloads = list(result.value)
     assert len(payloads) == 2
     assert payloads[0].label == "demo.pdf (page 1)"
     assert payloads[0].page_index == 1

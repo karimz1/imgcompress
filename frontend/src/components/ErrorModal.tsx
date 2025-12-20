@@ -61,20 +61,22 @@ const ErrorModal = () => {
           <AlertTriangle className="h-10 w-10 text-red-500" />
           <DialogTitle className="text-3xl font-bold">Error Occurred</DialogTitle>
         </DialogHeader>
-        <DialogDescription className="mt-4">
-          <div className="w-full font-medium text-xl mb-2 flex items-center space-x-2">
-            <XCircle className="h-6 w-6 text-red-400" />
-            <span>{error.message}</span>
-          </div>
-          {error.details && (
-            <div className="mt-2 w-full p-4 bg-gray-800 rounded-md border border-gray-700 max-h-60 overflow-y-auto">
-              <pre className="text-sm break-words whitespace-pre-wrap">
-                {error.details}
-              </pre>
+        <DialogDescription asChild className="mt-4">
+          <div>
+            <div className="w-full font-medium text-xl mb-2 flex items-center space-x-2">
+              <XCircle className="h-6 w-6 text-red-400" />
+              <span data-testid="error-message">{error.message}</span>
             </div>
-          )}
-          <div className="mt-4 text-base text-gray-300">
-            Please open a ticket and notify the developer so this can be fixed ASAP.
+            {error.details && (
+              <div className="mt-2 w-full p-4 bg-gray-800 rounded-md border border-gray-700 max-h-60 overflow-y-auto">
+                <pre className="text-sm break-words whitespace-pre-wrap">
+                  {error.details}
+                </pre>
+              </div>
+            )}
+            <div className="mt-4 text-base text-gray-300">
+              Please open a ticket and notify the developer so this can be fixed ASAP.
+            </div>
           </div>
         </DialogDescription>
         <DialogFooter className="flex flex-wrap justify-end gap-4 mt-6 w-full">
