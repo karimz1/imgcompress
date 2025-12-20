@@ -40,8 +40,6 @@ ___
   - [❤️ Donate to Support Development](#️-donate-to-support-development)
   - [📓 Release Notes](#-release-notes)
   - [📝 License](#-license)
-    - [Credits (optional)](#credits-optional)
-
 
 
 ## 🚀 Quick Start (Web UI in 30 s)
@@ -302,11 +300,4 @@ See the full release history in [frontend/public/release-notes.md](https://githu
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 See the [LICENSE](LICENSE) file for details.
-
-
-### Credits (optional)
-
-If you fork or build on this project, you’re very welcome (but not obliged) to add a note such as:
-
-> This project is based on **imgcompress** – https://github.com/karimz1/imgcompress
 
