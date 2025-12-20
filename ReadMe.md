@@ -1,9 +1,11 @@
+# imgcompress — Fast, Private Image Compression & Conversion Docker Image.
+
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
+![Release Date](https://img.shields.io/github/release-date/karimz1/imgcompress)
+![License](https://img.shields.io/github/license/karimz1/imgcompress)
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
-
-# imgcompress — Fast, Private Image Compression & Conversion Docker Image.
 
 <img src="images/logo_transparent.png" alt="imgcompress logo" width="490"/>
 
@@ -298,8 +300,9 @@ See the full release history in [frontend/public/release-notes.md](https://githu
 
 ## 📝 License
 
-Released under the [MIT License](https://github.com/karimz1/imgcompress/blob/main/LICENSE).  
-Third-party dependencies are subject to their own licenses.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
+See the [LICENSE](LICENSE) file for details.
+
 
 ### Credits (optional)
 
