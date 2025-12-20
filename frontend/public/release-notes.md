@@ -1,3 +1,6 @@
+## v0.2.7.2 — 2025-12-20
+- License Update: GNU GPL-3.0 Migration [#410](https://github.com/karimz1/imgcompress/issues/410)
+
 ## v0.2.7.1 — 2025-12-19
 - BugFix: Broken CLI Mode [#409](https://github.com/karimz1/imgcompress/issues/409))
 
