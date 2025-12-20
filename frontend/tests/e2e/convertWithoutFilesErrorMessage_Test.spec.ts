@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright';
 import { clickConversionButtonAsync as clickConversionButtonAsync } from './utls/helpers';
 
 test('Test_TryToConvertWithoutUpload_ExpectErrorMessageRendered', async ({ page }) => {

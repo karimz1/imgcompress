@@ -1,4 +1,4 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig } from "@playwright";
 import fs from "fs";
 import path from "path";
 

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator } from '@playwright';
 import sharp from 'sharp';
 import { DownloadType } from './DownloadType';
 

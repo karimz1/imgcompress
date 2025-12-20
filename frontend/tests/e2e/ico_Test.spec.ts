@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '@playwright';
 import decodeIco from 'decode-ico';
 import fs from 'fs';
 import {

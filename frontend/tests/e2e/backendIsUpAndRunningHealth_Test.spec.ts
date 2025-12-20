@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright';
 
 test('Test Backend Health - Expect Status Banner is not visible', async ({ page }) => {
   await page.goto('/');

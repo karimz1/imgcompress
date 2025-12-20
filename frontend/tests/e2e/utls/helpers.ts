@@ -1,6 +1,6 @@
 import path from 'path';
 import { promises as fsPromises } from 'fs';
-import {expect, Page, Locator, APIRequestContext} from '@playwright/test';
+import {expect, Page, Locator, APIRequestContext} from '@playwright';
 import AdmZip, { IZipEntry } from 'adm-zip';
 import sharp from 'sharp';
 import { ImageFileDto } from './ImageFileDto';

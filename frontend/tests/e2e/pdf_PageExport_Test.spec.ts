@@ -1,5 +1,5 @@
 import path from 'path';
-import { expect, test } from '@playwright/test';
+import { expect, test } from '@playwright';
 import {
   uploadFilesToDropzoneAsync,
   assertFilesPresentInDropzoneAsync,

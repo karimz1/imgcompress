@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright';
 import fs from 'fs';
 import {
     uploadFilesToDropzoneAsync,
