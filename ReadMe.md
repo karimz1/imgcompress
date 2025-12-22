@@ -299,5 +299,6 @@ See the full release history in [frontend/public/release-notes.md](https://githu
 ## 📝 License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
-See the [LICENSE](LICENSE) file for details.
+See the [LICENSE](https://github.com/karimz1/imgcompress/blob/main/LICENSE) file for details.
+
 
