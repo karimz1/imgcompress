@@ -22,10 +22,6 @@ updates:
       interval: "weekly"
     rebase-strategy: auto
     open-pull-requests-limit: 20
-    groups:
-      pnpm-minor:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
     labels: ["dependencies", "frontend"]
 
   - package-ecosystem: "github-actions"
