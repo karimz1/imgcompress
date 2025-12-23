@@ -25,7 +25,7 @@ ___
     - [✨ Feature Overview](#-feature-overview)
   - [**🔖 Choosing Your Version**](#-choosing-your-version)
     - [**Stable (``latest``)**](#stable-latest)
-    - [**Pinned Release (for example: `0.2.3`)**](#pinned-release-for-example-023)
+    - [**Pinned Release (for example: `0.2.8`)**](#pinned-release-for-example-028)
     - [**Nightly (``nightly``)**](#nightly-nightly)
   - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
     - [🔀 CLI vs Web Mode](#-cli-vs-web-mode)
@@ -137,7 +137,7 @@ imgcompress provides **three tags**, depending on your needs:
 The safest and most reliable choice.  
 Every latest release passes **QA checks by the author (Karim Zouine)** before publication.
 
-### **Pinned Release (for example: `0.2.3`)**
+### **Pinned Release (for example: `0.2.8`)**
 A frozen version that **never updates**.  
 Ideal for locked-down deployments or staying on a version you trust.
 
