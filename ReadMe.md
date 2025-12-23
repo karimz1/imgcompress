@@ -18,12 +18,13 @@ Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIF
 ___
 
 - [imgcompress — Fast, Private Image Compression \& Conversion Docker Image.](#imgcompress--fast-private-image-compression--conversion-docker-image)
-  - [🚀 Quick Start using `docker compose`](#-quick-start-using-docker-compose)
-  - [🚀 Quick Start using `docker run`](#-quick-start-using-docker-run)
-    - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
-  - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
+  - [🚀 Quick Start](#-quick-start)
     - [Using `docker compose`](#using-docker-compose)
     - [Using `docker run`](#using-docker-run)
+    - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
+  - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
+    - [Using `docker compose`](#using-docker-compose-1)
+    - [Using `docker run`](#using-docker-run-1)
   - [❓ Why imgcompress?](#-why-imgcompress)
     - [✨ Feature Overview](#-feature-overview)
   - [**🔖 Choosing Your Version**](#-choosing-your-version)
@@ -46,7 +47,10 @@ ___
 
 
 
-## 🚀 Quick Start using `docker compose`
+
+## 🚀 Quick Start
+
+### Using `docker compose`
 
 ```yaml
 services:
@@ -70,7 +74,7 @@ Then open:
 👉 **[http://localhost:3001](http://localhost:3001/)**
 
 
-## 🚀 Quick Start using `docker run`
+### Using `docker run`
 
 ````bash
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
