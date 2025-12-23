@@ -105,11 +105,13 @@ docker stop imgcompress
 docker rm imgcompress
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ```
+> **Open imgcompress:** **[http://localhost:3001](http://localhost:3001/)**
+
 
 ⬅️ Back to: [**Quick Start (`docker compose`)**](#using-docker-compose)
  or [**Quick Start (`docker run`)**](#using-docker-run)
 
-👉 **Open UI:** **[http://localhost:3001](http://localhost:3001/)**
+
 
 ___
 
