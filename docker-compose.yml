@@ -4,6 +4,7 @@ services:
     container_name: imgcompress
     restart: always
     ports:
-      - "3001:5000"                  # HOST:CONTAINER — change 3001 if you like
-    command:
-      - "web"                        # launch the Web UI
+      - "3001:5000"                     # HOST:CONTAINER — change 3001 if needed
+    environment:
+      - DISABLE_LOGO=true               # Optional: disable mascot
+      - DISABLE_STORAGE_MANAGEMENT=true # Optional: disable the Storage Management
