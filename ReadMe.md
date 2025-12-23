@@ -21,7 +21,7 @@ ___
   - [🚀 Quick Start](#-quick-start)
     - [Using `docker compose`](#using-docker-compose)
     - [Using `docker run`](#using-docker-run)
-    - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
+      - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
   - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
     - [Using `docker compose`](#using-docker-compose-1)
     - [Using `docker run`](#using-docker-run-1)
@@ -80,7 +80,7 @@ Then open:
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ````
 
-### 🧼 Minimal Mode: Hide the Mascot
+#### 🧼 Minimal Mode: Hide the Mascot
 
 Prefer a cleaner UI?
 
@@ -106,8 +106,8 @@ docker rm imgcompress
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ```
 
-⬅️ Back to: [**Quick Start (`docker compose`)**](#-quick-start-using-docker-compose)
- or [**Quick Start (`docker run`)**](#-quick-start-docker-run)
+⬅️ Back to: [**Quick Start (`docker compose`)**](#using-docker-compose)
+ or [**Quick Start (`docker run`)**](#using-docker-run)
 
 👉 **Open UI:** **[http://localhost:3001](http://localhost:3001/)**
 
