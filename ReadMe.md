@@ -22,8 +22,8 @@ ___
   - [🧪 Quick Start (``docker run``)](#-quick-start-docker-run)
   - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
   - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
-    - [Using Docker Compose](#using-docker-compose)
-    - [Using Docker Run](#using-docker-run)
+    - [Using ``docker-compose``](#using-docker-compose)
+    - [Using ``docker run``](#using-docker-run)
   - [❓ Why imgcompress?](#-why-imgcompress)
     - [✨ Feature Overview](#-feature-overview)
   - [**🔖 Choosing Your Version**](#-choosing-your-version)
@@ -43,6 +43,7 @@ ___
   - [❤️ Donate to Support Development](#️-donate-to-support-development)
   - [📓 Release Notes](#-release-notes)
   - [📝 License](#-license)
+
 
 
 ## 🚀 Quick Start using ``docker-compose``
@@ -87,13 +88,13 @@ ___
 
 ## 🔄 Updating imgcompress (get the latest stable release)
 
-### Using Docker Compose
+### Using ``docker-compose``
 ```bash
 docker compose pull
 docker compose up -d --force-recreate
 ```
 
-### Using Docker Run
+### Using ``docker run``
 
 ```bash
 docker pull karimz1/imgcompress:latest
