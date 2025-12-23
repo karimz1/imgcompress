@@ -14,7 +14,7 @@ cat <<EOF > "$CONFIG_DIR/runtime.json"
 }
 EOF
 
-echo "Generated runtime config:"
-cat "$CONFIG_DIR/runtime.json"
+#echo "Generated runtime config:"
+#cat "$CONFIG_DIR/runtime.json"
 
 exec python -m backend.image_converter.bootstraper "$@"
