@@ -13,17 +13,17 @@
 
 Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease.
 
--> [Video Demo of Imgcompress](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/DemoVideoFrom2025-12-19.mp4)
+➡️ [Download Video Demo of Imgcompress](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/DemoVideoFrom2025-12-19.mp4)
 
 ___
 
 - [imgcompress — Fast, Private Image Compression \& Conversion Docker Image.](#imgcompress--fast-private-image-compression--conversion-docker-image)
-  - [🚀 Quick Start using ``docker-compose``](#-quick-start-using-docker-compose)
-  - [🧪 Quick Start (``docker run``)](#-quick-start-docker-run)
-  - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
+  - [🚀 Quick Start using `docker compose`](#-quick-start-using-docker-compose)
+  - [🚀 Quick Start using `docker run`](#-quick-start-using-docker-run)
+    - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
   - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
-    - [Using ``docker-compose``](#using-docker-compose)
-    - [Using ``docker run``](#using-docker-run)
+    - [Using `docker compose`](#using-docker-compose)
+    - [Using `docker run`](#using-docker-run)
   - [❓ Why imgcompress?](#-why-imgcompress)
     - [✨ Feature Overview](#-feature-overview)
   - [**🔖 Choosing Your Version**](#-choosing-your-version)
@@ -46,9 +46,7 @@ ___
 
 
 
-## 🚀 Quick Start using ``docker-compose``
-
-Run **imgcompress** via Docker Compose:
+## 🚀 Quick Start using `docker compose`
 
 ```yaml
 services:
@@ -71,13 +69,14 @@ Then open:
 
 👉 **[http://localhost:3001](http://localhost:3001/)**
 
-## 🧪 Quick Start (``docker run``)
+
+## 🚀 Quick Start using `docker run`
 
 ````bash
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ````
 
-## 🧼 Minimal Mode: Hide the Mascot
+### 🧼 Minimal Mode: Hide the Mascot
 
 Prefer a cleaner UI?
 
@@ -88,13 +87,13 @@ ___
 
 ## 🔄 Updating imgcompress (get the latest stable release)
 
-### Using ``docker-compose``
+### Using `docker compose`
 ```bash
 docker compose pull
 docker compose up -d --force-recreate
 ```
 
-### Using ``docker run``
+### Using `docker run`
 
 ```bash
 docker pull karimz1/imgcompress:latest
@@ -103,8 +102,8 @@ docker rm imgcompress
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ```
 
-⬅️ Back to: [**Quick Start (docker-compose)**](#-quick-start-using-docker-compose)
- or [**Quick Start (docker run)**](#-quick-start-docker-run)
+⬅️ Back to: [**Quick Start (`docker compose`)**](#-quick-start-using-docker-compose)
+ or [**Quick Start (`docker run`)**](#-quick-start-docker-run)
 
 👉 **Open UI:** **[http://localhost:3001](http://localhost:3001/)**
 
