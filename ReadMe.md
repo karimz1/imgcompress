@@ -17,10 +17,13 @@ Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIF
 
 ___
 
-- [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
-  - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
-  - [🧪 Quick Start (docker run)](#-quick-start-docker-run)
+- [imgcompress — Fast, Private Image Compression \& Conversion Docker Image.](#imgcompress--fast-private-image-compression--conversion-docker-image)
+  - [🚀 Quick Start using ``docker-compose``](#-quick-start-using-docker-compose)
+  - [🧪 Quick Start (``docker run``)](#-quick-start-docker-run)
   - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
+  - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
+    - [Using Docker Compose](#using-docker-compose)
+    - [Using Docker Run](#using-docker-run)
   - [❓ Why imgcompress?](#-why-imgcompress)
     - [✨ Feature Overview](#-feature-overview)
   - [**🔖 Choosing Your Version**](#-choosing-your-version)
@@ -42,7 +45,7 @@ ___
   - [📝 License](#-license)
 
 
-## 🚀 Quick Start (Web UI in 30 s)
+## 🚀 Quick Start using ``docker-compose``
 
 Run **imgcompress** via Docker Compose:
 
@@ -67,7 +70,7 @@ Then open:
 
 👉 **[http://localhost:3001](http://localhost:3001/)**
 
-## 🧪 Quick Start (docker run)
+## 🧪 Quick Start (``docker run``)
 
 ````bash
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
@@ -82,7 +85,29 @@ docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgco
 ````
 ___
 
-All locally, via Docker — for complete privacy.
+## 🔄 Updating imgcompress (get the latest stable release)
+
+### Using Docker Compose
+```bash
+docker compose pull
+docker compose up -d --force-recreate
+```
+
+### Using Docker Run
+
+```bash
+docker pull karimz1/imgcompress:latest
+docker stop imgcompress
+docker rm imgcompress
+docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
+```
+
+⬅️ Back to: [**Quick Start (docker-compose)**](#-quick-start-using-docker-compose)
+ or [**Quick Start (docker run)**](#-quick-start-docker-run)
+
+👉 **Open UI:** **[http://localhost:3001](http://localhost:3001/)**
+
+___
 
 ## ❓ Why imgcompress?
 
