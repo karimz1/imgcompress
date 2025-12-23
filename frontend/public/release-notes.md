@@ -1,4 +1,4 @@
-## v0.2.8.0 — 2025-12-23
+## v0.2.8 — 2025-12-23
 - Fallback to Web Mode when no Arg Mode is Provided [#426](https://github.com/karimz1/imgcompress/issues/426)
 
 ## v0.2.7.2 — 2025-12-20
