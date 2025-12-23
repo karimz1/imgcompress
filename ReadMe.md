@@ -13,19 +13,23 @@
 
 Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease.
 
--> [Video Demo of Imgcompress](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/DemoVideoFrom2025-12-19.mp4)
+➡️ [Download Video Demo of Imgcompress](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/DemoVideoFrom2025-12-19.mp4)
 
 ___
 
-- [imgcompress — Fast, Private Image Compression \& Conversion Tool in Docker](#imgcompress--fast-private-image-compression--conversion-tool-in-docker)
-  - [🚀 Quick Start (Web UI in 30 s)](#-quick-start-web-ui-in-30-s)
-  - [🧪 Quick Start (docker run)](#-quick-start-docker-run)
-  - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
+- [imgcompress — Fast, Private Image Compression \& Conversion Docker Image.](#imgcompress--fast-private-image-compression--conversion-docker-image)
+  - [🚀 Quick Start](#-quick-start)
+    - [Using `docker compose`](#using-docker-compose)
+    - [Using `docker run`](#using-docker-run)
+      - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
+  - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
+    - [Using `docker compose`](#using-docker-compose-1)
+    - [Using `docker run`](#using-docker-run-1)
   - [❓ Why imgcompress?](#-why-imgcompress)
     - [✨ Feature Overview](#-feature-overview)
   - [**🔖 Choosing Your Version**](#-choosing-your-version)
     - [**Stable (``latest``)**](#stable-latest)
-    - [**Pinned Release (for example: `0.2.3`)**](#pinned-release-for-example-023)
+    - [**Pinned Release (for example: `0.2.8`)**](#pinned-release-for-example-028)
     - [**Nightly (``nightly``)**](#nightly-nightly)
   - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
     - [🔀 CLI vs Web Mode](#-cli-vs-web-mode)
@@ -42,9 +46,11 @@ ___
   - [📝 License](#-license)
 
 
-## 🚀 Quick Start (Web UI in 30 s)
 
-Run **imgcompress** via Docker Compose:
+
+## 🚀 Quick Start
+
+### Using `docker compose`
 
 ```yaml
 services:
@@ -57,8 +63,6 @@ services:
     environment:
       - DISABLE_LOGO=true               # Optional: disable mascot
       - DISABLE_STORAGE_MANAGEMENT=true # Optional: disable the Storage Management
-    command:
-      - "web"                           # Launch the Web UI
 ````
 Start:
 ```bash
@@ -69,22 +73,47 @@ Then open:
 
 👉 **[http://localhost:3001](http://localhost:3001/)**
 
-## 🧪 Quick Start (docker run)
+
+### Using `docker run`
 
 ````bash
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
+docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ````
 
-## 🧼 Minimal Mode: Hide the Mascot
+#### 🧼 Minimal Mode: Hide the Mascot
 
 Prefer a cleaner UI?
 
 ```` bash
-docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest web
+docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest
 ````
 ___
 
-All locally, via Docker — for complete privacy.
+## 🔄 Updating imgcompress (get the latest stable release)
+
+### Using `docker compose`
+```bash
+docker compose pull
+docker compose up -d --force-recreate
+```
+
+### Using `docker run`
+
+```bash
+docker pull karimz1/imgcompress:latest
+docker stop imgcompress
+docker rm imgcompress
+docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
+```
+> **Open imgcompress:** **[http://localhost:3001](http://localhost:3001/)**
+
+
+⬅️ Back to: [**Quick Start (`docker compose`)**](#using-docker-compose)
+ or [**Quick Start (`docker run`)**](#using-docker-run)
+
+
+
+___
 
 ## ❓ Why imgcompress?
 
@@ -139,7 +168,7 @@ imgcompress provides **three tags**, depending on your needs:
 The safest and most reliable choice.  
 Every latest release passes **QA checks by the author (Karim Zouine)** before publication.
 
-### **Pinned Release (for example: `0.2.3`)**
+### **Pinned Release (for example: `0.2.8`)**
 A frozen version that **never updates**.  
 Ideal for locked-down deployments or staying on a version you trust.
 
@@ -191,13 +220,11 @@ docker run --rm \
 
 imgcompress supports **two execution modes**:
 
-| Mode | Description | When to use |
+| Mode | Description | When to use | 
 |----|----|----|
-| `web` | Starts the Web UI | Interactive usage, drag & drop |
+| `web` | This is the default even without giving a mode. Starts the Web UI | Interactive usage, drag & drop |
 | `cli` | Runs the image processor | Automation, scripts, CI/CD |
 
-
-⚠ The mode must always be specified when running the container.
 
 #### Help
 
@@ -210,9 +237,6 @@ docker run --rm karimz1/imgcompress:latest --help
 ``` bash
 docker run --rm karimz1/imgcompress:latest cli --help
 ```
-
-Common mistake:
-Forgetting `cli` or `web` will show global help instead of processing images.
 
 ___
 

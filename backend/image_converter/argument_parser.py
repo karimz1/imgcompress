@@ -16,8 +16,4 @@ def parse_arguments():
 
     args, remaining = parser.parse_known_args()
 
-    if args.mode is None:
-        parser.print_help()
-        parser.exit(0)
-
     return args, remaining

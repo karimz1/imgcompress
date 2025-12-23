@@ -54,15 +54,20 @@ def main():
     app_logger = Logger(debug=False, json_output=False)
     pillow_heif.register_heif_opener()
     args, remaining = parse_arguments()
-    app_logger.log(f"started using mode: {args.mode}")
 
-    if args.mode == "web":
-        launch_web_prod()
-        return
+    # fallback so defaults to web if no args are given...
+    if args.mode is None:
+        args.mode = "web"
+
+    app_logger.log(f"started using mode: {args.mode}")
 
     if args.mode == "cli":
         cli_main(remaining)
-        return
+    elif args.mode == "web":
+        launch_web_prod()
+    else:
+        raise ValueError(f"no argument that match was found for args.mode value: {args.mode}")
+
 
 
 if __name__ == "__main__":
