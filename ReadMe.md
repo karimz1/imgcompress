@@ -57,8 +57,6 @@ services:
     environment:
       - DISABLE_LOGO=true               # Optional: disable mascot
       - DISABLE_STORAGE_MANAGEMENT=true # Optional: disable the Storage Management
-    command:
-      - "web"                           # Launch the Web UI
 ````
 Start:
 ```bash
@@ -72,7 +70,7 @@ Then open:
 ## 🧪 Quick Start (docker run)
 
 ````bash
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
+docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ````
 
 ## 🧼 Minimal Mode: Hide the Mascot
@@ -80,7 +78,7 @@ docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
 Prefer a cleaner UI?
 
 ```` bash
-docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest web
+docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest
 ````
 ___
 
@@ -191,13 +189,11 @@ docker run --rm \
 
 imgcompress supports **two execution modes**:
 
-| Mode | Description | When to use |
+| Mode | Description | When to use | 
 |----|----|----|
-| `web` | Starts the Web UI | Interactive usage, drag & drop |
+| `web` | This is the default even without giving a mode. Starts the Web UI | Interactive usage, drag & drop |
 | `cli` | Runs the image processor | Automation, scripts, CI/CD |
 
-
-⚠ The mode must always be specified when running the container.
 
 #### Help
 
@@ -210,9 +206,6 @@ docker run --rm karimz1/imgcompress:latest --help
 ``` bash
 docker run --rm karimz1/imgcompress:latest cli --help
 ```
-
-Common mistake:
-Forgetting `cli` or `web` will show global help instead of processing images.
 
 ___
 
