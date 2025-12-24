@@ -79,8 +79,9 @@ def test_When_RembgRequested_Expect_FactoryReturnsRembgConverter(mock_logger):
     assert isinstance(converter, RembgPngConverter)
 
 
-def test_When_RembgConverts_Expect_PngWithAlpha(tmp_path, mock_logger, monkeypatch):
-    sample_path = Path(__file__).resolve().parents[1] / "sample-images" / "test_image.png"
+def test_When_RembgConverts_Expect_PngWithAlpha(sample_rgba_png, tmp_path, mock_logger, monkeypatch):
+    sample_path = tmp_path / "test_image.png"
+    sample_path.write_bytes(sample_rgba_png)
     image_data = sample_path.read_bytes()
 
     def fake_new_session(model_name: str):
