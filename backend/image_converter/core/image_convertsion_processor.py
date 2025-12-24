@@ -144,9 +144,9 @@ class ImageConversionProcessor:
 
             if self.use_rembg and self.image_format == ImageFormat.PNG:
                 rembg_bytes = self.converter.encode_bytes(payload.data)
-                data = rembg_bytes
+                data = self._sanitize_png(rembg_bytes)
                 if self.width and self.width > 0:
-                    data = self.image_resizer.resize_image(rembg_bytes, self.width)
+                    data = self.image_resizer.resize_image(data, self.width)
                     with Image.open(BytesIO(data)) as resized_img:
                         new_width, _ = resized_img.size
                 with open(dest_path, "wb") as f:
@@ -230,6 +230,14 @@ class ImageConversionProcessor:
         if page_index is None:
             return base_name + extension
         return f"{base_name}_page-{page_index}{extension}"
+
+    @staticmethod
+    def _sanitize_png(image_data: bytes) -> bytes:
+        """Re-encode via Pillow to normalize PNG output."""
+        with Image.open(BytesIO(image_data)) as img:
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            return buffer.getvalue()
 
     @staticmethod
     def _unwrap_result(result_obj):
