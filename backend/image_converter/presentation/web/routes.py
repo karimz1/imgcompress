@@ -110,6 +110,7 @@ def compress_images():
             quality=data["quality"],
             width=data["width"],
             target_size=target,
+            use_rembg=data.get("use_rembg", False),
         )
 
         result = use_case.execute(req)

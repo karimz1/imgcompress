@@ -70,16 +70,31 @@ class CompressImagesUseCase:
                         else:
                             processed.append(dest_name)
                     else:
-                        converter = self.converter_factory.create_converter(req.image_format, req.quality, self.logger)
-                        result = converter.convert(
-                            image_data=data,
-                            source_path=item.path,
-                            dest_path=dest_path
+                        use_rembg = req.use_rembg and req.image_format == ImageFormat.PNG
+                        converter = self.converter_factory.create_converter(
+                            req.image_format,
+                            req.quality,
+                            self.logger,
+                            use_rembg=use_rembg
                         )
-                        if not result.is_successful:
-                            errors.append(f"{page_label}: {result.error}")
+                        if use_rembg:
+                            rembg_bytes = converter.encode_bytes(payload.data)
+                            resized = self._resize_if_needed(rembg_bytes, req.width)
+                            write_result = self.storage.write_bytes(dest_path, resized)
+                            if not write_result.is_successful:
+                                errors.append(f"{page_label}: {write_result.error}")
+                            else:
+                                processed.append(dest_name)
                         else:
-                            processed.append(dest_name)
+                            result = converter.convert(
+                                image_data=data,
+                                source_path=item.path,
+                                dest_path=dest_path
+                            )
+                            if not result.is_successful:
+                                errors.append(f"{page_label}: {result.error}")
+                            else:
+                                processed.append(dest_name)
                 except Exception as e:
                     errors.append(f"{page_label}: {e}")
 

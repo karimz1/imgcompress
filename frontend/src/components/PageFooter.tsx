@@ -10,8 +10,8 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
 
       <CardContent>
         <p className="text-sm text-gray-600">
-          This project is <strong>fully open-source</strong> and available for everyone to use,
-          improve, and learn from. You can explore or contribute to{" "}
+          This project is <strong>fully open source</strong> to ensure privacy and transparency.
+          You can explore or contribute to{" "}
           <a
             href="https://github.com/karimz1/imgcompress"
             className="text-blue-400 hover:underline"
@@ -23,22 +23,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
         </p>
 
         <p className="text-sm text-gray-600 mt-2">
-          Built and maintained by <strong>Karim Zouine</strong> in his free time.
-          If this tool helps you or becomes part of your workflow,
-          you can support development with a donation — it truly helps 💙
-          <strong>
-            <a
-              href="https://paypal.me/KarimZouine972"
-              className="text-blue-400 hover:underline ml-1"
-            >
-              Donate via PayPal
-            </a>
-          </strong>.
-        </p>
-
-        <p className="text-sm text-gray-600 mt-2">
-          Have ideas, feedback, or feature requests?
-          Share them on{" "}
+          Have ideas, feedback, or feature requests? Share them via{" "}
           <a
             href="https://github.com/karimz1/imgcompress/issues"
             className="text-blue-400 hover:underline"
@@ -48,7 +33,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
         </p>
 
         <p className="text-sm text-gray-600 mt-4 border-t pt-3">
-          For inquiries or collaboration, contact:{" "}
+          For inquiries or collaboration, contact{" "}
           <a
             href="mailto:mails.karimzouine@gmail.com"
             className="text-blue-400 hover:underline"

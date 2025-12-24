@@ -1,3 +1,6 @@
+## v0.3.0 — 2025-12-24
+- Add AI background removal for PNG output [#429](https://github.com/karimz1/imgcompress/issues/429)
+
 ## v0.2.8 — 2025-12-23
 - Fallback to Web Mode when no Arg Mode is Provided [#426](https://github.com/karimz1/imgcompress/issues/426)
 
@@ -5,10 +8,10 @@
 - License Update: GNU GPL-3.0 Migration [#410](https://github.com/karimz1/imgcompress/issues/410)
 
 ## v0.2.7.1 — 2025-12-19
-- BugFix: Broken CLI Mode [#409](https://github.com/karimz1/imgcompress/issues/409))
+- BugFix: Broken CLI Mode [#409](https://github.com/karimz1/imgcompress/issues/409)
 
 ## v0.2.7 — 2025-12-19
-- Feature: Modernize UI Elements + Splash Screen Animation with Particles [#405](https://github.com/karimz1/imgcompress/issues/405))
+- Feature: Modernize UI Elements + Splash Screen Animation with Particles [#405](https://github.com/karimz1/imgcompress/issues/405)
 - Internal: Improve PDF Processing for better Memory optimization ([#407](https://github.com/karimz1/imgcompress/issues/407))
 - Internal: DevContainer Integration Tests not same as Github Actions ([#397](https://github.com/karimz1/imgcompress/issues/397))
 - Internal: DEPRECATED Migrate to Docker BuildX in Integration Test ([#398](https://github.com/karimz1/imgcompress/issues/398))
