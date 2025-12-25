@@ -66,6 +66,11 @@ RUN mkdir -p /etc/apt/keyrings && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
     apt-get update && apt-get install -y --no-install-recommends docker-ce-cli docker-buildx-plugin
 
+
+# Manage Docker as a non-root user
+RUN getent group docker || groupadd docker && \
+    usermod -aG docker $USERNAME
+
 # Final switch back to vscode user
 USER $USERNAME
 ENTRYPOINT ["/bin/bash"]
