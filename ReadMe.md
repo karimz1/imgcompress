@@ -25,7 +25,8 @@ Compress, convert, resize, batch-process images — and **remove backgrounds usi
 with zero cloud dependencies.
 
 With support for **70+ image formats**, a Web UI, and a powerful CLI,
-imgcompress is built for developers who want **speed, automation, and full data ownership**.
+imgcompress is created for **self-hosted users** who want everything local — full control, strong privacy, zero cloud uploads.
+
 
 
 ---
