@@ -19,7 +19,8 @@ const selectors = {
   dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]',
   outputFormatSelect: '#outputFormat',
   storageManagementButton: '[data-testid="storage-management-btn"]',
-  storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]'
+  storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]',
+  rembgSwitch: '[data-testid="rembg-switch"]'
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
@@ -247,4 +248,20 @@ export async function setOutputFormatAsync(page: Page, format: string): Promise<
   });
   await expect(option).toBeVisible();
   await option.click();
+}
+
+export async function setRembgEnabledAsync(page: Page, enabled: boolean): Promise<void> {
+  const toggle = page.locator(selectors.rembgSwitch);
+  await expect(toggle).toBeVisible();
+  const isChecked = await toggle.getAttribute('data-state');
+  if ((isChecked === 'checked') !== enabled) {
+    await toggle.click();
+  }
+}
+
+export async function AssertImageHasTransparentPixels(filePath: string): Promise<void> {
+  const stats = await sharp(filePath).stats();
+  expect(stats.channels.length).toBeGreaterThanOrEqual(4);
+  const alpha = stats.channels[3];
+  expect(alpha.min).toBeLessThan(255);
 }

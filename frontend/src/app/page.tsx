@@ -81,9 +81,11 @@ function HomePageContent() {
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [outputFormat, setOutputFormat] = useState("jpeg");
+  const [outputFormat, setOutputFormat] = useState("");
+  const [formatRequired, setFormatRequired] = useState(false);
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [jpegMode, setJpegMode] = useState<"quality" | "size">("quality");
+  const [useRembg, setUseRembg] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
 
@@ -111,7 +113,14 @@ function HomePageContent() {
       setJpegMode("quality");
       setTargetSizeMB("");
     }
+    if (outputFormat !== "png") {
+      setUseRembg(false);
+    }
+    if (outputFormat) {
+      setFormatRequired(false);
+    }
   }, [outputFormat]);
+
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -161,6 +170,13 @@ function HomePageContent() {
       if (files.length === 0) {
         setError({ message: "Please drop or select some files first." });
         toast.error("Please drop or select some files first.");
+        return;
+      }
+
+      if (!outputFormat) {
+        setError({ message: "Please select an output format first." });
+        toast.error("Please select an output format first.");
+        setFormatRequired(true);
         return;
       }
 
@@ -218,6 +234,9 @@ function HomePageContent() {
         if (!isNaN(kb) && kb > 0) {
           formData.append("target_size_kb", String(kb));
         }
+      }
+      if (outputFormat === "png" && useRembg) {
+        formData.append("use_rembg", "true");
       }
 
       try {
@@ -296,6 +315,7 @@ function HomePageContent() {
       setError,
       jpegMode,
       targetSizeMB,
+      useRembg,
     ]
   );
 
@@ -397,6 +417,7 @@ function HomePageContent() {
               setResizeWidthEnabled={setResizeWidthEnabled}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
+              formatRequired={formatRequired}
               files={files}
               removeFile={removeFile}
               clearFileSelection={clearFileSelection}
@@ -405,6 +426,8 @@ function HomePageContent() {
               setTargetSizeMB={setTargetSizeMB}
               jpegMode={jpegMode}
               setJpegMode={setJpegMode}
+              useRembg={useRembg}
+              setUseRembg={setUseRembg}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

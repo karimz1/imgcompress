@@ -17,6 +17,7 @@ from backend.image_converter.application.dtos import (
     FileProcessingSummary,
     ConversionResultsDto,
     ConversionOutputDto,
+    ConversionDetails,
 )
 from backend.image_converter.core.internals.utls import Result
 from backend.image_converter.application.payload_expander_factory import create_payload_expander
@@ -34,6 +35,7 @@ class ImageConversionProcessor:
         image_format: ImageFormat,
         quality: int = 85,
         width: Optional[int] = None,
+        use_rembg: bool = False,
         debug: bool = False,
         json_output: bool = False
     ):
@@ -42,6 +44,7 @@ class ImageConversionProcessor:
         self.image_format = image_format
         self.quality = quality
         self.width = width
+        self.use_rembg = use_rembg
         self.debug = debug
         self.json_output = json_output
 
@@ -53,7 +56,8 @@ class ImageConversionProcessor:
         self.converter = ImageConverterFactory.create_converter(
             image_format=self.image_format,
             quality=self.quality,
-            logger=self.logger
+            logger=self.logger,
+            use_rembg=self.use_rembg
         )
         self.results: List[PageProcessingResult] = []
 
@@ -139,9 +143,9 @@ class ImageConversionProcessor:
             new_width = original_width
 
             if self.width and self.width > 0:
-                data = self.image_resizer.resize_image(payload.data, self.width)
-                with Image.open(BytesIO(data)) as resized_img:
-                    new_width, _ = resized_img.size
+               data = self.image_resizer.resize_image(payload.data, self.width)
+               with Image.open(BytesIO(data)) as resized_img:
+                   new_width, _ = resized_img.size
 
             convert_result = self.converter.convert(
                 image_data=data,
@@ -211,6 +215,14 @@ class ImageConversionProcessor:
         if page_index is None:
             return base_name + extension
         return f"{base_name}_page-{page_index}{extension}"
+
+    @staticmethod
+    def _sanitize_png(image_data: bytes) -> bytes:
+        """Re-encode via Pillow to normalize PNG output."""
+        with Image.open(BytesIO(image_data)) as img:
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            return buffer.getvalue()
 
     @staticmethod
     def _unwrap_result(result_obj):

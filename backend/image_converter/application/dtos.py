@@ -12,6 +12,7 @@ class CompressRequest:
     quality: int
     width: Optional[int]
     target_size: Optional[TargetSize]
+    use_rembg: bool = False
 
 @dataclass
 class CompressResult:

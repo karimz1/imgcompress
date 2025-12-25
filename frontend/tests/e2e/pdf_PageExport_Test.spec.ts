@@ -39,7 +39,8 @@ test('should rasterize a three-page PDF upload and expose all converted pages fo
   const fileBaseName = 'imgcompress_multipage_test';
   const pdfFile = new ImageFileDto(`${fileBaseName}.pdf`);
   const expectedPageCount = 3;
-
+    
+  await setOutputFormatAsync(page, "JPEG");
   await uploadFilesToDropzoneAsync(page, [pdfFile]);
   await assertFilesPresentInDropzoneAsync(page, [pdfFile]);
 

@@ -3,6 +3,7 @@ import {
     uploadFilesToDropzoneAsync,
     assertFilesPresentInDropzoneAsync,
     clickConversionButtonAsync,
+    setOutputFormatAsync,
 } from './utls/helpers';
 import { ImageFileDto } from './utls/ImageFileDto';
 
@@ -24,6 +25,7 @@ test('should display detailed error modal when backend returns 500 with stacktra
 
     const pdfFile = new ImageFileDto('imgcompress_screenshot.pdf');
 
+    await setOutputFormatAsync(page, "JPEG");
     await uploadFilesToDropzoneAsync(page, [pdfFile]);
     await assertFilesPresentInDropzoneAsync(page, [pdfFile]);
 

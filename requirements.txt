@@ -10,3 +10,5 @@ gunicorn==23.0.0
 pillow_heif==1.1.1
 pypdfium2==5.2.0
 psd-tools==1.12.1
+rembg==2.0.69
+onnxruntime==1.19.2
