@@ -4,6 +4,7 @@ import {
   uploadFilesToDropzoneAsync,
   assertFilesPresentInDropzoneAsync,
   clickConversionButtonAsync,
+  setOutputFormatAsync,
 } from './utls/helpers';
 import { ImageFileDto } from './utls/ImageFileDto';
 import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
@@ -13,6 +14,7 @@ test('should rasterize a PDF upload and expose the converted page for download',
 
   const pdfFile = new ImageFileDto('imgcompress_screenshot.pdf');
 
+  await setOutputFormatAsync(page, "JPEG");
   await uploadFilesToDropzoneAsync(page, [pdfFile]);
   await assertFilesPresentInDropzoneAsync(page, [pdfFile]);
 
