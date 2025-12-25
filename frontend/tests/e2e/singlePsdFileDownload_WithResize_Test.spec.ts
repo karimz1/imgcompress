@@ -7,6 +7,7 @@ import {
   assertDownloadLinksAsync,
   AssertImageWidth,
   uploadFilesToDropzoneAsync,
+  setOutputFormatAsync,
 } from './utls/helpers';
 import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -15,7 +16,7 @@ test('should upload a PSD via drag-and-drop and verify the download functionalit
   await page.goto('/');
   const desiredWidth: number = 600;
   const fileNames: ImageFileDto[] = [ new ImageFileDto("37443511_8499861.psd")];
-
+  await setOutputFormatAsync(page, "JPEG");
   await uploadFilesToDropzoneAsync(page, fileNames);
   await assertFilesPresentInDropzoneAsync(page, fileNames);
 

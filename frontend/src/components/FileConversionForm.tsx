@@ -35,6 +35,7 @@ interface FileConversionFormProps {
   setResizeWidthEnabled: (val: boolean) => void;
   outputFormat: string;
   setOutputFormat: (val: string) => void;
+  formatRequired: boolean;
   files: File[];
   removeFile: (name: string) => void;
   clearFileSelection: () => void;
@@ -45,6 +46,9 @@ interface FileConversionFormProps {
 
   jpegMode: "quality" | "size";
   setJpegMode: (val: "quality" | "size") => void;
+
+  useRembg: boolean;
+  setUseRembg: (val: boolean) => void;
   
   // From useDropzone
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
@@ -67,6 +71,8 @@ const tooltipContent = {
     "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
   targetSize:
     "Set an optional maximum output size (in MB). Applies to JPEG output only.",
+  rembg:
+    "Background removal uses local AI (rembg) that runs inside a container—no internet is used. It keeps the subject and makes the background transparent, but can take longer and use more CPU. Small edge artifacts may appear in the result.",
 };
 
 const FileConversionForm: React.FC<FileConversionFormProps> = ({
@@ -80,6 +86,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setResizeWidthEnabled,
   outputFormat,
   setOutputFormat,
+  formatRequired,
   files,
   removeFile,
   clearFileSelection,
@@ -88,6 +95,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setTargetSizeMB,
   jpegMode,
   setJpegMode,
+  useRembg,
+  setUseRembg,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -226,7 +235,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             id="outputFormat"
             className={cn(
               selectSurface,
-              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+              "focus:border-blue-500 focus:ring-2 focus:ring-blue-500",
+              !outputFormat && "border-red-500 focus:border-red-500 focus:ring-red-500"
             )}
           >
             <SelectValue placeholder="Select format" />
@@ -237,6 +247,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <SelectItem value="ico">ICO (preserves transparency)</SelectItem>
           </SelectContent>
         </Select>
+        {!outputFormat && (
+          <p className={cn("text-xs", formatRequired ? "text-red-500" : subtleText)}>
+            Select an output format to enable conversion.
+          </p>
+        )}
       </div>
 
       {/* JPEG controls mode */}
@@ -260,6 +275,40 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             >
               Set by File Size
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* PNG background removal */}
+      {outputFormat === "png" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="rembgToggle"
+              className="text-sm flex items-center gap-1"
+            >
+              Remove background with local AI (rembg)
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+                >
+                  <p className="text-sm">{tooltipContent.rembg}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Switch
+              data-testid="rembg-switch"
+              id="rembgToggle"
+              checked={useRembg}
+              onCheckedChange={setUseRembg}
+              disabled={isLoading}
+            />
           </div>
         </div>
       )}
@@ -450,7 +499,12 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between gap-4">
-        <Button type="submit" variant="default" disabled={isLoading} data-testid="convert-btn">
+        <Button
+          type="submit"
+          variant="default"
+          disabled={isLoading || !outputFormat}
+          data-testid="convert-btn"
+        >
           {isLoading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />

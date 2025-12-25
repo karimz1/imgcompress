@@ -7,6 +7,7 @@ import {
   assertDownloadLinksAsync,
   AssertImageWidth,
   uploadFilesToDropzoneAsync,
+  setOutputFormatAsync,
 } from './utls/helpers';
 import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -16,6 +17,7 @@ test('should upload a file via drag-and-drop and verify the download functionali
   const desiredWidth: number = 600;
   const fileNames: ImageFileDto[] = [ new ImageFileDto("pexels-pealdesign-28594392.jpg")];
 
+  await setOutputFormatAsync(page, "JPEG");
   await uploadFilesToDropzoneAsync(page, fileNames);
   await assertFilesPresentInDropzoneAsync(page, fileNames);
 

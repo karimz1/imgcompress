@@ -70,7 +70,7 @@ class CompressImagesUseCase:
                         else:
                             processed.append(dest_name)
                     else:
-                        converter = self.converter_factory.create_converter(req.image_format, req.quality, self.logger)
+                        converter = self.converter_factory.create_converter(req.image_format, req.quality, self.logger, req.use_rembg)
                         result = converter.convert(
                             image_data=data,
                             source_path=item.path,

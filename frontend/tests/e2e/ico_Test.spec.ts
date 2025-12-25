@@ -22,10 +22,10 @@ test("should upload a file, convert it to ICO with a given width, and verify dow
   const desiredWidth: number = 128;
   const fileNames: ImageFileDto[] = [new ImageFileDto("ico-datei.png")];
 
+  await setOutputFormatAsync(page, "ICO");
   await uploadFilesToDropzoneAsync(page, fileNames);
   await assertFilesPresentInDropzoneAsync(page, fileNames);
   await setResizeWidthAsync(page, desiredWidth);
-  await setOutputFormatAsync(page, "ICO");
   await clickConversionButtonAsync(page);
   await assertZipButtonNotRenderedAsync(page);
 

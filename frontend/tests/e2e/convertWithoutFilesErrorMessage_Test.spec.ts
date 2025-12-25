@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { clickConversionButtonAsync as clickConversionButtonAsync } from './utls/helpers';
+import { clickConversionButtonAsync as clickConversionButtonAsync, setOutputFormatAsync } from './utls/helpers';
 
 test('Test_TryToConvertWithoutUpload_ExpectErrorMessageRendered', async ({ page }) => {
   await page.goto('/');
+  await setOutputFormatAsync(page, "JPEG");
   await clickConversionButtonAsync(page);
 
   

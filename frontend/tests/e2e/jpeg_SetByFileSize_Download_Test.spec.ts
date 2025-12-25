@@ -30,10 +30,10 @@ import { ImageFileDto } from './utls/ImageFileDto';
 
   const targetBytes = Math.round(targetMB * 1024 * 1024);
 
+  await setOutputFormatAsync(page, 'JPEG');
   await uploadFilesToDropzoneAsync(page, files);
   await assertFilesPresentInDropzoneAsync(page, files);
 
-  await setOutputFormatAsync(page, 'JPEG');
 
   // Switch JPEG settings mode to Set by File Size
   const sizeModeBtn = page.getByRole('button', { name: /Set by File Size/i });

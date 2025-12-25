@@ -11,6 +11,7 @@ import {
     openStorageManagerAsync,
     getStorageManagementDownloadLinkLocator,
     assertStorageManagerFileCountAsync,
+    setOutputFormatAsync,
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -27,6 +28,7 @@ test('storage management download link allows downloading converted files', asyn
     const files: ImageFileDto[] = [new ImageFileDto('pexels-pealdesign-28594392.jpg')];
     const expectedFileName = files[0].getExpectedOutputFileName();
 
+    await setOutputFormatAsync(page, "JPEG");
     await uploadFilesToDropzoneAsync(page, files);
     await assertFilesPresentInDropzoneAsync(page, files);
 
