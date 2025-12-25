@@ -81,7 +81,7 @@ class TestDockerIntegration:
         """
         print(f"Building Docker image from context: {self.DOCKER_CONTEXT}")
         cmd = [
-            "docker", "buildx", "build",
+            "sudo", "docker", "buildx", "build",
             "-t", self.DOCKER_IMAGE_NAME,
             "-f", self.DOCKERFILE_PATH,
             "--load",
@@ -125,7 +125,7 @@ class TestDockerIntegration:
         """
         strategy = self._mounting_strategy()
         cmd = [
-            "docker", "run", "--rm",
+            "sudo", "docker", "run", "--rm",
             *strategy["volume_args"],
             self.DOCKER_IMAGE_NAME,
             "cli",
@@ -146,7 +146,7 @@ class TestDockerIntegration:
         extra_args = extra_args or []
         strategy = self._mounting_strategy()
         cmd = [
-            "docker", "run", "--rm",
+            "sudo", "docker", "run", "--rm",
             *strategy["volume_args"],
             self.DOCKER_IMAGE_NAME,
             "cli",
