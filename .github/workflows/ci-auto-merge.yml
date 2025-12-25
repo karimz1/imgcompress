@@ -194,7 +194,9 @@ jobs:
             -d '{"event_type": "deploy"}'
   
   auto-merge-dependabot:
-    needs: test-e2e
+    needs: 
+      - test-backend
+      - test-e2e
     runs-on: ubuntu-latest
     permissions:
       contents: write
