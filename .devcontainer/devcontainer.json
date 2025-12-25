@@ -1,30 +1,30 @@
 {
    "name": "Image Compressor DevContainer",
-   "image": "ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-12",
-   /*
-   // I use the cached / prebuild image version for better performance less cold start :) ^_^
-   "build": {
-    "dockerfile": "Dockerfile.base",
-    "context": "." 
+   "build":{
+      "dockerfile": "Dockerfile.base",
+      "context": ".."
    },
-   */
-   "postCreateCommand": "npm i pnpm -g && pip install -r .devcontainer/requirements-dev.txt && pnpm install --dir frontend/ && echo 'Dev container is ready!'",
+   
+   "remoteUser": "vscode",
+   "updateRemoteUserUID": true,
+
+  "postCreateCommand": "pnpm install --dir frontend && pip install -r .devcontainer/requirements-dev.txt && echo 'Dev container is ready!'",
     "containerEnv": {
       "IS_RUNNING_IN_DEVCONTAINER": "true"
     },
-    "settings": {
-        "python.defaultInterpreterPath": "/venv"
-    },
-    "extensions": [
+   "settings": {
+      "python.defaultInterpreterPath": "/venv/bin/python",
+      "terminal.integrated.defaultProfile.linux": "bash"
+   },
+   "extensions": [
       "ms-python.python",
       "ms-azuretools.vscode-docker",
       "formulahendry.code-runner",
       "dbaeumer.vscode-eslint",
       "ms-playwright.playwright",
       "redhat.vscode-yaml"
-    ],
-    "mounts": [
+   ],
+   "mounts": [
       "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-    ]
-  }
-  
+   ]
+}

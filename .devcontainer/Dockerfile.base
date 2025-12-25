@@ -1,87 +1,71 @@
 FROM debian:bookworm-slim 
- 
-# Install essential system packages needed for both Python and Node.js 
-RUN apt-get update && apt-get install -y \ 
-    python3 python3-pip python3-venv python3-dev \ 
-    build-essential \ 
-    curl \ 
-    libnss3 \ 
-    libatk1.0-0 \ 
-    libgbm1 \ 
-    libasound2 \ 
-    libx11-xcb1 \ 
-    libxcomposite1 \ 
-    libxdamage1 \ 
-    libxfixes3 \ 
-    libxrandr2 \ 
-    libgtk-3-0 \ 
-    libpango-1.0-0 \ 
-    libxshmfence1 \ 
-    ca-certificates \ 
-    xvfb \ 
-    nodejs npm \ 
-    tmux \ 
-    apt-transport-https \ 
-    gnupg2 \ 
-    dos2unix \
-    lsb-release \ 
-    ghostscript \ 
-    git \ 
-    htop \ 
-    && rm -rf /var/lib/apt/lists/* 
- 
-# --- NVM + Node.js ---
-ARG NODE_VERSION=22
-ENV NVM_DIR=/root/.nvm
 
+# 1. Create a non-root user 'vscode' immediately
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && apt-get update \
+    && apt-get install -y sudo \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# 2. Install essential system packages + PYENV BUILD DEPS
+# Pyenv needs these specific headers to compile Python with SSL and SQLite support
+RUN apt-get update && apt-get install -y \ 
+    build-essential curl git libssl-dev zlib1g-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev wget llvm \
+    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev \
+    libnss3 libatk1.0-0 libgbm1 libasound2 \ 
+    nodejs npm tmux apt-transport-https gnupg2 \ 
+    dos2unix lsb-release ghostscript htop \ 
+    && rm -rf /var/lib/apt/lists/*
+
+# Fix NVM/Node location
+ARG NODE_VERSION=22
+ENV NVM_DIR=/usr/local/share/nvm
+RUN mkdir -p $NVM_DIR && chown $USERNAME:$USERNAME $NVM_DIR
+
+# Run the rest as the user
+USER $USERNAME
+
+# Install NVM/Node
 RUN bash -c '\
-    set -e; \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && \
     . "$NVM_DIR/nvm.sh" && \
     nvm install ${NODE_VERSION} && \
     nvm alias default ${NODE_VERSION} && \
-    nvm use default && \
-    node -v && npm -v \
+    npm i -g pnpm \
 '
+ENV PATH="$NVM_DIR/versions/node/v${NODE_VERSION}.0/bin:$PATH"
 
-# Make Node/npm/pnpm available globally (not relying on nvm sourcing at runtime)
-RUN bash -c '\
-    set -e; \
-    NODE_DIR=$(find /root/.nvm/versions/node -maxdepth 1 -type d -name "v${NODE_VERSION}*" | head -n 1); \
-    if [ -z "$NODE_DIR" ]; then echo "Node install missing at /root/.nvm; aborting" >&2; exit 1; fi; \
-    ln -sf "$NODE_DIR/bin/node" /usr/local/bin/node; \
-    ln -sf "$NODE_DIR/bin/npm" /usr/local/bin/npm; \
-    ln -sf "$NODE_DIR/bin/npx" /usr/local/bin/npx; \
-    if [ -x "$NODE_DIR/bin/pnpm" ]; then ln -sf "$NODE_DIR/bin/pnpm" /usr/local/bin/pnpm; fi; \
-'
+# --- 3. Setup Pyenv (User vscode) ---
+ENV PYENV_ROOT="/home/$USERNAME/.pyenv"
+# Shims must come BEFORE /usr/bin in the PATH for pyenv to work
+ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
 
-RUN NODE_DIR=$(find /root/.nvm/versions/node -maxdepth 1 -type d -name "v${NODE_VERSION}*" | head -n 1) && \
-    echo "Resolved Node path: $NODE_DIR" && \
-    echo "export PATH=$NODE_DIR/bin:\$PATH" >> /etc/profile.d/nvm-node-path.sh
+RUN curl https://pyenv.run | bash
 
-ENV PATH="$(find /root/.nvm/versions/node -maxdepth 1 -type d -name 'v${NODE_VERSION}*' | head -n 1)/bin:${PATH}"
+# Install fixed version and set as global
+# This step compiles Python from source and takes a few minutes
+RUN pyenv install 3.11.9 && pyenv global 3.11.9
 
-RUN npm i -g pnpm
+# Ensure the shell finds pyenv-managed python in interactive sessions
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
+    echo 'export PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 
-# Docker CLI if on amd64/arm64 
-RUN apt-get update && apt-get install -y \
-    ca-certificates curl gnupg lsb-release && \
-    mkdir -p /etc/apt/keyrings && \
-    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+WORKDIR /app
 
-RUN echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+# Install Docker CLI as root
+USER root
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && apt-get install -y --no-install-recommends docker-ce-cli docker-buildx-plugin
 
-# Install latest Docker CLI only (NOT the daemon)
-RUN apt-get update && apt-get install -y --no-install-recommends docker-ce-cli docker-buildx-plugin
-
-# install pnpm
-RUN npm i pnpm -g
-
-# Python virtual environment 
-WORKDIR /app 
-RUN python3 -m venv /venv 
-ENV PATH="/venv/bin:$PATH" 
-
-ENTRYPOINT ["/bin/sh"]
+# Final switch back to vscode user
+USER $USERNAME
+ENTRYPOINT ["/bin/bash"]
