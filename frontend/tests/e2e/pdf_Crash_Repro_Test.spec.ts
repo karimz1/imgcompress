@@ -3,6 +3,7 @@ import {
     uploadFilesToDropzoneAsync,
     assertFilesPresentInDropzoneAsync,
     clickConversionButtonAsync,
+    setOutputFormatAsync,
 } from './utls/helpers';
 import { ImageFileDto } from './utls/ImageFileDto';
 
@@ -26,7 +27,7 @@ test('should display detailed error modal when backend returns 500 with stacktra
 
     await uploadFilesToDropzoneAsync(page, [pdfFile]);
     await assertFilesPresentInDropzoneAsync(page, [pdfFile]);
-
+    await setOutputFormatAsync(page, "JPEG");
     await clickConversionButtonAsync(page);
 
     // Assert Error Modal appears

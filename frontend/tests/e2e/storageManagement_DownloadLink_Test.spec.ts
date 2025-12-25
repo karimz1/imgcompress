@@ -11,6 +11,7 @@ import {
     openStorageManagerAsync,
     getStorageManagementDownloadLinkLocator,
     assertStorageManagerFileCountAsync,
+    setOutputFormatAsync,
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -29,7 +30,8 @@ test('storage management download link allows downloading converted files', asyn
 
     await uploadFilesToDropzoneAsync(page, files);
     await assertFilesPresentInDropzoneAsync(page, files);
-
+    await setOutputFormatAsync(page, "JPEG");
+    
     await clickConversionButtonAsync(page);
     await assertZipButtonNotRenderedAsync(page);
     await assertDownloadLinksAsync(page, files);

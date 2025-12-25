@@ -7,6 +7,7 @@ import {
   assertDownloadLinksAsync,
   AssertImageWidth,
   uploadFilesToDropzoneAsync,
+  setOutputFormatAsync,
 } from './utls/helpers';
 import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -18,7 +19,7 @@ test('should upload a file via drag-and-drop and verify the download functionali
 
   await uploadFilesToDropzoneAsync(page, fileNames);
   await assertFilesPresentInDropzoneAsync(page, fileNames);
-
+  await setOutputFormatAsync(page, "JPEG");
   await setResizeWidthAsync(page, desiredWidth);
   
   await clickConversionButtonAsync(page);

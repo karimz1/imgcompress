@@ -3,6 +3,7 @@ import {
   assertFilesPresentInDropzoneAsync,
   uploadFilesToDropzoneAsync,
   removeImageFileFromDropzoneAsync,
+  setOutputFormatAsync,
 } from './utls/helpers';
 import { ImageFileDto } from './utls/ImageFileDto';
 
@@ -20,7 +21,7 @@ test('test remove single file from dropzone works', async ({ page }) => {
   
   await assertFilesPresentInDropzoneAsync(page, imageFileNames);
 
-  
+  await setOutputFormatAsync(page, "JPEG");
   await removeImageFileFromDropzoneAsync(page, imageFileNames[1]);
 
   

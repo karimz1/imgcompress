@@ -8,6 +8,7 @@ import {
   AssertImageWidth,
   setResizeWidthAsync,
   uploadFilesToDropzoneAsync,
+  setOutputFormatAsync,
 } from './utls/helpers';
 import { downloadFilesAndGetMetadataAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -25,7 +26,7 @@ test('should upload a few files, verify individual downloads by clicking and ZIP
   await uploadFilesToDropzoneAsync(page, imageFileNames);
   await setResizeWidthAsync(page, desiredWidth);
   await assertFilesPresentInDropzoneAsync(page, imageFileNames);
-
+  await setOutputFormatAsync(page, "JPEG");
   await clickConversionButtonAsync(page);
 
   const zipDownloadPath: string = await clickDownloadZipButtonAndGetUrlAsync(page);

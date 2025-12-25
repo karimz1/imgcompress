@@ -7,6 +7,7 @@ import {
     assertDownloadLinksAsync,
     uploadFilesToDropzoneAsync,
     AssertDownloadsIsEqualsToSourceImageWidth,
+    setOutputFormatAsync,
 } from './utls/helpers';
 
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -24,7 +25,7 @@ test('should upload two files, verify individual downloads by clicking and ZIP d
     await uploadFilesToDropzoneAsync(page, imageFileNames);
 
     await assertFilesPresentInDropzoneAsync(page, imageFileNames);
-
+    await setOutputFormatAsync(page, "JPEG");
     await clickConversionButtonAsync(page);
 
     const zipDownloadPath: string = await clickDownloadZipButtonAndGetUrlAsync(page);
