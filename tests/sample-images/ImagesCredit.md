@@ -19,6 +19,9 @@ Sample images in this project come from Pexels and Vecteezy. They are used under
 
 5. **37443511_8499861.psd**
    - **Source**: [Image by freepik - Gradient birthday template](https://www.freepik.com/free-psd/gradient-birthday-template_37443511.htm#fromView=keyword&page=1&position=2&uuid=9e8a119d-92a1-48e7-a12b-446edf313837&from_element=psd_trends&query=Birthday+banner)
+
+6. **landscape-with-sunset-yixing.jpg**
+   - **Source**: [Image by freepik - Landscape with sunset in yixing](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm)
 ---
 
 ### License

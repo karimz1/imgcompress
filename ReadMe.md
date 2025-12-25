@@ -1,5 +1,15 @@
 # imgcompress — Fast, Private Image Compression & Conversion Docker Image.
 
+🧠 **NEW:** [Local AI Background Removal — Fully Offline, No API Keys](#-local-ai-background-removal-preview)
+
+
+
+**imgcompress** 是一个完全本地运行的 Docker 图像处理工具，
+支持图片压缩、格式转换、批量处理，并使用 **本地 AI 自动去除图片背景**，
+无需云服务、无需 API Key、无需上传任何数据。
+
+
+
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
@@ -9,13 +19,96 @@
 
 <img src="images/logo_transparent.png" alt="imgcompress logo" width="490"/>
 
-**imgcompress** is a self-hosted image processing tool designed to **compress, convert, and resize images entirely on your own infrastructure.** It delivers fast, high-quality results while keeping your data **100% local and private.**
+**imgcompress** is a fast, privacy-first image processing tool that runs entirely in Docker.
 
-Supporting **70+ image formats**, including HEIC, HEIF, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, and PDF, imgcompress handles everything from single files to large batch jobs with ease.
+Compress, convert, resize, batch-process images — and **remove backgrounds using local AI**
+with zero cloud dependencies.
 
-➡️ [Download Video Demo of Imgcompress](https://raw.githubusercontent.com/karimz1/imgcompress/refs/heads/main/images/DemoVideoFrom2025-12-19.mp4)
+With support for **70+ image formats**, a Web UI, and a powerful CLI,
+imgcompress is built for developers who want **speed, automation, and full data ownership**.
+
+
+---
+
+### 🧠 Local AI Background Removal (Preview)
+
+<div style="display: flex; gap: 16px; flex-wrap: wrap; text-align: center;">
+  <div>
+    <strong>Original (Yixing)</strong><br/>
+    <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg"
+         alt="Original image before background removal"
+         width="360"/>
+  </div>
+
+  <div>
+    <strong>Background Removed (Local AI)</strong><br/>
+    <img src="images/image-remover-examples/landscape-with-sunset-yixing.png"
+         alt="Image after background removal using local AI"
+         width="360"/>
+  </div>
+</div>
+
+> Processed locally using an embedded AI model — no external services involved.
+
+📸 **Source of original image:**  
+[Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) — used for demonstration purposes.
+
+🧠 **AI background removal powered internally by** [rembg](https://github.com/danielgatis/rembg)  
+(rembg is used locally inside the container. No data is sent externally for privacy.)
 
 ___
+
+### 🖥️ Web UI Preview
+
+<div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; text-align: center;">
+
+  <div style="max-width: 260px;">
+    <a href="images/ui-example/1.jpg">
+      <img src="images/ui-example/1.jpg"
+           alt="Upload images and configure options"
+           width="260"/>
+    </a>
+
+    <p style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+      <strong>1. Upload & Configure</strong><br/>
+      Drag & drop images or PDFs, select format, and configure processing options.
+    </p>
+  </div>
+
+  <div style="max-width: 260px;">
+    <a href="images/ui-example/2.jpg">
+      <img src="images/ui-example/2.jpg"
+           alt="Images being processed locally"
+           width="260"/>
+    </a>
+
+    <p style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+      <strong>2. Processing</strong><br/>
+      Images are processed locally with live progress feedback.
+    </p>
+  </div>
+
+  <div style="max-width: 260px;">
+    <a href="images/ui-example/3.jpg">
+      <img src="images/ui-example/3.jpg"
+           alt="Download compressed images"
+           width="260"/>
+    </a>
+
+    <p style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
+      <strong>3. Download Results</strong><br/>
+      Download files individually or as a single ZIP archive.
+    </p>
+  </div>
+
+</div>
+
+<p style="text-align: center; font-size: 12px; opacity: 0.8;">
+  💡 Click any screenshot to view it in full resolution.
+</p>
+
+___
+  
 
 - [imgcompress — Fast, Private Image Compression \& Conversion Docker Image.](#imgcompress--fast-private-image-compression--conversion-docker-image)
   - [🚀 Quick Start](#-quick-start)
@@ -44,8 +137,6 @@ ___
   - [❤️ Donate to Support Development](#️-donate-to-support-development)
   - [📓 Release Notes](#-release-notes)
   - [📝 License](#-license)
-
-
 
 
 ## 🚀 Quick Start
