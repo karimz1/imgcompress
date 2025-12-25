@@ -32,21 +32,10 @@ imgcompress is built for developers who want **speed, automation, and full data 
 
 ### 🧠 Local AI Background Removal (Preview)
 
-<div style="display: flex; gap: 16px; flex-wrap: wrap; text-align: center;">
-  <div>
-    <strong>Original (Yixing)</strong><br/>
-    <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg"
-         alt="Original image before background removal"
-         width="360"/>
-  </div>
+| Original Image | Background Removed (Local AI) |
+|----------------|-------------------------------|
+| <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="360" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="360" alt="Background removed image"/> |
 
-  <div>
-    <strong>Background Removed (Local AI)</strong><br/>
-    <img src="images/image-remover-examples/landscape-with-sunset-yixing.png"
-         alt="Image after background removal using local AI"
-         width="360"/>
-  </div>
-</div>
 
 > Processed locally using an embedded AI model — no external services involved.
 
@@ -60,52 +49,13 @@ ___
 
 ### 🖥️ Web UI Preview
 
-<div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; text-align: center;">
+| Step | Screenshot | Description |
+|-----:|------------|-------------|
+| **1** | <a href="images/ui-example/1.jpg"><img src="images/ui-example/1.jpg" width="240"/></a> | **Upload & Configure**<br/>Drag & drop images or PDFs, choose format, configure options. |
+| **2** | <a href="images/ui-example/2.jpg"><img src="images/ui-example/2.jpg" width="240"/></a> | **Processing**<br/>Images are processed locally with live progress feedback. |
+| **3** | <a href="images/ui-example/3.jpg"><img src="images/ui-example/3.jpg" width="240"/></a> | **Download Results**<br/>Download files individually or as a ZIP archive. |
 
-  <div style="max-width: 260px;">
-    <a href="images/ui-example/1.jpg">
-      <img src="images/ui-example/1.jpg"
-           alt="Upload images and configure options"
-           width="260"/>
-    </a>
-
-    <p style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
-      <strong>1. Upload & Configure</strong><br/>
-      Drag & drop images or PDFs, select format, and configure processing options.
-    </p>
-  </div>
-
-  <div style="max-width: 260px;">
-    <a href="images/ui-example/2.jpg">
-      <img src="images/ui-example/2.jpg"
-           alt="Images being processed locally"
-           width="260"/>
-    </a>
-
-    <p style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
-      <strong>2. Processing</strong><br/>
-      Images are processed locally with live progress feedback.
-    </p>
-  </div>
-
-  <div style="max-width: 260px;">
-    <a href="images/ui-example/3.jpg">
-      <img src="images/ui-example/3.jpg"
-           alt="Download compressed images"
-           width="260"/>
-    </a>
-
-    <p style="margin-top: 10px; font-size: 13px; line-height: 1.4;">
-      <strong>3. Download Results</strong><br/>
-      Download files individually or as a single ZIP archive.
-    </p>
-  </div>
-
-</div>
-
-<p style="text-align: center; font-size: 12px; opacity: 0.8;">
-  💡 Click any screenshot to view it in full resolution.
-</p>
+<sub>💡 Click any screenshot to view it in full resolution.</sub>
 
 ___
   
