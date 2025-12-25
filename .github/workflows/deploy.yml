@@ -11,7 +11,11 @@ on:
     types: [ deploy ]
 
 jobs:
+  run-tests:
+    uses: ./.github/workflows/run-tests.yml
+
   deploy-image-to-dockerhub:
+    needs: run-tests
     runs-on: ubuntu-latest
     permissions:
       contents: read

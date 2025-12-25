@@ -43,7 +43,7 @@ test('should rasterize a three-page PDF upload and expose all converted pages fo
 
   await uploadFilesToDropzoneAsync(page, [pdfFile]);
   await assertFilesPresentInDropzoneAsync(page, [pdfFile]);
-
+  await setOutputFormatAsync(page, "JPEG");
   await clickConversionButtonAsync(page);
 
   const downloadLinks = page.locator('[data-testid="drawer-uploaded-file-item-link"]');

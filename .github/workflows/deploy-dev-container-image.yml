@@ -12,7 +12,11 @@ on:
       - 'devcontainer_update*'
 
 jobs:
+  run-tests:
+    uses: ./.github/workflows/run-tests.yml
+      
   build-and-push:
+    needs: run-tests
     runs-on: ubuntu-latest
 
     permissions:
