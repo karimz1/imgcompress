@@ -48,6 +48,7 @@ jobs:
       - name: Run Backend Unit Tests on ${{ matrix.platform }}
         run: |
           docker run --rm \
+            --platform=${{ matrix.platform }} \
             --entrypoint /bin/sh \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
@@ -60,6 +61,7 @@ jobs:
       - name: Run Backend Integration (Docker) Tests on ${{ matrix.platform }}
         run: |
           docker run --rm \
+            --platform=${{ matrix.platform }} \
             --entrypoint /bin/sh \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$(pwd):/app/" \
