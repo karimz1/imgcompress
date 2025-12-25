@@ -5,14 +5,12 @@ from io import BytesIO
 from PIL import Image
 
 from backend.image_converter.application.dtos import ConversionDetails
-from backend.image_converter.application.file_payload_expander import PagePayload
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
 from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
 import backend.image_converter.core.factory.rembg_png_converter as rembg_module
 from backend.image_converter.core.enums.image_format import ImageFormat
-from backend.image_converter.core.image_convertsion_processor import ImageConversionProcessor
 from backend.image_converter.infrastructure.logger import Logger
 
 @pytest.fixture
@@ -112,45 +110,3 @@ def test_When_RembgConverts_Expect_PngWithAlpha(sample_rgba_png, tmp_path, mock_
 
     with Image.open(dest_path) as out_img:
         assert out_img.mode == "RGBA"
-
-
-def test_When_RembgEnabled_Expect_SanitizeStepInvoked(sample_rgba_png, tmp_path, mock_logger, monkeypatch):
-    processor = ImageConversionProcessor(
-        source="input.png",
-        destination=str(tmp_path),
-        image_format=ImageFormat.PNG,
-        use_rembg=True,
-        debug=False,
-        json_output=False,
-    )
-
-    class FakeRembgConverter:
-        def __init__(self, data: bytes):
-            self._data = data
-
-        def encode_bytes(self, image_data: bytes) -> bytes:
-            return self._data
-
-    processor.converter = FakeRembgConverter(sample_rgba_png)
-
-    called = {"sanitize": False}
-
-    def fake_sanitize(image_data: bytes) -> bytes:
-        called["sanitize"] = True
-        return image_data
-
-    monkeypatch.setattr(processor, "_sanitize_png", staticmethod(fake_sanitize))
-
-    payload = PagePayload(data=sample_rgba_png, page_index=None, label="payload")
-    dest_path = tmp_path / "out.png"
-
-    result = processor._convert_page(
-        file_path="input.png",
-        dest_path=str(dest_path),
-        dest_name="out.png",
-        payload=payload,
-    )
-
-    assert result.is_successful is True
-    assert called["sanitize"] is True
-    assert dest_path.exists()

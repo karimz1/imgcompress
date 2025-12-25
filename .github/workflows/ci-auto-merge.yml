@@ -70,7 +70,6 @@ jobs:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
   
   test-e2e:
-    needs: test-backend
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -171,7 +170,9 @@ jobs:
           retention-days: 3
 
   deploy-nightly:
-    needs: test-e2e
+    needs: 
+      - test-backend 
+      - test-e2e
     if: >
       (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true) ||
       (github.event_name == 'issue_comment' && 
@@ -193,7 +194,10 @@ jobs:
             -d '{"event_type": "deploy"}'
   
   auto-merge-dependabot:
-    needs: test-e2e
+    needs: 
+      - test-backend 
+      - test-e2e
+      - deploy-nightly
     runs-on: ubuntu-latest
     permissions:
       contents: write
