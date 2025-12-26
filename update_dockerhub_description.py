@@ -4,6 +4,7 @@ import argparse
 import requests
 from datetime import datetime
 import requests
+from urllib.parse import urljoin
 
 # leave for debugging using .env file
 # from dotenv import load_dotenv
@@ -41,6 +42,13 @@ def parse_args():
         help="Do not perform Docker Hub update"
     )
 
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run internal link-rewrite assertions and exit",
+    )
+
+
     return parser.parse_args()
 
 def read_file(file_path: str) -> str:
@@ -54,40 +62,64 @@ def read_file(file_path: str) -> str:
         raise RuntimeError(f"Error reading {file_path}: {e}")
 
 
+def fix_relative_url(url: str, base_url: str) -> str:
+    """
+    Convert a relative URL to absolute using base_url, normalizing ./ and ../
+    via urljoin.
+    """
+    if not url:
+        return url
+
+    url = url.strip()
+
+    # Keep absolute URLs / special schemes / fragments as-is
+    if url.startswith(("http://", "https://", "data:", "mailto:", "#", "//")):
+        return url
+
+    # urljoin needs base_url to end with '/' to behave like "directory"
+    base = base_url.rstrip("/") + "/"
+    return urljoin(base, url)
+
+
 def fix_image_links(markdown_content: str, base_url: str) -> str:
     """
-    Replaces all relative image links in the markdown with absolute links
-    based on the provided base_url. Also handles HTML <img src="…"> attributes.
-    
-    Markdown image syntax: ![alt text](image_path)
-    HTML image syntax:     <img src="image_path" ...>
-
-    Tip for later:
-        To convert the raw content into a neatly formatted Markdown file, first save the value of the 'replaced_markdown_content' variable to a file—e.g., replaced-content.txt.
-        Then run the following command in a Unix-like shell:
-
-    ``printf '%b\n' "$(cat replaced-content.txt)" > clean.md``  (Unix-like shells).
+    Replaces relative links with absolute links based on base_url in:
+      - Markdown images: ![alt](path)
+      - Markdown links:  [text](path)
+      - HTML images:     <img src="path" ...>
+      - HTML anchors:    <a href="path" ...>
     """
-    # — markdown replacement —
-    md_pattern = r'(!\[[^\]]*\]\()([^)]+)(\))'
-    def md_replacer(match):
-        prefix, url, suffix = match.groups()
-        if url.startswith(("http://", "https://")):
-            return match.group(0)
-        return f"{prefix}{base_url.rstrip('/')}/{url.lstrip('/')}{suffix}"
 
-    replaced_markdown_content = re.sub(md_pattern, md_replacer, markdown_content)
+    # 1) Markdown images: ![alt](url)
+    md_img_pattern = r'(!\[[^\]]*\]\()([^)]+)(\))'
+    def md_img_replacer(m):
+        prefix, url, suffix = m.groups()
+        return f"{prefix}{fix_relative_url(url, base_url)}{suffix}"
+    out = re.sub(md_img_pattern, md_img_replacer, markdown_content)
 
-    # — HTML <img> replacement —
-    html_pattern = r'(<img\s[^>]*?\bsrc\s*=\s*["\'])([^"\']+)(["\'])'
-    def html_replacer(match):
-        prefix, url, suffix = match.groups()
-        if url.startswith(("http://", "https://")):
-            return match.group(0)
-        return f"{prefix}{base_url.rstrip('/')}/{url.lstrip('/')}{suffix}"
+    # 2) Markdown links (but NOT images): [text](url)
+    md_link_pattern = r'(?<!!)(\[[^\]]*\]\()([^)]+)(\))'
+    def md_link_replacer(m):
+        prefix, url, suffix = m.groups()
+        return f"{prefix}{fix_relative_url(url, base_url)}{suffix}"
+    out = re.sub(md_link_pattern, md_link_replacer, out)
 
-    replaced_markdown_content = re.sub(html_pattern, html_replacer, replaced_markdown_content)
-    return replaced_markdown_content
+    # 3) HTML <img src="...">
+    html_img_pattern = r'(<img\s[^>]*?\bsrc\s*=\s*["\'])([^"\']+)(["\'])'
+    def html_img_replacer(m):
+        prefix, url, suffix = m.groups()
+        return f"{prefix}{fix_relative_url(url, base_url)}{suffix}"
+    out = re.sub(html_img_pattern, html_img_replacer, out)
+
+    # 4) HTML <a href="...">
+    html_a_pattern = r'(<a\s[^>]*?\bhref\s*=\s*["\'])([^"\']+)(["\'])'
+    def html_a_replacer(m):
+        prefix, url, suffix = m.groups()
+        return f"{prefix}{fix_relative_url(url, base_url)}{suffix}"
+    out = re.sub(html_a_pattern, html_a_replacer, out)
+
+    return out
+
     
     
 def get_access_token(username: str, password: str) -> str:
@@ -157,9 +189,62 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
             f"Failed to update description: HTTP {response.status_code}\n{response.text}"
         )
 
+def run_self_tests() -> None:
+    base_url = "https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0"
+
+    # Case: HTML <a href="relative"><img src="absolute">
+    input_md = (
+        '| **1** | <a href="images/ui-example/1.jpg">'
+        '<img src="./images/ui-example/1.jpg" width="240"/>'
+        "</a> | text |\n"
+    )
+
+    expected = (
+        '| **1** | <a href="https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/ui-example/1.jpg">'
+        '<img src="https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/ui-example/1.jpg" width="240"/>'
+        "</a> | text |\n"
+    )
+
+    got = fix_image_links(input_md, base_url)
+    assert got == expected, f"anchor href rewrite failed.\nGOT:\n{got}\n\nEXPECTED:\n{expected}"
+
+    # Case: HTML <img src="relative">
+    input_md2 = '<img src="images/x.png" width="10"/>'
+    expected2 = '<img src="https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/x.png" width="10"/>'
+    got2 = fix_image_links(input_md2, base_url)
+    assert got2 == expected2, f"img src rewrite failed.\nGOT:\n{got2}\n\nEXPECTED:\n{expected2}"
+
+    # Case: Markdown image ![]()
+    input_md3 = "![alt](images/x.png)"
+    expected3 = "![alt](https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/x.png)"
+    got3 = fix_image_links(input_md3, base_url)
+    assert got3 == expected3, f"markdown image rewrite failed.\nGOT:\n{got3}\n\nEXPECTED:\n{expected3}"
+
+    # Case: Must NOT change absolute
+    input_md4 = '[link](https://example.com/a.png)'
+    expected4 = input_md4
+    got4 = fix_image_links(input_md4, base_url)
+    assert got4 == expected4, f"should not rewrite absolute urls.\nGOT:\n{got4}\n\nEXPECTED:\n{expected4}"
+
+    # Case 5: Must NOT change mailto links
+    input_md5 = '[email](mailto:mails.karimzouine@gmail.com)' #yep I'm the author...
+    expected5 = input_md5
+    got5 = fix_image_links(input_md5, base_url)
+    assert got5 == expected5, (
+        "should not rewrite mailto links.\n"
+        f"GOT:\n{got5}\n\nEXPECTED:\n{expected5}"
+    )
+
+    print("Self-tests passed ✅")
+
+
 def main():
     args = parse_args()
 
+    if args.self_test:
+        run_self_tests()
+        return
+    
     if args.mock == False:
         try:
             dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
