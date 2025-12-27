@@ -1,15 +1,5 @@
 # imgcompress — Fast, Private Image Compression & Conversion Docker Image.
 
-🧠 **NEW:** [Local AI Background Removal — Fully Offline, No API Keys](#-local-ai-background-removal-preview)
-
-
-
-**imgcompress** 是一个完全本地运行的 Docker 图像处理工具，
-支持图片压缩、格式转换、批量处理，并使用 **本地 AI 自动去除图片背景**，
-无需云服务、无需 API Key、无需上传任何数据。
-
-
-
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
@@ -31,20 +21,20 @@ imgcompress is created for **self-hosted users** who want everything local — f
 
 ---
 
-### 🧠 Local AI Background Removal (Preview)
+### 🧠 New Local AI Background Removal (Preview)
 
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="360" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="360" alt="Background removed image"/> |
 
 
-> Processed locally using an embedded AI model — no external services involved.
+> Processed locally using an embedded AI model no external services involved. Now integrated in imgcompress.
 
 📸 **Source of original image:**  
 [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) — used for demonstration purposes.
 
 🧠 **AI background removal powered internally by** [rembg](https://github.com/danielgatis/rembg)  
-(rembg is used locally inside the container. No data is sent externally for privacy.)
+(rembg is used locally inside the container of imgcompress. No data is sent externally for privacy.)
 
 ___
 
