@@ -1,4 +1,4 @@
-# imgcompress — Fast, Private Image Compression & Conversion Docker Image.
+# imgcompress - Fast, Private Image Compression & Conversion Docker Image.
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
@@ -11,11 +11,11 @@
 
 **imgcompress** is a fast, privacy-first image processing tool that runs entirely in Docker.
 
-Compress, convert, resize, batch-process images — and **remove backgrounds using local AI**
+Compress, convert, resize, batch-process images and **remove backgrounds using local AI**
 with zero cloud dependencies.
 
 With support for **70+ image formats**, a Web UI, and a powerful CLI,
-imgcompress is created for **self-hosted users** who want everything local — full control, strong privacy, zero cloud uploads.
+imgcompress is created for **self-hosted users** who want everything local full control, strong privacy, zero cloud uploads.
 
 
 
