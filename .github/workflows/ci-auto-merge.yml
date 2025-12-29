@@ -206,7 +206,6 @@ jobs:
     needs: 
       - test-backend 
       - test-e2e
-      - deploy-nightly
     runs-on: ubuntu-latest
     permissions:
       contents: write
