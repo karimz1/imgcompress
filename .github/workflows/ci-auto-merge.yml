@@ -10,6 +10,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      upload_e2e_artifacts:
+        description: "Upload E2E test results artifact?"
+        required: false
+        default: "false"
       deploy_nightly:
         description: "After E2E tests succeed, trigger the nightly deployment workflow"
         type: boolean
@@ -153,9 +157,11 @@ jobs:
         run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
     
       - name: Ensure E2E Test Results Directory Exists
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
         run: mkdir -p frontend/e2e-test-results
       
       - name: Zip E2E Test Results for ${{ env.ARCH }}
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
         run: |
           if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
             zip -r e2e-test-results-${{ env.ARCH }}.zip frontend/e2e-test-results
@@ -165,6 +171,7 @@ jobs:
           fi
 
       - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: e2e-test-results-${{ env.ARCH }}
