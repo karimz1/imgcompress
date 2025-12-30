@@ -77,6 +77,22 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
 
+      - name: Debug - Display Computed Tags
+        shell: bash
+        env:
+          TAGS_OUTPUT: ${{ steps.tags.outputs.tags }}
+          VERSION_OUTPUT: ${{ env.VERSION }}
+        run: |
+          echo "::group::🏷️ Computed Docker Image Tags"
+          echo "VERSION: $VERSION_OUTPUT"
+          echo ""
+          echo "Tags that will be pushed:"
+          IFS=',' read -ra TAG_ARRAY <<< "$TAGS_OUTPUT"
+          for tag in "${TAG_ARRAY[@]}"; do
+            echo "  • $tag"
+          done
+          echo "::endgroup::"
+
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
