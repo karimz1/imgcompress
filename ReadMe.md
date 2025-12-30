@@ -169,7 +169,7 @@ ___
 ## ✨ Core Features
 
 ### 📱 HEIC/HEIF to JPG Converter
-Instantly convert Apple HEIC/HEIF images to JPG, PNG, WebP, or any supported format. No more compatibility issues when sharing iPhone photos.
+Instantly convert Apple HEIC/HEIF images to JPG, PNG or any supported format. No more compatibility issues when sharing iPhone photos.
 
 ### 🤖 AI-Powered Background Removal
 Remove image backgrounds using local AI models (powered by rembg). Runs 100% offline: no API calls, no external services, complete privacy.
@@ -213,7 +213,7 @@ ___
 
 ### For Enterprises
 - **GDPR/HIPAA compliance**: Keep image processing on-premises to meet regulatory requirements.
-- **Cost optimization**: Eliminate per-image fees from cloud services. Process unlimited images for infrastructure cost only.
+- **Cost optimization**: Eliminate per-image fees from cloud services. Process unlimited images on your own infrastructure.
 - **Custom workflows**: Deploy on internal infrastructure with full control over processing logic.
 
 ____  
