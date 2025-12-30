@@ -4,7 +4,7 @@ from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
-from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
+# from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter (Lazy loaded in create_converter)
 from ..interfaces.iconverter import IImageConverter
 from backend.image_converter.core.exceptions import ConversionError
 
@@ -21,6 +21,7 @@ class ImageConverterFactory:
         if image_format == ImageFormat.JPEG:
             return JpegConverter(quality=quality, logger=logger)
         elif image_format == ImageFormat.PNG and use_rembg:
+            from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
             return RembgPngConverter(logger=logger)
         elif image_format == ImageFormat.PNG:
             return PngConverter(logger=logger)

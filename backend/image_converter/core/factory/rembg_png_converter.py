@@ -3,7 +3,7 @@ import traceback
 from typing import Optional
 
 from PIL import Image
-from rembg import remove, new_session
+# from rembg import remove, new_session (Lazy loaded in _get_session)
 
 from backend.image_converter.application.dtos import ConversionDetails
 from backend.image_converter.core.internals.utls import Result
@@ -25,11 +25,13 @@ class RembgPngConverter(IImageConverter):
 
     def _get_session(self):
         if self._session is None:
+            from rembg import new_session
             self._session = new_session(self.model_name)
         return self._session
 
 
     def encode_bytes(self, image_data: bytes) -> bytes:
+        from rembg import remove
         return remove(
             image_data,
             session=self._get_session(),

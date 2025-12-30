@@ -2,7 +2,7 @@ from io import BytesIO
 import traceback
 from typing import Any, List, Optional
 
-import pypdfium2 as pdfium
+# import pypdfium2 as pdfium (Lazy loaded in _open_document)
 
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.utls import Result
@@ -41,7 +41,8 @@ class PdfPageExtractor:
             self._log_failure(tb, source_hint)
             return Result.failure(tb)
 
-    def _open_document(self, pdf_bytes: bytes) -> pdfium.PdfDocument:
+    def _open_document(self, pdf_bytes: bytes) -> Any:
+        import pypdfium2 as pdfium
         document = pdfium.PdfDocument(pdf_bytes)
         if len(document) == 0:
             raise ValueError("PDF contains no renderable pages.")
