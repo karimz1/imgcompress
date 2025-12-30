@@ -41,13 +41,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image for ${{ matrix.platform }}
-        run: |
-          cd .devcontainer/
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --load \
-            -t devcontainer:local-test .
+      - name: Build Dev Container for ${{ matrix.platform }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .devcontainer/
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: devcontainer:local-test
+          cache-from: type=gha,scope=devcontainer-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=devcontainer-${{ matrix.platform }}
 
       - name: Run Backend Unit Tests on ${{ matrix.platform }}
         run: |
@@ -93,14 +95,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Application Container Image for ${{ matrix.platform }}
-        run: |
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --load \
-            --no-cache \
-            -t karimz1/imgcompress:local-test \
-            .
+      - name: Build Application Container for ${{ matrix.platform }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: karimz1/imgcompress:local-test
+          cache-from: type=gha,scope=app-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=app-${{ matrix.platform }}
 
       - name: Run Application Container (Host Networking) for ${{ matrix.platform }}
         run: |
@@ -127,15 +130,15 @@ jobs:
           done
           echo "Application is up! Continuing..."
 
-      - name: Build Dev Container Image for ${{ matrix.platform }}
-        run: |
-          cd .devcontainer/
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --load \
-            --no-cache \
-            -t devcontainer:local-test \
-            .
+      - name: Build Dev Container for ${{ matrix.platform }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .devcontainer/
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: devcontainer:local-test
+          cache-from: type=gha,scope=devcontainer-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=devcontainer-${{ matrix.platform }}
 
       - name: Make E2E script executable
         run: chmod +x ./run-e2e.sh

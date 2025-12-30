@@ -60,16 +60,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set the working directory.
 WORKDIR /container
 
-# Copy backend code, setup, and requirements.
-COPY backend/ /container/backend
-COPY setup.py /container/
+# Copy requirements and setup files first to leverage layer caching for dependencies
 COPY requirements.txt /container/
-COPY entrypoint.sh /container/entrypoint.sh
+COPY setup.py /container/
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy backend code and other necessary files
+COPY backend/ /container/backend
+COPY entrypoint.sh /container/entrypoint.sh
 RUN chmod +x /container/entrypoint.sh
 
-# Install Python dependencies and your package.
-RUN pip install --no-cache-dir -r requirements.txt
+# Install the package itself (fast)
 RUN pip install --no-cache-dir .
 
 # Pre-download rembg model so background removal doesn't fetch at runtime.
