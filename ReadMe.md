@@ -234,6 +234,19 @@ docker run --rm \
   cli \
   /container/images /container/converted --quality 85 --width 800
 ```
+
+**Background Removal (AI)**
+
+``` bash
+docker run --rm \
+  -v "$(pwd):/container/images" \
+  -v "$(pwd)/converted:/container/converted" \
+  karimz1/imgcompress:latest \
+  cli \
+  /container/images/photo.jpg /container/converted \
+  --format png --remove-background
+```
+
 **How it works**
 
 1. **📁 Local directory mapping**
@@ -242,6 +255,8 @@ docker run --rm \
 2. **⚙️ Process parameters**
    - `--quality` (1–100, default 85)
    - `--width` (optional resize)
+   - `--format` (jpeg or png, default jpeg)
+   - `--remove-background` (AI background removal, requires `--format png`)
    - `--debug` (verbose logs)
    - `--json-output` (machine-friendly logs for CI)
 
