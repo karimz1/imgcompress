@@ -136,10 +136,11 @@ class ImageConversionProcessor:
         page_label = payload.label
 
         try:
-            with Image.open(BytesIO(payload.data)) as temp_img:
-                original_width, _ = temp_img.size
-
             data = payload.data
+            with Image.open(BytesIO(data)) as temp_img:
+                original_width, _ = temp_img.size
+            
+            self.logger.log(f"Opened image: {page_label} ({original_width}px, {len(data)} bytes)", LogLevel.DEBUG.value)
             new_width = original_width
 
             if self.width and self.width > 0:

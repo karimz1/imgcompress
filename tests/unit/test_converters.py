@@ -96,8 +96,12 @@ def test_When_RembgConverts_Expect_PngWithAlpha(sample_rgba_png, tmp_path, mock_
         img.save(buffer, format="PNG")
         return buffer.getvalue()
 
-    monkeypatch.setattr(rembg_module, "new_session", fake_new_session)
-    monkeypatch.setattr(rembg_module, "remove", fake_remove)
+    import sys
+    from unittest.mock import MagicMock
+    mock_rembg = MagicMock()
+    mock_rembg.new_session = fake_new_session
+    mock_rembg.remove = fake_remove
+    monkeypatch.setitem(sys.modules, "rembg", mock_rembg)
 
     converter = RembgPngConverter(logger=mock_logger, model_name="u2net")
     dest_path = tmp_path / "out.png"
