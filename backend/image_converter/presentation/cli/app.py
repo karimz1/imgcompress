@@ -11,6 +11,14 @@ def main(argv=None):
     args = parse_arguments(argv)
     logger = Logger(debug=args.debug, json_output=args.json_output)
 
+    # Validate: --remove-background only works with PNG format
+    if args.remove_background and args.format.upper() != "PNG":
+        logger.log(
+            "Error: --remove-background can only be used with --format png",
+            "error"
+        )
+        sys.exit(1)
+
     try:
         image_format = ImageFormat.from_string(args.format.upper())
         processor = ImageConversionProcessor(
@@ -19,6 +27,7 @@ def main(argv=None):
             image_format=image_format,
             quality=args.quality,
             width=args.width,
+            use_rembg=args.remove_background,
             debug=args.debug,
             json_output=args.json_output
         )

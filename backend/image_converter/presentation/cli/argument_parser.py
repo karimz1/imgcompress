@@ -33,6 +33,11 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         help="Output format: 'jpeg' or 'png' (default: jpeg)"
     )
     parser.add_argument(
+        "--remove-background",
+        action="store_true",
+        help="Remove image background using local AI (only works with --format png)"
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug logging"
