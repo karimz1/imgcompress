@@ -106,8 +106,7 @@ class TestDockerIntegration:
         Creates a test image if needed.
         """
         if os.path.exists(self.OUTPUT_DIR):
-            print("Removing existing output folder...")
-            shutil.rmtree(self.OUTPUT_DIR)
+            shutil.rmtree(self.OUTPUT_DIR, ignore_errors=True)
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
 
         assert os.path.exists(self.SAMPLE_IMAGES_DIR), "SAMPLE_IMAGES_DIR does not exist."

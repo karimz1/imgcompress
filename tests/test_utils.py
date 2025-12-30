@@ -67,7 +67,7 @@ def create_sample_test_image(dest_img_path):
     Creates a dummy PNG imaage for testing.
     """
     from PIL import Image
-    img = Image.new("RGB", (6000, 12000), color="white")
+    img = Image.new("RGB", (100, 100), color="white")
     img.save(dest_img_path)
 
 

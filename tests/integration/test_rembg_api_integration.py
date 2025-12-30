@@ -39,8 +39,12 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
         img.save(buffer, format="PNG")
         return buffer.getvalue()
 
-    monkeypatch.setattr(rembg_module, "new_session", fake_new_session)
-    monkeypatch.setattr(rembg_module, "remove", fake_remove)
+    import sys
+    from unittest.mock import MagicMock
+    mock_rembg = MagicMock()
+    mock_rembg.new_session = fake_new_session
+    mock_rembg.remove = fake_remove
+    monkeypatch.setitem(sys.modules, "rembg", mock_rembg)
 
     data = {
         "files[]": (io.BytesIO(image_data), "input.jpg"),
