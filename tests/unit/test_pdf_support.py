@@ -38,10 +38,8 @@ def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
     def boom(*args, **kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(
-        "backend.image_converter.infrastructure.pdf_page_extractor.pdfium.PdfDocument",
-        boom,
-    )
+    import pypdfium2
+    monkeypatch.setattr(pypdfium2, "PdfDocument", boom)
 
     extractor = PdfPageExtractor()
     result = extractor.rasterize_pages(b"", "broken.pdf")

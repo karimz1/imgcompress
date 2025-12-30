@@ -1,7 +1,6 @@
 from io import BytesIO
 from typing import Optional
 
-# from psd_tools import PSDImage (Lazy loaded in render)
 
 from backend.image_converter.core.internals.utls import Result
 

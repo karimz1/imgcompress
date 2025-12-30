@@ -3,7 +3,6 @@ import traceback
 from typing import Optional
 
 from PIL import Image
-# from rembg import remove, new_session (Lazy loaded in _get_session)
 
 from backend.image_converter.application.dtos import ConversionDetails
 from backend.image_converter.core.internals.utls import Result
