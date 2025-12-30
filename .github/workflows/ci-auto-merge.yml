@@ -186,6 +186,8 @@ jobs:
       - test-backend 
       - test-e2e
     if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true) ||
       (github.event_name == 'issue_comment' && 
        github.event.issue.pull_request && 
@@ -203,7 +205,7 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: token ${GH_TOKEN}" \
             https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d '{"event_type": "deploy"}'
+            -d "{\"event_type\": \"deploy\", \"client_payload\": {\"ref\": \"${{ github.head_ref || github.ref_name }}\"}}"
   
   auto-merge-dependabot:
     needs: 
@@ -235,4 +237,4 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d '{"event_type": "deploy"}'
+            -d "{\"event_type\": \"deploy\", \"client_payload\": {\"ref\": \"${{ github.head_ref || github.ref_name }}\"}}"
