@@ -6,6 +6,7 @@ setup(
     description='A tool to convert images to JPEG with optional resizing.',
     author='Karim Zouine',
     author_email='mails.karimzouine@gmail.com',
+    license='GPL-3.0-or-later',
     packages=find_packages(),
     install_requires=[
         'Pillow>=9.0.0',
@@ -20,6 +21,7 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
     ],
     python_requires='>=3.6',
 )

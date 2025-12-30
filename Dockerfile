@@ -34,7 +34,7 @@ LABEL org.opencontainers.image.description="A Dockerized tool for compressing an
 LABEL org.opencontainers.image.url="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.source="https://github.com/karimz1/imgcompress"
 LABEL org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress"
-LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 # 🧩 Install system dependencies required for full Pillow image format support
 # 
