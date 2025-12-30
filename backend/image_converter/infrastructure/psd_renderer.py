@@ -1,10 +1,6 @@
 from io import BytesIO
 from typing import Optional
 
-try:
-    from psd_tools import PSDImage
-except ImportError:  # pragma: no cover - optional dependency resolution happens at runtime
-    PSDImage = None
 
 from backend.image_converter.core.internals.utls import Result
 
@@ -18,8 +14,11 @@ class PsdRenderer:
         self.logger = logger
 
     def render(self, source_name: str, data: bytes) -> Result[bytes]:
-        if PSDImage is None:
+        try:
+            from psd_tools import PSDImage
+        except ImportError:
             return Result.failure("psd-tools is not installed; cannot process PSD files.")
+
         try:
             psd = PSDImage.open(BytesIO(data))
             flattened = psd.composite()

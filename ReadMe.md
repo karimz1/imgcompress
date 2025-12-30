@@ -1,4 +1,4 @@
-# imgcompress - Fast, Private Image Compression & Conversion Docker Image.
+# imgcompress - Privacy-First Image Optimizer: Compress, Convert & AI Background Removal (Docker)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
@@ -9,13 +9,17 @@
 
 <img src="images/logo_transparent.png" alt="imgcompress logo" width="490"/>
 
-**imgcompress** is a fast, privacy-first image processing tool that runs entirely in Docker.
+**A self-hosted Docker image compression and conversion tool** with local AI background removal. Process unlimited images offline: no cloud uploads, no subscriptions, no per-image limits.
 
-Compress, convert, resize, batch-process images and **remove backgrounds using local AI**
-with zero cloud dependencies.
+**Perfect for:** photographers managing large galleries, developers optimizing web assets, privacy-conscious users, and anyone needing a **free TinyPNG/Squoosh alternative** that runs entirely on your hardware.
 
-With support for **70+ image formats**, a Web UI, and a powerful CLI,
-imgcompress is created for **self-hosted users** who want everything local full control, strong privacy, zero cloud uploads.
+### 🛡️ Why Choose imgcompress?
+
+- **🔒 Privacy-First**: Your images never leave your network. Process sensitive documents, personal photos, and confidential materials with complete data sovereignty.
+- **💰 Unlimited Free Usage**: No subscriptions, API keys, or per-image credits. Compress millions of images at zero cost: a true alternative to expensive cloud services.
+- **🌐 Universal Format Support**: 70+ formats including HEIC, WebP, PSD, EPS, TIFF, and PDF ingestion. One tool for all your conversion needs.
+- **🏠 Self-Hosted Control**: Docker-based deployment for home labs, NAS devices, and enterprise environments. Full control over your image processing pipeline.
+- **🤖 Local AI Background Removal**: Remove backgrounds using on-device AI models. No external API calls, no data leakage.
 
 
 
@@ -51,7 +55,7 @@ ___
 ___
   
 
-- [imgcompress — Fast, Private Image Compression \& Conversion Docker Image.](#imgcompress--fast-private-image-compression--conversion-docker-image)
+- [imgcompress — Privacy-First Image Optimizer: Compress, Convert & AI Background Removal](#imgcompress---privacy-first-image-optimizer-compress-convert--ai-background-removal-docker)
   - [🚀 Quick Start](#-quick-start)
     - [Using `docker compose`](#using-docker-compose)
     - [Using `docker run`](#using-docker-run)
@@ -60,7 +64,8 @@ ___
     - [Using `docker compose`](#using-docker-compose-1)
     - [Using `docker run`](#using-docker-run-1)
   - [❓ Why imgcompress?](#-why-imgcompress)
-    - [✨ Feature Overview](#-feature-overview)
+  - [✨ Core Features](#-core-features)
+  - [💼 Common Use Cases](#-common-use-cases)
   - [**🔖 Choosing Your Version**](#-choosing-your-version)
     - [**Stable (``latest``)**](#stable-latest)
     - [**Pinned Release (for example: `0.2.8`)**](#pinned-release-for-example-028)
@@ -149,36 +154,68 @@ ___
 
 ## ❓ Why imgcompress?
 
-Ever been frustrated juggling multiple tools just to convert or compress images?
-**Me too**. I’m **Karim Zouine**, and I built imgcompress as a simple, unified tool for:
+Tired of **uploading sensitive images to cloud services**? Frustrated by **per-image pricing** on tools like TinyPNG? Need to **batch-process thousands of HEIC files** without expensive software?
 
-- compression
-- conversion
-- resizing
-- batch processing
+**imgcompress solves this.** I'm **Karim Zouine**, and I built this as a **zero-cost, privacy-first alternative** to cloud-based image tools.
 
-All locally, via Docker — for complete privacy.
+**What makes it different:**
+- **No cloud uploads**: Your images stay on your hardware. Critical for NDAs, medical imagery, or personal photos.
+- **No usage limits**: Process 10 images or 10 million. No subscriptions, no API quotas.
+- **All-in-one**: Compression, conversion (HEIC→JPG, PNG→WebP, PDF→images), resizing, and AI background removal in a single tool.
+- **Production-ready**: Multi-core processing, CLI automation, Docker isolation, and cross-platform support (ARM64/AMD64).
 
 ___
 
-### ✨ Feature Overview
+## ✨ Core Features
 
-📱 Instant HEIC → Anything: Convert HEIC/HEIF to JPG, PNG, ICO, and more.
+### 📱 HEIC/HEIF to JPG Converter
+Instantly convert Apple HEIC/HEIF images to JPG, PNG or any supported format. No more compatibility issues when sharing iPhone photos.
 
-📰 PDF ingestion: Upload PDFs and automatically rasterize every page before compressing or converting.
+### 🤖 AI-Powered Background Removal
+Remove image backgrounds using local AI models (powered by rembg). Runs 100% offline: no API calls, no external services, complete privacy.
 
-🖼️ Universal convert + resize: Supports HEIC, JPG, JPEG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, PDF and more.
+### 📰 PDF to Image Converter
+Upload multi-page PDFs and automatically extract/rasterize every page as individual images. Perfect for document processing workflows.
 
-⚙️ Full control: Set JPEG quality, PNG lossless mode, target width, and more.
+### 🖼️ Universal Image Conversion
+Supports 70+ formats: HEIC, JPG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, BMP, and more. One tool for all conversion needs.
 
-🚀 Multi-core batch processing: Automatically uses all CPU cores.
+### ⚙️ Granular Quality Control
+Set JPEG quality (1-100), enable PNG lossless mode, specify target dimensions, and fine-tune output settings.
 
-🛠️ Automation-ready CLI: Perfect for scripts, CI/CD, cronjobs.
+### 🚀 Multi-Core Batch Processing
+Automatically utilizes all CPU cores for parallel processing. Compress thousands of images in minutes, not hours.
 
-🔄 Machine-friendly logs: Use --json-output for automation & dashboards.
+### 🛠️ CLI Automation for CI/CD
+Scriptable command-line interface with `--json-output` for logs. Integrate into build pipelines, cronjobs, or automated workflows.
 
-📦 Runs everywhere: Linux, macOS, Windows (WSL2), ARM64, AMD64.
-  
+### 📦 Cross-Platform Docker Image
+Runs on Linux (x86-64, ARM64), macOS (Intel/Apple Silicon), Windows (WSL2), Raspberry Pi 4+, and AWS Graviton.
+
+___
+
+## 💼 Common Use Cases
+
+### For Photographers
+- **Batch compress wedding photos**: Reduce file sizes by 70% without visible quality loss before client delivery.
+- **Convert RAW to Web formats**: Process thousands of images for portfolio websites or online galleries.
+- **HEIC compatibility**: Convert iPhone photos to JPG for universal client compatibility.
+
+### For Developers
+- **Optimize web assets**: Compress images for faster page loads and better Core Web Vitals scores.
+- **CI/CD integration**: Automate image optimization in build pipelines using the CLI.
+- **Thumbnail generation**: Batch-resize product images for e-commerce platforms.
+
+### For Privacy-Conscious Users
+- **Process sensitive documents**: Compress legal, medical, or confidential images without cloud uploads.
+- **Family photo management**: Organize and optimize personal galleries on your NAS or home server.
+- **Offline workflows**: Run completely air-gapped for maximum data security.
+
+### For Enterprises
+- **GDPR/HIPAA compliance**: Keep image processing on-premises to meet regulatory requirements.
+- **Cost optimization**: Eliminate per-image fees from cloud services. Process unlimited images on your own infrastructure.
+- **Custom workflows**: Deploy on internal infrastructure with full control over processing logic.
+
 ____  
 
 ## **🔖 Choosing Your Version**
@@ -234,6 +271,19 @@ docker run --rm \
   cli \
   /container/images /container/converted --quality 85 --width 800
 ```
+
+**Background Removal (AI)**
+
+``` bash
+docker run --rm \
+  -v "$(pwd):/container/images" \
+  -v "$(pwd)/converted:/container/converted" \
+  karimz1/imgcompress:latest \
+  cli \
+  /container/images/photo.jpg /container/converted \
+  --format png --remove-background
+```
+
 **How it works**
 
 1. **📁 Local directory mapping**
@@ -242,6 +292,8 @@ docker run --rm \
 2. **⚙️ Process parameters**
    - `--quality` (1–100, default 85)
    - `--width` (optional resize)
+   - `--format` (jpeg or png, default jpeg)
+   - `--remove-background` (AI background removal, requires `--format png`)
    - `--debug` (verbose logs)
    - `--json-output` (machine-friendly logs for CI)
 
@@ -316,11 +368,11 @@ That means the images pass automated tests, but not every architecture has been 
 
 ## 🔒 Privacy & Security
 
-- **100 % local processing** — no uploads, no telemetry
-- **No telemetry, no tracking** — the container has zero outbound analytics.
+- **100% local processing**: No uploads, no telemetry.
+- **No telemetry, no tracking**: The container has zero outbound analytics.
 - **Open-source and auditable**
 - **Run fully offline**
-- **Docker isolation** — run with read-only volumes or network-disabled mode for extra peace of mind.
+- **Docker isolation**: Run with read-only volumes or network-disabled mode for extra peace of mind.
 
 ---
 
@@ -329,7 +381,7 @@ That means the images pass automated tests, but not every architecture has been 
 Want to make imgcompress even better?
 
 1. ⭐ Star the repo to support the project  
-2. **Fork → Branch → PR** — developers are welcome to contribute!  
+2. **Fork → Branch → PR**: Developers are welcome to contribute!  
 3. Browse `good first issue` or `help wanted` labels for starter tasks  
 4. File bugs or feature requests on the [issue tracker](https://github.com/karimz1/imgcompress/issues)
 
@@ -350,11 +402,11 @@ Every contribution helps support development, testing, and ongoing maintenance.
 
 ## 📓 Release Notes
 
-See the full release history in [frontend/public/release-notes.md](https://github.com/karimz1/imgcompress/blob/main/frontend/public/release-notes.md).
+See the full release history in [frontend/public/release-notes.md](/frontend/public/release-notes.md).
 
 ## 📝 License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
-See the [LICENSE](https://github.com/karimz1/imgcompress/blob/main/LICENSE) file for details.
+See the [LICENSE](/LICENSE) file for details.
 
 

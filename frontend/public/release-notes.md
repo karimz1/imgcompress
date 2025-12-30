@@ -1,3 +1,7 @@
+## v0.3.1 — 2025-12-30
+- Feature: Adds local AI background removal option to CLI [#439](https://github.com/karimz1/imgcompress/issues/439)
+- 🚀 Optimize Docker cold start by lazy-loading heavy dependencies in imgcompress. Starts in under 2 Seconds [#437](https://github.com/karimz1/imgcompress/issues/437)
+
 ## v0.3.0 — 2025-12-24
 - Add AI background removal for PNG output [#429](https://github.com/karimz1/imgcompress/issues/429)
 

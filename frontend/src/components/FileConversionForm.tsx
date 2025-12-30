@@ -49,7 +49,7 @@ interface FileConversionFormProps {
 
   useRembg: boolean;
   setUseRembg: (val: boolean) => void;
-  
+
   // From useDropzone
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
@@ -64,7 +64,7 @@ interface FileConversionFormProps {
 
 const tooltipContent = {
   outputFormat:
-  "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
   quality:
     "Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).",
   resizeWidth:
@@ -72,7 +72,7 @@ const tooltipContent = {
   targetSize:
     "Set an optional maximum output size (in MB). Applies to JPEG output only.",
   rembg:
-    "Background removal uses local AI (rembg) that runs inside a container—no internet is used. It keeps the subject and makes the background transparent, but can take longer and use more CPU. Small edge artifacts may appear in the result.",
+    "Local AI removes background (no internet required).\nSlower processing, may show small edge artifacts.",
 };
 
 const FileConversionForm: React.FC<FileConversionFormProps> = ({
@@ -296,7 +296,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 </TooltipTrigger>
                 <TooltipContent
                   side="top"
-                  className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+                  className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
                 >
                   <p className="text-sm">{tooltipContent.rembg}</p>
                 </TooltipContent>
@@ -325,18 +325,18 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
-            >
-              <p className="text-sm">{tooltipContent.quality}</p>
-            </TooltipContent>
-          </Tooltip>
-        </Label>
-        <span className={cn("text-sm", subtleText)}>{quality}</span>
+                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+                >
+                  <p className="text-sm">{tooltipContent.quality}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <span className={cn("text-sm", subtleText)}>{quality}</span>
           </div>
           <input
             id="quality"
@@ -377,21 +377,21 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
-            >
-              <p className="text-sm">{tooltipContent.targetSize}</p>
-            </TooltipContent>
-          </Tooltip>
-        </Label>
+                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+                >
+                  <p className="text-sm">{tooltipContent.targetSize}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
             {/* value next to label, like quality */}
-        <span className={cn("text-sm", subtleText)}>
-          {(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB
-        </span>
+            <span className={cn("text-sm", subtleText)}>
+              {(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB
+            </span>
           </div>
 
           {/* slider first */}
@@ -420,17 +420,17 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               value={targetSizeMB}
               onChange={(e) => setTargetSizeMB(e.target.value)}
               disabled={isLoading}
-            className={cn(surfaceInputClass, "disabled:opacity-50 disabled:cursor-not-allowed pr-12")}
-          />
-          <span className={cn("absolute inset-y-0 right-3 flex items-center text-sm pointer-events-none", subtleText)}>
-            MB
-          </span>
-        </div>
+              className={cn(surfaceInputClass, "disabled:opacity-50 disabled:cursor-not-allowed pr-12")}
+            />
+            <span className={cn("absolute inset-y-0 right-3 flex items-center text-sm pointer-events-none", subtleText)}>
+              MB
+            </span>
+          </div>
 
-        <p className={cn("text-xs", subtleText)}>
-          It will try to keep each JPEG at or below this size by automatically adjusting quality.
-        </p>
-      </div>
+          <p className={cn("text-xs", subtleText)}>
+            It will try to keep each JPEG at or below this size by automatically adjusting quality.
+          </p>
+        </div>
       )}
 
       {/* Resize Width */}
@@ -444,17 +444,17 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
-            >
-              <p className="text-sm">{tooltipContent.resizeWidth}</p>
-            </TooltipContent>
-          </Tooltip>
-        </Label>
+                  <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className={cn("p-2 rounded shadow-lg border", tooltipSurface)}
+              >
+                <p className="text-sm">{tooltipContent.resizeWidth}</p>
+              </TooltipContent>
+            </Tooltip>
+          </Label>
           <Switch
             data-testid="resize-width-switch"
             id="resizeWidthToggle"

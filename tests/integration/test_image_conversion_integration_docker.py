@@ -106,8 +106,7 @@ class TestDockerIntegration:
         Creates a test image if needed.
         """
         if os.path.exists(self.OUTPUT_DIR):
-            print("Removing existing output folder...")
-            shutil.rmtree(self.OUTPUT_DIR)
+            shutil.rmtree(self.OUTPUT_DIR, ignore_errors=True)
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
 
         assert os.path.exists(self.SAMPLE_IMAGES_DIR), "SAMPLE_IMAGES_DIR does not exist."
@@ -289,3 +288,35 @@ class TestDockerIntegration:
             assert pixel_outside[3] == expected_outside_alpha, (
                 f"Expected alpha {expected_outside_alpha} at ({outside_x},{outside_y}), got {pixel_outside[3]}"
             )
+
+    def test_run_docker_cli_removeBackground_withPngFormat_createsTransparentOutput(self):
+        """
+        Tests that the CLI --remove-background flag works correctly.
+        Creates a test image, processes it with --remove-background --format png,
+        and validates that the output has an alpha channel (transparency).
+        """
+        test_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_rembg_cli.jpg")
+        img = Image.new("RGB", (200, 200), (255, 255, 255))
+        draw = ImageDraw.Draw(img)
+        draw.rectangle([50, 50, 150, 150], fill=(255, 0, 0))
+        img.save(test_img_path, "JPEG")
+        assert os.path.exists(test_img_path)
+        
+        self.run_docker_singlefile_processing(
+            "test_rembg_cli.jpg",
+            extra_args=["--format", "png", "--remove-background"]
+        )
+        
+        output_path = os.path.join(self.OUTPUT_DIR, "test_rembg_cli.png")
+        assert os.path.exists(output_path)
+        
+        with Image.open(output_path) as output_img:
+            assert output_img.format.upper() == "PNG"
+            assert "A" in output_img.mode
+            
+            has_transparency = any(
+                output_img.getpixel((x, y))[3] < 255
+                for x in range(0, output_img.width, 10)
+                for y in range(0, output_img.height, 10)
+            )
+            assert has_transparency, "Expected some transparent pixels in background-removed image"

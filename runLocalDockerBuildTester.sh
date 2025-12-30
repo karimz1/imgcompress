@@ -13,6 +13,7 @@ docker buildx build -t "$IMAGE_NAME" .
 
 echo "🚀 Running container on http://localhost:$PORT_LOCAL with DISABLE_LOGO=$DISABLE_LOGO"
 docker run --rm \
+  --name imgcompress-local-tester \
   -p "$PORT_LOCAL:$PORT_CONTAINER" \
   -e DISABLE_LOGO="$DISABLE_LOGO" \
   -e DISABLE_STORAGE_MANAGEMENT="$DISABLE_STORAGE_MANAGEMENT" \
