@@ -402,11 +402,12 @@ Every contribution helps support development, testing, and ongoing maintenance.
 
 ## 📓 Release Notes
 
-See the full release history in [frontend/public/release-notes.md](/frontend/public/release-notes.md).
+See the full release history in [frontend/public/release-notes.md](https://github.com/karimz1/imgcompress/blob/main/frontend/public/release-notes.md).
 
 ## 📝 License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
-See the [LICENSE](/LICENSE) file for details.
+See the [LICENSE](https://github.com/karimz1/imgcompress/blob/main/LICENSE) file for details.
+
 
 
