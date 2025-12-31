@@ -30,12 +30,14 @@
 
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
-| <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="360" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="360" alt="Background removed image"/> |
+| <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="400" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="400" alt="Background removed image"/> |
 
 
 > Processed locally using on-device AI models. No data ever leaves your network.
 >
 > 👉 **[How to use Local AI Background Removal](https://karimz1.github.io/imgcompress/web-ui.html#local-ai-background-removal)**
+>
+> 📸 **Source of original image:** [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) — used for demonstration purposes.
 
 ___
 

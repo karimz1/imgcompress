@@ -47,6 +47,9 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/karimz1/imgcompress
       name: GitHub
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/karimz1/imgcompress
+      name: Docker Hub
 
 markdown_extensions:
   - pymdownx.highlight:

@@ -26,5 +26,4 @@ Every contribution helps support development, testing, and ongoing maintenance.
 
 ## 📝 License
 
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
-See the `LICENSE` file in the repository for details.
+This project is licensed under the **[GNU General Public License v3.0 (GPL-3.0)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)**.

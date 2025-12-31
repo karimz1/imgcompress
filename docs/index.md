@@ -2,7 +2,7 @@
 
 **Privacy-First Image Optimizer: Compress, Convert & AI Background Removal (Docker)**
 
-![imgcompress logo](images/logo_transparent.png){ width="490" }
+[<img src="images/logo_transparent.png" width="490" alt="imgcompress logo">](images/logo_transparent.png)
 
 **A self-hosted Docker image compression and conversion tool** with local AI background removal. Process unlimited images offline: no cloud uploads, no subscriptions, no per-image limits.
 
