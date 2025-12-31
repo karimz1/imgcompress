@@ -1,5 +1,6 @@
 # imgcompress - Privacy-First Image Optimizer: Compress, Convert & AI Background Removal (Docker)
 
+[![Documentation](https://img.shields.io/badge/docs-karimz1.github.io%2Fimgcompress-blue)](https://karimz1.github.io/imgcompress/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
@@ -50,45 +51,34 @@ ___
 
 ### 🖥️ Web UI Preview
 
+For a detailed guide on using the Web Interface, features, and workflows, please visit the **[Web UI Documentation](https://karimz1.github.io/imgcompress/web-ui.html)**.
+
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
 | **1** | <a href="images/ui-example/1.jpg"><img src="images/ui-example/1.jpg" width="240"/></a> | **Upload & Configure**<br/>Drag & drop images or PDFs, choose format, configure options. |
 | **2** | <a href="images/ui-example/2.jpg"><img src="images/ui-example/2.jpg" width="240"/></a> | **Processing**<br/>Images are processed locally with live progress feedback. |
 | **3** | <a href="images/ui-example/3.jpg"><img src="images/ui-example/3.jpg" width="240"/></a> | **Download Results**<br/>Download files individually or as a ZIP archive. |
 
-<sub>💡 Click any screenshot to view it in full resolution.</sub>
-
 ___
   
 
 - [imgcompress — Privacy-First Image Optimizer: Compress, Convert & AI Background Removal](#imgcompress---privacy-first-image-optimizer-compress-convert--ai-background-removal-docker)
-  - [🚀 Quick Start](#-quick-start)
+  - [�️ Why Choose imgcompress?](#️-why-choose-imgcompress)
+  - [🧠 New Local AI Background Removal](#-new-local-ai-background-removal-preview)
+  - [🖥️ Web UI Preview](#️-web-ui-preview)
+  - [� Quick Start](#-quick-start)
     - [Using `docker compose`](#using-docker-compose)
     - [Using `docker run`](#using-docker-run)
-      - [🧼 Minimal Mode: Hide the Mascot](#-minimal-mode-hide-the-mascot)
-  - [🔄 Updating imgcompress (get the latest stable release)](#-updating-imgcompress-get-the-latest-stable-release)
-    - [Using `docker compose`](#using-docker-compose-1)
-    - [Using `docker run`](#using-docker-run-1)
-  - [❓ Why imgcompress?](#-why-imgcompress)
+  - [🔄 Updating imgcompress](#-updating-imgcompress-get-the-latest-stable-release)
   - [✨ Core Features](#-core-features)
   - [💼 Common Use Cases](#-common-use-cases)
-  - [**🔖 Choosing Your Version**](#-choosing-your-version)
-    - [**Stable (``latest``)**](#stable-latest)
-    - [**Pinned Release (for example: `0.2.8`)**](#pinned-release-for-example-028)
-    - [**Nightly (``nightly``)**](#nightly-nightly)
-  - [🛠️ Scriptable CLI — Advanced Guide](#️-scriptable-cli--advanced-guide)
-    - [🔀 CLI vs Web Mode](#-cli-vs-web-mode)
-      - [Help](#help)
-        - [Global help](#global-help)
-        - [CLI help](#cli-help)
+  - [🔖 Choosing Your Version](#-choosing-your-version)
+  - [🛠️ Scriptable CLI](#️-scriptable-cli--advanced-guide)
   - [✅ Supported Image Formats](#-supported-image-formats)
-    - [🗂️ Supported (not yet verified)](#️-supported-not-yet-verified)
   - [🖥️ Supported Platforms](#️-supported-platforms)
-  - [🔒 Privacy \& Security](#-privacy--security)
+  - [🔒 Privacy & Security](#-privacy--security)
   - [🤝 Contribute](#-contribute)
-  - [❤️ Donate to Support Development](#️-donate-to-support-development)
-  - [📓 Release Notes](#-release-notes)
-  - [📝 License](#-license)
+  - [❤️ Donate](#️-donate)
 
 
 ## 🚀 Quick Start
@@ -254,177 +244,57 @@ Includes the newest changes and dependency updates.
 
 ## 🛠️ Scriptable CLI — Advanced Guide
 
-Need to crunch **thousands or millions** of images? Use the CLI:
+For advanced usage, automation, and CI/CD integration, please refer to the **[CLI & Automation Documentation](https://karimz1.github.io/imgcompress/cli.html)**.
 
-**Single File**
-
-``` bash
-docker run --rm \
-  -v "$(pwd):/container/images" \
-  -v "$(pwd)/converted:/container/converted" \
-  karimz1/imgcompress:latest \
-  cli \
-  /container/images/example.jpg /container/converted --quality 80 --width 1920
-```
-
-**Folder**
-
-``` bash
-docker run --rm \
-  -v "$(pwd):/container/images" \
-  -v "$(pwd)/converted:/container/converted" \
-  karimz1/imgcompress:latest \
-  cli \
-  /container/images /container/converted --quality 85 --width 800
-```
-
-**Background Removal (AI)**
-
-``` bash
-docker run --rm \
-  -v "$(pwd):/container/images" \
-  -v "$(pwd)/converted:/container/converted" \
-  karimz1/imgcompress:latest \
-  cli \
-  /container/images/photo.jpg /container/converted \
-  --format png --remove-background
-```
-
-**How it works**
-
-1. **📁 Local directory mapping**
-   - **Input:** original images
-   - **Output:** optimised images
-2. **⚙️ Process parameters**
-   - `--quality` (1–100, default 85)
-   - `--width` (optional resize)
-   - `--format` (jpeg or png, default jpeg)
-   - `--remove-background` (AI background removal, requires `--format png`)
-   - `--debug` (verbose logs)
-   - `--json-output` (machine-friendly logs for CI)
-
-
----
-
-### 🔀 CLI vs Web Mode
-
-imgcompress supports **two execution modes**:
-
-| Mode | Description | When to use | 
-|----|----|----|
-| `web` | This is the default even without giving a mode. Starts the Web UI | Interactive usage, drag & drop |
-| `cli` | Runs the image processor | Automation, scripts, CI/CD |
-
-
-#### Help
-
-##### Global help
-``` bash
-docker run --rm karimz1/imgcompress:latest --help
-```
-
-##### CLI help
-``` bash
-docker run --rm karimz1/imgcompress:latest cli --help
-```
+It covers:
+- Single file and batch processing.
+- AI background removal via CLI.
+- JSON output for machine parsing.
 
 ___
 
 ## ✅ Supported Image Formats
 
-✔ Verified in CI
+✔ Verified in CI: `.heic .heif .png .jpg .jpeg .ico .eps .psd .pdf`
 
-See function: def verified_image_formats()
+For the complete list of 70+ supported formats, see the **[Full Documentation](https://karimz1.github.io/imgcompress/index.html#supported-formats)**.
 
-Current list (as of 01.12.2025):
-````
-.heic .heif .png .jpg .jpeg .ico .eps .psd .pdf
-````
-
-
-### 🗂️ Supported (not yet verified)</summary>
-
-imgcompress supports all formats provided by Pillow.
-[Full list](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#) but keep in mind not all have been tested in the suite ***yet*** but I'm on it: [Improvement: Test matrix over all Pillow-supported formats #312](https://github.com/karimz1/imgcompress/issues/312)  
-
-Need a format that’s missing or failing?
-[Open an issue](https://github.com/karimz1/imgcompress/issues) with a sample file and short description. Happy to expand coverage!
-
-------
+___
 
 ## 🖥️ Supported Platforms
 
-| Docker image platform | Typical host | Status |
-|-----------------------|--------------|:------:|
-| **linux/amd64**       | x86-64 Linux, Windows (WSL 2) | ✅ |
-| **linux/arm64**       | Apple Silicon, Raspberry Pi 4+, AWS Graviton | ✅ |
+Running on Linux (amd64/arm64), Windows (WSL2), macOS, or Raspberry Pi?
 
-> **Windows desktop:** Runs via Docker Desktop + WSL 2 (no native Windows-container build needed).
+👉 **[Check the Supported Platforms Guide](https://karimz1.github.io/imgcompress/installation.html#supported-platforms)**
 
-<details>
-<summary>💡 Testing note (click to expand)</summary>
-
-All platforms above are built and run in CI with QEMU multi-arch emulation and a GitHub Actions matrix.  
-That means the images pass automated tests, but not every architecture has been manually tried on physical hardware.
-
-</details>
-
-
-------
+___
 
 ## 🔒 Privacy & Security
 
-- **100% local processing**: No uploads, no telemetry.
-- **No telemetry, no tracking**: The container has zero outbound analytics.
-- **Open-source and auditable**
-- **Run fully offline**
-- **Docker isolation**: Run with read-only volumes or network-disabled mode for extra peace of mind.
+**Privacy First.** 100% local processing, no telemetry, no tracking.
 
-### 🏢 Enterprise / High Security Setup (No Internet Access)
-
-For environments requiring **strict network isolation** (e.g., air-gapped systems, high-privacy compliance), I provide a specialized Docker Compose configuration.
-
-This setup:
-1.  **Block completely** internet access for the application container.
-2.  Maintains **local access** via a secure proxy bridge.
-3.  Is **self-contained** in a single file.
-
-👉 **[View the Configuration File (docker-compose-no-internet.yml)](docker-compose-no-internet.yml)**
+👉 **[Read the Full Privacy Policy](https://karimz1.github.io/imgcompress/privacy.html)** (Includes Enterprise Air-Gapped Setup)
 
 ---
 
 ## 🤝 Contribute
 
-Want to make imgcompress even better?
-
-1. ⭐ Star the repo to support the project  
-2. **Fork → Branch → PR**: Developers are welcome to contribute!  
-3. Browse `good first issue` or `help wanted` labels for starter tasks  
-4. File bugs or feature requests on the [issue tracker](https://github.com/karimz1/imgcompress/issues)
-
-Thank you for supporting open source ❤️
+We welcome contributions! Please see our **[Contribution Guide](https://karimz1.github.io/imgcompress/contributing.html)**.
 
 ---
 
-## ❤️ Donate to Support Development
+## ❤️ Donate
 
-If imgcompress saves you time, consider donating.  
-Every contribution helps support development, testing, and ongoing maintenance.
+If you find this tool useful, consider supporting its development.
 
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
 
-*(Completely optional, and always appreciated.)*
-
 ---
 
-## 📓 Release Notes
+## 📓 Release Notes & License
 
-See the full release history in [frontend/public/release-notes.md](frontend/public/release-notes.md).
-
-## 📝 License
-
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
-See the [LICENSE](LICENSE) file for details.
+- **Release Notes**: [Read Release Notes](frontend/public/release-notes.md)
+- **License**: [GPL-3.0 License](LICENSE)
 
 
 
