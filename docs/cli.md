@@ -68,7 +68,3 @@ docker run --rm \
 | `--debug` | `False` | Enable verbose logging |
 | `--json-output` | `False` | Output logs in JSON format for parsing |
 
-## ✅ Supported Formats
-
-See the full list of supported formats in the [Web UI Guide](web-ui.md) or general documentation.
-Verified formats: `.heic .heif .png .jpg .jpeg .ico .eps .psd .pdf`

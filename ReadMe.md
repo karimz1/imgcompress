@@ -8,19 +8,17 @@
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
 [![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
 
-<img src="images/logo_transparent.png" alt="imgcompress logo" width="490"/>
+<img src="images/logo_transparent.png" alt="imgcompress logo" width="380"/>
 
 **A self-hosted Docker image compression and conversion tool** with local AI background removal. Process unlimited images offline: no cloud uploads, no subscriptions, no per-image limits.
 
 **Perfect for:** photographers managing large galleries, developers optimizing web assets, privacy-conscious users, and anyone needing a **free TinyPNG/Squoosh alternative** that runs entirely on your hardware.
 
-### 🛡️ Why Choose imgcompress?
-
-- **🔒 Privacy-First**: 100% on-device processing. No cloud, no tracking.
-- **💰 Unlimited & Free**: No subscriptions or API limits. Process millions for free.
-- **🌐 70+ Formats**: HEIC, WebP, PSD, EPS, PDF, and more.
-- **🏠 Self-Hosted**: Full control over your data with Docker.
-- **🤖 Local AI**: Background removal without external API calls.
+- **🔒 Privacy-First & 100% Local**: All processing happens on your device.
+- **💰 Unlimited & Free**: No subscriptions or API limits.
+- **🖼️ Universal Support**: 70+ formats including HEIC, WebP, PSD, and PDF.
+- **🤖 Local AI**: Background removal with total data sovereignty.
+- **📦 Cross-Platform**: Deploy anywhere with Docker.
 
 
 
@@ -55,11 +53,8 @@ ___
   
 
 - [imgcompress — Privacy-First Image Optimizer: Compress, Convert & AI Background Removal](#imgcompress---privacy-first-image-optimizer-compress-convert--ai-background-removal-docker)
-  - [🛡️ Why Choose imgcompress?](#️-why-choose-imgcompress)
-  - [🧠 New Local AI Background Removal](#-new-local-ai-background-removal-preview)
-  - [🖥️ Web UI Preview](#️-web-ui-preview)
   - [🏁 Getting Started](#-getting-started)
-  - [✨ Core Features](#-core-features)
+  - [✨ Key Features & Capabilities](#-key-features--capabilities)
   - [💼 Use Cases](#-use-cases)
   - [🔖 Choosing Your Version](#-choosing-your-version)
   - [🛠️ Scriptable CLI](#️-scriptable-cli--advanced-guide)
@@ -81,7 +76,7 @@ This guide covers:
 
 ___
 
-## ✨ Core Features
+## ✨ Key Features & Capabilities
 
 - **📱 HEIC/HEIF Converter**: Instantly turn iPhone photos into high-quality JPG/PNG.
 - **🤖 AI Background Removal**: Powered by `rembg`. 100% offline and private.
