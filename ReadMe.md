@@ -33,19 +33,9 @@
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="360" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="360" alt="Background removed image"/> |
 
 
-> Processed locally using an embedded AI model no external services involved. Now integrated in imgcompress.
-
-<p align="center">
-  👉 <strong>To use it, enable the toggle in the UI:</strong><br>
-  <img src="images/enable_rembg.png" width="400" alt="Enable remove background toggle"><br>
-  <em>(Note: This option only appears when <strong>PNG</strong> is selected as the output format)</em>
-</p>
-
-📸 **Source of original image:**  
-[Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) — used for demonstration purposes.
-
-🧠 **AI background removal powered internally by** [rembg](https://github.com/danielgatis/rembg)  
-(rembg is used locally inside the container of imgcompress. No data is sent externally for privacy.)
+> Processed locally using on-device AI models. No data ever leaves your network.
+>
+> � **[How to use Local AI Background Removal](https://karimz1.github.io/imgcompress/web-ui.html#local-ai-background-removal)**
 
 ___
 
