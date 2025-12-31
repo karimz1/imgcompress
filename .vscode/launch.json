@@ -1,22 +1,24 @@
 {
     "version": "0.2.0",
     "configurations": [
-    {
-        "name": "Debug Playwright e2e",
-        "type": "node",
-        "request": "launch",
-        "runtimeExecutable": "npm",
-        "runtimeArgs": [
-            "run",
-            "test:e2e"
-        ],
-        "port": 9229,
-        "cwd": "${workspaceFolder}/frontend",
-        "console": "integratedTerminal",
-        "skipFiles": ["<node_internals>/**"]
+        {
+            "name": "Debug Playwright e2e",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "test:e2e"
+            ],
+            "port": 9229,
+            "cwd": "${workspaceFolder}/frontend",
+            "console": "integratedTerminal",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         },
         {
-           "name": "NextJS: Dev Debug",
+            "name": "NextJS: Dev Debug",
             "type": "pwa-node",
             "request": "launch",
             "runtimeExecutable": "npm",
@@ -31,11 +33,13 @@
             "env": {
                 "NODE_OPTIONS": "--inspect"
             },
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "sourceMaps": true
         },
         {
-           "name": "Python: Flask (Debug)",
+            "name": "Python: Flask (Debug)",
             "type": "python",
             "request": "launch",
             "module": "flask",
@@ -83,16 +87,44 @@
         {
             "name": "Debug update dockerhub description",
             "type": "python",
-            "pythonPath": "/venv/bin/python",
+            "pythonPath": "${workspaceFolder}/venv/bin/python",
             "request": "launch",
-
             "program": "${workspaceFolder}/update_dockerhub_description.py",
             "args": [
-                "--readme", "ReadMe.md",
-                "--branch", "main",
-                "--base-url", "https://raw.githubusercontent.com/karimz1/imgcompress/main",
-                "--mock", "true"
+                "--readme",
+                "ReadMe.md",
+                "--branch",
+                "main",
+                "--base-url",
+                "https://raw.githubusercontent.com/karimz1/imgcompress/main",
+                "--mock"
             ]
+        },
+        {
+            "name": "Debug: test_update_dockerhub_description.py",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "pythonPath": "${workspaceFolder}/venv/bin/python",
+            "args": [
+                "-v",
+                "${workspaceFolder}/tests/test_update_dockerhub_description.py"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "Debug Current Test File",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "pythonPath": "${workspaceFolder}/venv/bin/python",
+            "args": [
+                "-v",
+                "${file}"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

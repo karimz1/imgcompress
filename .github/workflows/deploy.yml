@@ -105,7 +105,7 @@ jobs:
 
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub
-    if: startsWith(github.ref, 'refs/tags/release_')
+    if: startsWith(github.ref, 'refs/tags/release_') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -119,21 +119,30 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests
+          pip install requests pytest
+
+      - name: Run Tests
+        run: |
+          pytest tests/test_update_dockerhub_description.py
 
       - name: Choose README ref
         id: readme-ref
         shell: bash
         run: |
-          README_REF="${GITHUB_REF#refs/tags/}"
-          echo "README_REF=$README_REF" >> "$GITHUB_ENV"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            REF_NAME="${GITHUB_REF#refs/heads/}"
+          else
+            REF_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "REF_NAME=$REF_NAME" >> "$GITHUB_ENV"
 
       - name: Update Docker Hub Description
         run: |
           python update_dockerhub_description.py \
               --readme ReadMe.md \
-              --branch "$README_REF" \
-              --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/$README_REF"
+              --branch "$REF_NAME" \
+              --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/$REF_NAME" \
+              --repo-url "https://github.com/karimz1/imgcompress/blob/$REF_NAME"
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}

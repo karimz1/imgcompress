@@ -209,3 +209,5 @@ pyrightconfig.json
 frontend/test-results/
 tmp/
 node_modules/
+
+readme-generated.md

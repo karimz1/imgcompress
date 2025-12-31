@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import re
 import argparse
@@ -31,6 +32,12 @@ def parse_args():
         help="Base URL for converting relative image links to absolute URLs.",
     )
     parser.add_argument(
+        "--repo-url",
+        type=str,
+        default="",
+        help="Base URL for converting relative non-image links to absolute URLs.",
+    )
+    parser.add_argument(
         "--branch",
         type=str,
         default="",
@@ -42,11 +49,7 @@ def parse_args():
         help="Do not perform Docker Hub update"
     )
 
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run internal link-rewrite assertions and exit",
-    )
+
 
 
     return parser.parse_args()
@@ -81,13 +84,20 @@ def fix_relative_url(url: str, base_url: str) -> str:
     return urljoin(base, url)
 
 
-def fix_image_links(markdown_content: str, base_url: str) -> str:
+def rewrite_relative_links(markdown_content: str, base_url: str, repo_url: str) -> str:
     """
-    Replaces relative links with absolute links based on base_url in:
-      - Markdown images: ![alt](path)
-      - Markdown links:  [text](path)
-      - HTML images:     <img src="path" ...>
-      - HTML anchors:    <a href="path" ...>
+    Rewrites relative links in Markdown and HTML content to absolute URLs.
+    
+    This function handles both image sources (e.g., <img src="...">, ![...](...))
+    and standard hyperlinks (e.g., <a href="...">, [...](...)).
+    
+    Args:
+        markdown_content (str): The raw markdown/HTML content to process.
+        base_url (str): The base URL to use for relative image sources.
+        repo_url (str): The base URL to use for relative navigation links.
+        
+    Returns:
+        str: The processed content with all relative paths converted to absolute URLs.
     """
 
     # 1) Markdown images: ![alt](url)
@@ -101,7 +111,7 @@ def fix_image_links(markdown_content: str, base_url: str) -> str:
     md_link_pattern = r'(?<!!)(\[[^\]]*\]\()([^)]+)(\))'
     def md_link_replacer(m):
         prefix, url, suffix = m.groups()
-        return f"{prefix}{fix_relative_url(url, base_url)}{suffix}"
+        return f"{prefix}{fix_relative_url(url, repo_url)}{suffix}"
     out = re.sub(md_link_pattern, md_link_replacer, out)
 
     # 3) HTML <img src="...">
@@ -115,7 +125,7 @@ def fix_image_links(markdown_content: str, base_url: str) -> str:
     html_a_pattern = r'(<a\s[^>]*?\bhref\s*=\s*["\'])([^"\']+)(["\'])'
     def html_a_replacer(m):
         prefix, url, suffix = m.groups()
-        return f"{prefix}{fix_relative_url(url, base_url)}{suffix}"
+        return f"{prefix}{fix_relative_url(url, repo_url)}{suffix}"
     out = re.sub(html_a_pattern, html_a_replacer, out)
 
     return out
@@ -189,62 +199,12 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
             f"Failed to update description: HTTP {response.status_code}\n{response.text}"
         )
 
-def run_self_tests() -> None:
-    base_url = "https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0"
 
-    # Case: HTML <a href="relative"><img src="absolute">
-    input_md = (
-        '| **1** | <a href="images/ui-example/1.jpg">'
-        '<img src="./images/ui-example/1.jpg" width="240"/>'
-        "</a> | text |\n"
-    )
-
-    expected = (
-        '| **1** | <a href="https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/ui-example/1.jpg">'
-        '<img src="https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/ui-example/1.jpg" width="240"/>'
-        "</a> | text |\n"
-    )
-
-    got = fix_image_links(input_md, base_url)
-    assert got == expected, f"anchor href rewrite failed.\nGOT:\n{got}\n\nEXPECTED:\n{expected}"
-
-    # Case: HTML <img src="relative">
-    input_md2 = '<img src="images/x.png" width="10"/>'
-    expected2 = '<img src="https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/x.png" width="10"/>'
-    got2 = fix_image_links(input_md2, base_url)
-    assert got2 == expected2, f"img src rewrite failed.\nGOT:\n{got2}\n\nEXPECTED:\n{expected2}"
-
-    # Case: Markdown image ![]()
-    input_md3 = "![alt](images/x.png)"
-    expected3 = "![alt](https://raw.githubusercontent.com/karimz1/imgcompress/release_0.3.0/images/x.png)"
-    got3 = fix_image_links(input_md3, base_url)
-    assert got3 == expected3, f"markdown image rewrite failed.\nGOT:\n{got3}\n\nEXPECTED:\n{expected3}"
-
-    # Case: Must NOT change absolute
-    input_md4 = '[link](https://example.com/a.png)'
-    expected4 = input_md4
-    got4 = fix_image_links(input_md4, base_url)
-    assert got4 == expected4, f"should not rewrite absolute urls.\nGOT:\n{got4}\n\nEXPECTED:\n{expected4}"
-
-    # Case 5: Must NOT change mailto links
-    input_md5 = '[email](mailto:mails.karimzouine@gmail.com)' #yep I'm the author...
-    expected5 = input_md5
-    got5 = fix_image_links(input_md5, base_url)
-    assert got5 == expected5, (
-        "should not rewrite mailto links.\n"
-        f"GOT:\n{got5}\n\nEXPECTED:\n{expected5}"
-    )
-
-    print("Self-tests passed ✅")
 
 
 def main():
     args = parse_args()
 
-    if args.self_test:
-        run_self_tests()
-        return
-    
     if args.mock == False:
         try:
             dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
@@ -255,12 +215,20 @@ def main():
 
     readme_content = read_file(args.readme)
 
-    if args.base_url:
-        readme_content = fix_image_links(readme_content, args.base_url)
+    if args.mock:
+        args.base_url = "https://raw.githubusercontent.com/karimz1/imgcompress/"
+        args.repo_url = "https://github.com/karimz1/imgcompress/blob/main/"
+
+    if args.base_url and args.repo_url:
+        readme_content = rewrite_relative_links(readme_content, args.base_url, args.repo_url)
     else:
-        print("No base URL provided; skipping image link update.")
+        print("No base URL or repo URL provided; skipping link update.")
 
     if args.mock:
+        generated_readme_path = 'readme-generated.md'
+        with open(generated_readme_path, 'w', encoding='utf-8') as f:
+            f.write(readme_content)
+        print(f"Wrote generated README to {generated_readme_path}")
         return
     
     token = get_access_token(dockerhub_username, dockerhub_password)
