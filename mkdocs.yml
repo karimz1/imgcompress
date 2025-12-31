@@ -1,0 +1,70 @@
+site_name: ImgCompress Documentation
+site_url: https://karimz1.github.io/imgcompress/
+repo_url: https://github.com/karimz1/imgcompress
+repo_name: karimz1/imgcompress
+
+theme:
+  name: material
+  logo: images/logo.png
+  favicon: images/favicon.ico
+  palette: 
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - glightbox
+
+extra_javascript:
+  - javascripts/extra.js
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/paypal
+      link: https://www.paypal.com/paypalme/KarimZouine972
+      name: Donate with PayPal
+    - icon: fontawesome/brands/github
+      link: https://github.com/karimz1/imgcompress
+      name: GitHub
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+  - pymdownx.superfences
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Web UI: web-ui.md
+  - CLI & Automation: cli.md
+  - Privacy: privacy.md
+  - Contribute: contributing.md
+  - ❤️ Donate: https://www.paypal.com/paypalme/KarimZouine972
