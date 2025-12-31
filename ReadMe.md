@@ -63,13 +63,10 @@ ___
   
 
 - [imgcompress — Privacy-First Image Optimizer: Compress, Convert & AI Background Removal](#imgcompress---privacy-first-image-optimizer-compress-convert--ai-background-removal-docker)
-  - [�️ Why Choose imgcompress?](#️-why-choose-imgcompress)
+  - [🛡️ Why Choose imgcompress?](#️-why-choose-imgcompress)
   - [🧠 New Local AI Background Removal](#-new-local-ai-background-removal-preview)
   - [🖥️ Web UI Preview](#️-web-ui-preview)
-  - [� Quick Start](#-quick-start)
-    - [Using `docker compose`](#using-docker-compose)
-    - [Using `docker run`](#using-docker-run)
-  - [🔄 Updating imgcompress](#-updating-imgcompress-get-the-latest-stable-release)
+  - [🏁 Getting Started](#-getting-started)
   - [✨ Core Features](#-core-features)
   - [💼 Common Use Cases](#-common-use-cases)
   - [🔖 Choosing Your Version](#-choosing-your-version)
@@ -80,70 +77,16 @@ ___
   - [🤝 Contribute](#-contribute)
   - [❤️ Donate](#️-donate)
 
+## 🏁 Getting Started
 
-## 🚀 Quick Start
+To get up and running with **imgcompress** in seconds, please follow our:
 
-### Using `docker compose`
+👉 **[Quick Start & Installation Guide](https://karimz1.github.io/imgcompress/installation.html)**
 
-```yaml
-services:
-  imgcompress:
-    image: karimz1/imgcompress:latest
-    container_name: imgcompress
-    restart: always
-    ports:
-      - "3001:5000"                     # HOST:CONTAINER — change 3001 if needed
-    environment:
-      - DISABLE_LOGO=true               # Optional: disable mascot
-      - DISABLE_STORAGE_MANAGEMENT=true # Optional: disable the Storage Management
-````
-Start:
-```bash
-docker compose up -d 
-```
-
-Then open:
-
-👉 **[http://localhost:3001](http://localhost:3001/)**
-
-
-### Using `docker run`
-
-````bash
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
-````
-
-#### 🧼 Minimal Mode: Hide the Mascot
-
-Prefer a cleaner UI?
-
-```` bash
-docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest
-````
-___
-
-## 🔄 Updating imgcompress (get the latest stable release)
-
-### Using `docker compose`
-```bash
-docker compose pull
-docker compose up -d --force-recreate
-```
-
-### Using `docker run`
-
-```bash
-docker pull karimz1/imgcompress:latest
-docker stop imgcompress
-docker rm imgcompress
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
-```
-> **Open imgcompress:** **[http://localhost:3001](http://localhost:3001/)**
-
-
-⬅️ Back to: [**Quick Start (`docker compose`)**](#using-docker-compose)
- or [**Quick Start (`docker run`)**](#using-docker-run)
-
+This guide covers:
+- `docker compose` and `docker run` setup.
+- Updating to the latest version.
+- Choosing the right version tag.
 
 
 ___
@@ -214,32 +157,13 @@ ___
 
 ____  
 
-## **🔖 Choosing Your Version**
+## 🔖 Choosing Your Version
 
-imgcompress provides **three tags**, depending on your needs:
+We offer several versions (tags) of the Docker image depending on your needs (Stable, Nightly, or Pinned).
 
-| **Version**        | **Tag** | **What’s Included**           | **Best For**                     |
-| ------------------ | ------- | ----------------------------- | -------------------------------- |
-| **Stable**         | ``latest``  | Fully tested release          | Most users — recommended         |
-| **Pinned Release** | ``X.Y.Z``   | Exact version, never changes | Reproducible deployments, historic versions |
-| **Nightly**        | ``nightly`` | Latest changes & dependency bumps | Testing new features (may break) |
-
-
-[See all available tags](https://hub.docker.com/r/karimz1/imgcompress/tags)
+👉 **[See the Version Selection Guide](https://karimz1.github.io/imgcompress/installation.html#choosing-your-version)**
 
 ---
-
-### **Stable (``latest``)**
-The safest and most reliable choice.  
-Every latest release passes **QA checks by the author (Karim Zouine)** before publication.
-
-### **Pinned Release (for example: `0.2.8`)**
-A frozen version that **never updates**.  
-Ideal for locked-down deployments or staying on a version you trust.
-
-### **Nightly (``nightly``)**
-Includes the newest changes and dependency updates.  
-⚠️ May include breaking changes — think of it as a **public beta**.
 
 
 ## 🛠️ Scriptable CLI — Advanced Guide
