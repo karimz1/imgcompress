@@ -71,9 +71,7 @@ ___
   - [💼 Common Use Cases](#-common-use-cases)
   - [🔖 Choosing Your Version](#-choosing-your-version)
   - [🛠️ Scriptable CLI](#️-scriptable-cli--advanced-guide)
-  - [✅ Supported Image Formats](#-supported-image-formats)
-  - [🖥️ Supported Platforms](#️-supported-platforms)
-  - [🔒 Privacy & Security](#-privacy--security)
+  - [ Privacy & Security](#-privacy--security)
   - [🤝 Contribute](#-contribute)
   - [❤️ Donate](#️-donate)
 
@@ -177,21 +175,7 @@ It covers:
 
 ___
 
-## ✅ Supported Image Formats
 
-✔ Verified in CI: `.heic .heif .png .jpg .jpeg .ico .eps .psd .pdf`
-
-For the complete list of 70+ supported formats, see the **[Full Documentation](https://karimz1.github.io/imgcompress/index.html#supported-formats)**.
-
-___
-
-## 🖥️ Supported Platforms
-
-Running on Linux (amd64/arm64), Windows (WSL2), macOS, or Raspberry Pi?
-
-👉 **[Check the Supported Platforms Guide](https://karimz1.github.io/imgcompress/installation.html#supported-platforms)**
-
-___
 
 ## 🔒 Privacy & Security
 
