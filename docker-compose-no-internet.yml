@@ -1,33 +1,74 @@
-# a concept of how to use imgcompress without internet access in an enterprise environment
-# this cuts full internet access in the container imgcompress-app for extra privacy and security.
+# ==============================================================================
+# imgcompress - Enterprise No-Internet Privacy Configuration (docker compose)
+# ==============================================================================
+# This configuration is designed for high-security / high-privacy environments
+# where the application MUST NOT have any external internet access.
+#
+# This is an advanced setup for users who want imgcompress to run in an extrem secure environment.
+# It is not recommended for average users as it makes it complex to setup. 
+# But it gives you the maximum security.
+#
+# How it works:
+# 1. 'imgcompress-app': The core application. It is locked in an 'internal'
+#    bridge network that has NO default gateway and NO routing to the internet.
+# 2. 'imgcompress-no-internet' (Proxy): A tiny Nginx container that acts as a
+#    secure bridge. It maps to your localhost (3001) and forwards traffic to
+#    the isolated app.
+#
 # Karim Zouine - 2025 - https://github.com/karimz1/imgcompress
+# ==============================================================================
+
 services:
+  # ----------------------------------------------------------------------------
+  # THE APPLICATION - STICKY ISOLATION
+  # ----------------------------------------------------------------------------
   imgcompress:
     image: karimz1/imgcompress:latest
     container_name: imgcompress-app
     restart: always
-    # No ports mapped here = No way for it to talk out or in via the host directly
+    # IMPORTANT: No 'ports' mapped here. Direct host access is blocked.
     environment:
-      - DISABLE_LOGO=true
-      - DISABLE_STORAGE_MANAGEMENT=false
+      - DISABLE_LOGO=true # Remove branding mascot for enterprise use
+      - DISABLE_STORAGE_MANAGEMENT=false # Keep storage management active
     networks:
-      - isolated_network
+      - isolated_network # Only connect to the lock-down network
 
+  # ----------------------------------------------------------------------------
+  # THE PROXY - SECURE HOST BRIDGE
+  # ----------------------------------------------------------------------------
   proxy:
     image: nginx:alpine
     container_name: imgcompress-no-internet
     ports:
-      - "3001:80" # Local access via port 3001
-    volumes:
-      - ./nginx-no-internet.conf:/etc/nginx/conf.d/default.conf:ro
+      - "3001:80" # Exposed to YOU at http://localhost:3001
     depends_on:
       - imgcompress
+    # Self-contained: The Nginx config is written dynamically on startup.
+    # No external .conf files or volume mounts are required.
+    command: >
+      sh -c "printf 'server {
+          listen 80;
+          location / {
+              proxy_pass http://imgcompress:5000;
+              proxy_set_header Host $$host;
+              proxy_set_header X-Real-IP $$remote_addr;
+              proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $$scheme;
+          }
+      }' > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;' "
     networks:
-      - isolated_network # To talk to the app
-      - host_access_network # To talk to the host
+      - isolated_network # Bridge to the application
+      - host_access_network # Bridge to your local machine
 
+# ------------------------------------------------------------------------------
+# NETWORK INFRASTRUCTURE
+# ------------------------------------------------------------------------------
 networks:
+  # The 'isolated_network' is marked as internal.
+  # Containers here cannot reach the internet, even if they try.
   isolated_network:
-    internal: true # This blocks ALL external internet access for the app
+    internal: true
+
+  # The 'host_access_network' allows the proxy to talk to the host (port mapping).
   host_access_network:
-    internal: false # Standard network for host communication
+    internal: false
