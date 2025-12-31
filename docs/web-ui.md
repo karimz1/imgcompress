@@ -35,3 +35,14 @@ Remove backgrounds instantly without sending data to the cloud.
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
 | <img src="../images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="360" alt="Original image"/> | <img src="../images/image-remover-examples/landscape-with-sunset-yixing.png" width="360" alt="Background removed image"/> |
+
+## 🎯 Target Specific Filesize
+
+Need your image to be exactly under 500KB or 1MB? ImgCompress can calculate the required quality setting for you.
+
+1.  Upload your image.
+2.  In the options, look for **Target Size**.
+3.  Enter your desired size (e.g. `500KB`, `2MB`).
+4.  The tool will auto-adjust compression to meet your target.
+
+<video src="../images/target-filesize.webm" controls="controls" style="max-width: 100%; border-radius: 8px;"></video>
