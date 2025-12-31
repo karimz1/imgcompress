@@ -16,11 +16,11 @@
 
 ### 🛡️ Why Choose imgcompress?
 
-- **🔒 Privacy-First**: Your images never leave your network. Process sensitive documents, personal photos, and confidential materials with complete data sovereignty.
-- **💰 Unlimited Free Usage**: No subscriptions, API keys, or per-image credits. Compress millions of images at zero cost: a true alternative to expensive cloud services.
-- **🌐 Universal Format Support**: 70+ formats including HEIC, WebP, PSD, EPS, TIFF, and PDF ingestion. One tool for all your conversion needs.
-- **🏠 Self-Hosted Control**: Docker-based deployment for home labs, NAS devices, and enterprise environments. Full control over your image processing pipeline.
-- **🤖 Local AI Background Removal**: Remove backgrounds using on-device AI models. No external API calls, no data leakage.
+- **🔒 Privacy-First**: 100% on-device processing. No cloud, no tracking.
+- **💰 Unlimited & Free**: No subscriptions or API limits. Process millions for free.
+- **🌐 70+ Formats**: HEIC, WebP, PSD, EPS, PDF, and more.
+- **🏠 Self-Hosted**: Full control over your data with Docker.
+- **🤖 Local AI**: Background removal without external API calls.
 
 
 
@@ -35,7 +35,7 @@
 
 > Processed locally using on-device AI models. No data ever leaves your network.
 >
-> � **[How to use Local AI Background Removal](https://karimz1.github.io/imgcompress/web-ui.html#local-ai-background-removal)**
+> 👉 **[How to use Local AI Background Removal](https://karimz1.github.io/imgcompress/web-ui.html#local-ai-background-removal)**
 
 ___
 
@@ -58,10 +58,10 @@ ___
   - [🖥️ Web UI Preview](#️-web-ui-preview)
   - [🏁 Getting Started](#-getting-started)
   - [✨ Core Features](#-core-features)
-  - [💼 Common Use Cases](#-common-use-cases)
+  - [💼 Use Cases](#-use-cases)
   - [🔖 Choosing Your Version](#-choosing-your-version)
   - [🛠️ Scriptable CLI](#️-scriptable-cli--advanced-guide)
-  - [ Privacy & Security](#-privacy--security)
+  - [🔒 Privacy & Security](#-privacy--security)
   - [🤝 Contribute](#-contribute)
   - [❤️ Donate](#️-donate)
 
@@ -79,69 +79,25 @@ This guide covers:
 
 ___
 
-## ❓ Why imgcompress?
-
-Tired of **uploading sensitive images to cloud services**? Frustrated by **per-image pricing** on tools like TinyPNG? Need to **batch-process thousands of HEIC files** without expensive software?
-
-**imgcompress solves this.** I'm **Karim Zouine**, and I built this as a **zero-cost, privacy-first alternative** to cloud-based image tools.
-
-**What makes it different:**
-- **No cloud uploads**: Your images stay on your hardware. Critical for NDAs, medical imagery, or personal photos.
-- **No usage limits**: Process 10 images or 10 million. No subscriptions, no API quotas.
-- **All-in-one**: Compression, conversion (HEIC→JPG, PNG→WebP, PDF→images), resizing, and AI background removal in a single tool.
-- **Production-ready**: Multi-core processing, CLI automation, Docker isolation, and cross-platform support (ARM64/AMD64).
-
-___
-
 ## ✨ Core Features
 
-### 📱 HEIC/HEIF to JPG Converter
-Instantly convert Apple HEIC/HEIF images to JPG, PNG or any supported format. No more compatibility issues when sharing iPhone photos.
-
-### 🤖 AI-Powered Background Removal
-Remove image backgrounds using local AI models (powered by rembg). Runs 100% offline: no API calls, no external services, complete privacy.
-
-### 📰 PDF to Image Converter
-Upload multi-page PDFs and automatically extract/rasterize every page as individual images. Perfect for document processing workflows.
-
-### 🖼️ Universal Image Conversion
-Supports 70+ formats: HEIC, JPG, PNG, PSD, TIFF, EPS, ICO, WebP, GIF, BMP, and more. One tool for all conversion needs.
-
-### ⚙️ Granular Quality Control
-Set JPEG quality (1-100), enable PNG lossless mode, specify target dimensions, and fine-tune output settings.
-
-### 🚀 Multi-Core Batch Processing
-Automatically utilizes all CPU cores for parallel processing. Compress thousands of images in minutes, not hours.
-
-### 🛠️ CLI Automation for CI/CD
-Scriptable command-line interface with `--json-output` for logs. Integrate into build pipelines, cronjobs, or automated workflows.
-
-### 📦 Cross-Platform Docker Image
-Runs on Linux (x86-64, ARM64), macOS (Intel/Apple Silicon), Windows (WSL2), Raspberry Pi 4+, and AWS Graviton.
+- **📱 HEIC/HEIF Converter**: Instantly turn iPhone photos into high-quality JPG/PNG.
+- **🤖 AI Background Removal**: Powered by `rembg`. 100% offline and private.
+- **📰 PDF to Image**: Extract every page of a PDF as individual high-res images.
+- **🖼️ Universal Conversion**: Support for 70+ formats (HEIC, PSD, EPS, TIFF, etc.).
+- **⚙️ Pro Controls**: Fine-tune quality, dimensions, and lossless settings.
+- **🚀 Parallel Processing**: Multi-core optimization for lightning-fast batch jobs.
+- **🛠️ Automation**: Scriptable CLI with JSON output for CI/CD integration.
+- **📦 Cross-Platform**: Runs everywhere (Linux, Mac, Windows, Raspberry Pi).
 
 ___
 
-## 💼 Common Use Cases
+## 💼 Use Cases
 
-### For Photographers
-- **Batch compress wedding photos**: Reduce file sizes by 70% without visible quality loss before client delivery.
-- **Convert RAW to Web formats**: Process thousands of images for portfolio websites or online galleries.
-- **HEIC compatibility**: Convert iPhone photos to JPG for universal client compatibility.
-
-### For Developers
-- **Optimize web assets**: Compress images for faster page loads and better Core Web Vitals scores.
-- **CI/CD integration**: Automate image optimization in build pipelines using the CLI.
-- **Thumbnail generation**: Batch-resize product images for e-commerce platforms.
-
-### For Privacy-Conscious Users
-- **Process sensitive documents**: Compress legal, medical, or confidential images without cloud uploads.
-- **Family photo management**: Organize and optimize personal galleries on your NAS or home server.
-- **Offline workflows**: Run completely air-gapped for maximum data security.
-
-### For Enterprises
-- **GDPR/HIPAA compliance**: Keep image processing on-premises to meet regulatory requirements.
-- **Cost optimization**: Eliminate per-image fees from cloud services. Process unlimited images on your own infrastructure.
-- **Custom workflows**: Deploy on internal infrastructure with full control over processing logic.
+- **Photographers**: Batch compress galleries by 70%+ without quality loss.
+- **Developers**: Optimize web assets for better PageSpeed & Core Web Vitals.
+- **Privacy Users**: Process sensitive documents and family photos offline.
+- **Enterprises**: GDPR/HIPAA compliant processing on your own infra.
 
 ____  
 
@@ -191,7 +147,7 @@ If you find this tool useful, consider supporting its development.
 
 ## 📓 Release Notes & License
 
-- **Release Notes**: [Read Release Notes](frontend/public/release-notes.md)
+- **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes.html)
 - **License**: [GPL-3.0 License](LICENSE)
 
 
