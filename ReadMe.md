@@ -380,6 +380,17 @@ That means the images pass automated tests, but not every architecture has been 
 - **Run fully offline**
 - **Docker isolation**: Run with read-only volumes or network-disabled mode for extra peace of mind.
 
+### 🏢 Enterprise / High Security Setup (No Internet Access)
+
+For environments requiring **strict network isolation** (e.g., air-gapped systems, high-privacy compliance), I provide a specialized Docker Compose configuration.
+
+This setup:
+1.  **Block completely** internet access for the application container.
+2.  Maintains **local access** via a secure proxy bridge.
+3.  Is **self-contained** in a single file.
+
+👉 **[View the Configuration File (docker-compose-no-internet.yml)](docker-compose-no-internet.yml)**
+
 ---
 
 ## 🤝 Contribute
