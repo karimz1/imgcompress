@@ -3,6 +3,9 @@ site_url: https://karimz1.github.io/imgcompress/
 repo_url: https://github.com/karimz1/imgcompress
 repo_name: karimz1/imgcompress
 edit_uri: blob/main/docs/
+copyright: >
+  imgcompress — for everyone who values privacy. 
+  Fully open source on <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a>.
 
 use_directory_urls: false
 
@@ -32,7 +35,10 @@ theme:
     - search.highlight
     - content.action.view
     - content.action.edit
+    - content.code.copy
 
+extra_css:
+  - stylesheets/extra.css
 
 plugins:
   - search

@@ -1,0 +1,22 @@
+/* Hide the left navigation sidebar on all pages */
+.md-sidebar--primary {
+  display: none;
+}
+
+/* Optional: Center the content more since the sidebar is gone */
+.md-content {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.md-source__repository {
+  color: rgb(96, 239, 168);
+}
+
+.github_lin_footer{
+  color: rgb(96, 239, 168) !important;
+}
+
+.github_lin_footer:hover{
+  color: rgb(45, 172, 113) !important;
+}
