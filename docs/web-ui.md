@@ -23,7 +23,7 @@ The Web UI is the primary way to interact with imgcompress. It provides a user-f
 
 ## 🧠 Local AI Background Removal
 
-Remove backgrounds instantly without sending data to the cloud.
+Remove backgrounds instantly using the local AI model in imgcompress (powered using [rembg](https://github.com/danielgatis/rembg)).
 
 !!! note
     This feature is available when **PNG** is selected as the output format.
