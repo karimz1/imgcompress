@@ -16,24 +16,20 @@
 
 - **🔒 Privacy-First & 100% Local**: All processing happens on your device.
 - **💰 Unlimited & Free**: No subscriptions or API limits.
-- **🖼️ Universal Support**: 70+ formats including HEIC, WebP, PSD, and PDF.
-- **🤖 Local AI**: Background removal with total data sovereignty.
+- **🖼️ Universal Support**: 70+ formats including HEIC, HEIF, WebP, PSD, and PDF.
+- **🤖 Local AI**: Background removal all locally.
 - **📦 Cross-Platform**: Deploy anywhere with Docker.
-
 
 
 ---
 
-### 🧠 New Local AI Background Removal (Preview)
+### 🧠 Local AI Background Removal Result:
 
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="400" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="400" alt="Background removed image"/> |
 
-
 > Processed locally using on-device AI models. No data ever leaves your network.
->
-> 🧠 **[How to use Local AI Background Removal](https://karimz1.github.io/imgcompress/web-ui.html#local-ai-background-removal)**
 >
 > 📸 **Source of original image:** [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) — used for demonstration purposes.
 
@@ -41,7 +37,7 @@ ___
 
 ### 🖥️ Web UI Preview
 
-For a detailed guide on using the Web Interface, features, and workflows, please visit the **[Web UI Documentation](https://karimz1.github.io/imgcompress/web-ui.html)**.
+For a detailed guide on using the Web Interface in imgcompress, please visit the **[How to Use the Web UI](https://karimz1.github.io/imgcompress/web-ui.html)**.
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
@@ -49,40 +45,21 @@ For a detailed guide on using the Web Interface, features, and workflows, please
 | **2** | <a href="images/ui-example/2.jpg"><img src="images/ui-example/2.jpg" width="240"/></a> | **Processing**<br/>Images are processed locally with live progress feedback. |
 | **3** | <a href="images/ui-example/3.jpg"><img src="images/ui-example/3.jpg" width="240"/></a> | **Download Results**<br/>Download files individually or as a ZIP archive. |
 
-___
-  
 
-- [imgcompress — Privacy-First Image Optimizer: Compress, Convert & AI Background Removal](#imgcompress---privacy-first-image-optimizer-compress-convert--ai-background-removal-docker)
-  - [🏁 Getting Started](#-getting-started)
-  - [✨ Key Features & Capabilities](#-key-features--capabilities)
-  - [💼 Use Cases](#-use-cases)
-  - [🔖 Choosing Your Version](#-choosing-your-version)
-  - [🛠️ Scriptable CLI](#️-scriptable-cli--advanced-guide)
-  - [🔒 Privacy & Security](#-privacy--security)
-  - [🤝 Contribute](#-contribute)
-  - [❤️ Donate](#️-donate)
 
 ## 🏁 Getting Started
 
-To get up and running with **imgcompress** in seconds, please follow our:
+To get up and running with **imgcompress** in seconds, please follow:
+**[Installation Guide](https://karimz1.github.io/imgcompress/installation.html)**
 
-👉 **[Quick Start & Installation Guide](https://karimz1.github.io/imgcompress/installation.html)**
-
-This guide covers:
-- `docker compose` and `docker run` setup.
-- Updating to the latest version.
-- Choosing the right version tag.
-
-
-___
 
 ## ✨ Key Features & Capabilities
 
 - **📱 HEIC/HEIF Converter**: Instantly turn iPhone photos into high-quality JPG/PNG.
 - **🤖 AI Background Removal**: Powered by `rembg`. 100% offline and private.
 - **📰 PDF to Image**: Extract every page of a PDF as individual high-res images.
-- **🖼️ Universal Conversion**: Support for 70+ formats (HEIC, PSD, EPS, TIFF, etc.).
-- **⚙️ Pro Controls**: Fine-tune quality, dimensions, and lossless settings.
+- **🖼️ Universal Conversion**: Support for 70+ formats (HEIC, HEIF, PSD, EPS, TIFF, etc.).
+- **⚙️ Pro Controls**: Fine-tune quality, width dimensions, and lossless settings.
 - **🚀 Parallel Processing**: Multi-core optimization for lightning-fast batch jobs.
 - **🛠️ Automation**: Scriptable CLI with JSON output for CI/CD integration.
 - **📦 Cross-Platform**: Runs everywhere (Linux, Mac, Windows, Raspberry Pi).
@@ -92,59 +69,15 @@ ___
 ## 💼 Use Cases
 
 - **Photographers**: Batch compress galleries by 70%+ without quality loss.
-- **Developers**: Optimize web assets for better PageSpeed & Core Web Vitals.
+- **Developers**: Optimize web assets for better PageSpeed.
 - **Privacy Users**: Process sensitive documents and family photos offline.
-- **Enterprises**: GDPR/HIPAA compliant processing on your own infra.
+- **Enterprises**: GDPR/HIPAA compliant processing on your hardware, no data share.
 
-____  
-
-## 🔖 Choosing Your Version
-
-We offer several versions (tags) of the Docker image depending on your needs (Stable, Nightly, or Pinned).
-
-👉 **[See the Version Selection Guide](https://karimz1.github.io/imgcompress/installation.html#choosing-your-version)**
-
----
-
-
-## 🛠️ Scriptable CLI — Advanced Guide
-
-For advanced usage, automation, and CI/CD integration, please refer to the **[CLI & Automation Documentation](https://karimz1.github.io/imgcompress/cli.html)**.
-
-It covers:
-- Single file and batch processing.
-- AI background removal via CLI.
-- JSON output for machine parsing.
-
-___
-
-
-
-## 🔒 Privacy & Security
-
-**Privacy First.** 100% local processing, no telemetry, no tracking.
-
-👉 **[Read the Full Privacy Policy](https://karimz1.github.io/imgcompress/privacy.html)** (Includes Enterprise Air-Gapped Setup)
-
----
-
-## 🤝 Contribute
-
-We welcome contributions! Please see our **[Contribution Guide](https://karimz1.github.io/imgcompress/contributing.html)**.
-
----
-
-## ❤️ Donate
-
-If you find this tool useful, consider supporting its development.
-
-[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://paypal.me/KarimZouine972)
-
----
 
 ## 📓 Release Notes & License
 
 - **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes.html)
+- The current release and past releases can be found here: https://github.com/karimz1/imgcompress/releases 
 - **License**: [GPL-3.0 License](LICENSE)
 
 
