@@ -33,7 +33,7 @@
 
 > Processed locally using on-device AI models. No data ever leaves your network.
 >
-> 👉 **[How to use Local AI Background Removal](https://karimz1.github.io/imgcompress/web-ui.html#local-ai-background-removal)**
+> 🧠 **[How to use Local AI Background Removal](https://karimz1.github.io/imgcompress/web-ui.html#local-ai-background-removal)**
 >
 > 📸 **Source of original image:** [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) — used for demonstration purposes.
 
