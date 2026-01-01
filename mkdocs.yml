@@ -2,6 +2,7 @@ site_name: ImgCompress Documentation
 site_url: https://karimz1.github.io/imgcompress/
 repo_url: https://github.com/karimz1/imgcompress
 repo_name: karimz1/imgcompress
+edit_uri: blob/main/docs/
 
 use_directory_urls: false
 
@@ -11,8 +12,8 @@ theme:
   favicon: images/favicon.ico
   palette: 
     - scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: black
+      accent: black
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -29,7 +30,9 @@ theme:
     - navigation.expand
     - search.suggest
     - search.highlight
-    - content.code.copy
+    - content.action.view
+    - content.action.edit
+
 
 plugins:
   - search
