@@ -68,8 +68,8 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Installation: installation.md
-  - Web UI: web-ui.md
-  - CLI & Automation: cli.md
+  - How to Use: web-ui.md
+  - CLI & Automation: cli.md  
   - Privacy: privacy.md
   - Release Notes: release-notes.md
   - Contribute: contributing.md

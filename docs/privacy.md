@@ -1,28 +1,21 @@
 # Privacy & Security
 
-## 🔒 Privacy-First Design
+imgcompress is engineered with a strict "Privacy by Default" architecture. I believe that privacy is not just a feature, but a fundamental technical requirement.
 
-imgcompress is built with privacy as a primary feature, not an afterthought.
 
-- **100% Local Processing**: No uploads, no telemetry. Your files never leave your machine.
-- **No Telemetry**: The container has zero outbound analytics or tracking code.
-- **Open-Source**: Fully auditable code base.
-- **Offline Capable**: Works perfectly without an internet connection.
+- All processing is performed strictly on your hardware. Your files are never uploaded, buffered, or transmitted to any external server.
 
-### Docker Isolation
+- **Open & Auditable**: My entire source code is open for professional security audits, ensuring complete transparency into how your data is handled.
 
-You can run imgcompress with read-only volumes or in network-disabled mode for extra peace of mind.
 
-## 🏢 Enterprise / High Security Setup
+## 🛡️ Zero-Networking (High-Security)
 
-For environments requiring **strict network isolation** (e.g., air-gapped systems, high-privacy compliance), we provide a specialized Docker Compose configuration.
+For air-gapped systems or HIPAA/GDPR compliance, I provide a **Zero-Networking** configuration that hard-blocks all outbound traffic while maintaining local browser access.
 
-This setup:
-1.  **Block completely** internet access for the application container.
-2.  Maintains **local access** via a secure proxy bridge.
-3.  Is **self-contained** in a single file.
+!!! note "Advanced Setup Only"
+    This configuration requires manual maintenance of Docker networking. For standard privacy-focused use, I recommend following the [Quick Start Guide](installation.md#quick-start).
 
-👉 **`docker-compose-no-internet.yml`**
+Example: **`docker-compose-no-internet.yml`**
 
 ```yaml
 --8<-- "docker-compose-no-internet.yml"

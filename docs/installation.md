@@ -1,6 +1,6 @@
-# Installation & Quick Start
+# Installation
 
-This guide covers setting up the **imgcompress Web UI** using Docker. For CLI usage, see the [Scriptable CLI](cli.md) guide.
+This guide covers setting up the [imgcompress Web UI](web-ui.md) using Docker.
 
 ## 🚀 Quick Start
 
@@ -87,7 +87,7 @@ The available tags are:
 The safest and most reliable choice.  
 Every latest release passes **QA checks by the author (Karim Zouine)** before publication.
 
-### **Pinned Release (for example: `0.2.8`)**
+### **Pinned Release (for example: `0.3.1`)**
 A frozen version that **never updates**.  
 Ideal for locked-down deployments or staying on a version you trust.
 
@@ -108,3 +108,17 @@ Includes the newest changes and dependency updates.
 
     All platforms above are built and run in CI with QEMU multi-arch emulation and a GitHub Actions matrix.  
     That means the images pass automated tests, but not every architecture has been manually tried on physical hardware.
+
+___
+
+## 🛡️ Isolated & High-Security Deployment (Zero-Networking)
+
+For enterprises, government agencies, or individuals requiring strict data isolation (e.g., air-gapped systems or HIPAA/GDPR compliance), imgcompress supports a **Zero-Networking** mode.
+
+This specialized setup:
+
+- **Disables all outbound traffic** from the application container.
+- **Protects against data exfiltration** at the infrastructure level.
+- **Maintains local accessibility** via a secure internal bridge.
+
+👉 **View the [Zero-Networking / Air-Gapped Setup](privacy.md#zero-networking-air-gapped-setup) guide.**
