@@ -7,17 +7,9 @@ This guide covers setting up the [imgcompress Web UI](web-ui.md) using Docker.
 ### Using `docker compose`
 
 ```yaml
-services:
-  imgcompress:
-    image: karimz1/imgcompress:latest
-    container_name: imgcompress
-    restart: always
-    ports:
-      - "3001:5000"                     # HOST:CONTAINER — change 3001 if needed
-    environment:
-      - DISABLE_LOGO=true               # Optional: disable mascot
-      - DISABLE_STORAGE_MANAGEMENT=true # Optional: disable the Storage Management
+--8<-- "docker-compose.yml"
 ```
+
 Start:
 ```bash
 docker compose up -d 
