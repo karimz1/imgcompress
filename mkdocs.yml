@@ -33,7 +33,6 @@ theme:
     - navigation.expand
     - search.suggest
     - search.highlight
-    - content.action.view
     - content.action.edit
     - content.code.copy
     - footer.revision
