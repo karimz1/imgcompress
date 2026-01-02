@@ -85,7 +85,7 @@ docker run --rm \
 ```
 
 !!! TIP
-    Automation Tip: Use the ``--json-output`` flag to receive structured logs. This is perfect for piping output into ``jq`` to trigger follow-up actions in your scripts.
+    Automation Tip: Use the ``--json-output`` flag at the end to receive structured logs. This is perfect for piping output into ``jq`` to trigger follow-up actions in your scripts.
 
 ------
 
