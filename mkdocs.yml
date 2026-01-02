@@ -36,6 +36,7 @@ theme:
     - content.action.view
     - content.action.edit
     - content.code.copy
+    - footer.revision
 
 extra_css:
   - stylesheets/extra.css
@@ -43,6 +44,10 @@ extra_css:
 plugins:
   - search
   - glightbox
+  - git-revision-date-localized:
+      type: datetime
+      timezone: UTC
+      enable_creation_date: true
 
 extra_javascript:
   - javascripts/extra.js
