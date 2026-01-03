@@ -115,8 +115,8 @@ importers:
         specifier: 16.1.1
         version: 16.1.1(@typescript-eslint/parser@8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       pnpm:
-        specifier: ^10.26.1
-        version: 10.26.2
+        specifier: ^10.27.0
+        version: 10.27.0
       tailwindcss:
         specifier: ^4.1.18
         version: 4.1.18
@@ -2160,8 +2160,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  pnpm@10.26.2:
-    resolution: {integrity: sha512-DjCP8gBfx0EDZvFU9iX2YxqysWsdLnAjhETdaunWMKhILZKkURRN68SSQWiW7Rb3sRSobsaLhASyRDhp5o/9pg==}
+  pnpm@10.27.0:
+    resolution: {integrity: sha512-ctaZ2haxF5wUup5k3HHJpAmIy9xlwmTLDkidt96RfyDc9NZNhyNiXylpulLUt+KhFwaC2awqXcrqq3MrfhbwSg==}
     engines: {node: '>=18.12'}
     hasBin: true
 
@@ -4672,7 +4672,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  pnpm@10.26.2: {}
+  pnpm@10.27.0: {}
 
   possible-typed-array-names@1.1.0: {}
 
