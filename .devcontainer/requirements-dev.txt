@@ -3,7 +3,7 @@ coverage==7.13.1
 exceptiongroup==1.3.1
 iniconfig==2.3.0
 packaging==25.0
-pillow==12.0.0
+pillow==12.1.0
 pluggy==1.6.0
 pycparser==2.23
 pyheif==0.8.0
