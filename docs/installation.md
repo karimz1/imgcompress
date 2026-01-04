@@ -73,6 +73,8 @@ Keep your instance secure and up-to-date.
 
 A version that **never changes**. Ideal for production environments requiring strict reproducibility.
 
+[View all available Tags](https://hub.docker.com/r/karimz1/imgcompress/tags)
+
 ```bash
 docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:0.3.1
 ```
