@@ -1,27 +1,23 @@
-from datetime import datetime, timezone
 import os
-import time
 import shutil
 import tempfile
-import traceback
-from typing import Optional
+import time
+from datetime import datetime, timezone
 
 from flask import Blueprint, request, jsonify, send_from_directory
 
-from backend.image_converter.core.internals.utilities import Result, has_internet
-from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.domain.image_resizer import ImageResizer
-from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
-from backend.image_converter.presentation.web.parse_services import extract_form_data
-
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
-from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.application.payload_expander_factory import create_payload_expander
-
+from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
+from backend.image_converter.core.internals.utilities import has_internet
+from backend.image_converter.domain.image_resizer import ImageResizer
+from backend.image_converter.infrastructure.local_storage import LocalStorage
+from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.presentation.web.parse_services import extract_form_data
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
+from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
-from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
 
 api_blueprint = Blueprint("api", __name__)
 
