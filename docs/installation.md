@@ -1,10 +1,16 @@
 # Installation
 
-Run the [**imgcompress Web UI**](web-ui.md) using Docker.  
-No local dependencies, no mess, just a high-performance image optimization suite ready in seconds.
+Run the [**imgcompress Web App**](web-ui.md) using Docker.  
+No local dependencies, no configuration clutter. Just a high-performance image optimization tool ready in seconds.
 
 ## 🚀 Quick Start (Recommended)
 
+!!! info "Fresh Install?" 
+    If you have used imgcompress before, ensure you have the newest version by running:
+
+    ````bash
+    docker pull karimz1/imgcompress:latest
+    ````
 === ":material-docker: Docker Compose (Preferred)"
 
     Best choice for **long-running setups** and easy upgrades.
@@ -20,17 +26,12 @@ No local dependencies, no mess, just a high-performance image optimization suite
     3.  👉 **[Access the UI](#accessing-the-ui)**
 
 === ":material-console: Single Container (`docker run`)"
-
-    Ideal for quick testing or lightweight environments.
-
+    **Standard Mode (Default — Mascot Enabled)**
     ```bash
-    docker run -d \
-      --name imgcompress \
-      -p 3001:5000 \
-      karimz1/imgcompress:latest
+    docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
     ```
 
-    !!! tip "Pro Tip: Minimal Mode"
+    ??? abstract "Minimal Mode (Hide Mascot)"
         To disable the mascot and use a cleaner, text-only interface, add `-e DISABLE_LOGO=true` to your command:
         ```bash
         docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest
