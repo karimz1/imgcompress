@@ -44,8 +44,8 @@ interface FileConversionFormProps {
   targetSizeMB: string;
   setTargetSizeMB: (val: string) => void;
 
-  jpegMode: "quality" | "size";
-  setJpegMode: (val: "quality" | "size") => void;
+  compressionMode: "quality" | "size";
+  setCompressionMode: (val: "quality" | "size") => void;
 
   useRembg: boolean;
   setUseRembg: (val: boolean) => void;
@@ -64,13 +64,13 @@ interface FileConversionFormProps {
 
 const tooltipContent = {
   outputFormat:
-    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
   quality:
-    "Adjust the JPEG quality (100 gives the best quality, lower values reduce file size).",
+    "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG and AVIF.",
   resizeWidth:
     "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
   targetSize:
-    "Set an optional maximum output size (in MB). Applies to JPEG output only.",
+    "Set an optional maximum output size (in MB). Applies to JPEG and AVIF output.",
   rembg:
     "Local AI removes background (no internet required).\nSlower processing, may show small edge artifacts.",
 };
@@ -93,8 +93,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   onSubmit,
   targetSizeMB,
   setTargetSizeMB,
-  jpegMode,
-  setJpegMode,
+  compressionMode,
+  setCompressionMode,
   useRembg,
   setUseRembg,
   getRootProps,
@@ -244,6 +244,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           <SelectContent className={selectSurface}>
             <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
             <SelectItem value="png">PNG (preserves transparency)</SelectItem>
+            <SelectItem value="avif">AVIF (best compression & quality)</SelectItem>
             <SelectItem value="ico">ICO (preserves transparency)</SelectItem>
           </SelectContent>
         </Select>
@@ -254,24 +255,26 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
-      {/* JPEG controls mode */}
-      {outputFormat === "jpeg" && (
+      {/* JPEG/AVIF controls mode */}
+      {(outputFormat === "jpeg" || outputFormat === "avif") && (
         <div className="space-y-2">
-          <Label className="text-sm">JPEG settings mode</Label>
+          <Label className="text-sm">{outputFormat.toUpperCase()} settings mode</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
-              variant={jpegMode === "quality" ? "default" : "outline"}
+              variant={compressionMode === "quality" ? "default" : "outline"}
               disabled={isLoading}
-              onClick={() => setJpegMode("quality")}
+              onClick={() => setCompressionMode("quality")}
+              data-testid="compression-mode-quality-btn"
             >
               Set by Quality
             </Button>
             <Button
               type="button"
-              variant={jpegMode === "size" ? "default" : "outline"}
+              variant={compressionMode === "size" ? "default" : "outline"}
               disabled={isLoading}
-              onClick={() => setJpegMode("size")}
+              onClick={() => setCompressionMode("size")}
+              data-testid="compression-mode-size-btn"
             >
               Set by File Size
             </Button>
@@ -279,8 +282,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* PNG background removal */}
-      {outputFormat === "png" && (
+      {/* PNG/AVIF background removal */}
+      {(outputFormat === "png" || outputFormat === "avif") && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -313,15 +316,15 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* Quality for JPEG */}
-      {outputFormat === "jpeg" && jpegMode === "quality" && (
+      {/* Quality for JPEG/AVIF */}
+      {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
               htmlFor="quality"
               className="text-sm flex items-center gap-1"
             >
-              Quality (for JPEG only)
+              Quality
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -365,15 +368,15 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* Max file size (MB) - only for JPEG in size mode */}
-      {outputFormat === "jpeg" && jpegMode === "size" && (
+      {/* Max file size (MB) - only for JPEG/AVIF in size mode */}
+      {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
               htmlFor="targetSizeMBRange"
               className="text-sm flex items-center gap-1"
             >
-              Max file size (for JPEG only)
+              Max file size
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -428,7 +431,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </div>
 
           <p className={cn("text-xs", subtleText)}>
-            It will try to keep each JPEG at or below this size by automatically adjusting quality.
+            It will try to keep each {outputFormat.toUpperCase()} at or below this size by automatically adjusting quality.
           </p>
         </div>
       )}

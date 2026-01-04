@@ -3,7 +3,7 @@ import argparse
 def parse_arguments(argv=None) -> argparse.Namespace:
     """Parse command-line arguments for the image conversion script."""
     parser = argparse.ArgumentParser(
-        description="Convert images to JPEG or PNG (optionally resizing to a given width)."
+        description="Convert images to JPEG, PNG, or AVIF (optionally resizing to a given width)."
     )
     parser.add_argument(
         "source",
@@ -28,14 +28,14 @@ def parse_arguments(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--format",
         type=str,
-        choices=["jpeg", "png"],
+        choices=["jpeg", "png", "avif"],
         default="jpeg",
-        help="Output format: 'jpeg' or 'png' (default: jpeg)"
+        help="Output format: 'jpeg', 'png', or 'avif' (default: jpeg)"
     )
     parser.add_argument(
         "--remove-background",
         action="store_true",
-        help="Remove image background using local AI (only works with --format png)"
+        help="Remove image background using local AI (works with --format png or --format avif)"
     )
     parser.add_argument(
         "--debug",
