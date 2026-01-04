@@ -1,7 +1,7 @@
 import os
 import unittest
 from io import StringIO
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.infrastructure.logger import Logger
 

@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result
 
 
 class PdfPageExtractor:

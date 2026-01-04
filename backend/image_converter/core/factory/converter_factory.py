@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Type, Callable, Any
 from backend.image_converter.core.factory.ico_converter import IcoConverter
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.enums.image_format import ImageFormat
@@ -17,14 +17,20 @@ class ImageConverterFactory:
         logger: Logger,
         use_rembg: bool = False
     ) -> IImageConverter:
-        if image_format == ImageFormat.JPEG:
-            return JpegConverter(quality=quality, logger=logger)
-        elif image_format == ImageFormat.PNG and use_rembg:
-            from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
-            return RembgPngConverter(logger=logger)
-        elif image_format == ImageFormat.PNG:
-            return PngConverter(logger=logger)
-        elif image_format == ImageFormat.ICO:
-            return IcoConverter(logger=logger)
-        else:
-            raise ConversionError(f"Unsupported output format: {image_format.value}")
+        
+        match (image_format, use_rembg):
+            case (ImageFormat.JPEG, _):
+                return JpegConverter(quality=quality, logger=logger)
+            
+            case (ImageFormat.PNG, True):
+                from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
+                return RembgPngConverter(logger=logger)
+            
+            case (ImageFormat.PNG, False):
+                return PngConverter(logger=logger)
+            
+            case (ImageFormat.ICO, _):
+                return IcoConverter(logger=logger)
+            
+            case _:
+                raise ConversionError(f"Unsupported output format: {image_format.value}")

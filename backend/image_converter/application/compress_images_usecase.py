@@ -54,7 +54,7 @@ class CompressImagesUseCase:
 
                         def encoder(q: int, d: bytes) -> bytes:
                             converter = self.converter_factory.create_converter(ImageFormat.JPEG, q, self.logger)
-                            return converter.encode_bytes(d)
+                            return converter.encode_to_bytes(d)
 
                         q, out, size = find_best_quality_under_target(encoder, data, target_bytes)
 
