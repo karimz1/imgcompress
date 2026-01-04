@@ -1,5 +1,6 @@
 ## v0.4.0 — 2026-01-04
 - Feature: Support AVIF as Output Format [#453](https://github.com/karimz1/imgcompress/issues/453)
+- Request: Add a Documentation button to the UI [#457](https://github.com/karimz1/imgcompress/issues/457)
 - Internal: Clean Up in Backend [#454](https://github.com/karimz1/imgcompress/issues/454)
 
 
