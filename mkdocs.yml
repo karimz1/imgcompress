@@ -67,6 +67,8 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets:
       base_path: ["."]
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.superfences
   - attr_list
   - pymdownx.emoji:
