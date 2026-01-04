@@ -13,6 +13,7 @@ export function HelpButton() {
       target="_blank"
       rel="noopener noreferrer"
       className="no-underline"
+      data-testid="how-to-use-btn"
     >
       <Button
         variant="secondary"
