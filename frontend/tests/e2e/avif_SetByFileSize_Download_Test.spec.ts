@@ -15,28 +15,27 @@ import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
 
 /**
- * E2E: JPEG settings mode → Set by File Size
- * - Select JPEG output
+ * E2E: AVIF settings mode → Set by File Size
+ * - Select AVIF output
  * - Switch to "Set by File Size" mode
- * - Set a small target (e.g., 0.20 MB)
+ * - Set a small target (e.g., 0.10 MB)
  * - Convert and then verify that a download link appears and downloaded file
  *   is present and does not exceed the selected target size.
  */
 
- test('JPEG Set by File Size mode produces downloadable file under target size', async ({ page }) => {
+ test('AVIF Set by File Size mode produces downloadable file under target size', async ({ page }) => {
   await page.goto('/');
 
   const files: ImageFileDto[] = [new ImageFileDto('pexels-pealdesign-28594392.jpg')];
-  const targetMB = 0.20;
+  const targetMB = 0.10;
 
   const targetBytes = Math.round(targetMB * 1024 * 1024);
 
-  await setOutputFormatAsync(page, 'JPEG');
+  await setOutputFormatAsync(page, 'AVIF');
   await uploadFilesToDropzoneAsync(page, files);
   await assertFilesPresentInDropzoneAsync(page, files);
 
-
-  // Switch JPEG settings mode to Set by File Size
+  // Switch AVIF settings mode to Set by File Size
   await switchCompressionModeAsync(page, 'size');
 
   await setMaxSizeInMBAsync(page, targetMB);
@@ -54,7 +53,7 @@ import { ImageFileDto } from './utls/ImageFileDto';
 
   // Assert size is <= targetBytes (allow a small overhead of a few bytes)
   const stat = fs.statSync(downloadedPath);
-  expect(stat.size).toBeLessThanOrEqual(targetBytes + 2048); // +2KB tolerance for headers/metadata
+  expect(stat.size).toBeLessThanOrEqual(targetBytes + 4096); // +4KB tolerance
 
-  expect(path.extname(downloadedPath).toLowerCase()).toBe('.jpg');
+  expect(path.extname(downloadedPath).toLowerCase()).toBe('.avif');
 });

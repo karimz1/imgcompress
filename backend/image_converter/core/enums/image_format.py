@@ -5,6 +5,7 @@ class ImageFormat(Enum):
     JPEG = "JPEG"
     PNG = "PNG"
     ICO = "ICO"
+    AVIF = "AVIF"
 
     @classmethod
     def from_string(cls, value: str) -> "ImageFormat":
@@ -40,4 +41,5 @@ IMAGE_FORMAT_EXTENSIONS = {
     "JPEG": ".jpg",
     "PNG": ".png",
     "ICO": ".ico",
+    "AVIF": ".avif",
 }

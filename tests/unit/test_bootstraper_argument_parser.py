@@ -19,7 +19,7 @@ def test_cli_help_is_forwarded_to_cli_parser(monkeypatch, capsys):
     output = capsys.readouterr().out
     assert "--quality QUALITY" in output
     assert "--width WIDTH" in output
-    assert "--format {jpeg,png}" in output
+    assert "--format {jpeg,png,avif}" in output
     assert "--json-output" in output
 
 

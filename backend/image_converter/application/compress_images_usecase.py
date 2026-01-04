@@ -48,13 +48,13 @@ class CompressImagesUseCase:
                 try:
                     data = self._resize_if_needed(payload.data, req.width)
 
-                    if req.target_size and req.image_format == ImageFormat.JPEG:
+                    if req.target_size and req.image_format in [ImageFormat.JPEG, ImageFormat.AVIF]:
                         target = TargetSize(req.target_size.bytes)
                         target_bytes = target.soft_limit
 
                         def encoder(q: int, d: bytes) -> bytes:
-                            converter = self.converter_factory.create_converter(ImageFormat.JPEG, q, self.logger)
-                            return converter.encode_bytes(d)
+                            converter = self.converter_factory.create_converter(req.image_format, q, self.logger)
+                            return converter.encode_to_bytes(d)
 
                         q, out, size = find_best_quality_under_target(encoder, data, target_bytes)
 

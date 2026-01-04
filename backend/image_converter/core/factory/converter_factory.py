@@ -32,5 +32,13 @@ class ImageConverterFactory:
             case (ImageFormat.ICO, _):
                 return IcoConverter(logger=logger)
             
+            case (ImageFormat.AVIF, True):
+                from backend.image_converter.core.factory.rembg_avif_converter import RembgAvifConverter
+                return RembgAvifConverter(quality=quality, logger=logger)
+            
+            case (ImageFormat.AVIF, False):
+                from backend.image_converter.core.factory.avif_converter import AvifConverter
+                return AvifConverter(quality=quality, logger=logger)
+            
             case _:
                 raise ConversionError(f"Unsupported output format: {image_format.value}")

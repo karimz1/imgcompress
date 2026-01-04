@@ -55,3 +55,16 @@ class BaseImageConverter(IImageConverter):
             output_buffer = BytesIO()
             image.save(output_buffer, format=output_format)
             return output_buffer.getvalue()
+
+    def _encode_to_avif(self, image_data: bytes, quality: int) -> bytes:
+        """
+        Encodes image data to AVIF format with the specified quality.
+        Ensures the image is in a compatible mode (RGB or RGBA).
+        """
+        with Image.open(BytesIO(image_data)) as img:
+            if img.mode not in ("RGB", "RGBA"):
+                img = img.convert("RGBA")
+
+            buffer = BytesIO()
+            img.save(buffer, format="AVIF", quality=quality)
+            return buffer.getvalue()

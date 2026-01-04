@@ -20,7 +20,10 @@ const selectors = {
   outputFormatSelect: '#outputFormat',
   storageManagementButton: '[data-testid="storage-management-btn"]',
   storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]',
-  rembgSwitch: '[data-testid="rembg-switch"]'
+  rembgSwitch: '[data-testid="rembg-switch"]',
+  supportedFormatsBtn: '[data-testid="supported-formats-btn"]',
+  compressionModeQualityBtn: '[data-testid="compression-mode-quality-btn"]',
+  compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]'
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
@@ -142,9 +145,20 @@ export async function setResizeWidthAsync(page: Page, width: number): Promise<vo
 
 
 export async function uploadFilesToDropzoneAsync(page: Page, fileNames: ImageFileDto[]): Promise<void> {
+    // Wait for supported formats to be loaded to avoid race condition in onDrop
+    const supportedFormatsBtn = page.locator(selectors.supportedFormatsBtn);
+    await expect(supportedFormatsBtn).not.toContainText('(…)');
+
     const dropzoneInput = page.locator(selectors.dropzoneInput);
     const filePaths = await Promise.all(fileNames.map(GetFullFilePathOfImageFileAsync));
     await dropzoneInput.setInputFiles(filePaths);
+}
+
+export async function switchCompressionModeAsync(page: Page, mode: 'quality' | 'size'): Promise<void> {
+    const selector = mode === 'quality' ? selectors.compressionModeQualityBtn : selectors.compressionModeSizeBtn;
+    const modeBtn = page.locator(selector);
+    await expect(modeBtn).toBeVisible();
+    await modeBtn.click();
 }
 
 export async function clickDownloadZipButtonAndGetUrlAsync(page: Page): Promise<string> {
