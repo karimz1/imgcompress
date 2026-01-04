@@ -9,7 +9,7 @@ from typing import Optional
 from flask import Blueprint, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 
-from backend.image_converter.core.internals.utls import Result, supported_extensions,  has_internet
+from backend.image_converter.core.internals.utilities import Result, supported_extensions,  has_internet
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.domain.image_resizer import ImageResizer

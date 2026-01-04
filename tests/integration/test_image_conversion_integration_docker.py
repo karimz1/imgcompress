@@ -3,7 +3,7 @@ import pytest
 import subprocess
 import shlex
 import shutil
-from backend.image_converter.core.internals.utls import is_file_supported
+from backend.image_converter.core.internals.utilities import is_file_supported
 
 from tests.test_utils import (
     validate_image_dimensions,

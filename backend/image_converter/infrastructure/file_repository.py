@@ -2,7 +2,7 @@ import os
 import traceback
 from typing import Callable, TypeVar
 
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result
 
 T = TypeVar("T")
 

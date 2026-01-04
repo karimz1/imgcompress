@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.file_manager import FileManager
-from backend.image_converter.core.image_convertsion_processor import ImageConversionProcessor
+from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.enums.image_format import ImageFormat
 from tests.test_utils import capture_stdout, capture_logger_output

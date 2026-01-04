@@ -1,7 +1,7 @@
 import sys
 import traceback
 from backend.image_converter.presentation.cli.argument_parser import parse_arguments
-from backend.image_converter.core.image_convertsion_processor import ImageConversionProcessor
+from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.infrastructure.logger import Logger
 

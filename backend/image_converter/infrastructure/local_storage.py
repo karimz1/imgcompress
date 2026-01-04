@@ -3,7 +3,7 @@ import traceback
 from dataclasses import dataclass
 from typing import Iterable
 
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result
 
 @dataclass
 class FileItem:

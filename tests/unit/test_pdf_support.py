@@ -3,7 +3,7 @@ from io import BytesIO
 from PIL import Image
 import pytest
 
-from backend.image_converter.core.internals.utls import (
+from backend.image_converter.core.internals.utilities import (
     Result,
     supported_extensions,
     EXTRA_SUPPORTED_EXTENSIONS,

@@ -21,7 +21,7 @@ def test_rembg_is_lazy_loaded(monkeypatch):
     assert "rembg" not in sys.modules
     monkeypatch.setitem(sys.modules, "rembg", MagicMock())
     
-    converter._get_session()
+    converter._get_background_removal_session()
     assert "rembg" in sys.modules
     
 def test_pdfium_is_lazy_loaded(monkeypatch):

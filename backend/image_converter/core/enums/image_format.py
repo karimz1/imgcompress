@@ -1,5 +1,5 @@
 from enum import Enum
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result
 
 class ImageFormat(Enum):
     JPEG = "JPEG"
