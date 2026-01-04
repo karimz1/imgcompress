@@ -1,22 +1,19 @@
 from io import BytesIO
-import traceback
 from typing import Optional
-
 from PIL import Image
 
-from backend.image_converter.application.dtos import ConversionDetails
-from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.rembg_config import load_rembg_model_name
 from backend.image_converter.core.interfaces.base_converter import BaseImageConverter
 
-class RembgPngConverter(BaseImageConverter):
+class RembgAvifConverter(BaseImageConverter):
     """
-    Converts raw image bytes to a PNG with background removed using rembg.
+    Converts raw image bytes to an AVIF with background removed using rembg.
     """
 
-    def __init__(self, logger: Logger, model_name: Optional[str] = None):
+    def __init__(self, quality: int, logger: Logger, model_name: Optional[str] = None):
         super().__init__(logger)
+        self.quality = quality
         self.model_name = model_name or load_rembg_model_name()
         self._session: Optional[object] = None
 
@@ -34,4 +31,5 @@ class RembgPngConverter(BaseImageConverter):
             post_process_mask=True,
             alpha_matting=False,
         )
-        return self.strip_metadata_and_normalize(raw_output, output_format="PNG")
+        
+        return self._encode_to_avif(raw_output, self.quality)

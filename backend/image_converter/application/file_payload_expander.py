@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Any
 
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.infrastructure.psd_renderer import PsdRenderer
 

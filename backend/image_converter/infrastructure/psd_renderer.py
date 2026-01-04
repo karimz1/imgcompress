@@ -2,7 +2,7 @@ from io import BytesIO
 from typing import Optional
 
 
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result
 
 
 class PsdRenderer:

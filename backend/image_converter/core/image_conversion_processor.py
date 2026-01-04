@@ -19,7 +19,7 @@ from backend.image_converter.application.dtos import (
     ConversionOutputDto,
     ConversionDetails,
 )
-from backend.image_converter.core.internals.utls import Result
+from backend.image_converter.core.internals.utilities import Result, T
 from backend.image_converter.application.payload_expander_factory import create_payload_expander
 from PIL import Image
 from io import BytesIO
@@ -103,9 +103,7 @@ class ImageConversionProcessor:
             load_result = self.image_loader.load_image_as_bytes(file_path)
             image_data = self._unwrap_result(load_result)
             payload_result = self.payload_expander.expand(os.path.basename(file_path), image_data)
-            if not payload_result.is_successful:
-                raise ValueError(payload_result.error)
-            page_payloads = payload_result.value
+            page_payloads = self._unwrap_result(payload_result)
         except Exception as e:
             error_msg = f"Error preparing {file_path}: {e}"
             self.logger.log(error_msg, LogLevel.ERROR.value)
@@ -153,7 +151,7 @@ class ImageConversionProcessor:
                 source_path=file_path,
                 dest_path=dest_path
             )
-            conv_result = self._unwrap_result(convert_result)
+            conv_result = self._unwrap_conversion_result(convert_result)
 
             return PageProcessingResult(
                 file=dest_name,
@@ -217,21 +215,14 @@ class ImageConversionProcessor:
             return base_name + extension
         return f"{base_name}_page-{page_index}{extension}"
 
-    @staticmethod
-    def _sanitize_png(image_data: bytes) -> bytes:
-        """Re-encode via Pillow to normalize PNG output."""
-        with Image.open(BytesIO(image_data)) as img:
-            buffer = BytesIO()
-            img.save(buffer, format="PNG")
-            return buffer.getvalue()
 
-    @staticmethod
-    def _unwrap_result(result_obj):
-        if isinstance(result_obj, Result):
-            if not result_obj.is_successful:
-                raise PayloadExpansionError(result_obj.error or "Unknown result failure.")
-            return result_obj.value
-        return result_obj
+    def _unwrap_result(self, result_obj: Result[T]) -> T:
+        if not result_obj.is_successful:
+            raise PayloadExpansionError(result_obj.error or "Operation failed.")
+        return result_obj.value
+
+    def _unwrap_conversion_result(self, result_obj: Result[ConversionDetails]) -> ConversionDetails:
+        return self._unwrap_result(result_obj)
 
     def _build_error_result(self, file_path: str, dest_path: str, message: str) -> PageProcessingResult:
         return PageProcessingResult(

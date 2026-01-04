@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Star, DollarSign } from "lucide-react";
+import { Star, Coffee } from "lucide-react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +52,7 @@ export default function RootLayout({
 
             {/* Support Button */}
             <a
-              href="https://paypal.me/KarimZouine972"
+              href="https://github.com/sponsors/karimz1"
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 w-full
@@ -60,8 +60,8 @@ export default function RootLayout({
                 border-emerald-500/20 bg-slate-900 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/40"
             >
               {/* stroke-[3px] makes the icon match the boldness o the font */}
-              <DollarSign className="h-4 w-4 text-emerald-500 stroke-[3px] transition-transform group-hover:scale-110" />
-              <span className="hidden sm:inline">Support the project</span>
+              <Coffee className="h-4 w-4 text-emerald-500 stroke-[3px] transition-transform group-hover:scale-110" />
+              <span className="hidden sm:inline">Buy me a Coffee</span>
             </a>
           </div>
 

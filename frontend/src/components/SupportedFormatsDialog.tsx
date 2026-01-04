@@ -33,7 +33,7 @@ export function SupportedFormatsDialog({
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Button variant="outline" size="sm" className="flex items-center gap-1" data-testid="supported-formats-btn">
                     <Info className="h-4 w-4"/>
                     Supported Formats{" "}
                     {extensionsLoading ? "(…)" : total ? `(${total})` : ""}
@@ -106,17 +106,16 @@ export function SupportedFormatsDialog({
                                 {unverified.length > 0 ? unverified.join(" · ") : "None listed"}
                             </p>
                             <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-                                If you experience issues, please open a GitHub issue with a
-                                sample file — it helps improve test coverage and reliability.
+                                If you experience issues, please open a{" "}
+                                  <a
+                                    href="https://github.com/karimz1/imgcompress/issues"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 dark:text-blue-400 text-xs hover:underline"
+                                >
+                                    GitHub issue for Imgcompress
+                                </a> with a sample file. It helps improve test coverage and reliability.
                             </p>
-                            <a
-                                href="https://github.com/karimz1/imgcompress#-supported-image-formats"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs hover:underline mt-2"
-                            >
-                                imgcompress compatibility documentaion <ExternalLink className="h-3 w-3"/>
-                            </a>
                         </section>
                     </div>
                 )}

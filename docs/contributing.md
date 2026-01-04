@@ -9,18 +9,7 @@ Want to make imgcompress even better?
 3. Browse `good first issue` or `help wanted` labels for starter tasks.
 4. File bugs or feature requests on the [issue tracker](https://github.com/karimz1/imgcompress/issues).
 
-Thank you for supporting open source ❤️
-
----
-
-## ❤️ Donate to Support Development
-
-If imgcompress saves you time, consider donating.
-Every contribution helps support development, testing, and ongoing maintenance.
-
-[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://www.paypal.com/paypalme/KarimZouine972)
-
-*(Completely optional, and always appreciated.)*
+Thank you for supporting open source.
 
 ---
 

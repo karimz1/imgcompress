@@ -1,3 +1,9 @@
+## v0.4.0 — 2026-01-04
+- Feature: Support AVIF as Output Format [#453](https://github.com/karimz1/imgcompress/issues/453)
+- Request: Add a Documentation button to the UI [#457](https://github.com/karimz1/imgcompress/issues/457)
+- Internal: Clean Up in Backend [#454](https://github.com/karimz1/imgcompress/issues/454)
+
+
 ## v0.3.1 — 2025-12-30
 - Feature: Adds local AI background removal option to CLI [#439](https://github.com/karimz1/imgcompress/issues/439)
 - 🚀 Optimize Docker cold start by lazy-loading heavy dependencies in imgcompress. Starts in under 2 Seconds [#437](https://github.com/karimz1/imgcompress/issues/437)

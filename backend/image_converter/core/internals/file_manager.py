@@ -1,7 +1,7 @@
 import os
 from typing import List
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.core.internals.utls import FileUrl
+from backend.image_converter.core.internals.utilities import FileUrl
 
 
 class FileManager:

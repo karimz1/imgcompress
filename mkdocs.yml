@@ -54,9 +54,6 @@ extra_javascript:
 extra:
   generator: false
   social:
-    - icon: fontawesome/brands/paypal
-      link: https://www.paypal.com/paypalme/KarimZouine972
-      name: Donate with PayPal
     - icon: fontawesome/brands/github
       link: https://github.com/karimz1/imgcompress
       name: GitHub
@@ -70,6 +67,8 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets:
       base_path: ["."]
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.superfences
   - attr_list
   - pymdownx.emoji:
@@ -86,4 +85,4 @@ nav:
   - Privacy: privacy.md
   - Release Notes: release-notes.md
   - Contribute: contributing.md
-  - ❤️ Donate: https://www.paypal.com/paypalme/KarimZouine972
+  - ❤️ Buy me a Coffee: https://github.com/sponsors/karimz1

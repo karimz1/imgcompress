@@ -1,7 +1,7 @@
 import sys
 import traceback
 from backend.image_converter.presentation.cli.argument_parser import parse_arguments
-from backend.image_converter.core.image_convertsion_processor import ImageConversionProcessor
+from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.infrastructure.logger import Logger
 
@@ -11,10 +11,10 @@ def main(argv=None):
     args = parse_arguments(argv)
     logger = Logger(debug=args.debug, json_output=args.json_output)
 
-    # Validate: --remove-background only works with PNG format
-    if args.remove_background and args.format.upper() != "PNG":
+    # Validate: --remove-background only works with PNG or AVIF format
+    if args.remove_background and args.format.upper() not in ["PNG", "AVIF"]:
         logger.log(
-            "Error: --remove-background can only be used with --format png",
+            "Error: --remove-background can only be used with --format png or --format avif",
             "error"
         )
         sys.exit(1)

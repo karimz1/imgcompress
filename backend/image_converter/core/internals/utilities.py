@@ -91,20 +91,22 @@ class FileUrl:
         return self.path
 
 
-from typing import Generic, TypeVar, Any
+from typing import Generic, TypeVar, Any, Optional
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class Result(Generic[T]):
     """A result type that can either be successful with a value or failed with an error."""
-    
-    def __init__(self, success: bool, value: T = None, error: str = None):
+
+    def __init__(self, success: bool, value: Optional[T] = None, error: Optional[str] = None):
         self._success = success
         self._value = value
         self._error = error
 
     @property
-    def success(self) -> bool:
+    def is_successful(self) -> bool:
+        """Use this property to check if the operation succeeded."""
         return self._success
 
     @property
@@ -117,11 +119,13 @@ class Result(Generic[T]):
 
     @staticmethod
     def success(value: T) -> 'Result[T]':
+        """Static factory method to create a successful result."""
         safe_value = Result._clone_with_flags(value, True)
         return Result(True, value=safe_value)
 
     @staticmethod
     def failure(error: Any) -> 'Result[T]':
+        """Static factory method to create a failed result."""
         safe_error = Result._clone_with_flags(error, False)
         return Result(False, error=str(safe_error))
 
@@ -134,7 +138,3 @@ class Result(Generic[T]):
                 cloned["error"] = None
             return cloned
         return payload
-
-    @property 
-    def is_successful(self) -> bool:
-        return self._success

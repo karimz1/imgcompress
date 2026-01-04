@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ReleaseNotesButton } from "@/components/ReleaseNotesButton";
+import { HelpButton } from "@/components/HelpButton";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Drawer,
@@ -84,7 +85,7 @@ function HomePageContent() {
   const [outputFormat, setOutputFormat] = useState("");
   const [formatRequired, setFormatRequired] = useState(false);
   const [targetSizeMB, setTargetSizeMB] = useState("");
-  const [jpegMode, setJpegMode] = useState<"quality" | "size">("quality");
+  const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
@@ -109,11 +110,11 @@ function HomePageContent() {
   const accentTwoClass = isDarkTheme ? "bg-fuchsia-500/20" : "bg-pink-300/30";
 
   useEffect(() => {
-    if (outputFormat !== "jpeg") {
-      setJpegMode("quality");
+    if (outputFormat !== "jpeg" && outputFormat !== "avif") {
+      setCompressionMode("quality");
       setTargetSizeMB("");
     }
-    if (outputFormat !== "png") {
+    if (outputFormat !== "png" && outputFormat !== "avif") {
       setUseRembg(false);
     }
     if (outputFormat) {
@@ -180,7 +181,7 @@ function HomePageContent() {
         return;
       }
 
-      if (outputFormat === "jpeg" && jpegMode === "quality") {
+      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
         const qualityNum = parseInt(quality, 10);
         if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
           setError({ message: "Quality must be a number between 1 and 100." });
@@ -205,7 +206,7 @@ function HomePageContent() {
         }
       }
 
-      if (outputFormat === "jpeg" && jpegMode === "size") {
+      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
         const trimmed = (targetSizeMB || "").trim();
         const t = parseFloat(trimmed);
         if (!trimmed || isNaN(t) || t <= 0) {
@@ -222,20 +223,20 @@ function HomePageContent() {
 
       const formData = new FormData();
       files.forEach((file) => formData.append("files[]", file));
-      if (outputFormat === "jpeg" && jpegMode === "quality") {
+      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
         formData.append("quality", quality);
       }
       if (resizeWidthEnabled) {
         formData.append("width", width);
       }
       formData.append("format", outputFormat);
-      if (outputFormat === "jpeg" && jpegMode === "size") {
+      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
         const kb = Math.round(parseFloat(targetSizeMB) * 1024);
         if (!isNaN(kb) && kb > 0) {
           formData.append("target_size_kb", String(kb));
         }
       }
-      if (outputFormat === "png" && useRembg) {
+      if ((outputFormat === "png" || outputFormat === "avif") && useRembg) {
         formData.append("use_rembg", "true");
       }
 
@@ -313,7 +314,7 @@ function HomePageContent() {
       width,
       clearError,
       setError,
-      jpegMode,
+      compressionMode,
       targetSizeMB,
       useRembg,
     ]
@@ -424,8 +425,8 @@ function HomePageContent() {
               onSubmit={handleSubmit}
               targetSizeMB={targetSizeMB}
               setTargetSizeMB={setTargetSizeMB}
-              jpegMode={jpegMode}
-              setJpegMode={setJpegMode}
+              compressionMode={compressionMode}
+              setCompressionMode={setCompressionMode}
               useRembg={useRembg}
               setUseRembg={setUseRembg}
               getRootProps={getRootProps}
@@ -475,8 +476,9 @@ function HomePageContent() {
           </>
         )}
 
-        <div className="fixed bottom-4 left-4 z-40">
+        <div className="fixed bottom-4 left-4 z-40 flex flex-col sm:flex-row gap-2">
           <ReleaseNotesButton />
+          <HelpButton />
         </div>
 
         {converted.length > 0 && (

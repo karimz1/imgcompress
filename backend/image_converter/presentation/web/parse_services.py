@@ -1,7 +1,7 @@
 from flask import Request
 from typing import Any, Dict, Optional
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.core.internals.utls import Result, is_file_supported
+from backend.image_converter.core.internals.utilities import Result, is_file_supported
 
 def extract_form_data(request: Request, logger: Logger) -> Result[Dict[str, Any]]:
     uploaded_files = request.files.getlist("files[]")

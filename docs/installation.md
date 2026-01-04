@@ -1,105 +1,95 @@
 # Installation
 
-This guide covers setting up the [imgcompress Web UI](web-ui.md) using Docker.
+Run the [**imgcompress Web UI**](web-ui.md) using Docker.  
+No local dependencies, no mess, just a high-performance image optimization suite ready in seconds.
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Recommended)
 
-### Using `docker compose`
+=== ":material-docker: Docker Compose (Preferred)"
 
-```yaml
---8<-- "docker-compose.yml"
-```
+    Best choice for **long-running setups** and easy upgrades.
 
-Start:
-```bash
-docker compose up -d 
-```
+    1.  Create a `docker-compose.yml` file:
+        ```yaml
+        --8<-- "docker-compose.yml"
+        ```
+    2.  Launch the container:
+        ```bash
+        docker compose up -d
+        ```
+    3.  👉 **[Access the UI](#accessing-the-ui)**
 
-Then open:
+=== ":material-console: Single Container (`docker run`)"
 
-👉 **[http://localhost:3001](http://localhost:3001/)**
+    Ideal for quick testing or lightweight environments.
 
-See the [Web UI Guide](web-ui.md) for usage instructions.
+    ```bash
+    docker run -d \
+      --name imgcompress \
+      -p 3001:5000 \
+      karimz1/imgcompress:latest
+    ```
 
+    !!! tip "Pro Tip: Minimal Mode"
+        To disable the mascot and use a cleaner, text-only interface, add `-e DISABLE_LOGO=true` to your command:
+        ```bash
+        docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest
+        ```
 
+    👉 [**Access the UI**](#accessing-the-ui)
 
-### Using `docker run`
+---
 
-```bash
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
-```
+## 🌐 Accessing the UI
 
-#### 🧼 Minimal Mode: Hide the Mascot
+Once the container is running, open your web browser and navigate to:
 
-Prefer a cleaner UI?
+👉 **[http://localhost:3001](http://localhost:3001)**
 
-```bash
-docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest
-```
+---
 
-___
+## 🔄 Maintenance & Updates
 
-## 🔄 Updating imgcompress
+Keep your instance secure and up-to-date.
 
-Get the latest stable release.
-
-### Using `docker compose`
-```bash
-docker compose pull
-docker compose up -d --force-recreate
-```
-
-### Using `docker run`
-
-```bash
-docker pull karimz1/imgcompress:latest
-docker stop imgcompress
-docker rm imgcompress
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
-```
-> **Open imgcompress:** **[http://localhost:3001](http://localhost:3001/)**
+| Method | Command                                                                                                                                                                   |
+| :--- |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Docker Compose** | `docker compose pull && docker compose up -d`                                                                                                                             |
+| **Docker Run** | `docker pull karimz1/imgcompress:latest && docker rm -f imgcompress && docker run -d --name imgcompress -p 3001:5000 --restart unless-stopped karimz1/imgcompress:latest` |
 
 ## 🔖 Choosing Your Version
 
-imgcompress provides **three tags**, depending on your needs.
+!!! recommended
+    Use `latest` unless you have a specific reason not to.
 
-[See all available tags on Docker Hub](https://hub.docker.com/r/karimz1/imgcompress/tags)
+| Tag | Description | Best For |
+| :--- | :--- | :--- |
+| **Stable (`latest`)** | Fully tested release. Each version is manually QA-verified. | Most users. |
+| **Pinned (`X.Y.Z`)** | An exact version that never changes (e.g., `0.3.1`). | Production & Reproducibility. |
+| **Nightly (`nightly`)** | Latest changes & dependency bumps. | Beta testing new features. |
 
-> **Recommendation**: I personally recommend using `latest` to ensure you receive the latest stable updates, bug fixes, and features.
+### **Pinned Release (e.g., `0.3.1`)**
 
-The available tags are:
+A version that **never changes**. Ideal for production environments requiring strict reproducibility.
 
-| **Version**        | **Tag** | **What’s Included**           | **Best For**                     |
-| ------------------ | ------- | ----------------------------- | -------------------------------- |
-| **Stable**         | `latest`  | Fully tested release          | Most users — recommended         |
-| **Pinned Release** | `X.Y.Z`   | Exact version, never changes | Reproducible deployments, historic versions |
-| **Nightly**        | `nightly` | Latest changes & dependency bumps | Testing new features (may break) |
-
-### **Stable (`latest`)**
-The safest and most reliable choice.  
-Every latest release passes **QA checks by the author (Karim Zouine)** before publication.
-
-### **Pinned Release (for example: `0.3.1`)**
-A frozen version that **never updates**.  
-Ideal for locked-down deployments or staying on a version you trust.
+```bash
+docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:0.3.1
+```
 
 ### **Nightly (`nightly`)**
-Includes the newest changes and dependency updates.  
-⚠️ May include breaking changes — think of it as a **public beta**.
 
-## 🖥️ Supported Platforms
+Includes the newest features and dependency updates.  
+⚠️ May include breaking changes. Think of it as a **public beta**.
 
-| Docker image platform | Typical host | Status |
-|-----------------------|--------------|:------:|
-| **linux/amd64**       | x86-64 Linux, Windows (WSL 2) | ✅ |
-| **linux/arm64**       | Apple Silicon, Raspberry Pi 4+, AWS Graviton | ✅ |
+| Architecture | Platform | Status |
+| :--- | :--- | :--- |
+| **linux/amd64** | x86-64 (Linux, Windows WSL 2) | ✅ Supported |
+| **linux/arm64** | ARM64 (Apple Silicon, RPi 4+, AWS Graviton) | ✅ Supported |
 
-> **Windows desktop:** Runs via Docker Desktop + WSL 2 (no native Windows-container build needed).
+> **Windows Desktop:** Runs via Docker Desktop + WSL 2 (no native Windows-container build needed).
 
-!!! note "Testing note"
-
-    All platforms above are built and run in CI with QEMU multi-arch emulation and a GitHub Actions matrix.  
-    That means the images pass automated tests, but not every architecture has been manually tried on physical hardware.
+!!! note "Testing Note"
+    All platforms above are built and run in CI with QEMU multi-arch emulation and a GitHub Actions matrix. That means the images pass automated tests, but not every architecture has been manually tried on physical hardware.
 
 ___
 
@@ -109,8 +99,8 @@ For enterprises, government agencies, or individuals requiring strict data isola
 
 This specialized setup:
 
-- **Disables all outbound traffic** from the application container.
-- **Protects against data exfiltration** at the infrastructure level.
-- **Maintains local accessibility** via a secure internal bridge.
+*   **Disables all outbound traffic** from the application container.
+*   **Protects against data exfiltration** at the infrastructure level.
+*   **Maintains local accessibility** via a secure internal bridge.
 
 👉 **View the [Zero-Networking / Air-Gapped Setup](privacy.md#zero-networking-air-gapped-setup) guide.**
