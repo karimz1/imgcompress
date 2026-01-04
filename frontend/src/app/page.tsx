@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ReleaseNotesButton } from "@/components/ReleaseNotesButton";
+import { HelpButton } from "@/components/HelpButton";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Drawer,
@@ -475,8 +476,9 @@ function HomePageContent() {
           </>
         )}
 
-        <div className="fixed bottom-4 left-4 z-40">
+        <div className="fixed bottom-4 left-4 z-40 flex flex-col sm:flex-row gap-2">
           <ReleaseNotesButton />
+          <HelpButton />
         </div>
 
         {converted.length > 0 && (
