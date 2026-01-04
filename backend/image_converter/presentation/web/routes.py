@@ -82,19 +82,13 @@ def download_file():
 @api_blueprint.route("/download_all", methods=["GET"])
 def download_all():
     temp_folder_service.cleanup()
+    folder_param = request.args.get("folder")
 
-    folder = request.args.get("folder")
-    if not folder or not temp_folder_service.is_in_temp(folder) or not os.path.isdir(folder):
-        return jsonify({"error": "Invalid folder."}), 400
+    result = compression_service.create_all_files_zip(folder_param)
 
-    try:
-        zip_name = f"converted_{int(time.time())}.zip"
-        zip_path = os.path.join(TEMP_DIR, zip_name)
-        shutil.make_archive(zip_path[:-4], "zip", root_dir=folder)
-        return send_from_directory(TEMP_DIR, zip_name, as_attachment=True, mimetype="application/zip")
-    except Exception as e:
-        logger.log(f"ZIP error: {e}", "error")
-        return jsonify({"error": "Failed to create ZIP archive.", "message": str(e)}), 500
+    if not result.is_successful:
+        return jsonify({"error": result.error}), 400
+    return send_from_directory(TEMP_DIR, result.value, as_attachment=True, mimetype="application/zip")
 
 
 @api_blueprint.route("/storage_info", methods=["GET"])

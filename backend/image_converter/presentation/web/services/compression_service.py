@@ -1,6 +1,7 @@
 import os
 import shutil
 import traceback
+import time
 from typing import List, Optional
 from werkzeug.utils import secure_filename
 
@@ -15,6 +16,23 @@ class CompressionService:
         self.logger = logger
         self.use_case = use_case
         self.temp_folder_service = temp_folder_service
+
+    def create_all_files_zip(self, folder_param: str) -> Result[str]:
+        folder_path = self.temp_folder_service.get_validated_path(folder_param)
+
+        if not folder_path:
+            return Result.failure("Invalid or unauthorized folder.")
+
+        try:
+            zip_name = f"converted_{int(time.time())}.zip"
+            zip_path = os.path.join(self.temp_folder_service.temp_dir, zip_name)
+            shutil.make_archive(zip_path[:-4], "zip", root_dir=folder_path)
+
+            return Result.success(zip_name)
+
+        except Exception as e:
+            self.logger.log(f"ZIP creation error: {e}", "error")
+            return Result.failure(f"Failed to create archive: {str(e)}")
 
     def compress(self, form_data: dict) -> Result[dict]:
         files = form_data["uploaded_files"]

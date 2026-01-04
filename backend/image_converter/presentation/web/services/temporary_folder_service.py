@@ -1,5 +1,7 @@
 import os
 import tempfile
+from typing import Optional
+
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 
 class TemporaryFolderService:
@@ -18,3 +20,21 @@ class TemporaryFolderService:
 
     def is_in_temp(self, path: str) -> bool:
         return os.path.abspath(path).startswith(os.path.abspath(self.temp_dir))
+
+    def get_validated_path(self, folder_name: str) -> Optional[str]:
+        """
+        Ensures the requested folder is a sub-directory of the safe TEMP_DIR.
+        """
+        if not folder_name:
+            return None
+
+        # Normalize paths to resolve '..' and symlinks
+        base_dir = os.path.abspath(self.temp_dir)
+        # Use normpath to prevent directory traversal
+        target_path = os.path.abspath(os.path.join(base_dir, folder_name))
+
+        # Security check: Ensure target is inside base_dir
+        if os.path.commonpath([base_dir, target_path]) != base_dir:
+            return None
+
+        return target_path if os.path.isdir(target_path) else None
