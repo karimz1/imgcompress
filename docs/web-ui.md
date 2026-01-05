@@ -52,8 +52,10 @@ Remove backgrounds instantly using the local AI model in imgcompress (powered us
 |----------------|-------------------------------|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="400" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="400" alt="Background removed image"/> |
 
-> Processed locally using AI models. No data ever leaves your network.
->
+Processed fully locally using [rembg](https://github.com/danielgatis/rembg) and [U-2-Net](https://github.com/xuebinqin/U-2-Net) local AI Model. No data ever leaves your network.
+Internally it also uses: [onnxruntime](https://github.com/microsoft/onnxruntime) and [Pillow](https://github.com/python-pillow/Pillow) for Re-Serialization to trim Meta. 
+
+
 > 📸 **Source of original image:** [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) used for demonstration purposes.
 
 
