@@ -29,10 +29,19 @@
 |----------------|-------------------------------|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="400" alt="Original image"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="400" alt="Background removed image"/> |
 
-Processed fully locally using [rembg](https://github.com/danielgatis/rembg) and [U-2-Net](https://github.com/xuebinqin/U-2-Net) local AI Model. No data ever leaves your network.
-Internally it also uses: [onnxruntime](https://github.com/microsoft/onnxruntime) and [Pillow](https://github.com/python-pillow/Pillow) for Re-Serialization to trim Meta. 
+> ℹ️ **Info**
+>
+> Processed fully locally using [rembg](https://github.com/danielgatis/rembg) and  
+> [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model.  
+> No data ever leaves your network.
+>
+> Internally it also uses [onnxruntime](https://github.com/microsoft/onnxruntime).  
+> Imgcompress also uses [Pillow](https://github.com/python-pillow/Pillow) for re-serialization of images.
 
-> 📸 **Source of original image:** [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) — used for demonstration purposes.
+
+> 📸 **Source of Original Image**
+> 
+> [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
 
 ___
 
