@@ -66,7 +66,7 @@ To get up and running with **imgcompress** in seconds, please follow:
 ## ✨ Key Features & Capabilities
 
 - **📱 HEIC/HEIF Converter**: Instantly turn iPhone photos into high-quality JPG/PNG.
-- **🤖 AI Background Removal**: Powered by `rembg`. 100% offline and private.
+- **🤖 AI Background Removal**: Powered by [rembg](https://github.com/danielgatis/rembg) and [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model. 100% offline and private.
 - **📰 PDF to Image**: Extract every page of a PDF as individual high-res images.
 - **🖼️ Universal Conversion**: Support for 70+ formats (HEIC, HEIF, PSD, EPS, TIFF, etc.).
 - **⚙️ Pro Controls**: Fine-tune quality, width dimensions, and lossless settings.
