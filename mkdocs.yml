@@ -6,7 +6,8 @@ edit_uri: blob/main/docs/
 
 copyright: >
   imgcompress — for everyone who values privacy. 
-  Fully open source on <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a>.
+  Fully open source on <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a>
+  and <a class="github_lin_footer" href="https://hub.docker.com/r/karimz1/imgcompress" target="_blank" rel="noopener">DockerHub</a>.
 
 site_description: >
   The official documentation for ImgCompress. A privacy-first, open-source image compression tool. 
