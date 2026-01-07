@@ -8,27 +8,35 @@
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
 [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 
-<img src="images/logo_transparent.png" alt="imgcompress logo" width="380"/>
+<img src="images/logo_transparent.png" alt="ImgCompress: The self-hosted privacy-first image optimizer" width="380"/>
 
-**A self-hosted Docker bulk image compression, conversion, and optimization tool** with local AI background removal. Process unlimited images offline: no cloud uploads, no subscriptions, no per-image limits.
+**ImgCompress** is a high-performance, **self-hosted Docker image compression and conversion tool** featuring local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
 
-**Perfect for:** photographers managing large galleries, developers optimizing web assets for PageSpeed/Core Web Vitals, privacy-conscious users, and anyone needing a **free TinyPNG/Squoosh alternative** that runs entirely on your hardware. Support for WebP, HEIC to JPG conversion, and more.
+**Perfect for:** photographers managing large galleries, developers optimizing web assets for PageSpeed/Core Web Vitals, privacy-conscious users, and anyone needing a **free TinyPNG/Squoosh alternative** that runs entirely on your hardware.
 
-- **🔒 Privacy-First & 100% Local**: All processing happens on your device.
-- **💰 Unlimited & Free**: No subscriptions or API limits.
-- **🖼️ Universal Support**: 70+ formats including HEIC, HEIF, WebP, PSD, and PDF.
-- **🤖 Local AI**: Background removal all locally.
-- **📦 Cross-Platform**: Deploy anywhere with Docker.
+---
 
+## ❓ Why choose ImgCompress?
+
+I created **ImgCompress** as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is the last **local-first image web tool** you'll need, handling everything from batch resizing to professional AI background removal on your own hardware.
+
+### 🛡️ Privacy by Design (GDPR Compliant)
+
+Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Privacy by Default"** architecture. It is the ideal solution for processing sensitive data without external risks.
+
+- **🔒 100% Local Processing:** All tasks run strictly on your CPU/GPU.
+- **🚫 No External API Calls:** Your files are never uploaded, buffered, or sent to third-party servers.
+- **🔌 Air-Gapped Ready:** Full functionality without an internet connection.
 
 ---
 
 ## 📖 Table of Contents
 
 - [Quick Start](#-quick-start)
+- [Advanced Image Processing Features](#-advanced-image-processing-features)
 - [Local AI Background Removal](#-local-ai-background-removal-result)
 - [Web UI Preview](#-web-ui-preview)
-- [Key Features](#-key-features--capabilities)
+- [Business & Personal Use Cases](#-business--personal-use-cases)
 - [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
 - [Getting Started](#-getting-started)
 - [License](#-release-notes--license)
@@ -56,6 +64,19 @@ services:
 ```
 
 Open your browser and visit **http://localhost:3001**.
+
+---
+
+## ✨ Advanced Image Processing Features
+
+- **📱 HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
+- **🤖 Local AI Background Removal**: Powered by [rembg](https://github.com/danielgatis/rembg) and [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model. 100% offline and private.
+- **📰 PDF to Image Tool**: Extract PDF pages as individual high-resolution images (PNG/JPG).
+- **🖼️ Universal Format Support**: Convert between 70+ formats including **WebP, PSD, EPS, and TIFF**.
+- **⚙️ Professional Compression Controls**: Fine-tune quality settings, dimensions, and lossless optimization.
+- **🚀 Multi-Core Parallel Processing**: Optimized for lightning-fast batch jobs.
+- **🛠️ Automation Friendly**: Scriptable CLI with JSON output for DevOps and CI/CD pipelines.
+- **📦 Cross-Platform**: Runs everywhere (Linux, Mac, Windows, Raspberry Pi) via Docker.
 
 ---
 
@@ -99,25 +120,14 @@ To get up and running with **imgcompress** in seconds, please follow:
 **[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation.html)**
 
 
-## ✨ Key Features & Capabilities
+---
 
-- **📱 HEIC/HEIF Converter**: Instantly turn iPhone photos into high-quality JPG/PNG.
-- **🤖 AI Background Removal**: Powered by [rembg](https://github.com/danielgatis/rembg) and [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model. 100% offline and private.
-- **📰 PDF to Image**: Extract every page of a PDF as individual high-res images.
-- **🖼️ Universal Conversion**: Support for 70+ formats (HEIC, HEIF, PSD, EPS, TIFF, etc.).
-- **⚙️ Pro Controls**: Fine-tune quality, width dimensions, and lossless settings.
-- **🚀 Parallel Processing**: Multi-core optimization for lightning-fast batch jobs.
-- **🛠️ Automation**: Scriptable CLI with JSON output for CI/CD integration.
-- **📦 Cross-Platform**: Runs everywhere (Linux, Mac, Windows, Raspberry Pi).
+## 💼 Business & Personal Use Cases
 
-___
-
-## 💼 Use Cases
-
-- **Photographers**: Batch compress galleries by 70%+ without quality loss.
-- **Developers**: Optimize web assets for better PageSpeed.
-- **Privacy Users**: Process sensitive documents and family photos offline.
-- **Enterprises**: GDPR/HIPAA compliant processing on your hardware, no data share.
+- **Web Developers**: Optimize website assets to improve **Google PageSpeed** scores.
+- **Photographers**: Batch compress high-res galleries by up to 80% without visible quality loss.
+- **Privacy-Conscious Users**: Securely process family photos and sensitive documents without uploading them to cloud servers.
+- **Enterprises**: Maintain **GDPR, HIPAA, or SOC2 compliance** by processing all media in-house, ensuring no data share.
 
 ---
 
