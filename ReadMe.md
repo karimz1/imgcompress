@@ -65,6 +65,9 @@ services:
 
 Open your browser and visit **http://localhost:3001**.
 
+For **advanced use cases**, detailed configuration, and deployment options, please visit:  
+👉 **[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation.html)**
+
 ---
 
 ## ✨ Advanced Image Processing Features
@@ -114,10 +117,7 @@ For a detailed guide on using the Web Interface in imgcompress, please visit the
 
 
 
-## 🏁 Getting Started
 
-To get up and running with **imgcompress** in seconds, please follow:
-**[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation.html)**
 
 
 ---
