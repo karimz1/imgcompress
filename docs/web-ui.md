@@ -1,5 +1,5 @@
 ---
-title: Web UI - Drag & Drop Local Image Compressor
+title: Web UI: Drag & Drop Local Image Compressor
 description: Optimize images locally with ImgCompress Web UI. Features drag & drop, batch processing, and privacy-first compression. No cloud uploads.
 ---
 
@@ -12,11 +12,11 @@ The Web UI is the primary way to interact with imgcompress. It provides a user-f
 
 ## ✨ Features
 
-- **Drag & Drop**: Upload images or PDF files directly.
-- **Live Progress**: Watch the compression in real-time.
-- **Bulk Processing**: Handle hundreds of images at once.
-- **ZIP Download**: Get all your optimized images in a single archive.
-- **Modern Formats**: Full support for **AVIF** a modern format that combines high compression with transparency support.
+*   **Drag & Drop**: Upload images or PDF files directly.
+*   **Live Progress**: Watch the compression in real-time.
+*   **Bulk Processing**: Handle hundreds of images at once.
+*   **ZIP Download**: Get all your optimized images in a single archive.
+*   **Modern Formats**: Full support for **AVIF** a modern format that combines high compression with transparency support.
 
 ## 📁 Supported Output Formats
 

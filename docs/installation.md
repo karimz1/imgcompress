@@ -1,5 +1,5 @@
 ---
-title: Installation - Docker & Python Setup Guide
+title: Installation: Docker & Python Setup Guide
 description: Learn how to install ImgCompress using Python or Docker. Step-by-step instructions for setting up your private image optimization environment.
 ---
 
@@ -31,7 +31,7 @@ No local dependencies, no configuration clutter. Just a high-performance image o
     3.  👉 **[Access the UI](#accessing-the-ui)**
 
 === ":material-console: Single Container (`docker run`)"
-    **Standard Mode (Default — Mascot Enabled)**
+    **Standard Mode (Default: Mascot Enabled)**
     ```bash
     docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
     ```

@@ -1,4 +1,4 @@
-# imgcompress - Privacy-First Image Optimizer: Compress, Convert & AI Background Removal (Docker)
+# imgcompress: Privacy-First Image Optimizer: Compress, Convert & AI Background Removal (Docker)
 
 [![Documentation](https://img.shields.io/badge/docs-karimz1.github.io%2Fimgcompress-blue)](https://karimz1.github.io/imgcompress/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)

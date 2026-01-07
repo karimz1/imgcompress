@@ -1,5 +1,5 @@
 ---
-title: Privacy & Security - Zero-Knowledge Image Processing
+title: Privacy & Security: Zero-Knowledge Image Processing
 description: Your data stays yours. Read about my privacy-first approach to image compression. No tracking, no cloud uploads, 100% local processing.
 ---
 
@@ -8,9 +8,8 @@ description: Your data stays yours. Read about my privacy-first approach to imag
 imgcompress is engineered with a strict "Privacy by Default" architecture. I believe that privacy is not just a feature, but a fundamental technical requirement.
 
 
-- All processing is performed strictly on your hardware. Your files are never uploaded, buffered, or transmitted to any external server.
-
-- **Open & Auditable**: My entire source code is open for professional security audits, ensuring complete transparency into how your data is handled.
+*   All processing is performed strictly on your hardware. Your files are never uploaded, buffered, or transmitted to any external server.
+*   **Open & Auditable**: My entire source code is open for professional security audits, ensuring complete transparency into how your data is handled.
 
 
 ## 🛡️ Zero-Networking (High-Security)

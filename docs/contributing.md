@@ -1,11 +1,11 @@
 ---
-title: How to Contribute - ImgCompress Open Source Guide
+title: How to Contribute: ImgCompress Open Source Guide
 description: Join the ImgCompress community! Detailed guide on how to report bugs, request features, and submit pull requests. Start contributing to open source today.
 ---
 
 # Contributing to ImgCompress
 
-Thank you for your interest in contributing to **ImgCompress**! As an open-source project, I welcome contributions of all forms—from bug reports and feature suggestions to code improvements and documentation updates.
+Thank you for your interest in contributing to **ImgCompress**! As an open-source project, I welcome contributions of all forms, from bug reports and feature suggestions to code improvements and documentation updates.
 
 ## 🤝 Ways to Contribute
 
