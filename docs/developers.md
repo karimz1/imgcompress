@@ -5,7 +5,7 @@ description: Comprehensive guide for developers to build, run, and test ImgCompr
 
 # 🛠️ Developer Guide
 
-Welcome to the **ImgCompress** developer documentation. This guide explains how to run tests and builds to ensure your contributions meet our quality standards. Also this documentation explains how to simulate the CI/CD pipeline locally to ensure that your changes will pass the GitHub Actions workflow.
+Welcome to the **ImgCompress** developer documentation. This guide explains how to run tests and builds to ensure your contributions meet my quality standards. Also this documentation explains how to simulate the CI/CD pipeline locally to ensure that your changes will pass the GitHub Actions workflow.
 
 ---
 
@@ -39,7 +39,7 @@ Once inside the VS Code terminal, you can simpler run the scripts directly:
 
 ## 🏗️ 2. Local Development (Scripts)
 
-For rapid development, we provide helper scripts that run the tests directly in your local environment.
+For rapid development, I provide helper scripts that run the tests directly in your local environment.
 
 ### Prerequisites
 *   **Python 3.10+** (with `venv` support)
