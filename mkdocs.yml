@@ -3,9 +3,16 @@ site_url: https://karimz1.github.io/imgcompress/
 repo_url: https://github.com/karimz1/imgcompress
 repo_name: karimz1/imgcompress
 edit_uri: blob/main/docs/
+
 copyright: >
   imgcompress — for everyone who values privacy. 
   Fully open source on <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a>.
+
+site_description: >
+  The official documentation for ImgCompress. A privacy-first, open-source image compression tool. 
+  Optimize PNG, JPEG, and WebP locally using Docker, CLI, or Web UI without external APIs.
+
+site_author: Karim Zouine
 
 use_directory_urls: false
 
@@ -43,6 +50,8 @@ extra_css:
 plugins:
   - search
   - glightbox
+  - minify: 
+      minify_html: true
   - git-revision-date-localized:
       type: datetime
       timezone: UTC
@@ -53,6 +62,26 @@ extra_javascript:
 
 extra:
   generator: false
+  meta:
+    - name: description
+      content: ImgCompress is a privacy-focused, open-source image compressor. Reduce file sizes securely using Docker, Python CLI, or a self-hosted Web UI. No external API calls required.
+    - name: keywords
+      content: imgcompress, image compression, image optimizer, privacy, open source, docker image compressor, cli tool, self-hosted, python, webp converter, png optimizer, jpeg compression, offline tool, batch processing
+    - name: author
+      content: Karim Zouine
+    - property: og:type
+      content: website
+    - property: og:title
+      content: ImgCompress - Open Source & Privacy-First Image Compression
+    - property: og:description
+      content: Securely compress images with Web UI, CLI, and Docker. 100% Open Source and Local.
+    - property: og:url
+      content: https://karimz1.github.io/imgcompress/
+    - property: og:image
+      content: https://karimz1.github.io/imgcompress/images/logo_transparent.png
+    - name: twitter:card
+      content: summary_large_image
+
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/karimz1/imgcompress

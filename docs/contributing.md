@@ -1,3 +1,8 @@
+---
+title: Contribute to ImgCompress - Open Source Community
+description: Help us improve ImgCompress! Learn how to contribute to the code, report issues, or suggest new features for our open-source image optimizer.
+---
+
 # Contribute
 
 ## 🤝 How to contribute

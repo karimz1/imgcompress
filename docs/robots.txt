@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://karimz1.github.io/imgcompress/sitemap.xml

@@ -1,3 +1,8 @@
+---
+title: Installation - Docker & Python Setup Guide
+description: Learn how to install ImgCompress using Python or Docker. Step-by-step instructions for setting up your private image optimization environment.
+---
+
 # Installation
 
 Run the [**imgcompress Web App**](web-ui.md) using Docker.  

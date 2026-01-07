@@ -1,3 +1,8 @@
+---
+title: Privacy & Security - Zero-Knowledge Image Processing
+description: Your data stays yours. Read about our privacy-first approach to image compression. No tracking, no cloud uploads, 100% local processing.
+---
+
 # Privacy & Security
 
 imgcompress is engineered with a strict "Privacy by Default" architecture. I believe that privacy is not just a feature, but a fundamental technical requirement.

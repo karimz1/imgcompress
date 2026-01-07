@@ -1,3 +1,8 @@
+---
+title: Web UI - Drag & Drop Local Image Compressor
+description: Optimize images locally with ImgCompress Web UI. Features drag & drop, batch processing, and privacy-first compression. No cloud uploads.
+---
+
 # How to Use the Web UI
 
 !!! important
@@ -28,9 +33,9 @@ Choose the best format for your needs directly from the settings menu:
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | <a href="images/ui-example/1.jpg" class="glightbox"><img src="images/ui-example/1.jpg" width="240"/></a> | **Upload & Configure**<br/>Drag & drop images or PDFs, choose your format (JPEG, PNG, AVIF), and configure options. |
-| **2** | <a href="images/ui-example/2.jpg" class="glightbox"><img src="images/ui-example/2.jpg" width="240"/></a> | **Processing**<br/>Images are processed locally with live progress feedback. |
-| **3** | <a href="images/ui-example/3.jpg" class="glightbox"><img src="images/ui-example/3.jpg" width="240"/></a> | **Download Results**<br/>Download files individually or as a ZIP archive. |
+| **1** | <a href="images/ui-example/1.jpg" class="glightbox"><img src="images/ui-example/1.jpg" width="240" alt="Upload and configure compression settings"/></a> | **Upload & Configure**<br/>Drag & drop images or PDFs, choose your format (JPEG, PNG, AVIF), and configure options. |
+| **2** | <a href="images/ui-example/2.jpg" class="glightbox"><img src="images/ui-example/2.jpg" width="240" alt="Processing images locally"/></a> | **Processing**<br/>Images are processed locally with live progress feedback. |
+| **3** | <a href="images/ui-example/3.jpg" class="glightbox"><img src="images/ui-example/3.jpg" width="240" alt="Download optimized images"/></a> | **Download Results**<br/>Download files individually or as a ZIP archive. |
 
 
 ## 🧠 Local AI Background Removal
@@ -76,8 +81,8 @@ Need your image to be exactly under 500KB or 1MB? ImgCompress can calculate the 
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_5.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_5.jpg" width="240"/></a> | **Select Format**<br/>Choose **JPEG** or **AVIF** as the output format from the dropdown menu. |
-| **2** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_4.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_4.jpg" width="240"/></a> | **Upload Images**<br/>Drag and drop your images into the processing area or click to select them. |
-| **3** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_3.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_3.jpg" width="240"/></a> | **Configure Size**<br/>Switch to the **Set by File Size** tab and enter your desired maximum size (e.g., 0.5 MB). |
-| **4** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_2.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_2.jpg" width="240"/></a> | **Process**<br/>Click the **Start Converting** button to begin the compression process. |
-| **5** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_1.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_1.jpg" width="240"/></a> | **Download**<br/>Once finished, click the download link to save your optimized image. |
+| **1** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_5.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_5.jpg" width="240" alt="Select JPEG or AVIF format"/></a> | **Select Format**<br/>Choose **JPEG** or **AVIF** as the output format from the dropdown menu. |
+| **2** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_4.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_4.jpg" width="240" alt="Upload images for processing"/></a> | **Upload Images**<br/>Drag and drop your images into the processing area or click to select them. |
+| **3** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_3.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_3.jpg" width="240" alt="Configure maximum file size"/></a> | **Configure Size**<br/>Switch to the **Set by File Size** tab and enter your desired maximum size (e.g., 0.5 MB). |
+| **4** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_2.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_2.jpg" width="240" alt="Start conversion process"/></a> | **Process**<br/>Click the **Start Converting** button to begin the compression process. |
+| **5** | <a href="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_1.jpg" class="glightbox"><img src="images/tutorials/export_jgp_steeps_by_max_size/jpeg_imgcompress_steeps_by_max_size_1.jpg" width="240" alt="Download optimized image"/></a> | **Download**<br/>Once finished, click the download link to save your optimized image. |
