@@ -1,27 +1,43 @@
 ---
-title: Contribute to ImgCompress - Open Source Community
-description: Help me improve ImgCompress! Learn how to contribute to the code, report issues, or suggest new features for my open-source image optimizer.
+title: How to Contribute - ImgCompress Open Source Guide
+description: Join the ImgCompress community! Detailed guide on how to report bugs, request features, and submit pull requests. Start contributing to open source today.
 ---
 
-# Contribute
+# Contributing to ImgCompress
 
-## 🤝 How to contribute
+Thank you for your interest in contributing to **ImgCompress**! As an open-source project, I welcome contributions of all forms—from bug reports and feature suggestions to code improvements and documentation updates.
 
-Want to make imgcompress even better?
+## 🤝 Ways to Contribute
 
-1. ⭐ **Star the repo** to support the project.
-2. **Fork → Branch → PR**: Developers are welcome to contribute!
-3. Browse `good first issue` or `help wanted` labels for starter tasks.
-4. File bugs or feature requests on the [issue tracker](https://github.com/karimz1/imgcompress/issues).
+There are many ways you can help make this project better:
 
-### 🛠️ Developer Resources
+### 1. ⭐ Support the Project
+Simply **starring the repository** on GitHub helps increase visibility and lets me know you appreciate the tool.
 
-If you are writing code or running tests locally, please read my **[Developer Guide](developers.md)** for detailed instructions on building and testing the project.
+### 2. 🐛 Report Bugs & Request Features
+Found a bug or have an idea for a new feature?
+*   Check the [Issue Tracker](https://github.com/karimz1/imgcompress/issues) to see if it has already been reported.
+*   If not, open a new issue with a clear description and reproduction steps.
 
-Thank you for supporting open source.
+### 3. 💻 Code Contributions
+Developers are welcome to fork the repository and submit Pull Requests (PRs).
+*   **Fix Bugs**: Look for issues labeled `bug`.
+*   **New Features**: Look for issues labeled `enhancement` or `help wanted`.
+*   **Good First Issues**: If you are new to the project, check out `good first issue` tasks.
+
+---
+
+## 🛠️ Developer Resources
+
+If you are planning to write code, please refer to the comprehensive **[Developer Guide](developers.md)**.
+
+It covers everything you need to know about:
+*   Setting up your **local development environment**.
+*   Running **Unit, Integration, and E2E tests**.
+*   Using the **VS Code Dev Container** for a zero-config setup.
 
 ---
 
 ## 📝 License
 
-This project is licensed under the **[GNU General Public License v3.0 (GPL-3.0)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)**.
+By contributing, you agree that your contributions will be licensed under the project's **[GNU General Public License v3.0 (GPL-3.0)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)**.
