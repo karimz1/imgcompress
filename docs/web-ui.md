@@ -1,5 +1,5 @@
 ---
-title: Web UI: Drag & Drop Local Image Compressor
+title: "Web UI: Drag & Drop Local Image Compressor"
 description: Optimize images locally with ImgCompress Web UI. Features drag & drop, batch processing, and privacy-first compression. No cloud uploads.
 ---
 

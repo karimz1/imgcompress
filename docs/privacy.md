@@ -1,5 +1,5 @@
 ---
-title: Privacy & Security: Zero-Knowledge Image Processing
+title: "Privacy & Security: Zero-Knowledge Image Processing"
 description: Your data stays yours. Read about my privacy-first approach to image compression. No tracking, no cloud uploads, 100% local processing.
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: ImgCompress: Open Source & Privacy-Focused Image Compression
+title: "ImgCompress: Open Source & Privacy-Focused Image Compression"
 description: ImgCompress is a self-hosted, open-source image optimizer. Compress images locally using Web UI, CLI, or Docker. Zero data leaks.
 hide:
   - navigation
