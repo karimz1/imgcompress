@@ -1,120 +1,142 @@
 ---
 title: Developer Guide - Building & Testing ImgCompress
-description: Comprehensive guide for developers to build, run, and test ImgCompress locally. Includes commands for unit, integration, and E2E tests using Docker.
+description: Comprehensive guide for developers to build, run, and test ImgCompress locally. Includes commands for unit, integration, and E2E tests using Docker and local scripts.
 ---
 
 # 🛠️ Developer Guide
 
-Welcome to the **ImgCompress** developer documentation. This guide is designed to help you set up your local development environment, build the Docker images, and run the automated test suite.
-
-We use **Docker** heavily to ensure a consistent environment across all development stages.
+Welcome to the **ImgCompress** developer documentation. This guide explains how to run tests and builds to ensure your contributions meet our quality standards. Also this documentation explains how to simulate the CI/CD pipeline locally to ensure that your changes will pass the GitHub Actions workflow.
 
 ---
 
-## 🧪 Local Build & Run
+## 💻 1. VS Code Dev Container
 
-To quickly build and run the application locally (simulating the production container), we provide a helper script. This is useful for verifying UI changes or environment variable configurations.
+The easiest way to set up a consistent development environment is to use the **VS Code Dev Container**. This provides a pre-configured Docker environment with all dependencies (Python, Node.js, Docker) and VS Code extensions installed.
 
-### Quick Start Script
+### How to use
+1.  Open the project in **VS Code**.
+2.  Install the **[Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)** extension.
+3.  Click the prompts to "Reopen in Container" (or run the command `Dev Containers: Reopen in Container`).
 
-Use `runLocalDockerBuildTester.sh` to build the `local-test` image and start the container.
+### What you get
+*   **Pre-installed Tools**: Python 3.10+, Node.js, pnpm, and Docker CLI.
+*   **Extensions**: Python, Docker, ESLint, Playwright, and more.
+*   **Port Forwarding**: Automatically forwards port `3001` (app) and `5000` (backend).
+*   **Docker-in-Docker**: You can build and run Docker containers *inside* the dev container (required for running the integration/e2e tests).
 
-```bash
-./runLocalDockerBuildTester.sh
-```
-
-**What this does:**
-1.  Builds the Docker image tagged as `karimz1/imgcompress:local-test`.
-2.  Starts the container on **http://localhost:3001**.
-3.  Sets default environment variables (e.g., `DISABLE_LOGO=false`).
-
-### Customizing the Run
-
-You can override environment variables at runtime. For example, to test the application with the **mascot hidden**:
+### Running Tests in Dev Container
+Once inside the VS Code terminal, you can simpler run the scripts directly:
 
 ```bash
-DISABLE_LOGO=true ./runLocalDockerBuildTester.sh
-```
+# Run Unit Tests
+./runUnitTests.sh
 
-> **Note:** The container is run with `--rm`, so it will be automatically removed when you stop it.
+# Run Integration Tests (uses Docker-in-Docker)
+./runIntegrationTests.sh
+```
 
 ---
 
-## 🏗️ Running Tests (CI Simulation)
+## 🏗️ 2. Local Development (Scripts)
 
-We use a **Dev Container** approach to run tests, ensuring that your local tests match the CI pipeline (GitHub Actions).
+For rapid development, we provide helper scripts that run the tests directly in your local environment.
 
-### 1. Integration Tests
+### Prerequisites
+*   **Python 3.10+** (with `venv` support)
+*   **Node.js & pnpm** (for frontend/E2E)
+*   **Docker** (for integration tests)
 
-These tests verify the interaction between different components of the system.
-
-```bash
-# 1. Build the base and devcontainer images
-cd .devcontainer/
-docker build -f Dockerfile.base -t my-base-image .
-docker build -t devcontainer:local-test .
-
-# 2. Run the integration tests
-cd ..
-docker run --rm --entrypoint /bin/sh \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v "$(pwd):/app/" \
-    -e IS_RUNNING_IN_GITHUB_ACTIONS=false \
-    --name devcontainer \
-    devcontainer:local-test /app/runIntegrationTests.sh
-```
-
-### 2. Unit Tests
-
-Unit tests focus on individual functions and logic, primarily in the backend.
+### 🧪 Unit & Integration Tests
 
 ```bash
-# 1. Build images (if not already done)
-cd .devcontainer/
-docker build -f Dockerfile.base -t my-base-image .
-docker build -t devcontainer:local-test .
+# Run Unit Tests (Backend)
+./runUnitTests.sh
 
-# 2. Run the unit tests
-cd ..
-docker run --rm --entrypoint /bin/sh \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v "$(pwd):/app/" \
-    -e IS_RUNNING_IN_GITHUB_ACTIONS=false \
-    --name devcontainer \
-    devcontainer:local-test /app/runUnitTests.sh
+# Run Integration Tests
+./runIntegrationTests.sh
 ```
 
-### 3. End-to-End (E2E) Tests
+### 🎭 End-to-End (E2E) Tests
 
-E2E tests verify the full user flow using a real browser instance managed by Playwright.
+Running E2E tests locally is a 3-step process. You need to start the backend and frontend services before running the test suite.
 
-**Step 1: Start the Application Container**
-First, run the application in "web" mode on the host network (or accessible via specific networking).
+**Step 1: Start the Backend**
+Open a new terminal and run:
+```bash
+./runStartLocalBackend.sh
+```
+
+**Step 2: Start the Frontend**
+Open a second terminal and run:
+```bash
+./runStartLocalFrontend.sh
+```
+
+**Step 3: Run the E2E Tests**
+In a third terminal, execute the test runner:
+```bash
+./run-e2e.sh
+```
+
+---
+
+## 🤖 3. CI Simulation (Docker)
+
+To strictly replicate the GitHub Actions CI environment, use the following Docker commands. This ensures that what works locally will also work in the cloud.
+
+### Backend Unit Tests
+Matches the `test-backend` job in CI.
 
 ```bash
-docker run --rm -d \
-    --network host \
-    --name app \
-    karimz1/imgcompress:local-test web
+# 1. Build the Dev Container
+docker build -t devcontainer:local-test .devcontainer/
+
+# 2. Run Unit Tests
+docker run --rm \
+  --entrypoint /bin/sh \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$(pwd):/app/" \
+  -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+  --name devcontainer \
+  devcontainer:local-test /app/runUnitTests.sh
 ```
 
-**Step 2: Run the E2E Test Suite**
-Now launch the test runner.
+### Backend Integration Tests
 
 ```bash
 docker run --rm \
-    --entrypoint /bin/sh \
-    --network host \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -v "$(pwd):/app/" \
-    -e IS_RUNNING_IN_GITHUB_ACTIONS=false \
-    -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
-    --name devcontainer_e2e \
-    devcontainer:local-test -c "/app/run-e2e.sh"
+  --entrypoint /bin/sh \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$(pwd):/app/" \
+  -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+  --name devcontainer \
+  devcontainer:local-test /app/runIntegrationTests.sh
 ```
 
----
+### End-to-End (E2E) Tests
+Matches the `test-e2e` job in CI.
 
-## 🤝 Contribution
+**Step 1: Build & Run Application**
+```bash
+# Build the App Image
+docker build -t karimz1/imgcompress:local-test .
 
-If you're ready to submit your changes, please verify that all tests pass. For general guidelines on contributing, please see our [Contribution Guide](contributing.md).
+# Run the App (Host Networking)
+docker run --rm -d \
+  --network host \
+  --name app \
+  karimz1/imgcompress:local-test web
+```
+
+**Step 2: Run E2E Tests**
+```bash
+docker run --rm \
+  --entrypoint /bin/sh \
+  --network host \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$(pwd):/app/" \
+  -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+  -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
+  --name devcontainer_e2e \
+  devcontainer:local-test -c "/app/run-e2e.sh"
+```
