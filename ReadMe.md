@@ -39,7 +39,7 @@ Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Pri
   - [Docker Compose](#docker-compose)
 - [Advanced Image Processing Features](#-advanced-image-processing-features)
   - [Local AI Background Removal Result](#-local-ai-background-removal-result)
-  - [Web UI Preview](#-web-ui-preview)
+  - [Web UI Preview](#web-ui-preview)
 - [Business & Personal Use Cases](#-business--personal-use-cases)
 - [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
 - [Release Notes & License](#-release-notes--license)
@@ -108,7 +108,7 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 
 ---
 
-### 🖥️ Web UI Preview
+### <a id="web-ui-preview"></a>🖥️ Web UI Preview
 
 For a detailed guide on using the Web Interface in imgcompress, please visit the **[How to Use the Web UI](https://karimz1.github.io/imgcompress/web-ui.html)**.
 
