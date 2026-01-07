@@ -103,7 +103,7 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 > 
 > [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
 
-___
+---
 
 ### 🖥️ Web UI Preview
 
@@ -114,11 +114,6 @@ For a detailed guide on using the Web Interface in imgcompress, please visit the
 | **1** | <a href="images/ui-example/1.jpg"><img src="images/ui-example/1.jpg" width="240" alt="Upload and configure image compression settings"/></a> | **Upload & Configure**<br/>Drag & drop images or PDFs, choose format, configure options. |
 | **2** | <a href="images/ui-example/2.jpg"><img src="images/ui-example/2.jpg" width="240" alt="Processing images locally"/></a> | **Processing**<br/>Images are processed locally with live progress feedback. |
 | **3** | <a href="images/ui-example/3.jpg"><img src="images/ui-example/3.jpg" width="240" alt="Download optimized images"/></a> | **Download Results**<br/>Download files individually or as a ZIP archive. |
-
-
-
-
-
 
 ---
 
