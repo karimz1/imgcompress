@@ -14,6 +14,10 @@ Want to make imgcompress even better?
 3. Browse `good first issue` or `help wanted` labels for starter tasks.
 4. File bugs or feature requests on the [issue tracker](https://github.com/karimz1/imgcompress/issues).
 
+### 🛠️ Developer Resources
+
+If you are writing code or running tests locally, please read our **[Developer Guide](developers.md)** for detailed instructions on building and testing the project.
+
 Thank you for supporting open source.
 
 ---
