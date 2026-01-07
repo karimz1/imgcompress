@@ -32,14 +32,17 @@ Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Pri
 
 ## 📖 Table of Contents
 
+- [Why choose ImgCompress?](#-why-choose-imgcompress)
+  - [Privacy by Design (GDPR Compliant)](#-privacy-by-design-gdpr-compliant)
 - [Quick Start](#-quick-start)
+  - [Docker Run](#docker-run)
+  - [Docker Compose](#docker-compose)
 - [Advanced Image Processing Features](#-advanced-image-processing-features)
-- [Local AI Background Removal](#-local-ai-background-removal-result)
-- [Web UI Preview](#-web-ui-preview)
+  - [Local AI Background Removal Result](#-local-ai-background-removal-result)
+  - [Web UI Preview](#-web-ui-preview)
 - [Business & Personal Use Cases](#-business--personal-use-cases)
 - [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
-- [Getting Started](#-getting-started)
-- [License](#-release-notes--license)
+- [Release Notes & License](#-release-notes--license)
 
 ---
 
