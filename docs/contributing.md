@@ -20,10 +20,12 @@ Found a bug or have an idea for a new feature?
 *   If not, open a new issue with a clear description and reproduction steps.
 
 ### 3. 💻 Code Contributions
+
 Developers are welcome to fork the repository and submit Pull Requests (PRs).
-*   **Fix Bugs**: Look for issues labeled `bug`.
-*   **New Features**: Look for issues labeled `enhancement` or `help wanted`.
-*   **Good First Issues**: If you are new to the project, check out `good first issue` tasks.
+
+*   **🐛 Fix Bugs**: Look for issues labeled `bug`.
+*   **✨ New Features**: Look for issues labeled `enhancement` or `help wanted`.
+*   **👶 Good First Issues**: If you are new to the project, check out `good first issue` tasks.
 
 ---
 
@@ -32,9 +34,10 @@ Developers are welcome to fork the repository and submit Pull Requests (PRs).
 If you are planning to write code, please refer to the comprehensive **[Developer Guide](developers.md)**.
 
 It covers everything you need to know about:
-*   Setting up your **local development environment**.
-*   Running **Unit, Integration, and E2E tests**.
-*   Using the **VS Code Dev Container** for a zero-config setup.
+
+*   **💻 Local Environment**: Setting up your local development environment.
+*   **🧪 Testing**: Running Unit, Integration, and E2E tests.
+*   **🚀 Dev Container**: Using the VS Code Dev Container for a zero-config setup.
 
 ---
 
