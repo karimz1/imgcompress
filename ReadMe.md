@@ -133,20 +133,14 @@ For a detailed guide on using the Web Interface in imgcompress, please visit the
 
 ## ❓ Frequently Asked Questions (FAQ)
 
-<details>
-<summary><strong>Is imgcompress really free?</strong></summary>
-Yes, it is 100% free and open-source. There are no subscriptions, no paid tiers, and no limits on the number of images you can process.
-</details>
+### Is imgcompress really free?
+Yes, it is 100% free and open-source. There are no subscriptions, no paid tiers, and no limits on the number of images you can process. I love open source and I want to give back to the community.
 
-<details>
-<summary><strong>Do I need an internet connection?</strong></summary>
-No. Once you've pulled the Docker image, <strong>imgcompress</strong> works entirely offline. No data is ever sent to the cloud, making it perfect for privacy-sensitive work.
-</details>
+### Do I need an internet connection?
+No. Once you've pulled the Docker image, **imgcompress** works entirely offline. No data is ever sent to the cloud, making it perfect for privacy-sensitive work.
 
-<details>
-<summary><strong>How does this compare to TinyPNG or Squoosh?</strong></summary>
-Unlike online tools, <strong>imgcompress</strong> runs on your own hardware, so you don't have to upload your private photos to a third-party server. It also supports bulk processing and PDF conversion, which many online tools struggle with.
-</details>
+### How does this compare to TinyPNG or Squoosh?
+**ImgCompress** is an easy-to-use **all-in-one** toolkit. Unlike online tools that limit you to basic formats, ImgCompress supports **nearly all image formats**: including **HEIC, HEIF, PSD (Photoshop), EPS (Vector), and many more**. It brings professional-grade format support and bulk optimization directly to your local hardware.
 
 ---
 
