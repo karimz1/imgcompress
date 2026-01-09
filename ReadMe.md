@@ -6,7 +6,6 @@
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
 [![Release Date](https://img.shields.io/github/release-date/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/releases)
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
-
 [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 [![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
 
@@ -145,10 +144,25 @@ No. Once you've pulled the Docker image, **imgcompress** works entirely offline.
 
 ### 🏆 Hall of Fame
 
-| Date     | Supporter                                | Project Impact             |
-| -------- | ---------------------------------------- | -------------------------- |
+[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
+[![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
+
+I love thanking my supporters! Whether you use GitHub or PayPal, your contribution is recognized here.
+
+> **✨ Special Thanks**
+> A very special thank you for the incredible support and encouragement for this project!
+
+| Date | Supporter | Project Impact |
+| :--- | :--- | :--- |
+| Jan 2026 | *Anonymous* | One-time Donation (PayPal) |
 | Oct 2025 | [@Fayyaadh](https://github.com/Fayyaadh) | One-time Donation (PayPal) |
-| Jan 2026 | *Anonymous*                              | One-time Donation (PayPal) |
+
+
+> **Note for PayPal Supporters:** To be added to the table above, please include a note in the PayPal payment field with your GitHub profile link or website.
+
+*Prefer to stay under the radar? You are always welcome to support anonymously.*
+
+**Thank you for being part of the journey!**
 
 ----
 
@@ -157,6 +171,7 @@ No. Once you've pulled the Docker image, **imgcompress** works entirely offline.
 - **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes.html)
 - The current release and past releases can be found here: https://github.com/karimz1/imgcompress/releases 
 - **License**: [GPL-3.0 License](LICENSE)
+
 
 
 
