@@ -6,9 +6,9 @@
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
 [![Release Date](https://img.shields.io/github/release-date/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/releases)
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
-[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 
-<img src="images/logo_transparent.png" alt="ImgCompress: The self-hosted privacy-first image optimizer" width="380"/>
+[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
+[![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
 
 **ImgCompress** is a high-performance, **self-hosted Docker image compression and conversion tool** featuring local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
 
@@ -157,6 +157,7 @@ No. Once you've pulled the Docker image, **imgcompress** works entirely offline.
 - **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes.html)
 - The current release and past releases can be found here: https://github.com/karimz1/imgcompress/releases 
 - **License**: [GPL-3.0 License](LICENSE)
+
 
 
 
