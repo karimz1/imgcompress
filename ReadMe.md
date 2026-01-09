@@ -1,11 +1,11 @@
 # imgcompress: Privacy-First Image Optimizer: Compress, Convert & AI Background Removal (Docker)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
-[![Documentation](https://img.shields.io/badge/docs-karimz1.github.io%2Fimgcompress-blue)](https://karimz1.github.io/imgcompress/)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
 [![Release Date](https://img.shields.io/github/release-date/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/releases)
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-karimz1.github.io%2Fimgcompress-blue)](https://karimz1.github.io/imgcompress/)
 [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 [![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
 
@@ -171,6 +171,7 @@ I love thanking my supporters! Whether you use GitHub or PayPal, your contributi
 - **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes.html)
 - The current release and past releases can be found here: https://github.com/karimz1/imgcompress/releases 
 - **License**: [GPL-3.0 License](LICENSE)
+
 
 
 
