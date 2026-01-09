@@ -14,7 +14,7 @@
 
 **Perfect for:** photographers managing large galleries, developers optimizing web assets for PageSpeed/Core Web Vitals, privacy-conscious users, and anyone needing a **free TinyPNG/Squoosh alternative** that runs entirely on your hardware.
 
----
+----
 
 ## ❓ Why choose ImgCompress?
 
@@ -28,7 +28,7 @@ Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Pri
 - **🚫 No External API Calls:** Your files are never uploaded, buffered, or sent to third-party servers.
 - **🔌 Air-Gapped Ready:** Full functionality without an internet connection.
 
----
+----
 
 ## 📖 Table of Contents
 
@@ -42,9 +42,10 @@ Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Pri
   - [Web UI Preview](#web-ui-preview)
 - [Business & Personal Use Cases](#-business--personal-use-cases)
 - [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
+- [Hall of Fame](#-hall-of-fame)
 - [Release Notes & License](#-release-notes--license)
 
----
+----
 
 ## 🚀 Quick Start
 
@@ -71,7 +72,7 @@ Open your browser and visit **http://localhost:3001**.
 For **advanced use cases**, detailed configuration, and deployment options, please visit:  
 👉 **[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation.html)**
 
----
+----
 
 ## ✨ Advanced Image Processing Features
 
@@ -84,7 +85,7 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 - **🛠️ Automation Friendly**: Scriptable CLI with JSON output for DevOps and CI/CD pipelines.
 - **📦 Cross-Platform**: Runs everywhere (Linux, Mac, Windows, Raspberry Pi) via Docker.
 
----
+----
 
 ### 🧠 Local AI Background Removal Result:
 
@@ -106,7 +107,7 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 > 
 > [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
 
----
+----
 
 ### <a id="web-ui-preview"></a>🖥️ Web UI Preview
 
@@ -118,7 +119,7 @@ For a detailed guide on using the Web Interface in imgcompress, please visit the
 | **2** | <a href="images/ui-example/2.jpg"><img src="images/ui-example/2.jpg" width="240" alt="Processing images locally"/></a> | **Processing**<br/>Images are processed locally with live progress feedback. |
 | **3** | <a href="images/ui-example/3.jpg"><img src="images/ui-example/3.jpg" width="240" alt="Download optimized images"/></a> | **Download Results**<br/>Download files individually or as a ZIP archive. |
 
----
+----
 
 ## 💼 Business & Personal Use Cases
 
@@ -127,7 +128,7 @@ For a detailed guide on using the Web Interface in imgcompress, please visit the
 - **Privacy-Conscious Users**: Securely process family photos and sensitive documents without uploading them to cloud servers.
 - **Enterprises**: Maintain **GDPR, HIPAA, or SOC2 compliance** by processing all media in-house, ensuring no data share.
 
----
+----
 
 ## ❓ Frequently Asked Questions (FAQ)
 
@@ -140,7 +141,16 @@ No. Once you've pulled the Docker image, **imgcompress** works entirely offline.
 ### How does this compare to TinyPNG or Squoosh?
 **ImgCompress** is an easy-to-use **all-in-one** toolkit. Unlike online tools that limit you to basic formats, ImgCompress supports **nearly all image formats**: including **HEIC, HEIF, PSD (Photoshop), EPS (Vector), and many more**. It brings professional-grade format support and bulk optimization directly to your local hardware.
 
----
+----
+
+### 🏆 Hall of Fame
+
+| Date     | Supporter                                | Project Impact             |
+| -------- | ---------------------------------------- | -------------------------- |
+| Oct 2025 | [@Fayyaadh](https://github.com/Fayyaadh) | One-time Donation (PayPal) |
+| Jan 2026 | *Anonymous*                              | One-time Donation (PayPal) |
+
+----
 
 ## 📓 Release Notes & License
 
