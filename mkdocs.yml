@@ -19,6 +19,8 @@ use_directory_urls: true
 theme:
   name: material
   custom_dir: docs/overrides
+  static_templates:
+    - 404.html
   logo: images/logo.png
   favicon: images/favicon.ico
   palette: 
@@ -39,6 +41,7 @@ theme:
     - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
+    - navigation.indexes
     - search.suggest
     - search.highlight
     - content.action.edit
