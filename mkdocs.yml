@@ -51,8 +51,12 @@ extra_css:
 plugins:
   - search
   - glightbox
-  - minify: 
-      minify_html: true
+  - minify:
+      minify_html: false
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
   - git-revision-date-localized:
       type: datetime
       timezone: UTC
