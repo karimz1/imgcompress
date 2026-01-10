@@ -56,11 +56,11 @@ Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Pri
 
 ## Quick Start
 
-Get up and running in seconds with Docker.
+Get up and running in seconds with Docker. [Imgcompress Docker Image](https://hub.docker.com/r/karimz1/imgcompress).
 
 ### Docker Run
 ```bash
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
+docker run --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
 ```
 
 ### Docker Compose
