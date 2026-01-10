@@ -1,4 +1,7 @@
-# imgcompress: Privacy-First Image Optimizer: Compress, Convert & AI Background Removal (Docker)
+# imgcompress: Privacy-First Image Optimizer: Compress, Convert and remove backgrounds using local AI (Docker)
+
+<div align="center"> 
+<img src="./images/logo_transparent.png" alt="imgcompress_mascot" width="400" height="auto" />
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
@@ -9,44 +12,49 @@
 [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 [![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
 
-**ImgCompress** is a high-performance, **self-hosted Docker image compression and conversion tool** featuring local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
+</div>
 
-**Perfect for:** photographers managing large galleries, developers optimizing web assets for PageSpeed/Core Web Vitals, privacy-conscious users, and anyone needing a **free TinyPNG/Squoosh alternative** that runs entirely on your hardware.
+**ImgCompress** is a **self-hosted Docker image compression and conversion tool** featuring local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
+
+**Perfect for:** photographers managing large galleries, developers optimizing web assets for PageSpeed, privacy-conscious users, and anyone needing a **free Online Image Compress alternative** that runs entirely on your hardware.
 
 ----
 
-## ❓ Why choose ImgCompress?
+## Why choose ImgCompress?
 
-I created **ImgCompress** as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is the last **local-first image web tool** you'll need, handling everything from batch resizing to professional AI background removal on your own hardware.
+I created **ImgCompress** as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is the last **local-first image web tool** you'll need, handling everything from batch resizing to professional AI powered background removal on your own hardware.
 
-### 🛡️ Privacy by Design (GDPR Compliant)
+### Privacy by Design (GDPR Compliant)
 
 Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Privacy by Default"** architecture. It is the ideal solution for processing sensitive data without external risks.
 
-- **🔒 100% Local Processing:** All tasks run strictly on your CPU/GPU.
-- **🚫 No External API Calls:** Your files are never uploaded, buffered, or sent to third-party servers.
-- **🔌 Air-Gapped Ready:** Full functionality without an internet connection.
+- **100% Local Processing:** All tasks run strictly on your CPU/GPU.
+- **No External API Calls:** Your files are never uploaded, buffered, or sent to third-party servers.
 
 ----
 
-## 📖 Table of Contents
-
-- [Why choose ImgCompress?](#-why-choose-imgcompress)
-  - [Privacy by Design (GDPR Compliant)](#-privacy-by-design-gdpr-compliant)
-- [Quick Start](#-quick-start)
-  - [Docker Run](#docker-run)
-  - [Docker Compose](#docker-compose)
-- [Advanced Image Processing Features](#-advanced-image-processing-features)
-  - [Local AI Background Removal Result](#-local-ai-background-removal-result)
-  - [Web UI Preview](#web-ui-preview)
-- [Business & Personal Use Cases](#-business--personal-use-cases)
-- [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
-- [Hall of Fame](#-hall-of-fame)
-- [Release Notes & License](#-release-notes--license)
+## Table of Content
+- [imgcompress: Privacy-First Image Optimizer: Compress, Convert and remove backgrounds using local AI (Docker)](#imgcompress-privacy-first-image-optimizer-compress-convert-and-remove-backgrounds-using-local-ai-docker)
+  - [Why choose ImgCompress?](#why-choose-imgcompress)
+    - [Privacy by Design (GDPR Compliant)](#privacy-by-design-gdpr-compliant)
+  - [Table of Content](#table-of-content)
+  - [Quick Start](#quick-start)
+    - [Docker Run](#docker-run)
+    - [Docker Compose](#docker-compose)
+  - [Advanced Image Processing Features](#advanced-image-processing-features)
+    - [Local AI Background Removal Result:](#local-ai-background-removal-result)
+    - [Web UI Preview](#web-ui-preview)
+  - [Business \& Personal Use Cases](#business--personal-use-cases)
+  - [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
+    - [Is imgcompress really free?](#is-imgcompress-really-free)
+    - [Do I need an internet connection?](#do-i-need-an-internet-connection)
+    - [How does this compare to TinyPNG or Squoosh?](#how-does-this-compare-to-tinypng-or-squoosh)
+    - [Hall of Fame](#hall-of-fame)
+  - [Release Notes \& License](#release-notes--license)
 
 ----
 
-## 🚀 Quick Start
+## Quick Start
 
 Get up and running in seconds with Docker.
 
@@ -69,24 +77,23 @@ services:
 Open your browser and visit **http://localhost:3001**.
 
 For **advanced use cases**, detailed configuration, and deployment options, please visit:  
-👉 **[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation.html)**
+**[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation.html)**
 
 ----
 
-## ✨ Advanced Image Processing Features
+## Advanced Image Processing Features
 
-- **📱 HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
-- **🤖 Local AI Background Removal**: Powered by [rembg](https://github.com/danielgatis/rembg) and [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model. 100% offline and private.
-- **📰 PDF to Image Tool**: Extract PDF pages as individual high-resolution images (PNG/JPG).
-- **🖼️ Universal Format Support**: Convert between 70+ formats including **WebP, PSD, EPS, and TIFF**.
-- **⚙️ Professional Compression Controls**: Fine-tune quality settings, dimensions, and lossless optimization.
-- **🚀 Multi-Core Parallel Processing**: Optimized for lightning-fast batch jobs.
-- **🛠️ Automation Friendly**: Scriptable CLI with JSON output for DevOps and CI/CD pipelines.
-- **📦 Cross-Platform**: Runs everywhere (Linux, Mac, Windows, Raspberry Pi) via Docker.
+- **HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
+- **Local AI Background Removal**: Powered by [rembg](https://github.com/danielgatis/rembg) and [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model. 100% offline and private.
+- **PDF to Image Tool**: Extract PDF pages as individual high-resolution images (PNG/JPG/AVIF).
+- **Universal Format Support**: Convert between 70+ formats including **WebP, PSD, EPS, and TIFF**.
+- **Professional Compression Controls**: Fine-tune quality settings, dimensions, and lossless optimization.
+- **Automation Friendly**: Scriptable CLI with JSON output for DevOps and CI/CD pipelines.
+- **Cross-Platform**: Runs everywhere (Linux, Mac, Windows, Raspberry Pi) via Docker.
 
 ----
 
-### 🧠 Local AI Background Removal Result:
+### Local AI Background Removal Result:
 
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
@@ -102,13 +109,12 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 > Imgcompress also uses [Pillow](https://github.com/python-pillow/Pillow) for re-serialization of images.
 
 
-> 📸 **Source of Original Image**
+> 📸 **Source of Original Image** [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
 > 
-> [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
 
 ----
 
-### <a id="web-ui-preview"></a>🖥️ Web UI Preview
+### Web UI Preview
 
 For a detailed guide on using the Web Interface in imgcompress, please visit the **[How to Use the Web UI](https://karimz1.github.io/imgcompress/web-ui.html)**.
 
@@ -120,29 +126,29 @@ For a detailed guide on using the Web Interface in imgcompress, please visit the
 
 ----
 
-## 💼 Business & Personal Use Cases
+## Business & Personal Use Cases
 
 - **Web Developers**: Optimize website assets to improve **Google PageSpeed** scores.
-- **Photographers**: Batch compress high-res galleries by up to 80% without visible quality loss.
+- **Photographers**: Batch compress high-res galleries by up to 80% without visible quality loss using [AVIF Format](https://en.wikipedia.org/wiki/AVIF ).
 - **Privacy-Conscious Users**: Securely process family photos and sensitive documents without uploading them to cloud servers.
 - **Enterprises**: Maintain **GDPR, HIPAA, or SOC2 compliance** by processing all media in-house, ensuring no data share.
 
 ----
 
-## ❓ Frequently Asked Questions (FAQ)
+## Frequently Asked Questions (FAQ)
 
 ### Is imgcompress really free?
-Yes, it is 100% free and open-source. There are no subscriptions, no paid tiers, and no limits on the number of images you can process. I love open source and I want to give back to the community.
+Yes, it is 100% free and open-source. There are no subscriptions, no paid tiers, and no limits on the number of images you can process. It works on your own hardware so convert as many images as you like.
 
 ### Do I need an internet connection?
 No. Once you've pulled the Docker image, **imgcompress** works entirely offline. No data is ever sent to the cloud, making it perfect for privacy-sensitive work.
 
 ### How does this compare to TinyPNG or Squoosh?
-**ImgCompress** is an easy-to-use **all-in-one** toolkit. Unlike online tools that limit you to basic formats, ImgCompress supports **nearly all image formats**: including **HEIC, HEIF, PSD (Photoshop), EPS (Vector), and many more**. It brings professional-grade format support and bulk optimization directly to your local hardware.
+**ImgCompress** is an easy-to-use **all-in-one** toolkit. Unlike online tools that limit you to basic formats, ImgCompress supports **nearly all image formats**: including **HEIC, HEIF, PSD (Photoshop), EPS (Vector), AVIF, and many more**. It brings professional-grade format support and bulk optimization directly to your local hardware all for average users in a simple and nice Web Interface.
 
 ----
 
-### 🏆 Hall of Fame
+### Hall of Fame
 
 [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 [![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
@@ -166,7 +172,7 @@ I love thanking my supporters! Whether you use GitHub or PayPal, your contributi
 
 ----
 
-## 📓 Release Notes & License
+## Release Notes & License
 
 - **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes.html)
 - The current release and past releases can be found here: https://github.com/karimz1/imgcompress/releases 
