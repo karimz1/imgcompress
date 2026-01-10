@@ -64,8 +64,6 @@ extra_javascript:
 extra:
   generator: false
   meta:
-    - name: description
-      content: ImgCompress is a privacy-focused, open-source image compressor. Reduce file sizes securely using Docker, Python CLI, or a self-hosted Web UI. No external API calls required.
     - name: keywords
       content: imgcompress, image compression, image optimizer, privacy, open source, docker image compressor, cli tool, self-hosted, python, webp converter, png optimizer, jpeg compression, offline tool, batch processing
     - name: author
