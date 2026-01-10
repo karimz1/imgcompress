@@ -10,8 +10,7 @@ copyright: >
   and <a class="github_lin_footer" href="https://hub.docker.com/r/karimz1/imgcompress" target="_blank" rel="noopener">DockerHub</a>.
 
 site_description: >
-  The official documentation for ImgCompress. A privacy-first, open-source image compression tool. 
-  Optimize PNG, JPEG, and WebP locally using Docker, CLI, or Web UI without external APIs.
+  The official documentation for ImgCompress. Imgcompress is a simple and privacy-first image processing tool that runs entirely in Docker. Compress, convert, resize, batch-process images and remove backgrounds using local AI with zero cloud dependencies.
 
 site_author: Karim Zouine
 
