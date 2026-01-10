@@ -14,7 +14,7 @@ site_description: >
 
 site_author: Karim Zouine
 
-use_directory_urls: false
+use_directory_urls: true
 
 theme:
   name: material
