@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://karimz1.github.io/imgcompress/#software",
+        "name": "ImgCompress",
+        "url": "https://karimz1.github.io/imgcompress/",
+        "downloadUrl": "https://github.com/karimz1/imgcompress",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Docker, Windows, Linux, MacOS",
+        "description": "{{ config.site_description | replace('\n', ' ') }}",
+        "author": {
+          "@id": "https://karimzouine.com/#person"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://karimzouine.com/#person",
+        "name": "{{ config.site_author }}",
+        "url": "https://karimzouine.com",
+        "sameAs": [
+          "https://github.com/karimz1",
+          "https://github.com/karimz1/imgcompress",
+          "https://hub.docker.com/r/karimz1/imgcompress",
+          "https://karimz1.github.io/imgcompress/"
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link rel="canonical" href="{{ page.canonical_url }}">
+  <link rel="me" href="https://github.com/karimz1">
+  <link rel="me" href="https://karimzouine.com">
+{% endblock %}

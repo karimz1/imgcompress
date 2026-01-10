@@ -19,6 +19,7 @@ use_directory_urls: false
 
 theme:
   name: material
+  custom_dir: docs/overrides
   logo: images/logo.png
   favicon: images/favicon.ico
   palette: 
