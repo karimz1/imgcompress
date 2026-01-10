@@ -77,7 +77,7 @@ services:
 Open your browser and visit **http://localhost:3001**.
 
 For **advanced use cases**, detailed configuration, and deployment options, please visit:  
-**[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation.html)**
+**[Full Installation Guide & Documentation](https://karimz1.github.io/imgcompress/installation/)**
 
 ----
 
@@ -116,7 +116,7 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 
 ### Web UI Preview
 
-For a detailed guide on using the Web Interface in imgcompress, please visit the **[How to Use the Web UI](https://karimz1.github.io/imgcompress/web-ui.html)**.
+For a detailed guide on using the Web Interface in imgcompress, please visit the **[How to Use the Web UI](https://karimz1.github.io/imgcompress/web-ui/)**.
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
@@ -174,7 +174,7 @@ I love thanking my supporters! Whether you use GitHub or PayPal, your contributi
 
 ## Release Notes & License
 
-- **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes.html)
+- **Release Notes**: [Read Release Notes](https://karimz1.github.io/imgcompress/release-notes/)
 - The current release and past releases can be found here: https://github.com/karimz1/imgcompress/releases 
 - **License**: [GPL-3.0 License](LICENSE)
 
