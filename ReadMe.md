@@ -1,4 +1,5 @@
-# imgcompress: Privacy-First Image Optimizer: Compress, Convert and remove backgrounds using local AI (Docker)
+# ImgCompress: Privacy-First Image Optimizer
+## Local Image Compression, Format Conversion & AI Background Removal (Docker)
 
 <div align="center"> 
 <img src="./images/logo_transparent.png" alt="imgcompress_mascot" width="400" height="auto" />
@@ -14,23 +15,19 @@
 
 </div>
 
-**ImgCompress** is a **self-hosted Docker image compression and conversion tool** featuring local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
+**ImgCompress** is a high-performance, **self-hosted Docker image compression and conversion tool** featuring fully local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
 
-**Perfect for:** photographers managing large galleries, developers optimizing web assets for PageSpeed, privacy-conscious users, and anyone needing a **free Online Image Compress alternative** that runs entirely on your hardware.
+## ❓ Why choose ImgCompress?
 
-----
+I created **ImgCompress** as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is a **complete local-first image web tool** that handles everything from batch resizing to professional AI background removal on your own hardware.
 
-## Why choose ImgCompress?
+### 🛡️ Privacy by Design (Compliance-Friendly)
 
-I created **ImgCompress** as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is the last **local-first image web tool** you'll need, handling everything from batch resizing to professional AI powered background removal on your own hardware.
+Unlike traditional SaaS services, ImgCompress is built around a strict **“Privacy by Default”** philosophy. All image processing happens entirely on your own hardware, making it suitable for handling sensitive or regulated data without relying on external services.
 
-### Privacy by Design (GDPR Compliant)
-
-Unlike traditional SaaS services, ImgCompress is engineered with a strict **"Privacy by Default"** architecture. It is the ideal solution for processing sensitive data without external risks.
-
-- **100% Local Processing:** All tasks run strictly on your CPU/GPU.
-- **No External API Calls:** Your files are never uploaded, buffered, or sent to third-party servers.
-
+- **100% Local Processing:** All operations run exclusively on your CPU/GPU.
+- **No External API Calls:** Images are never uploaded, proxied, or shared with third-party servers.
+- **Air-Gapped Ready:** Fully functional in offline and restricted network environments.
 ----
 
 ## Table of Content
@@ -84,7 +81,7 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 ## Advanced Image Processing Features
 
 - **HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
-- **Local AI Background Removal**: Powered by [rembg](https://github.com/danielgatis/rembg) and [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model. 100% offline and private.
+- **Local AI Background Removal**: Powered by [U²-Net](https://github.com/xuebinqin/U-2-Net) in combination with the Python package [rembg](https://github.com/danielgatis/rembg) for 100% offline background removal.
 - **PDF to Image Tool**: Extract PDF pages as individual high-resolution images (PNG/JPG/AVIF).
 - **Universal Format Support**: Convert between 70+ formats including **WebP, PSD, EPS, and TIFF**.
 - **Professional Compression Controls**: Fine-tune quality settings, dimensions, and lossless optimization.
@@ -106,7 +103,7 @@ For **advanced use cases**, detailed configuration, and deployment options, plea
 > No data ever leaves your network.
 >
 > Internally it also uses [onnxruntime](https://github.com/microsoft/onnxruntime).  
-> Imgcompress also uses [Pillow](https://github.com/python-pillow/Pillow) for re-serialization of images.
+> ImgCompress also uses [Pillow](https://github.com/python-pillow/Pillow) for image re-serialization. 
 
 
 > 📸 **Source of Original Image** [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
