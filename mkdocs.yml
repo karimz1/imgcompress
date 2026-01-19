@@ -19,8 +19,7 @@ use_directory_urls: true
 theme:
   name: material
   custom_dir: docs/overrides
-  static_templates:
-    - 404.html
+
   logo: images/logo.png
   favicon: images/favicon.ico
   palette: 
@@ -109,6 +108,9 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - admonition
   - pymdownx.details
+
+hooks:
+  - docs/hooks.py
 
 nav:
   - Home: index.md

@@ -4,46 +4,36 @@
 {% block site_toc %}{% endblock %}
 
 {% block content %}
-  <script>
-    var href = window.location.href;
-    if (href.endsWith(".html")) {
-        // Remove .html and add a trailing slash for SEO-friendly directory URL
-        // I had to do it as I switched in mkdocs use_directory_urls: true from false
-        var newHref = href.replace(/\.html$/, "/");
-        window.location.replace(newHref);
-    }
-  </script>
-
-  <article class="md-content__inner md-typeset">
+<article class="md-content__inner md-typeset">
     <h1>404: Page not found</h1>
-    
+
     <p>
-      I've recently updated the documentation to improve clarity. 
-      The page you are looking for may have been moved to a new section or renamed.
+        I've recently updated the documentation to improve clarity.
+        The page you are looking for may have been moved to a new section or renamed.
     </p>
-    
+
     <hr />
-    
+
     <h3>How to find what you need:</h3>
     <ol>
-      <li>
-        <strong>Search:</strong> Press <kbd>/</kbd> or click the search bar at the top to find the new location.
-      </li>
-      <li>
-        <strong>Navigate:</strong> Use the tabs at the top of the page to browse the main sections.
-      </li>
-      <li>
-        <strong>Return:</strong> Click the button below to go back to the home page.
-      </li>
+        <li>
+            <strong>Search:</strong> Press <kbd>/</kbd> or click the search bar at the top to find the new location.
+        </li>
+        <li>
+            <strong>Navigate:</strong> Use the tabs at the top of the page to browse the main sections.
+        </li>
+        <li>
+            <strong>Return:</strong> Click the button below to go back to the home page.
+        </li>
     </ol>
 
     <br />
 
     <a href="{{ 'index.html' | url }}" class="md-button md-button--primary">
-      <span class="twemoji">
-        {% include ".icons/octicons/home-24.svg" %}
-      </span>
-      Back to Documentation
+        <span class="twemoji">
+            {% include ".icons/octicons/home-24.svg" %}
+        </span>
+        Back to Documentation
     </a>
-  </article>
+</article>
 {% endblock %}
