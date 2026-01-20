@@ -1,6 +1,6 @@
 # Project information
 site_name: ImgCompress Documentation
-site_url: https://karimz1.github.io/imgcompress/
+site_url: https://imgcompress.karimzouine.com/
 site_description: >-
   ImgCompress is a simple, private Docker image optimizer for your NAS, home server, or PC. 
   100% offline background removal and compression with zero tracking. 
