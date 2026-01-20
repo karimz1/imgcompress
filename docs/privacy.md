@@ -17,7 +17,7 @@ imgcompress is engineered with a strict "Privacy by Default" architecture. I bel
 For air-gapped systems or HIPAA/GDPR compliance, I provide a **Zero-Networking** configuration that hard-blocks all outbound traffic while maintaining local browser access.
 
 !!! note "Advanced Setup Only"
-    This configuration requires manual maintenance of Docker networking. For standard privacy-focused use, I recommend following the [Quick Start Guide](installation.md#quick-start).
+    This configuration requires manual maintenance of Docker networking. For standard privacy-focused use, I recommend following the [Quick Start Guide](installation.md#quick-start-recommended).
 
 **Example:**
 
