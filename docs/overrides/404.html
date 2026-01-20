@@ -3,6 +3,16 @@
 {% block site_nav %}{% endblock %}
 {% block site_toc %}{% endblock %}
 
+{% block extrahead %}
+<script>
+    var href = window.location.href;
+    if (href.endsWith(".html")) {
+        var newHref = href.replace(/\.html$/, "/");
+        window.location.replace(newHref);
+    }
+</script>
+{% endblock %}
+
 {% block content %}
 <article class="md-content__inner md-typeset">
     <h1>404: Page not found</h1>
@@ -16,15 +26,10 @@
 
     <h3>How to find what you need:</h3>
     <ol>
-        <li>
-            <strong>Search:</strong> Press <kbd>/</kbd> or click the search bar at the top to find the new location.
+        <li><strong>Search:</strong> Press <kbd>/</kbd> or click the search bar at the top to find the new location.
         </li>
-        <li>
-            <strong>Navigate:</strong> Use the tabs at the top of the page to browse the main sections.
-        </li>
-        <li>
-            <strong>Return:</strong> Click the button below to go back to the home page.
-        </li>
+        <li><strong>Navigate:</strong> Use the tabs at the top of the page to browse the main sections.</li>
+        <li><strong>Return:</strong> Click the button below to go back to the home page.</li>
     </ol>
 
     <br />

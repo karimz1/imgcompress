@@ -16,4 +16,5 @@ pip install -r docs/requirements.txt
 # Start local server
 echo "Starting local documentation server..."
 echo "Open http://127.0.0.1:8000 in your browser"
-mkdocs serve
+export PATH="$HOME/.local/bin:$PATH"
+zensical serve

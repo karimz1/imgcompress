@@ -1,58 +1,81 @@
+# Project information
 site_name: ImgCompress Documentation
 site_url: https://karimz1.github.io/imgcompress/
-repo_url: https://github.com/karimz1/imgcompress
-repo_name: karimz1/imgcompress
-edit_uri: blob/main/docs/
-
-copyright: >
-  imgcompress: for everyone who values privacy. 
-  Created by <a class="github_lin_footer" href="https://www.karimzouine.com/" target="_blank" rel="noopener">Karim Zouine</a>.
-  Fully open source on <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a>
-
-site_description: >
-  The official documentation for ImgCompress. Imgcompress is a simple and privacy-first image processing tool that runs entirely in Docker. Compress, convert, resize, batch-process images and remove backgrounds using local AI with zero cloud dependencies.
-
+site_description: >-
+  The official documentation for ImgCompress. Imgcompress is a simple and privacy-first image processing tool 
+  that runs entirely in Docker. Compress, convert, resize, batch-process images and remove backgrounds 
+  using local AI with zero cloud dependencies.
 site_author: Karim Zouine
 
-use_directory_urls: true
+# Repository
+repo_name: karimz1/imgcompress
+repo_url: https://github.com/karimz1/imgcompress
+edit_uri: edit/main/docs/
 
+# Copyright
+copyright: |
+  &copy; 2026 Karim Zouine. <br>
+  imgcompress: for everyone who values privacy. <br>
+  Created by <a class="github_lin_footer" href="https://www.karimzouine.com/" target="_blank" rel="noopener">Karim Zouine</a>. <br>
+  Fully open source on <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a>
+
+# Configuration
 theme:
   name: material
   custom_dir: docs/overrides
-
-  logo: images/logo.png
-  favicon: images/favicon.ico
-  palette: 
-    - scheme: slate
-      primary: black
-      accent: black
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.footnote.tooltips
+    - content.tabs.link
+    - content.tooltips
+    - navigation.footer
+    - navigation.indexes
+    - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - search.highlight
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/brightness-4
+        icon: material/brightness-auto
         name: Switch to light mode
-    - scheme: default
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-  features:
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.sections
-    - navigation.expand
-    - navigation.indexes
-    - search.suggest
-    - search.highlight
-    - content.action.edit
-    - content.code.copy
-    - footer.revision
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  favicon: images/favicon.ico
+  logo: images/logo.png
+  icon:
+    repo: fontawesome/brands/github
 
 extra_css:
-  - stylesheets/extra.css
+  - assets/glightbox/glightbox.min.css
+  - assets/stylesheets/extra.css
 
+extra_javascript:
+  - assets/glightbox/glightbox.min.js
+  - assets/js/glightbox-init.js
+
+# Plugins
 plugins:
   - search
-  - glightbox
   - minify:
       minify_html: true
       minify_js: true
@@ -62,63 +85,66 @@ plugins:
       timezone: UTC
       enable_creation_date: false
 
-extra_javascript:
-  - javascripts/extra.js
-
-extra:
-  generator: false
-  meta:
-    - name: keywords
-      content: imgcompress, image compression, image optimizer, privacy, open source, docker image compressor, cli tool, self-hosted, python, webp converter, png optimizer, jpeg compression, offline tool, batch processing
-    - name: author
-      content: Karim Zouine
-    - property: og:type
-      content: website
-    - property: og:title
-      content: ImgCompress - Open Source & Privacy-First Image Compression
-    - property: og:description
-      content: Securely compress images with Web UI, CLI, and Docker. 100% Open Source and Local.
-    - property: og:url
-      content: https://karimz1.github.io/imgcompress/
-    - property: og:image
-      content: https://karimz1.github.io/imgcompress/images/logo_transparent.png
-    - name: twitter:card
-      content: summary_large_image
-
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/karimz1/imgcompress
-      name: GitHub
-    - icon: fontawesome/brands/docker
-      link: https://hub.docker.com/r/karimz1/imgcompress
-      name: Docker Hub
-
+# Extensions
 markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: karimz1
+      repo: imgcompress
+  - pymdownx.mark
+  - pymdownx.smartsymbols
   - pymdownx.snippets:
       base_path: ["."]
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
-  - pymdownx.superfences
-  - attr_list
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-  - admonition
-  - pymdownx.details
+      combine_header_slug: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
 
-hooks:
-  - docs/hooks.py
+# Icons and generator
+extra:
+  generator: false
 
+# Page tree
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - How to Use: web-ui.md
-  - CLI & Automation: cli.md  
+  - Getting Started:
+    - Installation: installation.md
+    - How to Use: web-ui.md
+    - CLI & Automation: cli.md
   - Privacy: privacy.md
-  - Release Notes: release-notes.md
-  - Contribute: contributing.md
-  - Developer Guide: developers.md
-  - ❤️ Buy me a Coffee: https://github.com/sponsors/karimz1
+  - Development:
+    - Contribute: contributing.md
+    - Developer Guide: developers.md
+    - Release Notes: release-notes.md
+  - ❤️ Support ↗:
+    - Support the Project ↗: https://github.com/sponsors/karimz1
