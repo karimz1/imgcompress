@@ -103,7 +103,5 @@ The interface provides clear visual cues regarding your current network environm
 3.  Review your **System and Network Status** overview:
     ![Status View](images/status/status-view.png)
 
----
-
-!!! info "Technical Credits & Background"
-    For detailed information on the open-source libraries, AI models, and assets that power this project, please visit our **[Technical Credits](index.md#technical-credits-background)** section on the homepage.
+!!! tip "Secure Configuration"
+    For detailed instructions on how to configure your environment for total network isolation, see the **[Hardened & Offline Deployment Guide](installation.md#hardened-offline-deployment-high-security)**.

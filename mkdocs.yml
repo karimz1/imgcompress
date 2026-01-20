@@ -14,10 +14,14 @@ edit_uri: edit/main/docs/
 
 # Copyright
 copyright: |
-  &copy; 2026 Karim Zouine. <br>
-  imgcompress: for everyone who values privacy. <br>
-  Created by <a class="github_lin_footer" href="https://www.karimzouine.com/" target="_blank" rel="noopener">Karim Zouine</a>. <br>
-  Fully open source on <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a>
+  &copy; 2026 Karim Zouine &middot; 
+  <a class="github_lin_footer" href="https://www.karimzouine.com/" target="_blank" rel="noopener">Author</a> &middot; 
+  <a class="github_lin_footer" href="https://github.com/karimz1/imgcompress" target="_blank" rel="noopener">GitHub</a> &middot; 
+  <a class="github_lin_footer" href="https://hub.docker.com/r/karimz1/imgcompress" target="_blank" rel="noopener">Docker Hub</a> &middot; 
+  <a class="github_lin_footer" href="/credits/">Credits</a>
+
+  <br>
+  imgcompress: for everyone who values privacy.
 
 # Configuration
 theme:
@@ -145,8 +149,10 @@ nav:
     - How to Use: web-ui.md
     - CLI & Automation: cli.md
   - Development:
+    - Credits: credits.md
     - Contribute: contributing.md
     - Developer Guide: developers.md
     - Release Notes: release-notes.md
+
   - ❤️ Support:
     - Support the Project: https://github.com/sponsors/karimz1

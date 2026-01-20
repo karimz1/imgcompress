@@ -1,6 +1,6 @@
 ---
 title: "ImgCompress: Open Source & Privacy-Focused Image Compression"
-description: ImgCompress: Simple, Private Docker Image Compression & AI Background Removal. The 100% offline, self-hosted Docker alternative to TinyPNG.
+description: "ImgCompress: Simple, Private Docker Image Compression & AI Background Removal. The 100% offline, self-hosted Docker alternative to TinyPNG."
 ---
 
 # ImgCompress: Privacy-First Image Optimizer
@@ -15,7 +15,7 @@ description: ImgCompress: Simple, Private Docker Image Compression & AI Backgrou
 
 ## Why choose ImgCompress?
 
-I created **ImgCompress** as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is a **complete local-first image web tool** that handles everything from batch resizing to professional AI background removal on your own hardware.
+**ImgCompress** was developed as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is a **complete local-first image web tool** that handles everything from batch resizing to professional AI background removal on local hardware.
 
 ### Privacy by Design (Compliance-Friendly)
 
@@ -35,6 +35,7 @@ Unlike traditional SaaS services, ImgCompress is built around a strict **“Priv
 | ![Original image](images/image-remover-examples/landscape-with-sunset-yixing.jpg){ width="400" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing.png){ width="400" } |
 
 
+
 ## Advanced Image Processing Features
 
 - **HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
@@ -52,21 +53,3 @@ Unlike traditional SaaS services, ImgCompress is built around a strict **“Priv
 - **Privacy-Conscious Users**: Securely process family photos and sensitive documents.
 - **Enterprises**: Maintain **GDPR, HIPAA, or SOC2 compliance** by processing all media in-house.
 
----
-
-## Technical Credits & Background
-
-### Core Processing Engine
-**ImgCompress** leverages industry-leading open-source technologies to ensure high performance, security, and absolute privacy.
-
-| Component | Technology | Role |
-| :--- | :--- | :--- |
-| **Local AI** | [rembg](https://github.com/danielgatis/rembg) | Powered by the [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) model for offline background removal. |
-| **Execution** | [onnxruntime](https://github.com/microsoft/onnxruntime) | High-performance inference engine for local AI model execution. |
-| **Image Logic** | [Pillow](https://github.com/python-pillow/Pillow) | The standard Python library for efficient image re-serialization and manipulation. |
-
-!!! success "Privacy Commitment"
-    By utilizing these local-first libraries, **ImgCompress** guarantees that no images, metadata, or behavioral data ever leave your local network.
-
-!!! note "Image Credits"
-    [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) is used as a demonstration asset for our AI background removal examples.
