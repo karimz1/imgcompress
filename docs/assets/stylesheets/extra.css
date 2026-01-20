@@ -1,12 +1,38 @@
 /* GLightbox Dark Mode Overrides */
-[data-md-color-scheme="slate"] .glightbox-container {
-    --glightbox-background: rgba(0, 0, 0, 0.9);
+body[data-md-color-scheme="slate"] .glightbox-container {
+    --glightbox-background: rgba(18, 18, 18, 0.95);
+    background-color: rgba(18, 18, 18, 0.95);
 }
 
-[data-md-color-scheme="slate"] .gslide-title {
-    color: #fff;
+body[data-md-color-scheme="slate"] .goverlay {
+    background: rgba(0, 0, 0, 0.9);
 }
 
-[data-md-color-scheme="slate"] .gslide-desc {
-    color: #ccc;
+body[data-md-color-scheme="slate"] .gslide-title {
+    color: #fff !important;
+}
+
+body[data-md-color-scheme="slate"] .gslide-desc {
+    color: #ccc !important;
+}
+
+body[data-md-color-scheme="slate"] .gnext,
+body[data-md-color-scheme="slate"] .gprev,
+body[data-md-color-scheme="slate"] .gclose {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body[data-md-color-scheme="slate"] .gnext svg,
+body[data-md-color-scheme="slate"] .gprev svg,
+body[data-md-color-scheme="slate"] .gclose svg {
+    filter: invert(1);
+}
+
+body[data-md-color-scheme="slate"] .gslide-description {
+    background: #1e1e1e !important;
+    color: #fff !important;
+}
+
+body[data-md-color-scheme="slate"] .ginfocontainer {
+    background: #1e1e1e !important;
 }
