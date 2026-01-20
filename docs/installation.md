@@ -1,6 +1,6 @@
 ---
 title: "Installation: Docker & Python Setup Guide"
-description: Learn how to install ImgCompress using Python or Docker. Step-by-step instructions for setting up your private image optimization environment.
+description: How to set up ImgCompress on Docker, Synology NAS, or Linux. Get your private image optimizer running in under a minute.
 ---
 
 # Installation: Docker Deployment Guide
@@ -105,24 +105,20 @@ Includes the newest features and dependency updates.
 
 ___
 
-## Isolated Deployment (Zero-Egress)
+## Hardened & Offline Deployment (High-Security)
 
-For organizations with strict compliance requirements (e.g., **HIPAA, GDPR, or SOC2**), `imgcompress` supports a hardened, "Locked-Down" configuration. This setup severs the container's ability to communicate with the public internet, mitigating data exfiltration risks at the infrastructure level.
+For organizations requiring extreme data isolation (e.g., **HIPAA, GDPR, or SOC2**), `imgcompress` supports a fully air-gapped configuration. This workflow severs the container's ability to communicate with the public internet.
 
-!!! tip "Looking for a standard setup?" 
-    If you do not require network-level isolation, follow the **[Quick Start (Recommended)](#quick-start-recommended)** for a much simpler installation.
+!!! danger "Advanced Implementation Only"
+    This reference architecture introduces significant infrastructure complexity. It requires manual maintenance of Docker networking and typically a pre-configured reverse proxy. Use this only if your security model mandates total network isolation.
 
-### Technical Safeguards
+### Technical Implementation
 
-1. **Internal-Only Bridge**: The container is isolated on a private Docker network with no gateway to the outside world.
-2. **Disabled DNS**: Prevents the application from resolving any external domains or "phoning home."
-3. **Proxy-Gated Access**: UI access is managed through a secure internal bridge, typically requiring a reverse proxy (like Nginx).
-
-!!! danger "Advanced Implementation Only" 
-    This is a **Reference Architecture** for security-hardened environments. It introduces significant infrastructure complexity and requires a pre-configured **Nginx Reverse Proxy** or similar gateway. Use this only if your threat model requires total network isolation.
-
-**Implementation (Docker Compose):**
+To deploy in a zero-egress environment, use the provided hardened configuration, I created as a sample for you:
 
 ```yaml
 --8<-- "docker-compose-no-internet.yml"
 ```
+
+!!! info "Post-Installation Verification"
+    Once deployed, you should audit your network status using the built-in monitoring tools. For detailed instructions on verifying your isolation status, see the **[High-Security & Offline Usage Guide](web-ui.md#high-security-offline-usage)**.

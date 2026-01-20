@@ -1,6 +1,6 @@
 ---
 title: "ImgCompress: Open Source & Privacy-Focused Image Compression"
-description: ImgCompress is a self-hosted, open-source image optimizer. Compress images locally using Web UI, CLI, or Docker. Zero data leaks.
+description: ImgCompress: Simple, Private Docker Image Compression & AI Background Removal. The 100% offline, self-hosted Docker alternative to TinyPNG.
 ---
 
 # ImgCompress: Privacy-First Image Optimizer
@@ -34,24 +34,11 @@ Unlike traditional SaaS services, ImgCompress is built around a strict **“Priv
 |----------------|-------------------------------|
 | ![Original image](images/image-remover-examples/landscape-with-sunset-yixing.jpg){ width="400" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing.png){ width="400" } |
 
-> ℹ️ **Info**
->
-> Processed fully locally using [rembg](https://github.com/danielgatis/rembg) and  
-> [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) local AI model.  
-> No data ever leaves your network.
->
-> Internally it also uses [onnxruntime](https://github.com/microsoft/onnxruntime).  
-> ImgCompress also uses [Pillow](https://github.com/python-pillow/Pillow) for image re-serialization. 
-
-
-> **Source of Original Image**
-> 
-> [Landscape with sunset in Yixing (Freepik) ](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
 
 ## Advanced Image Processing Features
 
 - **HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
-- **Local AI Background Removal**: Powered by [U²-Net ](https://github.com/xuebinqin/U-2-Net) in combination with the Python package [rembg ](https://github.com/danielgatis/rembg) for 100% offline background removal.
+- **Local AI Background Removal**: 100% offline background removal.
 - **PDF to Image Tool**: Extract PDF pages as individual high-resolution images (PNG/JPG).
 - **Universal Format Support**: Convert between 70+ formats including **WebP, PSD, EPS, and TIFF**.
 - **Professional Compression Controls**: Fine-tune quality settings, dimensions, and lossless optimization.
@@ -64,3 +51,22 @@ Unlike traditional SaaS services, ImgCompress is built around a strict **“Priv
 - **Photographers**: Batch compress high-res galleries by up to 80% without visible quality loss.
 - **Privacy-Conscious Users**: Securely process family photos and sensitive documents.
 - **Enterprises**: Maintain **GDPR, HIPAA, or SOC2 compliance** by processing all media in-house.
+
+---
+
+## Technical Credits & Background
+
+### Core Processing Engine
+**ImgCompress** leverages industry-leading open-source technologies to ensure high performance, security, and absolute privacy.
+
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Local AI** | [rembg](https://github.com/danielgatis/rembg) | Powered by the [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) model for offline background removal. |
+| **Execution** | [onnxruntime](https://github.com/microsoft/onnxruntime) | High-performance inference engine for local AI model execution. |
+| **Image Logic** | [Pillow](https://github.com/python-pillow/Pillow) | The standard Python library for efficient image re-serialization and manipulation. |
+
+!!! success "Privacy Commitment"
+    By utilizing these local-first libraries, **ImgCompress** guarantees that no images, metadata, or behavioral data ever leave your local network.
+
+!!! note "Image Credits"
+    [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) is used as a demonstration asset for our AI background removal examples.

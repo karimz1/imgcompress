@@ -2,9 +2,9 @@
 site_name: ImgCompress Documentation
 site_url: https://karimz1.github.io/imgcompress/
 site_description: >-
-  The official documentation for ImgCompress. Imgcompress is a simple and privacy-first image processing tool 
-  that runs entirely in Docker. Compress, convert, resize, batch-process images and remove backgrounds 
-  using local AI with zero cloud dependencies.
+  ImgCompress is a simple, private Docker image optimizer for your NAS, home server, or PC. 
+  100% offline background removal and compression with zero tracking. 
+  The self-hosted Docker alternative to TinyPNG and Squoosh.
 site_author: Karim Zouine
 
 # Repository
@@ -76,6 +76,9 @@ extra_javascript:
 # Plugins
 plugins:
   - search
+  - sitemap:
+      changefreq: daily
+      priority: 1.0
   - minify:
       minify_html: true
       minify_js: true

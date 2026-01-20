@@ -1,6 +1,6 @@
 ---
 title: "Web UI: Local Image Optimizer"
-description: Optimize images locally with ImgCompress Web UI. Features drag & drop, batch processing, and privacy-first compression. No cloud uploads.
+description: A simple, private Web UI for compressing images and removing backgrounds. Works 100% offline on your own hardware.
 ---
 
 # Using the Web UI
@@ -71,17 +71,39 @@ If you need to meet a strict file size limit (e.g., for web uploads), ImgCompres
 
 ---
 
-## Technical Credits & Background
+## High-Security & Offline Usage
 
-> **Processing Engine**
->
-> All AI-driven tasks are performed locally using [rembg](https://github.com/danielgatis/rembg) and the [U<sup>2</sup>-Net](https://github.com/xuebinqin/U-2-Net) model.  
-> Privacy is guaranteed: **No data ever leaves your local network.**
->
-> **Core Libraries**
->
-> ImgCompress leverages [onnxruntime](https://github.com/microsoft/onnxruntime) for model execution and [Pillow](https://github.com/python-pillow/Pillow) for high-performance image processing.
+`imgcompress` is engineered for air-gapped environments where data privacy and network isolation are critical requirements. This section explains how to verify and manage your deployment's connectivity status.
 
-> 📸 **Image Credits**
-> 
-> [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) used for demonstration.
+### Connectivity Monitoring & Verification
+
+The Web UI includes a built-in **System & Connectivity Status** utility. This feature provides immediate visibility into the container's network posture, ensuring that isolation policies (if applied) are correctly enforced.
+
+#### Monitoring Features
+*   **Container Health**: Real-time validation that the core image processing engine is operational.
+*   **Network Reachability**: A diagnostic check to confirm whether the container has outbound access to the public internet.
+
+!!! important "Privacy Audit"
+    All image processing is **100% local**. The connectivity check is a lightweight socket probe and **never** transmits images, metadata, or user data. It serves strictly as a visual verification tool.
+
+### Status Indicators
+
+The interface provides clear visual cues regarding your current network environment:
+
+| Restricted / No Internet (Recommended) | Online / Internet Available |
+| :--- | :--- |
+| ![No internet](images/status/no-internet.png) | ![Internet access](images/status/internet-available.png) |
+
+### How to Access the Connection Status
+
+1.  Navigate to the **Storage Management** section:
+    ![Storage Management](images/status/storage-mgmt-icon.png)
+2.  Click the **System & Connectivity Status** button:
+    ![Status Button](images/status/status-button.png)
+3.  Review your **System and Network Status** overview:
+    ![Status View](images/status/status-view.png)
+
+---
+
+!!! info "Technical Credits & Background"
+    For detailed information on the open-source libraries, AI models, and assets that power this project, please visit our **[Technical Credits](index.md#technical-credits-background)** section on the homepage.

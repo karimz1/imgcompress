@@ -1,19 +1,48 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
-  <script type="application/ld+json">
+<!-- SEO & Social Meta Tags -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ page.canonical_url }}">
+<meta property="og:title" content="{{ page.title | default(config.site_name) }}">
+<meta property="og:description" content="{{ page.meta.description | default(config.site_description) }}">
+<meta property="og:image" content="{{ config.site_url }}images/logo_transparent.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ImgCompress: Simple & Private Self-Hosted Docker Image Optimizer">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="{{ page.canonical_url }}">
+<meta name="twitter:title" content="{{ page.title | default(config.site_name) }}">
+<meta name="twitter:description" content="{{ page.meta.description | default(config.site_description) }}">
+<meta name="twitter:image" content="{{ config.site_url }}images/logo_transparent.png">
+<meta name="twitter:image:alt" content="ImgCompress: Simple & Private Self-Hosted Docker Image Optimizer">
+
+<link rel="canonical" href="{{ page.canonical_url }}">
+<link rel="me" href="https://github.com/karimz1">
+<link rel="me" href="https://karimzouine.com">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "SoftwareApplication",
-        "@id": "https://karimz1.github.io/imgcompress/#software",
+        "@id": "{{ config.site_url }}#software",
         "name": "ImgCompress",
-        "url": "https://karimz1.github.io/imgcompress/",
+        "url": "{{ config.site_url }}",
         "downloadUrl": "https://github.com/karimz1/imgcompress",
         "applicationCategory": "MultimediaApplication",
         "operatingSystem": "Docker, Windows, Linux, MacOS",
         "description": "{{ config.site_description | replace('\n', ' ') }}",
+        "softwareVersion": "latest",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
         "author": {
           "@id": "https://karimzouine.com/#person"
         }
@@ -29,12 +58,17 @@
           "https://hub.docker.com/r/karimz1/imgcompress",
           "https://karimz1.github.io/imgcompress/"
         ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "{{ config.site_url }}#website",
+        "url": "{{ config.site_url }}",
+        "name": "{{ config.site_name }}",
+        "publisher": {
+          "@id": "https://karimzouine.com/#person"
+        }
       }
     ]
   }
   </script>
-
-  <link rel="canonical" href="{{ page.canonical_url }}">
-  <link rel="me" href="https://github.com/karimz1">
-  <link rel="me" href="https://karimzouine.com">
 {% endblock %}

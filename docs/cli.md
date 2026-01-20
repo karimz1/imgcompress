@@ -1,6 +1,6 @@
 ---
 title: "CLI: Batch Image Compression & Automation"
-description: Master the ImgCompress CLI for batch image processing, CI/CD automation, and scripting. High-performance, headless image optimization.
+description: Automate your image pipelines with the ImgCompress CLI. Headless, high-performance image optimization for servers, scripts, and CI/CD.
 ---
 
 # CLI & Automation Guide
