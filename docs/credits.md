@@ -7,6 +7,7 @@ description: "A tribute to the open-source libraries, AI models, and infrastruct
 
 **ImgCompress** is built upon a foundation of industry-leading open-source technologies. This page serves as a tribute to the tools and communities that enable high-performance, private image optimization.
 
+
 ## Core Processing Engine
 
 | Component | Technology | Role |
