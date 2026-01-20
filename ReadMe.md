@@ -20,7 +20,7 @@
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 Launch the Web UI in seconds using Docker:
 
@@ -47,7 +47,7 @@ Open your browser and visit **[http://localhost:3001](http://localhost:3001)**.
 
 ---
 
-## 📖 Documentation & Guides
+## Documentation & Guides
 
 For detailed configuration, advanced features, and deployment options, please refer to the official documentation portal:
 
@@ -58,7 +58,7 @@ For detailed configuration, advanced features, and deployment options, please re
 
 ---
 
-## ✨ Features at a Glance
+## Features at a Glance
 
 *   **100% Local Processing:** All AI and compression tasks run on your hardware.
 *   **Privacy-First:** Air-gapped ready; no tracking, no cloud proxies, no external API calls.
@@ -72,7 +72,7 @@ For detailed configuration, advanced features, and deployment options, please re
 
 ---
 
-## ❤️ Hall of Fame
+## Hall of Fame
 
 [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 [![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
@@ -88,7 +88,7 @@ Supporters who help keep this project privacy-focused and free for everyone.
 
 ---
 
-## ⚖️ License
+## License
 
 Distributed under the **GPL-3.0 License**. See [LICENSE](LICENSE) for more information.
 
