@@ -3,12 +3,12 @@ title: "Installation: Docker & Python Setup Guide"
 description: Learn how to install ImgCompress using Python or Docker. Step-by-step instructions for setting up your private image optimization environment.
 ---
 
-# Installation
+# Installation: Docker Deployment Guide
 
 Run the [**imgcompress Web App**](web-ui.md) using Docker.  
 No local dependencies, no configuration clutter. Just a high-performance image optimization tool ready in seconds.
 
-## 🚀 Quick Start (Recommended)
+## Quick Start (Recommended)
 
 !!! info "Fresh Install?" 
     If you have used imgcompress before, ensure you have the newest version by running:
@@ -28,33 +28,34 @@ No local dependencies, no configuration clutter. Just a high-performance image o
         ```bash
         docker compose up -d
         ```
-    3.  👉 **[Access the UI](#accessing-the-ui)**
+    3.  Once the container is running, open your web browser & navigate to:
+        **[http://localhost:3001](http://localhost:3001)**
 
 === ":material-console: Single Container (`docker run`)"
     **Standard Mode (Default: Mascot Enabled)**
     ```bash
-    docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
+    docker run -d \
+      --name imgcompress \
+      -p 3001:5000 \
+      karimz1/imgcompress:latest
     ```
 
     ??? abstract "Minimal Mode (Hide Mascot)"
         To disable the mascot and use a cleaner, text-only interface, add `-e DISABLE_LOGO=true` to your command:
         ```bash
-        docker run -d --name imgcompress -p 3001:5000 -e DISABLE_LOGO=true karimz1/imgcompress:latest
+        docker run -d \
+          --name imgcompress \
+          -p 3001:5000 \
+          -e DISABLE_LOGO=true \
+          karimz1/imgcompress:latest
         ```
 
-    👉 [**Access the UI**](#accessing-the-ui)
+    Once the container is running, open your web browser & navigate to:
+        **[http://localhost:3001](http://localhost:3001)**
 
----
 
-## 🌐 Accessing the UI
 
-Once the container is running, open your web browser and navigate to:
-
-👉 **[http://localhost:3001](http://localhost:3001)**
-
----
-
-## 🔄 Maintenance & Updates
+## Maintenance & Updates
 
 Keep your instance secure and up-to-date.
 
@@ -63,7 +64,7 @@ Keep your instance secure and up-to-date.
 | **Docker Compose** | `docker compose pull && docker compose up -d`                                                                                                                             |
 | **Docker Run** | `docker pull karimz1/imgcompress:latest && docker rm -f imgcompress && docker run -d --name imgcompress -p 3001:5000 --restart unless-stopped karimz1/imgcompress:latest` |
 
-## 🔖 Choosing Your Version
+## Choosing Your Version
 
 !!! recommended
     Use `latest` unless you have a specific reason not to.
@@ -71,17 +72,20 @@ Keep your instance secure and up-to-date.
 | Tag | Description | Best For |
 | :--- | :--- | :--- |
 | **Stable (`latest`)** | Fully tested release. Each version is manually QA-verified. | Most users. |
-| **Pinned (`X.Y.Z`)** | An exact version that never changes (e.g., `0.3.1`). | Production & Reproducibility. |
+| **Pinned (`X.Y.Z`)** | An exact version that never changes (e.g., `0.4.0`). | Production & Reproducibility. |
 | **Nightly (`nightly`)** | Latest changes & dependency bumps. | Beta testing new features. |
 
-### **Pinned Release (e.g., `0.3.1`)**
+### **Pinned Release (e.g., `0.4.0`)**
 
 A version that **never changes**. Ideal for production environments requiring strict reproducibility.
 
 [View all available Tags](https://hub.docker.com/r/karimz1/imgcompress/tags)
 
 ```bash
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:0.3.1
+docker run -d \
+  --name imgcompress \
+  -p 3001:5000 \
+  karimz1/imgcompress:0.4.0
 ```
 
 ### **Nightly (`nightly`)**
@@ -101,14 +105,24 @@ Includes the newest features and dependency updates.
 
 ___
 
-## 🛡️ Isolated & High-Security Deployment (Zero-Networking)
+## Isolated Deployment (Zero-Egress)
 
-For enterprises, government agencies, or individuals requiring strict data isolation (e.g., air-gapped systems or HIPAA/GDPR compliance), imgcompress supports a **Zero-Networking** mode.
+For organizations with strict compliance requirements (e.g., **HIPAA, GDPR, or SOC2**), `imgcompress` supports a hardened, "Locked-Down" configuration. This setup severs the container's ability to communicate with the public internet, mitigating data exfiltration risks at the infrastructure level.
 
-This specialized setup:
+!!! tip "Looking for a standard setup?" 
+    If you do not require network-level isolation, follow the **[Quick Start (Recommended)](#quick-start-recommended)** for a much simpler installation.
 
-*   **Disables all outbound traffic** from the application container.
-*   **Protects against data exfiltration** at the infrastructure level.
-*   **Maintains local accessibility** via a secure internal bridge.
+### Technical Safeguards
 
-👉 **View the [Zero-Networking / Air-Gapped Setup](privacy.md#zero-networking-air-gapped-setup) guide.**
+1. **Internal-Only Bridge**: The container is isolated on a private Docker network with no gateway to the outside world.
+2. **Disabled DNS**: Prevents the application from resolving any external domains or "phoning home."
+3. **Proxy-Gated Access**: UI access is managed through a secure internal bridge, typically requiring a reverse proxy (like Nginx).
+
+!!! danger "Advanced Implementation Only" 
+    This is a **Reference Architecture** for security-hardened environments. It introduces significant infrastructure complexity and requires a pre-configured **Nginx Reverse Proxy** or similar gateway. Use this only if your threat model requires total network isolation.
+
+**Implementation (Docker Compose):**
+
+```yaml
+--8<-- "docker-compose-no-internet.yml"
+```

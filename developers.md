@@ -1,10 +1,10 @@
-# 🛠️ Developer Guide
+# Developer Guide
 
 Welcome to the **ImgCompress** developer documentation. This guide explains how to run tests and builds to ensure your contributions meet my quality standards. Also this documentation explains how to simulate the CI/CD pipeline locally to ensure that your changes will pass the GitHub Actions workflow.
 
 ---
 
-## 💻 1. VS Code Dev Container
+## 1. VS Code Dev Container
 
 The easiest way to set up a consistent development environment is to use the **VS Code Dev Container**. This provides a pre-configured Docker environment with all dependencies (Python, Node.js, Docker) and VS Code extensions installed.
 
@@ -32,7 +32,7 @@ Once inside the VS Code terminal, you can simpler run the scripts directly:
 
 ---
 
-## 🏗️ 2. Local Development (Scripts)
+## 2. Local Development (Scripts)
 
 For rapid development, I provide helper scripts that run the tests directly in your local environment.
 
@@ -75,7 +75,7 @@ In a third terminal, execute the test runner:
 
 ---
 
-## 🤖 3. CI Simulation (Docker)
+## 3. CI Simulation (Docker)
 
 To strictly replicate the GitHub Actions CI environment, use the following Docker commands. This ensures that what works locally will also work in the cloud.
 

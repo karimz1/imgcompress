@@ -1,3 +1,14 @@
+/* selects links that start with http and are not same‑domain */
+/* All links starting with http are considered external */
+a[href^="http"]::after {
+    content: " ↗";
+    /* external link arrow */
+    font-size: 0.85em;
+    margin-left: 2px;
+}
+
+
+
 /* GLightbox Dark Mode Overrides */
 body[data-md-color-scheme="slate"] .glightbox-container {
     --glightbox-background: rgba(18, 18, 18, 0.95);

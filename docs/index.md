@@ -13,11 +13,11 @@ description: ImgCompress is a self-hosted, open-source image optimizer. Compress
 
 **ImgCompress** is a high-performance, **self-hosted Docker image compression and conversion tool** featuring fully local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
 
-## ❓ Why choose ImgCompress?
+## Why choose ImgCompress?
 
 I created **ImgCompress** as a private alternative to cloud-based converters. Most web tools force a choice between convenience and privacy. ImgCompress is a **complete local-first image web tool** that handles everything from batch resizing to professional AI background removal on your own hardware.
 
-### 🛡️ Privacy by Design (Compliance-Friendly)
+### Privacy by Design (Compliance-Friendly)
 
 Unlike traditional SaaS services, ImgCompress is built around a strict **“Privacy by Default”** philosophy. All image processing happens entirely on your own hardware, making it suitable for handling sensitive or regulated data without relying on external services.
 
@@ -44,21 +44,21 @@ Unlike traditional SaaS services, ImgCompress is built around a strict **“Priv
 > ImgCompress also uses [Pillow](https://github.com/python-pillow/Pillow) for image re-serialization. 
 
 
-> 📸 **Source of Original Image**
+> **Source of Original Image**
 > 
-> [Landscape with sunset in Yixing (Freepik)](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
+> [Landscape with sunset in Yixing (Freepik) ](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm), used for demonstration purposes.
 
-## ✨ Advanced Image Processing Features
+## Advanced Image Processing Features
 
-- **📱 HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
-- **🤖 Local AI Background Removal**: Powered by [U²-Net](https://github.com/xuebinqin/U-2-Net) in combination with the Python package [rembg](https://github.com/danielgatis/rembg) for 100% offline background removal.
-- **📰 PDF to Image Tool**: Extract PDF pages as individual high-resolution images (PNG/JPG).
-- **🖼️ Universal Format Support**: Convert between 70+ formats including **WebP, PSD, EPS, and TIFF**.
-- **⚙️ Professional Compression Controls**: Fine-tune quality settings, dimensions, and lossless optimization.
-- **🚀 Multi-Core Parallel Processing**: Optimized for lightning-fast batch jobs.
-- **🛠️ Automation Friendly**: Scriptable CLI with JSON output for DevOps and CI/CD pipelines.
+- **HEIC/HEIF to JPG Converter**: Instantly convert iPhone photos into high-quality JPEG or PNG.
+- **Local AI Background Removal**: Powered by [U²-Net ](https://github.com/xuebinqin/U-2-Net) in combination with the Python package [rembg ](https://github.com/danielgatis/rembg) for 100% offline background removal.
+- **PDF to Image Tool**: Extract PDF pages as individual high-resolution images (PNG/JPG).
+- **Universal Format Support**: Convert between 70+ formats including **WebP, PSD, EPS, and TIFF**.
+- **Professional Compression Controls**: Fine-tune quality settings, dimensions, and lossless optimization.
+- **Multi-Core Parallel Processing**: Optimized for lightning-fast batch jobs.
+- **Automation Friendly**: Scriptable CLI with JSON output for DevOps and CI/CD pipelines.
 
-## 💼 Business & Personal Use Cases
+## Business & Personal Use Cases
 
 - **Web Developers**: Optimize website assets to improve **Google PageSpeed** scores.
 - **Photographers**: Batch compress high-res galleries by up to 80% without visible quality loss.

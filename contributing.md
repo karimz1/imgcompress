@@ -2,19 +2,19 @@
 
 Thank you for your interest in contributing to **ImgCompress**! As an open-source project, I welcome contributions of all forms, from bug reports and feature suggestions to code improvements and documentation updates.
 
-## 🤝 Ways to Contribute
+## Ways to Contribute
 
 There are many ways you can help make this project better:
 
-### 1. ⭐ Support the Project
+### 1. Support the Project
 Simply **starring the repository** on GitHub helps increase visibility and lets me know you appreciate the tool.
 
-### 2. 🐛 Report Bugs & Request Features
+### 2. Report Bugs & Request Features
 Found a bug or have an idea for a new feature?
-*   Check the [Issue Tracker](https://github.com/karimz1/imgcompress/issues) to see if it has already been reported.
+*   Check the [Issue Tracker ](https://github.com/karimz1/imgcompress/issues) to see if it has already been reported.
 *   If not, open a new issue with a clear description and reproduction steps.
 
-### 3. 💻 Code Contributions
+### 3. Code Contributions
 
 Developers are welcome to fork the repository and submit Pull Requests (PRs).
 
@@ -24,7 +24,7 @@ Developers are welcome to fork the repository and submit Pull Requests (PRs).
 
 ---
 
-## 🛠️ Developer Resources
+## Developer Resources
 
 If you are planning to write code, please refer to the comprehensive **[Developer Guide](developers.md)**.
 

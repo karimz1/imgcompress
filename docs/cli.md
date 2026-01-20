@@ -7,7 +7,7 @@ description: Master the ImgCompress CLI for batch image processing, CI/CD automa
 
 For advanced workflows, CI/CD pipelines, and high-volume batch processing, **imgcompress** provides a robust command-line interface (CLI).
 
-## 🛠️ Performance Overview
+## Performance Overview
 
 The CLI allows you to execute the image processor directly without initializing the web server. This significantly reduces memory overhead and startup time for automation scripts and scheduled tasks.
 
@@ -18,7 +18,7 @@ The CLI allows you to execute the image processor directly without initializing 
 
 ------
 
-## 💻 Technical Examples
+## Technical Examples
 
 The CLI operates inside the same Docker container. You must map your local directories to the container to grant it access to your files.
 
@@ -39,8 +39,9 @@ Use these commands when you need to target a specific asset with precise setting
 **Step 1: Check your local files** Identify the image you want to convert in your current folder.
 
 ```bash
-❯ ls
-anotherImage.jpg   myExampleImage.jpg
+ls
+# Output:
+# anotherImage.jpg   myExampleImage.jpg
 ```
 
 **Step 2: Run the command** Replace `myExampleImage.jpg` in the path below with the filename you saw in your `ls` output.
@@ -94,7 +95,7 @@ docker run --rm \
 
 ------
 
-## ⚙️ Parameter Reference
+## Parameter Reference
 
 | **Flag**              | **Default** | **Description**                                         |
 | --------------------- | ----------- | ------------------------------------------------------- |
@@ -107,7 +108,7 @@ docker run --rm \
 
 ------
 
-## 📄 Expected Output
+## Expected Output
 
 When a process finishes successfully (as shown in [Single File Processing](#1-single-file-processing)), the CLI provides a concise summary:
 

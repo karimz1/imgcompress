@@ -8,7 +8,7 @@ description: Optimize images locally with ImgCompress Web UI. Features drag & dr
 !!! important
     Before you begin, ensure you have [installed imgcompress](installation.md). A local installation is required to run the Web UI.
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
@@ -18,7 +18,7 @@ description: Optimize images locally with ImgCompress Web UI. Features drag & dr
 
 The Web UI provides a powerful, privacy-focused way to compress images without the need for cloud-based tools.
 
-## ✨ Key Features
+## Key Features
 
 *   **Drag & Drop**: Easy file management for images and PDFs.
 *   **Real-time Feedback**: Monitor batch progress with live indicators.
@@ -26,7 +26,7 @@ The Web UI provides a powerful, privacy-focused way to compress images without t
 *   **ZIP Export**: Download all processed images in a organized archive.
 *   **Privacy First**: All processing happens on your local machine.
 
-## 📁 Choosing the Right Format
+## Choosing the Right Format
 
 Select the format that best fits your project's needs:
 
@@ -37,7 +37,7 @@ Select the format that best fits your project's needs:
 | **JPEG** | ❌ No | Universal standard for photos where transparency is not required. |
 | **ICO** | ✅ Yes | Specifically designed for web favicons and desktop application icons. |
 
-## 🧠 Instant Background Removal
+## Instant Background Removal
 
 !!! note "Requires Transparency Support"
     To use this feature, ensure your output format is set to **AVIF** or **PNG**.
@@ -54,7 +54,7 @@ Select the format that best fits your project's needs:
 |----------------|-------------------------------|
 | ![Original image](images/image-remover-examples/landscape-with-sunset-yixing.jpg){ width="400" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing.png){ width="400" } |
 
-## 🎯 Target Specific File Sizes
+## Target Specific File Sizes
 
 If you need to meet a strict file size limit (e.g., for web uploads), ImgCompress can automatically calculate the optimal quality for you.
 
@@ -71,7 +71,7 @@ If you need to meet a strict file size limit (e.g., for web uploads), ImgCompres
 
 ---
 
-## ℹ️ Technical Credits & Background
+## Technical Credits & Background
 
 > **Processing Engine**
 >

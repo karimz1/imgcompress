@@ -1,0 +1,27 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Install uv
+        - curl -LsSf https://astral.sh/uv/install.sh | sh
+        - export PATH="$HOME/.cargo/bin:$PATH"
+
+        # Create virtual environment
+        - uv venv
+        - source .venv/bin/activate
+
+        # Install dependencies
+        - uv pip install -r docs/requirements.txt
+    build:
+      commands:
+        - source .venv/bin/activate
+        - zensical build
+  artifacts:
+    baseDirectory: site
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .venv/**/*
+      - ~/.cache/uv
