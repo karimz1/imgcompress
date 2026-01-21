@@ -19,17 +19,6 @@ The easiest way to set up a consistent development environment is to use the **V
 *   **Port Forwarding**: Automatically forwards port `3001` (app) and `5000` (backend).
 *   **Docker-in-Docker**: You can build and run Docker containers *inside* the dev container (required for running the integration/e2e tests).
 
-### Running Tests in Dev Container
-Once inside the VS Code terminal, you can simpler run the scripts directly:
-
-```bash
-# Run Unit Tests
-./runUnitTests.sh
-
-# Run Integration Tests (uses Docker-in-Docker)
-./runIntegrationTests.sh
-```
-
 ---
 
 ## 2. Local Development (Scripts)
