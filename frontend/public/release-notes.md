@@ -1,4 +1,4 @@
-## v0.4.1 — 2026-01-21
+## v0.5.0 — 2026-01-21
 - Feature: Implement Automatic Update Notifications [#469](https://github.com/karimz1/imgcompress/issues/469)
 - Improvements: Simplify UI by removing non-essential UX elements + update mascot logo [#473](https://github.com/karimz1/imgcompress/issues/473)
 - Improvements: Speed up ImgCompress API with Granian (Rust HTTP server) [#470](https://github.com/karimz1/imgcompress/issues/470)

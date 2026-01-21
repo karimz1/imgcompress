@@ -29,7 +29,7 @@ ImgCompress is **100% open source**. I believe in complete transparency regardin
 
 !!! success "Privacy First"
     - This process is **anonymous and read-only**.
-    - **Pure Comparison:** The check only compares two version strings (e.g., `v1.1.0` vs `v1.2.0`).
+    - **Pure Comparison:** The check only compares two version strings (e.g., `v0.4.0` vs `v0.5.0`).
 
 ---
 
