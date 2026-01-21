@@ -58,11 +58,13 @@ Running E2E tests locally is a 3-step process. You need to start the backend and
 Use this script to test the production-ready image locally. This is useful for verifying that custom flags work as expected without needing to deploy a nightly release.
 
 ```bash
-# Run with custom arguments
-DISABLE_LOGO=true DISABLE_STORAGE_MANAGEMENT=true ./runLocalDockerBuildTester.sh
+PORT_HOST=8080 \
+ DISABLE_LOGO=false \
+ DISABLE_STORAGE_MANAGEMENT=true \
+ ./runLocalDockerBuildTester.sh
 ```
 
-Once the container is running, open your web browser & navigate to: http://localhost:9000
+Once the container is running, open your web browser & navigate to: http://localhost:8080
 
 ---
 
