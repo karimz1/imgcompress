@@ -3,9 +3,7 @@ import json
 import os
 
 def generate_version_json():
-    # 1. The ACTUAL source file where your v0.3.9 etc. lives
     input_path = 'frontend/public/release-notes.md'
-    # 2. Where the JSON will be saved so GitHub Pages can serve it
     output_dir = 'docs/api'
     
     try:
@@ -34,16 +32,15 @@ def generate_version_json():
             "url": f"https://github.com/karimz1/imgcompress/releases/tag/{version}"
         }
 
-        # Create docs/api/ directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
         
         output_file = os.path.join(output_dir, 'latest-version.json')
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
             
-        print(f"✅ Success! Generated JSON for {version} at {output_file}")
+        print(f"Success! Generated JSON for {version} at {output_file}")
     else:
-        print("❌ Could not find version pattern in release-notes.md")
+        print("Could not find version pattern in release-notes.md")
 
 if __name__ == "__main__":
     generate_version_json()
