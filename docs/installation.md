@@ -1,5 +1,5 @@
 ---
-title: "Installing Imgcompress with Docker
+title: "Installing Imgcompress with Docker"
 description: How to set up ImgCompress on Docker, Synology NAS, or Linux. Get your private image optimizer running in under a minute.
 ---
 

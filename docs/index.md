@@ -34,6 +34,8 @@ Unlike traditional SaaS services, ImgCompress is built around a strict **“Priv
 |----------------|-------------------------------|
 | ![Original image](images/image-remover-examples/landscape-with-sunset-yixing.jpg){ width="400" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing.png){ width="400" } |
 
+> **Note:** AI processing is performed entirely on your local machine. No data is sent to external servers.  
+> *For details on the AI engine and image attributions, visit the **[Credits Page](./credits.md)**.*
 
 
 ## Advanced Image Processing Features

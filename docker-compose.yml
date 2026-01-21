@@ -4,7 +4,7 @@ services:
     container_name: imgcompress
     restart: always
     ports:
-      - "3001:5000"                     # HOST:CONTAINER — change 3001 if needed
+      - "3001:5000"
     environment:
-      - DISABLE_LOGO=true               # Optional: disable mascot
-      - DISABLE_STORAGE_MANAGEMENT=true # Optional: disable the Storage Management
+      - DISABLE_LOGO=false
+      - DISABLE_STORAGE_MANAGEMENT=false

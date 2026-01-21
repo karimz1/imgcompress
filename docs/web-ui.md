@@ -49,10 +49,15 @@ Select the format that best fits your project's needs:
 |-----:|------------|-------------|
 | **1** | [![Enable remove background toggle](images/enable_rembg.png){ .glightbox width="240" }](images/enable_rembg.png) | **Toggle Removal**<br/>Select **AVIF** or **PNG** as the output, then simply flip the **Remove Background** switch. |
 
+### AI Demo
 
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
 | ![Original image](images/image-remover-examples/landscape-with-sunset-yixing.jpg){ width="400" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing.png){ width="400" } |
+
+> **Note:** AI processing is performed entirely on your local machine. No data is sent to external servers.  
+> *For details on the AI engine and image attributions, visit the **[Credits Page](./credits.md)**.*
+
 
 ## Target Specific File Sizes
 

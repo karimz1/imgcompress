@@ -32,10 +32,10 @@ services:
     container_name: imgcompress
     restart: always
     ports:
-      - "3001:5000"                     # HOST:CONTAINER — change 3001 if needed
+      - "3001:5000"
     environment:
-      - DISABLE_LOGO=false               # Optional: disable mascot
-      - DISABLE_STORAGE_MANAGEMENT=false # Optional: disable the Storage Management
+      - DISABLE_LOGO=false
+      - DISABLE_STORAGE_MANAGEMENT=false
 ```
 
 ### Docker Run
@@ -54,7 +54,6 @@ For detailed configuration, advanced features, and deployment options, please re
 *   **[Installation Guide](https://imgcompress.karimzouine.com/installation/)** - Docker, Synology NAS, and Hardened/Offline setups.
 *   **[Web UI Usage](https://imgcompress.karimzouine.com/web-ui/)** - Drag & Drop, Bulk Processing, and AI controls.
 *   **[CLI & Automation](https://imgcompress.karimzouine.com/cli/)** - Headless batch processing and CI/CD integration.
-*   **[Credits](https://imgcompress.karimzouine.com/credits/)** - Information on the libraries and assets powering the project.
 
 ---
 
@@ -69,6 +68,8 @@ For detailed configuration, advanced features, and deployment options, please re
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="400" alt="Original image before background removal"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="400" alt="Image after AI background removal"/> |
+
+**Picture by** [**Evening_tao**](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) on Freepik — used as a demonstration asset for AI background removal examples.
 
 ---
 
@@ -92,10 +93,11 @@ Supporters who help keep this project privacy-focused and free for everyone.
 
 Distributed under the **GPL-3.0 License**. See [LICENSE](LICENSE) for more information.
 
+---
 
+## Credits
 
-
-
-
+**Additional library credits are listed at:**  
+https://imgcompress.karimzouine.com/credits/
 
 
