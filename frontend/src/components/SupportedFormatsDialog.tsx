@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import {Info, ExternalLink} from "lucide-react"
+import { Info, ShieldCheck, FileType } from "lucide-react"
 import {
     Dialog,
     DialogContent,
@@ -10,7 +10,11 @@ import {
     DialogDescription,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import {Button} from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+
+const APP_CONFIG = {
+    GITHUB_ISSUES_URL: "https://github.com/karimz1/imgcompress/issues",
+}
 
 interface SupportedFormatsDialogProps {
     supportedExtensions: string[]
@@ -20,12 +24,11 @@ interface SupportedFormatsDialogProps {
 }
 
 export function SupportedFormatsDialog({
-                                           supportedExtensions,
-                                           verifiedExtensions,
-                                           extensionsLoading,
-                                           extensionsError,
-                                       }: SupportedFormatsDialogProps) {
-    const total = supportedExtensions.length
+    supportedExtensions,
+    verifiedExtensions,
+    extensionsLoading,
+    extensionsError,
+}: SupportedFormatsDialogProps) {
     const unverified = supportedExtensions.filter(
         (ext) => !verifiedExtensions.includes(ext)
     )
@@ -33,93 +36,88 @@ export function SupportedFormatsDialog({
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1" data-testid="supported-formats-btn">
-                    <Info className="h-4 w-4"/>
-                    Supported Formats{" "}
-                    {extensionsLoading ? "(…)" : total ? `(${total})` : ""}
+                <Button variant="outline" size="sm" className="gap-2" data-testid="supported-formats-btn">
+                    <Info className="h-4 w-4" />
+                    Supported Formats {extensionsLoading ? "(...)" : supportedExtensions.length > 0 ? `(${supportedExtensions.length})` : ""}
                 </Button>
             </DialogTrigger>
 
-            <DialogContent
-                className="max-w-[600px] rounded-xl border border-border bg-white dark:bg-zinc-900
-                   text-zinc-900 dark:text-zinc-50 shadow-xl"
-            >
+            <DialogContent className="max-w-md rounded-xl shadow-xl">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
-                        <Info className="h-5 w-5 text-blue-500 dark:text-blue-400"/>
-                    Supported Formats (Images & PDFs)
+                    <DialogTitle className="flex items-center gap-2">
+                        <FileType className="h-5 w-5 text-blue-500" />
+                        Supported Formats
                     </DialogTitle>
-                    <DialogDescription className="text-sm text-muted-foreground">
-                        Verified and experimental upload formats available in this tool.
+                    <DialogDescription className="text-sm">
+                        All files are processed within your local environment.
                     </DialogDescription>
                 </DialogHeader>
 
                 {extensionsLoading ? (
-                    <p className="text-sm text-muted-foreground">Loading…</p>
+                    <div className="py-6 text-center text-sm text-muted-foreground animate-pulse">
+                        Loading formats...
+                    </div>
                 ) : extensionsError ? (
-                    <p className="text-sm text-destructive">
-                        Error loading formats: {extensionsError.message}
-                    </p>
+                    <div className="py-6 text-sm text-destructive">
+                        Unable to load format list.
+                    </div>
                 ) : (
-                    <div className="space-y-6 overflow-y-auto max-h-[65vh] pr-2">
-                        {/* ✅ Verified Formats */}
+                    <div className="space-y-6">
+                        {/* Verified Section */}
                         <section>
-                            <h3 className="font-semibold text-green-600 dark:text-green-400 text-base mb-1">
-                                ✅ Verified Formats
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-green-600 dark:text-green-400 mb-2 flex items-center gap-1">
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                Verified
                             </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                These formats have been thoroughly tested and verified to work
-                                reliably within <strong>imgcompress</strong>. You can use them with confidence in
-                                their stability and output quality.
-                            </p>
-                            <p className="mt-2 text-sm font-mono break-words text-foreground">
-                                {verifiedExtensions.length > 0
-                                    ? verifiedExtensions.join(" · ")
-                                    : "None listed"}
-                            </p>
+                            <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                                {verifiedExtensions.map((ext) => (
+                                    <span 
+                                        key={ext} 
+                                        className="px-2 py-0.5 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded text-foreground"
+                                    >
+                                        {ext}
+                                    </span>
+                                ))}
+                            </div>
                         </section>
 
-                        <hr className="border-border/40"/>
-
-                        {/* 🧪 Experimental Formats */}
+                        {/* Experimental Section */}
                         <section>
-                            <h3 className="font-semibold text-yellow-600 dark:text-yellow-400 text-base mb-1">
-                                🧪 Supported but Experimental
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-yellow-600 dark:text-yellow-400 mb-2">
+                                Experimental
                             </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                The formats listed below are supported by the{" "}
-                                <a
-                                    href="https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#"
-                                    target="_blank"
+                            <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                                {unverified.length > 0 ? (
+                                    unverified.map((ext) => (
+                                        <span 
+                                            key={ext} 
+                                            className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded text-muted-foreground"
+                                        >
+                                            {ext}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="text-xs text-muted-foreground italic">None listed</span>
+                                )}
+                            </div>
+                            
+                            <div className="mt-4 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-border">
+                                <p className="text-[11px] text-muted-foreground leading-normal">
+                                    If a format does not work as expected, please <strong>open a GitHub issue and include a sample file</strong>. This helps improve support.
+                                </p>
+                                <a 
+                                    href={APP_CONFIG.GITHUB_ISSUES_URL} 
+                                    target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 dark:text-blue-400 text-xs hover:underline"
+                                    className="text-[11px] text-blue-500 hover:underline font-medium mt-2 inline-block"
                                 >
-                                    Pillow library
+                                    Report an issue →
                                 </a>
-                                , which is used internally for image conversion. However, they have not yet
-                                undergone full automated testing in <strong>imgcompress</strong>. While they
-                                are expected to work correctly, they are considered <em>experimental</em> until
-                                officially verified.
-                            </p>
-
-                            <p className="mt-2 text-sm font-mono break-words text-foreground">
-                                {unverified.length > 0 ? unverified.join(" · ") : "None listed"}
-                            </p>
-                            <p className="mt-3 text-xs text-muted-foreground leading-relaxed">
-                                If you experience issues, please open a{" "}
-                                  <a
-                                    href="https://github.com/karimz1/imgcompress/issues"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 dark:text-blue-400 text-xs hover:underline"
-                                >
-                                    GitHub issue for Imgcompress
-                                </a> with a sample file. It helps improve test coverage and reliability.
-                            </p>
+                            </div>
                         </section>
                     </div>
                 )}
-           </DialogContent>
+            </DialogContent>
         </Dialog>
     )
 }
