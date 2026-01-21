@@ -19,6 +19,7 @@ export const UpdateBannerTestData = {
     };
   },
   getTagFromVersion: (version: string) => `v${normalizeVersion(version)}`,
+  getDisplayVersionFromTag: (tag: string) => normalizeVersion(tag),
   bumpPatchVersion: (version: string): string => {
     const match = version.match(/(\d+\.\d+\.\d+(?:\.\d+)?)/);
     const parts = match ? match[1].split(".").map(Number) : [0, 0, 0];

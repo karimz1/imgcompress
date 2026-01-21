@@ -9,7 +9,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const links = [
     { href: APP_CONFIG.DOCS_URL, label: "Docs" },
     { href: APP_CONFIG.GITHUB_REPO_URL, label: "GitHub" },
-    { href: APP_CONFIG.GITHUB_ISSUES_URL, label: "Issues" },
+    { href: APP_CONFIG.GITHUB_ISSUES_URL, label: "Report a Bug" },
     { href: APP_CONFIG.AUTHOR_URL, label: "Author" },
     { href: APP_CONFIG.SPONSOR_URL, label: "Sponsor", icon: Heart },
   ];

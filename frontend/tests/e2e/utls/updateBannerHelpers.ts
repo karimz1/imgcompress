@@ -1,5 +1,5 @@
 import { APIRequestContext, expect, Locator, Page } from '@playwright/test';
-import { maxSatisfying, valid } from 'semver';
+import { coerce, maxSatisfying } from 'semver';
 import { LatestReleasePayload } from './updateBannerTestData';
 
 const latestVersionRoute = '**/repos/karimz1/imgcompress/releases/latest';
@@ -8,7 +8,7 @@ const releaseNotesPattern =
 
 const getMaxSemver = (versions: string[]): string | null => {
   const normalized = versions
-    .map((version) => valid(version))
+    .map((version) => coerce(version)?.version ?? null)
     .filter((version): version is string => Boolean(version));
   if (normalized.length === 0) return null;
   return maxSatisfying(normalized, "*");

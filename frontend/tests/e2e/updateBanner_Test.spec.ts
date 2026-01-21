@@ -20,7 +20,8 @@ test.describe('Update Banner', () => {
         return UpdateBannerTestData.createLatestReleasePayload(newerVersion);
       },
       expectsBanner: true,
-      getExpectedVersion: (payloadTag: string) => payloadTag,
+      getExpectedVersion: (payloadTag: string) =>
+        UpdateBannerTestData.getDisplayVersionFromTag(payloadTag),
     },
     {
       name: 'hides update banner when current version is latest',
@@ -44,7 +45,7 @@ test.describe('Update Banner', () => {
       if (scenario.expectsBanner) {
         const expectedVersion = scenario.getExpectedVersion(payload.tag_name);
         await expect(updateBanner).toBeVisible();
-        await expect(page.getByText(expectedVersion ?? '')).toBeVisible();
+        await expect(updateBanner).toContainText(expectedVersion ?? '');
         const whatsNewLink = getWhatsNewLinkLocator(page);
         await expect(whatsNewLink).toBeVisible();
         await expect(whatsNewLink).toHaveAttribute('href', UpdateBannerTestData.releaseNotesUrl);
