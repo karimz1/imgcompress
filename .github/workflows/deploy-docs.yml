@@ -33,7 +33,10 @@ jobs:
         with:
           key: ${{ github.ref }}
           path: .cache
-          
+
+      - name: Run Python Script to generate api
+        run: python3 generate_json_for_latest_release.py
+
       - run: pip install -r docs/requirements.txt
       
       - run: zensical build

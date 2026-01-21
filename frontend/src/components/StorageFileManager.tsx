@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash, HardDrive } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 import { BackendStatusFloating } from "@/components/BackendStatusFloating";
 
 
@@ -35,7 +34,6 @@ interface ContainerData {
 }
 
 interface StorageInfo {
-  total_storage_mb: number;
   used_storage_mb: number;
   available_storage_mb: number;
 }
@@ -94,24 +92,12 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
       <CardContent>
         {}
         {storage && (
-          <div className="mb-4 space-y-2">
+          <div className="mb-4">
             <div className="text-center text-sm text-gray-400">
-              <p>
-                Total Storage: <strong>{storage.total_storage_mb} MB</strong>
-              </p>
               <p>
                 Used: <strong>{storage.used_storage_mb} MB</strong> • Available:{" "}
                 <strong>{storage.available_storage_mb} MB</strong>
               </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-gray-400">
-                Storage Usage: {storage.used_storage_mb} MB / {storage.total_storage_mb} MB
-              </p>
-              <Progress
-                value={(storage.used_storage_mb / storage.total_storage_mb) * 100}
-                className="h-3"
-              />
             </div>
           </div>
         )}
