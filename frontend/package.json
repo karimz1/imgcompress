@@ -46,6 +46,7 @@
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/adm-zip": "^0.5.7",
+    "@types/semver": "^7.7.1",
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
