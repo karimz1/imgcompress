@@ -5,22 +5,25 @@ description: Professional support options and sponsorship for ImgCompress.
 
 # Support & Sponsorship
 
-ImgCompress is a personal project licensed under **GPL-3.0**. I am committed to keeping the core tool open and free. For teams that require dedicated expertise, I offer professional services.
+<p align="center">
+  <img src="/images/logo_transparent.png" width="300" alt="ImgCompress Mascot">
+</p>
+
+ImgCompress is a personal project licensed under **GPL-3.0**. **The core tool will always remain open source and free.** I offer professional services for teams that require dedicated expertise or modifications beyond the standard feature set.
 
 ---
 
 ## Professional Services
-*For organizations requiring guaranteed stability, custom engineering, or compliance.*
+*Need custom work or features that aren't there yet? I can help.*
 
-| Service | Description |
+| Service | Goal |
 | :--- | :--- |
-| **Enterprise Deployment** | Setup of hardened, air-gapped, or high-availability Docker environments. |
-| **Custom Development** | Building specific features or API hooks tailored to your pipeline. |
-| **Security & Compliance** | Reviewing deployments for HIPAA, GDPR, or SOC2 requirements. |
-| **Performance Tuning** | Optimization for high-concurrency image processing. |
+| **Custom Workflows** | Assistance in extending the feature set to your specific workflow. |
+| **Specialized Setup** | Help with hardened, air-gapped, or complex Docker environments. |
+| **Optimization** | Tuning the backend for high-volume or specific performance needs. |
 
 !!! quote ""
-    **Ready to scale?** For business inquiries, visit [karimzouine.com](https://www.karimzouine.com).
+    **Business Inquiries:** [karimzouine.com](https://www.karimzouine.com)
 
 ---
 
@@ -30,8 +33,3 @@ ImgCompress is a personal project licensed under **GPL-3.0**. I am committed to 
 If ImgCompress provides value to you or your team, consider supporting the project. Your sponsorship directly funds my time for security maintenance, bug fixes, and new feature development.
 
 [Sponsor on GitHub :octicons-heart-fill-16:](https://github.com/sponsors/karimz1){ .md-button .md-button--primary }
-
----
-
-!!! info "Licensing"
-    The **GPL-3.0** license ensures the software remains free. My professional support is a separate service where you hire my **time and expertise** to manage or extend your specific instance.
