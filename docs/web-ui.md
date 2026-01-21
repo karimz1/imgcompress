@@ -95,7 +95,7 @@ The Web UI includes a built-in **System & Connectivity Status** utility. This fe
 
 The interface provides clear visual cues regarding your current network environment:
 
-| Restricted / No Internet (Recommended) | Online / Internet Available |
+| Restricted / No Internet | Online / Internet Available |
 | :--- | :--- |
 | ![No internet](images/status/no-internet.png) | ![Internet access](images/status/internet-available.png) |
 
