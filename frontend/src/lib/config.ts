@@ -1,6 +1,7 @@
 export const APP_CONFIG = {
   // API endpoints
-  LATEST_VERSION_API: "https://imgcompress.karimzouine.com/api/latest-version.json",
+  LATEST_VERSION_API:
+    "https://api.github.com/repos/karimz1/imgcompress/releases/latest",
 
   // Documentation URLs
   DOCS_URL: "https://imgcompress.karimzouine.com",

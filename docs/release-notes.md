@@ -13,13 +13,13 @@ This document tracks all notable changes to ImgCompress, including new features,
 
 Users may review the [Change Log](#change-log) below for a detailed history of updates. To upgrade an existing installation to the latest version, please refer to the [**Update Guide**](installation.md#maintenance-updates).
 
-## Version Verification Logic
+## Automatic Update Checks (Web UI)
 
-ImgCompress includes an automated check to notify of new releases. This process is designed with a focus on privacy and technical transparency:
+ImgCompress includes an automated check to notify you of new releases. The flow is simple and privacy‑safe:
 
 1. **Local Identification:** The application parses the bundled `release-notes.md` file to determine the currently deployed version.
-2. **Remote Comparison:** The system performs a GET request to `https://imgcompress.karimzouine.com/api/latest-version.json` to retrieve the most recent stable version number.
-3. **Notification:** If a newer version is identified, a notification banner is displayed within the Web UI providing a direct link to the official documentation.
+2. **Remote Comparison:** The Web UI requests the latest published release from the GitHub Releases API: `https://api.github.com/repos/karimz1/imgcompress/releases/latest`.
+3. **Notification:** If a newer version is detected, the Web UI displays an update banner with a link to the release notes.
 
 !!! info "Privacy Standards"
     The update check is strictly limited to a version string comparison. No user data, metadata, or system telemetry is transmitted during this process.

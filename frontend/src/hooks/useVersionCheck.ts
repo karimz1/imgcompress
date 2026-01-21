@@ -53,11 +53,15 @@ export function useVersionCheck(): VersionInfo {
               });
               if (apiResponse.ok) {
                 const data = await apiResponse.json();
-                const latest = data.version?.replace(/^v/, "");
-                setLatestVersion(latest);
-
-                if (latest && compareVersions(current, latest)) {
-                  setUpdateAvailable(true);
+                const rawLatest =
+                  data.version ?? data.tag_name ?? data.name ?? data.release_tag;
+                const latest =
+                  typeof rawLatest === "string" ? rawLatest.replace(/^v/, "") : null;
+                if (latest) {
+                  setLatestVersion(latest);
+                  if (compareVersions(current, latest)) {
+                    setUpdateAvailable(true);
+                  }
                 }
               }
             } catch (apiError) {

@@ -16,7 +16,7 @@ test.describe('Update Banner', () => {
       name: 'shows update banner when newer version is available',
       buildPayload: async () => UpdateBannerTestData.newerVersion,
       expectsBanner: true,
-      expectedVersion: UpdateBannerTestData.newerVersion.version,
+      expectedVersion: UpdateBannerTestData.newerVersion.tag_name,
     },
     {
       name: 'hides update banner when current version is latest',

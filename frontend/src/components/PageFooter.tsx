@@ -22,7 +22,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
             <div className="flex items-center justify-center gap-2 text-xs font-medium">
               <ArrowUpCircle className="h-4 w-4" />
               <span>
-                Update available: v{latestVersion} •{" "}
+                Update available: {latestVersion} •{" "}
                 <a
                   href={APP_CONFIG.DOCS_RELEASE_NOTES_URL}
                   target="_blank"

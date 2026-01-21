@@ -1,13 +1,13 @@
 import { APIRequestContext, expect, Locator, Page } from '@playwright/test';
-import { LatestVersionPayload } from './updateBannerTestData';
+import { LatestReleasePayload } from './updateBannerTestData';
 
-const latestVersionRoute = '**/api/latest-version.json';
+const latestVersionRoute = '**/repos/karimz1/imgcompress/releases/latest';
 const releaseNotesPattern =
   /##\s+v?(\d+\.\d+\.\d+(?:\.\d+)?)\s+[—-]\s+\d{4}-\d{2}-\d{2}/;
 
 export async function mockLatestVersionResponseAsync(
   page: Page,
-  payload: LatestVersionPayload
+  payload: LatestReleasePayload
 ): Promise<void> {
   await page.route(latestVersionRoute, async (route) => {
     await route.fulfill({
