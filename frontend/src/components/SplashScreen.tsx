@@ -267,6 +267,7 @@ export function SplashScreen({
                       src="/logo_transparent.png"
                       alt="ImgCompress Logo"
                       fill
+                      draggable={false}
                       className="object-contain"
                       priority
                     />

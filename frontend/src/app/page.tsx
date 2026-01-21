@@ -396,6 +396,7 @@ function HomePageContent() {
                 height={260}
                 alt="ImgCompress - Image Compression Tool"
                 priority
+                draggable={false}
                 className="h-auto w-[220px] sm:w-[240px] md:w-[260px] drop-shadow-xl"
               />
             </CardHeader>

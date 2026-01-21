@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { maxSatisfying, valid, gt } from "semver";
+import { coerce, gt } from "semver";
 import { APP_CONFIG } from "@/lib/config";
 
 interface VersionInfo {
@@ -9,9 +9,14 @@ interface VersionInfo {
   isLoading: boolean;
 }
 
+const normalizeVersion = (value: string): string | null => {
+  const parsed = coerce(value);
+  return parsed ? parsed.version : null;
+};
+
 const compareVersions = (current: string, latest: string): boolean => {
-  const normalizedCurrent = valid(current);
-  const normalizedLatest = valid(latest);
+  const normalizedCurrent = normalizeVersion(current);
+  const normalizedLatest = normalizeVersion(latest);
   if (!normalizedCurrent || !normalizedLatest) return false;
   return gt(normalizedLatest, normalizedCurrent);
 };
@@ -21,10 +26,10 @@ const extractMaxVersion = (markdown: string): string | null => {
     /##\s+v?(\d+\.\d+\.\d+(?:\.\d+)?)\s+[—-]\s+\d{4}-\d{2}-\d{2}/g;
   const matches = Array.from(markdown.matchAll(versionPattern), (match) => match[1]);
   const normalized = matches
-    .map((version) => valid(version))
+    .map((version) => normalizeVersion(version))
     .filter((version): version is string => Boolean(version));
   if (normalized.length === 0) return null;
-  return maxSatisfying(normalized, "*");
+  return normalized.reduce((max, current) => (gt(current, max) ? current : max));
 };
 
 export function useVersionCheck(): VersionInfo {
@@ -54,14 +59,11 @@ export function useVersionCheck(): VersionInfo {
                 const rawLatest =
                   data.version ?? data.tag_name ?? data.name ?? data.release_tag;
                 const latest =
-                  typeof rawLatest === "string" ? rawLatest.replace(/^v/i, "") : null;
+                  typeof rawLatest === "string" ? normalizeVersion(rawLatest) : null;
                 if (latest) {
-                  const normalizedLatest = valid(latest);
-                  if (normalizedLatest) {
-                    setLatestVersion(normalizedLatest);
-                    if (compareVersions(current, normalizedLatest)) {
-                      setUpdateAvailable(true);
-                    }
+                  setLatestVersion(latest);
+                  if (compareVersions(current, latest)) {
+                    setUpdateAvailable(true);
                   }
                 }
               }
