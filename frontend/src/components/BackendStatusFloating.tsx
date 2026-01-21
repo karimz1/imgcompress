@@ -73,33 +73,17 @@ export function BackendStatusFloating() {
             <p className="font-semibold">Why this exists?</p>
 
             <p>
-              This widget helps verify that the imgcompress container is healthy and whether
-              outbound internet access is available for transparency & security hardening.
-            </p>
-
-            <p>
-              The connectivity test is a <b>lightweight DNS reachability probe</b> to Cloudflare
-              <code className="px-1 py-0.5 rounded bg-neutral-200 dark:bg-neutral-800 text-[10px]">1.1.1.1:53</code>,
-              equivalent to a ping. No images, files or metadata ever leave your machine.
-            </p>
-
-            <p>
-              This is especially useful when running imgcompress in network-isolated containers
-              and wanting a visible confirmation that it's properly sandboxed and offline.
+              Verifies container health and network isolation for security. No images or metadata ever leave your machine.
             </p>
 
             <a
-              href="https://github.com/karimz1/imgcompress/issues/382"
+              href="https://imgcompress.karimzouine.com/web-ui/#high-security-offline-usage"
               target="_blank"
-              className="underline opacity-80 hover:opacity-100"
+              rel="noopener noreferrer"
+              className="underline opacity-80 hover:opacity-100 inline-block"
             >
-              Learn more about the security reasoning behind this feature →
+              Learn more about offline usage →
             </a>
-
-            <p className="opacity-60">
-              Future plans include network isolation docs & container hardening guides.
-              Contributions welcome.
-            </p>
           </div>
 
           <p className="text-xs opacity-40 pt-2">

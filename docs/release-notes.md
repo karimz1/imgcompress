@@ -7,4 +7,7 @@ description: Stay up to date with the latest features, bug fixes, and performanc
 
 All notable changes to this project will be documented in this file.
 
+!!! tip "Update Available?"
+    Running an older version? See the [**Update Guide**](installation.md#maintenance-updates) for instructions on how to upgrade to the latest release.
+
 --8<-- "frontend/public/release-notes.md"
