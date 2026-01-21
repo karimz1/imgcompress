@@ -5,25 +5,24 @@ description: Official version history and update documentation for ImgCompress.
 
 # Release Notes
 
-This page documents all notable changes, including new features, bug fixes, and performance improvements for the ImgCompress project.
+This document tracks all notable changes to ImgCompress, including new features, bug fixes, and performance optimizations.
 
 ---
 
 ## Maintenance and Upgrades
 
-!!! tip "Update Status"
-    To upgrade an existing installation, please refer to the [**Update Guide**](installation.md#maintenance-updates).
+Users may review the [Change Log](#change-log) below for a detailed history of updates. To upgrade an existing installation to the latest version, please refer to the [**Update Guide**](installation.md#maintenance-updates).
 
 ## Version Verification Logic
 
-ImgCompress includes an automated check to notify of new releases. The process is designed with a focus on privacy and transparency:
+ImgCompress includes an automated check to notify of new releases. This process is designed with a focus on privacy and technical transparency:
 
-1. **Local Identification:** The application reads the local `release-notes.md` file to determine the active version.
-2. **Remote Comparison:** The system performs a GET request to `/api/latest-version.json` to retrieve the most recent version number.
-3. **Notification:** If the remote version is higher than the local version, a notification banner is displayed within the Web UI.
+1. **Local Identification:** The application parses the bundled `release-notes.md` file to determine the currently deployed version.
+2. **Remote Comparison:** The system performs a GET request to `https://imgcompress.karimzouine.com/api/latest-version.json` to retrieve the most recent stable version number.
+3. **Notification:** If a newer version is identified, a notification banner is displayed within the Web UI providing a direct link to the official documentation.
 
 !!! info "Privacy Standards"
-    This check is strictly limited to version string comparison. No user data, telemetry, or file content is transmitted during this process.
+    The update check is strictly limited to a version string comparison. No user data, metadata, or system telemetry is transmitted during this process.
 
 ---
 
