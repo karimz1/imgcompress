@@ -38,6 +38,7 @@ export function useVersionCheck(): VersionInfo {
   useEffect(() => {
     const fetchVersionInfo = async () => {
       try {
+        // Fetch current version from local release notes
         const releaseNotesResponse = await fetch("/release-notes.md", { cache: "no-store" });
         if (releaseNotesResponse.ok) {
           const markdown = await releaseNotesResponse.text();
@@ -50,29 +51,17 @@ export function useVersionCheck(): VersionInfo {
               const apiResponse = await fetch(APP_CONFIG.LATEST_VERSION_API, {
                 cache: "no-store",
               });
-
-              console.log("Version check - API response status:", apiResponse.status);
-
               if (apiResponse.ok) {
                 const data = await apiResponse.json();
-                console.log("Version check - API data:", data);
-
                 const latest = data.version?.replace(/^v/, "");
                 setLatestVersion(latest);
 
-                console.log("Version check - Current:", current, "Latest:", latest);
-
                 if (latest && compareVersions(current, latest)) {
-                  console.log("Version check - Update available!");
                   setUpdateAvailable(true);
-                } else {
-                  console.log("Version check - No update available");
                 }
-              } else {
-                console.warn("Version check - API response not OK:", apiResponse.status);
               }
             } catch (apiError) {
-              console.error("Failed to fetch latest version from API:", apiError);
+              console.warn("Failed to fetch latest version from API:", apiError);
             }
           }
         }
