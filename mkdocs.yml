@@ -154,5 +154,6 @@ nav:
     - Developer Guide: developers.md
     - Release Notes: release-notes.md
 
-  - Support:
-    - Support & Services: support.md
+  - Help & Support:
+      - Sponsor the Project: sponsorship.md
+      - Professional Services: support.md

@@ -1,35 +1,32 @@
 ---
-title: "Support & Sponsorship"
-description: Professional support options and sponsorship for ImgCompress.
+title: "Enterprise & Custom Solutions"
+description: Professional support and custom development directly from the author.
 ---
 
-# Support & Sponsorship
+# Custom Solutions & Expert Support
 
-<p align="center">
-  <img src="/images/logo_transparent.png" width="300" alt="ImgCompress Mascot">
-</p>
+ImgCompress is a free, open-source project licensed under **GPL-3.0**. The core tool will always remain free for the community.
 
-ImgCompress is a personal project licensed under **GPL-3.0**. **The core tool will always remain open source and free.** I offer professional services for teams that require dedicated expertise or modifications beyond the standard feature set.
-
----
-
-## Professional Services
-*Need custom work or features that aren't there yet? I can help.*
-
-| Service | Goal |
-| :--- | :--- |
-| **Custom Workflows** | Assistance in extending the feature set to your specific workflow. |
-| **Specialized Setup** | Help with hardened, air-gapped, or complex Docker environments. |
-| **Optimization** | Tuning the backend for high-volume or specific performance needs. |
-
-!!! quote ""
-    **Business Inquiries:** [karimzouine.com](https://www.karimzouine.com)
+!!! info "Directly from the Author"
+    **Save your team the development time.** Get an enterprise-grade version of ImgCompress built for your specific infrastructure, handled personally by the creator of the project.
 
 ---
 
-## 💖 Sponsorship
-*Help fuel the ongoing development and maintenance of this project.*
+### Service Offerings
+*Tailored solutions for complex requirements.*
 
-If ImgCompress provides value to you or your team, consider supporting the project. Your sponsorship directly funds my time for security maintenance, bug fixes, and new feature development.
+| Service | Focus | Ideal For |
+| :--- | :--- | :--- |
+| **Custom Workflows** | Bespoke features and internal API integrations. | Unique production pipelines. |
+| **Specialized Setup** | Secure, air-gapped, or hardened deployments. | Security-conscious enterprises. |
+| **Performance Tuning** | Backend optimization for high-volume needs. | Scaled infrastructure. |
 
-[Sponsor on GitHub :octicons-heart-fill-16:](https://github.com/sponsors/karimz1){ .md-button .md-button--primary }
+---
+
+### Let's Work Together
+If you have a project in mind, need a specialized build, or require a formal consulting engagement, feel free to reach out.
+
+[:octicons-mail-24: Get in Touch](https://www.karimzouine.com/#contact){ .md-button .md-button--primary }
+
+---
+*For general bug reports or feature requests, please use the [GitHub Issues](https://github.com/karimz1/imgcompress/issues) page.*
