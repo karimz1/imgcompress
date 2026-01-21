@@ -191,16 +191,15 @@ const parseMarkdown = (markdown: string): ReleaseEntry[] => {
 const InfoBox = () => (
   <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
     <p className="text-xs text-muted-foreground leading-relaxed">
-      View{" "}
+      Only the latest changes are listed here. For older release notes and all resolved issues, visit{" "}
       <a
-        href="https://imgcompress.karimzouine.com/release-notes/"
+        href="https://github.com/karimz1/imgcompress/issues?q=is%3Aissue%20state%3Aclosed"
         target="_blank"
         rel="noopener noreferrer"
         className="underline underline-offset-2 hover:text-foreground transition-colors"
       >
-        complete release notes
-      </a>{" "}
-      for all versions and details.
+        GitHub Issues
+      </a>.
     </p>
   </div>
 )

@@ -96,14 +96,7 @@ def storage_info():
     if not storage_management_service.is_storage_management_enabled():
         return _storage_management_disabled_response()
 
-    container_files = temp_folder_service.get_container_files()
-    total_used_mb = container_files.get("total_size_mb", 0)
-    _, _, free = shutil.disk_usage(TEMP_DIR)
-    mib = 1024 * 1024
-    return jsonify({
-        "used_storage_mb": total_used_mb,
-        "available_storage_mb": round(free / mib, 2),
-    }), 200
+    return jsonify(storage_management_service.get_disk_usage()), 200
 
 
 @api_blueprint.route("/force_cleanup", methods=["POST"])

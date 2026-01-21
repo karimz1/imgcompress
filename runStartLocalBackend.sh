@@ -1,5 +1,5 @@
 #!/bin/bash
 set -euo pipefail
 
-# Use the bootstraper so local runs match production server settings.
+# Use the bootstraper so local runs match production Gunicorn settings.
 python -m backend.image_converter.bootstraper web
