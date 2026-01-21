@@ -17,7 +17,7 @@ Users may review the [Change Log](#change-log) below for a detailed history of u
 
 ImgCompress includes an automated check to notify you of new releases. The flow is simple and privacy‑safe:
 
-1. **Local Identification:** The application parses the bundled `release-notes.md` file to determine the currently deployed version.
+1. **Local Identification:** The application scans `release-notes.md` and selects the highest semantic version listed.
 2. **Remote Comparison:** The Web UI requests the latest published release from the GitHub Releases API: `https://api.github.com/repos/karimz1/imgcompress/releases/latest`.
 3. **Notification:** If a newer version is detected, the Web UI displays an update banner with a link to the release notes.
 

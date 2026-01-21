@@ -14,18 +14,22 @@ test.describe('Update Banner', () => {
   const bannerScenarios = [
     {
       name: 'shows update banner when newer version is available',
-      buildPayload: async () => UpdateBannerTestData.newerVersion,
+      buildPayload: async (request: Parameters<typeof getCurrentVersionFromReleaseNotesAsync>[0]) => {
+        const currentVersion = await getCurrentVersionFromReleaseNotesAsync(request);
+        const newerVersion = UpdateBannerTestData.bumpPatchVersion(currentVersion);
+        return UpdateBannerTestData.createLatestReleasePayload(newerVersion);
+      },
       expectsBanner: true,
-      expectedVersion: UpdateBannerTestData.newerVersion.tag_name,
+      getExpectedVersion: (payloadTag: string) => payloadTag,
     },
     {
       name: 'hides update banner when current version is latest',
-      buildPayload: async (request: Parameters<typeof getCurrentVersionFromReleaseNotesAsync>[0]) =>
-        UpdateBannerTestData.createCurrentVersionPayload(
-          await getCurrentVersionFromReleaseNotesAsync(request)
-        ),
+      buildPayload: async (request: Parameters<typeof getCurrentVersionFromReleaseNotesAsync>[0]) => {
+        const currentVersion = await getCurrentVersionFromReleaseNotesAsync(request);
+        return UpdateBannerTestData.createLatestReleasePayload(currentVersion);
+      },
       expectsBanner: false,
-      expectedVersion: null,
+      getExpectedVersion: (_payloadTag: string) => null,
     },
   ];
 
@@ -38,8 +42,9 @@ test.describe('Update Banner', () => {
 
       const updateBanner = getUpdateBannerLocator(page);
       if (scenario.expectsBanner) {
+        const expectedVersion = scenario.getExpectedVersion(payload.tag_name);
         await expect(updateBanner).toBeVisible();
-        await expect(page.getByText(scenario.expectedVersion ?? '')).toBeVisible();
+        await expect(page.getByText(expectedVersion ?? '')).toBeVisible();
         const whatsNewLink = getWhatsNewLinkLocator(page);
         await expect(whatsNewLink).toBeVisible();
         await expect(whatsNewLink).toHaveAttribute('href', UpdateBannerTestData.releaseNotesUrl);

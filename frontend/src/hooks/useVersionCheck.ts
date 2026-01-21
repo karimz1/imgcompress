@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { maxSatisfying, valid, gt } from "semver";
 import { APP_CONFIG } from "@/lib/config";
 
 interface VersionInfo {
@@ -8,25 +9,22 @@ interface VersionInfo {
   isLoading: boolean;
 }
 
-const extractLatestVersion = (markdown: string): string | null => {
-  const versionPattern = /##\s+v?(\d+\.\d+\.\d+(?:\.\d+)?)\s+[—-]\s+\d{4}-\d{2}-\d{2}/;
-  const match = markdown.match(versionPattern);
-  return match ? match[1] : null;
+const compareVersions = (current: string, latest: string): boolean => {
+  const normalizedCurrent = valid(current);
+  const normalizedLatest = valid(latest);
+  if (!normalizedCurrent || !normalizedLatest) return false;
+  return gt(normalizedLatest, normalizedCurrent);
 };
 
-const compareVersions = (current: string, latest: string): boolean => {
-  const parseCurrent = current.split('.').map(Number);
-  const parseLatest = latest.split('.').map(Number);
-
-  for (let i = 0; i < Math.max(parseCurrent.length, parseLatest.length); i++) {
-    const currentPart = parseCurrent[i] || 0;
-    const latestPart = parseLatest[i] || 0;
-
-    if (latestPart > currentPart) return true;
-    if (latestPart < currentPart) return false;
-  }
-
-  return false;
+const extractMaxVersion = (markdown: string): string | null => {
+  const versionPattern =
+    /##\s+v?(\d+\.\d+\.\d+(?:\.\d+)?)\s+[—-]\s+\d{4}-\d{2}-\d{2}/g;
+  const matches = Array.from(markdown.matchAll(versionPattern), (match) => match[1]);
+  const normalized = matches
+    .map((version) => valid(version))
+    .filter((version): version is string => Boolean(version));
+  if (normalized.length === 0) return null;
+  return maxSatisfying(normalized, "*");
 };
 
 export function useVersionCheck(): VersionInfo {
@@ -42,7 +40,7 @@ export function useVersionCheck(): VersionInfo {
         const releaseNotesResponse = await fetch("/release-notes.md", { cache: "no-store" });
         if (releaseNotesResponse.ok) {
           const markdown = await releaseNotesResponse.text();
-          const current = extractLatestVersion(markdown);
+          const current = extractMaxVersion(markdown);
           setCurrentVersion(current);
 
           // Fetch latest version from API
@@ -56,11 +54,14 @@ export function useVersionCheck(): VersionInfo {
                 const rawLatest =
                   data.version ?? data.tag_name ?? data.name ?? data.release_tag;
                 const latest =
-                  typeof rawLatest === "string" ? rawLatest.replace(/^v/, "") : null;
+                  typeof rawLatest === "string" ? rawLatest.replace(/^v/i, "") : null;
                 if (latest) {
-                  setLatestVersion(latest);
-                  if (compareVersions(current, latest)) {
-                    setUpdateAvailable(true);
+                  const normalizedLatest = valid(latest);
+                  if (normalizedLatest) {
+                    setLatestVersion(normalizedLatest);
+                    if (compareVersions(current, normalizedLatest)) {
+                      setUpdateAvailable(true);
+                    }
                   }
                 }
               }
