@@ -14,9 +14,9 @@ colorama==0.4.6
 flask==3.1.2
 jsonify==0.5
 apscheduler==3.11.2
-gunicorn==23.0.0
 pillow_heif==1.1.1
 pypdfium2==5.3.0
 psd-tools==1.12.1
 rembg==2.0.72
 onnxruntime==1.23.2
+granian==2.6.1

@@ -33,7 +33,7 @@ jobs:
         with:
           key: ${{ github.ref }}
           path: .cache
-          
+
       - run: pip install -r docs/requirements.txt
       
       - run: zensical build

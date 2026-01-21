@@ -109,6 +109,16 @@ export async function removeImageFileFromDropzoneAsync(page: Page, imageFile: Im
 
 export async function setMaxSizeInMBAsync(page: Page, sizeInMB: number): Promise<void> {
     const input = page.locator(selectors.targetSizeMBInput);
+    await input.scrollIntoViewIfNeeded();
+
+    if (!(await input.isEnabled())) {
+        const modeBtn = page.locator(selectors.compressionModeSizeBtn);
+        if (await modeBtn.count()) {
+            await modeBtn.click();
+        }
+    }
+
+    await expect(input).toBeEnabled();
     await input.fill(sizeInMB.toString());
 }
 

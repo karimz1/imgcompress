@@ -55,14 +55,40 @@ No local dependencies, no configuration clutter. Just a high-performance image o
 
 
 
-## Maintenance & Updates
+### Maintenance & Updates
 
-Keep your instance secure and up-to-date.
+Keep your instance secure and benefit from the latest features.
 
-| Method | Command                                                                                                                                                                   |
-| :--- |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Docker Compose** | `docker compose pull && docker compose up -d`                                                                                                                             |
-| **Docker Run** | `docker pull karimz1/imgcompress:latest && docker rm -f imgcompress && docker run -d --name imgcompress -p 3001:5000 --restart unless-stopped karimz1/imgcompress:latest` |
+=== "Docker Compose (Recommended)"
+
+    1. **Pull the latest version**
+       ```bash
+       docker compose pull
+       ```
+    2. **Restart the service**
+       ```bash
+       docker compose up -d
+       ```
+
+=== "Docker Run"
+
+    1. **Download the image**
+       ```bash
+       docker pull karimz1/imgcompress:latest
+       ```
+    2. **Replace the container**
+       ```bash
+       docker rm -f imgcompress
+       docker run -d \
+         --name imgcompress \
+         -p 3001:5000 \
+         --restart \
+         unless-stopped \
+         karimz1/imgcompress:latest
+       ```
+     3. Once the container is running, open your web browser & navigate to: http://localhost:3001  
+
+---
 
 ## Choosing Your Version
 
@@ -110,11 +136,11 @@ ___
 For organizations requiring extreme data isolation (e.g., **HIPAA, GDPR, or SOC2**), `imgcompress` supports a fully air-gapped configuration. This workflow severs the container's ability to communicate with the public internet.
 
 !!! danger "Advanced Implementation Only"
-    This reference architecture introduces significant infrastructure complexity. It requires manual maintenance of Docker networking and typically a pre-configured reverse proxy. Use this only if your security model mandates total network isolation.
+    This architecture mandates total network isolation. **By choosing this method, the Web UI cannot notify you of new releases.** You will need to manually monitor the [GitHub Releases](https://github.com/karimz1/imgcompress/releases) to stay current. See [How Updates Notification Work](release-notes.md#transparent-update-checks) for more details.
 
 ### Technical Implementation
 
-To deploy in a zero-egress environment, use the provided hardened configuration, I created as a sample for you:
+To deploy in a zero-egress environment, use the provided hardened configuration I created as a sample for you:
 
 ```yaml
 --8<-- "docker-compose-no-internet.yml"

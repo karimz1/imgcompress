@@ -1,3 +1,9 @@
+## v0.5.0 — 2026-01-21
+- Feature: Implement Automatic Update Notifications [#469](https://github.com/karimz1/imgcompress/issues/469)
+- Improvements: Simplify UI by removing non-essential UX elements + update mascot logo [#473](https://github.com/karimz1/imgcompress/issues/473)
+- Improvements: Speed up ImgCompress API with Granian (Rust HTTP server) [#470](https://github.com/karimz1/imgcompress/issues/470)
+- BugFix: Update storage calculation: use processed files + host-derived container capacity [#472](https://github.com/karimz1/imgcompress/issues/472)
+
 ## v0.4.0 — 2026-01-04
 - Feature: Support AVIF as Output Format [#453](https://github.com/karimz1/imgcompress/issues/453)
 - Request: Add a Documentation button to the UI [#457](https://github.com/karimz1/imgcompress/issues/457)

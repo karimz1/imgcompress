@@ -8,7 +8,6 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { HardDrive } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ReleaseNotesButton } from "@/components/ReleaseNotesButton";
 import { HelpButton } from "@/components/HelpButton";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
@@ -106,8 +105,8 @@ function HomePageContent() {
   const cardTitleClass = isDarkTheme
     ? "text-white"
     : "text-slate-900";
-  const accentOneClass = isDarkTheme ? "bg-sky-500/20" : "bg-sky-300/30";
-  const accentTwoClass = isDarkTheme ? "bg-fuchsia-500/20" : "bg-pink-300/30";
+  const accentOneClass = isDarkTheme ? "bg-slate-500/10" : "bg-slate-300/15";
+  const accentTwoClass = isDarkTheme ? "bg-slate-400/10" : "bg-slate-200/15";
 
   useEffect(() => {
     if (outputFormat !== "jpeg" && outputFormat !== "avif") {
@@ -384,29 +383,36 @@ function HomePageContent() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          <div className={cn("absolute -top-28 right-0 h-64 w-64 rounded-full blur-[120px]", accentOneClass)} />
-          <div className={cn("absolute bottom-0 left-0 h-72 w-72 rounded-full blur-[140px]", accentTwoClass)} />
+          <div className={cn("absolute -top-20 right-0 h-56 w-56 rounded-full blur-[100px]", accentOneClass)} />
+          <div className={cn("absolute bottom-0 left-0 h-64 w-64 rounded-full blur-[120px]", accentTwoClass)} />
         </div>
         <ToastContainer />
         <Card className={cn("w-full max-w-3xl border backdrop-blur-xl transition-colors", cardClass)}>
-          <CardTitle
-            className={`text-center text-3xl md:text-4xl font-bold drop-shadow pt-6 ${cardTitleClass} ${configReady && disableLogo ? "pb-8" : "pb-2"
-              }`}
-          >
-            An Image Compression Tool
-          </CardTitle>
-          {configReady && !disableLogo && (
-            <CardHeader className="pt-2 flex flex-col items-center">
+          {configReady && !disableLogo ? (
+            <CardHeader className="pt-12 pb-8 flex flex-col items-center">
               <Image
-                src={resolvedTheme === "dark" ? "/mascot_dark.jpg" : "/mascot.jpg"}
-                width={600}
-                height={600}
-                alt="Mascot of ImgCompress a Tool by Karim Zouine"
-                className="rounded-lg shadow-lg"
+                src="/logo_transparent.png"
+                width={260}
+                height={260}
+                alt="ImgCompress - Image Compression Tool"
+                priority
+                draggable={false}
+                className="h-auto w-[220px] sm:w-[240px] md:w-[260px] drop-shadow-xl"
               />
             </CardHeader>
+          ) : (
+            <CardHeader className="pt-12 pb-10 flex flex-col items-center">
+              <CardTitle
+                className={`text-center text-3xl md:text-4xl font-bold tracking-tight ${cardTitleClass}`}
+              >
+                imgcompress
+              </CardTitle>
+              <p className="text-center text-sm md:text-base text-muted-foreground mt-2">
+                An Image Compression Tool
+              </p>
+            </CardHeader>
           )}
-          <CardContent className="p-6 pt-0 sm:p-10 sm:pt-2">
+          <CardContent className="px-6 pb-8 sm:px-10 sm:pb-12">
             <FileConversionForm
               isLoading={isLoading}
               error={error}
@@ -476,8 +482,7 @@ function HomePageContent() {
           </>
         )}
 
-        <div className="fixed bottom-4 left-4 z-40 flex flex-col sm:flex-row gap-2">
-          <ReleaseNotesButton />
+        <div className="fixed bottom-4 left-4 z-40">
           <HelpButton />
         </div>
 
