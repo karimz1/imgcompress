@@ -55,14 +55,40 @@ No local dependencies, no configuration clutter. Just a high-performance image o
 
 
 
-## Maintenance & Updates
+### Maintenance & Updates
 
-Keep your instance secure and up-to-date.
+Keep your instance secure and benefit from the latest features.
 
-| Method | Command                                                                                                                                                                   |
-| :--- |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Docker Compose** | `docker compose pull && docker compose up -d`                                                                                                                             |
-| **Docker Run** | `docker pull karimz1/imgcompress:latest && docker rm -f imgcompress && docker run -d --name imgcompress -p 3001:5000 --restart unless-stopped karimz1/imgcompress:latest` |
+=== "Docker Compose (Recommended)"
+
+    1. **Pull the latest version**
+       ```bash
+       docker compose pull
+       ```
+    2. **Restart the service**
+       ```bash
+       docker compose up -d
+       ```
+
+=== "Docker Run"
+
+    1. **Download the image**
+       ```bash
+       docker pull karimz1/imgcompress:latest
+       ```
+    2. **Replace the container**
+       ```bash
+       docker rm -f imgcompress
+       docker run -d \
+         --name imgcompress \
+         -p 3001:5000 \
+         --restart \
+         unless-stopped \
+         karimz1/imgcompress:latest
+       ```
+     3. Once the container is running, open your web browser & navigate to: http://localhost:3001  
+
+---
 
 ## Choosing Your Version
 
