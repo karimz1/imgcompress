@@ -9,7 +9,7 @@ test('How to Use button should have the correct documentation link', async ({ pa
   
   await expect(helpButton).toContainText('How to Use');
   
-  const expectedUrl = 'https://karimz1.github.io/imgcompress/web-ui.html';
+  const expectedUrl = 'https://imgcompress.karimzouine.com/web-ui/';
   await expect(helpButton).toHaveAttribute('href', expectedUrl);
   
   await expect(helpButton).toHaveAttribute('target', '_blank');
