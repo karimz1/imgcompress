@@ -74,7 +74,7 @@ To strictly replicate the GitHub Actions CI environment, use the following Docke
 
 ### Build the Dev Container
 ```bash
-docker build -t devcontainer:local-test .devcontainer/
+docker buildx build -t devcontainer:local-test .devcontainer/
 ```
 
 ### Backend Unit Tests
@@ -105,11 +105,13 @@ docker run --rm \
 ### End-to-End (E2E) Tests
 Matches the `test-e2e` job in CI.
 
-**Step 1: Build & Run Application**
+**Step 1: Build ImgCompress Image**
 ```bash
-# Build the App Image
-docker build -t karimz1/imgcompress:local-test .
+docker buildx build -t karimz1/imgcompress:local-test .
+```
 
+**Step 2: Run ImgCompress Image**
+```bash
 # Run the App (Host Networking)
 docker run --rm -d \
   --network host \
@@ -117,7 +119,7 @@ docker run --rm -d \
   karimz1/imgcompress:local-test web
 ```
 
-**Step 2: Run E2E Tests**
+**Step 3: Run E2E Tests**
 ```bash
 docker run --rm \
   --entrypoint /bin/sh \
