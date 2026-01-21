@@ -25,7 +25,7 @@ description: "A tribute to the open-source libraries, AI models, and infrastruct
 | Component | Technology | Role |
 | :--- | :--- | :--- |
 | **Web Framework** | [Next.js](https://nextjs.org/) | Powers the responsive, high-performance user interface and dashboard. |
-| **UI Components** | [shadcn/ui](https://ui.shadcn.com/) | Beautifully designed, accessible components built with Radix UI and Tailwind CSS. |
+| **UI Components** | [shadcn/ui](https://ui.shadcn.com/) | Accessible and modern UI components used to build the ImgCompress interface. |
 | **Styling** | [Tailwind CSS](https://tailwindcss.com/) | Provides the modern, utility-first styling for a clean and accessible UI. |
 | **Icons** | [Lucide](https://lucide.dev/) | Beautifully crafted, consistent icons used throughout the application. |
 
