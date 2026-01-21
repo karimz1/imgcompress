@@ -136,11 +136,11 @@ ___
 For organizations requiring extreme data isolation (e.g., **HIPAA, GDPR, or SOC2**), `imgcompress` supports a fully air-gapped configuration. This workflow severs the container's ability to communicate with the public internet.
 
 !!! danger "Advanced Implementation Only"
-    This reference architecture introduces significant infrastructure complexity. It requires manual maintenance of Docker networking and typically a pre-configured reverse proxy. Use this only if your security model mandates total network isolation.
+    This architecture mandates total network isolation. **By choosing this method, the Web UI cannot notify you of new releases.** You will need to manually monitor the [GitHub Releases](https://github.com/karimz1/imgcompress/releases) to stay current. See [How Updates Notification Work](release-notes.md#transparent-update-checks) for more details.
 
 ### Technical Implementation
 
-To deploy in a zero-egress environment, use the provided hardened configuration, I created as a sample for you:
+To deploy in a zero-egress environment, use the provided hardened configuration I created as a sample for you:
 
 ```yaml
 --8<-- "docker-compose-no-internet.yml"
