@@ -148,3 +148,8 @@ def supported_image_formats():
 @api_blueprint.route("/images_verified", methods=["GET"])
 def verified_image_formats():
     return jsonify({"verified_formats": configuration_service.get_verified_formats()}), 200
+
+
+@api_blueprint.route("/rembg_model", methods=["GET"])
+def rembg_model():
+    return jsonify({"model_name": configuration_service.get_rembg_model_name()}), 200

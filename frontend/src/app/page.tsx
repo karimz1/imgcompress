@@ -30,6 +30,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
+import { useRembgModel } from "@/hooks/useRembgModel";
 import { cn } from "@/lib/utils";
 
 
@@ -66,6 +67,7 @@ function HomePageContent() {
     isLoading: extensionsLoading,
     error: extensionsError,
   } = useSupportedExtensions();
+  const { modelName: rembgModelName } = useRembgModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -487,6 +489,7 @@ function HomePageContent() {
               setCompressionMode={setCompressionMode}
               useRembg={useRembg}
               setUseRembg={setUseRembg}
+              rembgModelName={rembgModelName}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

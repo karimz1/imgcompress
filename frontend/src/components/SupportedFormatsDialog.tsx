@@ -42,14 +42,13 @@ export function SupportedFormatsDialog({
     const isMatch = (ext: string) => 
         searchQuery.length >= 2 && ext.toLowerCase().includes(searchQuery.toLowerCase())
 
-    // Enhanced scroll: ensures context is visible
     useEffect(() => {
         if (searchQuery.length >= 2 && scrollContainerRef.current) {
             const firstMatch = scrollContainerRef.current.querySelector('[data-search-match="true"]')
             if (firstMatch) {
                 firstMatch.scrollIntoView({ 
                     behavior: "smooth", 
-                    block: "center", // Keeps the item in the middle of the view
+                    block: "center", 
                     inline: "nearest" 
                 })
             }
@@ -180,12 +179,9 @@ export function SupportedFormatsDialog({
                 </div>
 
                 <div className="p-5 bg-slate-50 dark:bg-black/40 border-t border-slate-200 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors">
-                    <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <p className="text-[11px] text-slate-700 dark:text-slate-400 font-medium">
-                            I'm here to help you convert your images!
-                        </p>
-                    </div>
+                    <p className="text-[11px] text-slate-700 dark:text-slate-400 font-medium">
+                        ImgCompress here to help you convert your images!
+                    </p>
                     <a 
                         href={APP_CONFIG.GITHUB_ISSUES_URL}
                         target="_blank"

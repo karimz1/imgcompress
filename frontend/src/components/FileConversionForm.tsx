@@ -57,6 +57,7 @@ interface FileConversionFormProps {
 
   useRembg: boolean;
   setUseRembg: (val: boolean) => void;
+  rembgModelName: string | null;
 
   // From useDropzone
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
@@ -121,6 +122,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setCompressionMode,
   useRembg,
   setUseRembg,
+  rembgModelName,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -147,6 +149,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const parsedPdfMargin = parseFloat(pdfMarginMm);
   const pdfMarginValue =
     pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
+  const rembgLabel = rembgModelName?.trim() || "rembg";
   const renderError = useMemo(
     () =>
       error && (
@@ -496,7 +499,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               htmlFor="rembgToggle"
               className="text-sm flex items-center gap-1"
             >
-              Remove background with local AI (rembg)
+              Remove background with local AI ({rembgLabel})
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
