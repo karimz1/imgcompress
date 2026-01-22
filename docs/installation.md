@@ -138,13 +138,12 @@ For organizations requiring extreme data isolation (e.g., **HIPAA, GDPR, or SOC2
 !!! danger "Advanced Implementation Only"
     This architecture mandates total network isolation. **By choosing this method, the Web UI cannot notify you of new releases.** You will need to manually monitor the [GitHub Releases](https://github.com/karimz1/imgcompress/releases) to stay current. See [How Updates Notification Work](release-notes.md#transparent-update-checks) for more details.
 
-### Technical Implementation
+??? note "Technical Implementation"
+    For zero-egress deployments, start with the hardened sample configuration below:
 
-To deploy in a zero-egress environment, use the provided hardened configuration I created as a sample for you:
-
-```yaml
---8<-- "docker-compose-no-internet.yml"
-```
+    ```yaml
+    --8<-- "docker-compose-no-internet.yml"
+    ```
 
 !!! info "Post-Installation Verification"
     Once deployed, you should audit your network status using the built-in monitoring tools. For detailed instructions on verifying your isolation status, see the **[High-Security & Offline Usage Guide](web-ui.md#high-security-offline-usage)**.
