@@ -21,6 +21,7 @@ interface SupportedFormatsDialogProps {
     supportedExtensions: string[]
     verifiedExtensions: string[]
     extensionsLoading: boolean
+    extensionsError?: Error | null
 }
 
 export function SupportedFormatsDialog({
