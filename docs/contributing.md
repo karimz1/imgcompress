@@ -16,7 +16,9 @@ Simply **starring the repository** on GitHub helps increase visibility and lets 
 
 ### 2. Report Bugs & Request Features
 Found a bug or have an idea for a new feature?
+
 *   Check the [Issue Tracker ](https://github.com/karimz1/imgcompress/issues) to see if it has already been reported.
+
 *   If not, open a new issue with a clear description and reproduction steps.
 
 ### 3. Code Contributions
@@ -24,8 +26,8 @@ Found a bug or have an idea for a new feature?
 Developers are welcome to fork the repository and submit Pull Requests (PRs).
 
 *   **🐛 Fix Bugs**: Look for issues labeled `bug`.
-*   **✨ New Features**: Look for issues labeled `enhancement` or `help wanted`.
-*   **👶 Good First Issues**: If you are new to the project, check out `good first issue` tasks.
+*   **New Features**: Look for issues labeled `enhancement` or `help wanted`.
+*   **Good First Issues**: If you are new to the project, check out `good first issue` tasks.
 
 ---
 
