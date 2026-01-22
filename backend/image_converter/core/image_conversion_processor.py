@@ -35,6 +35,10 @@ class ImageConversionProcessor:
         image_format: ImageFormat,
         quality: int = 85,
         width: Optional[int] = None,
+        pdf_preset: Optional[str] = None,
+        pdf_scale: str = "fit",
+        pdf_margin_mm: Optional[float] = None,
+        pdf_paginate: bool = False,
         use_rembg: bool = False,
         debug: bool = False,
         json_output: bool = False
@@ -44,6 +48,10 @@ class ImageConversionProcessor:
         self.image_format = image_format
         self.quality = quality
         self.width = width
+        self.pdf_preset = pdf_preset
+        self.pdf_scale = pdf_scale
+        self.pdf_margin_mm = pdf_margin_mm
+        self.pdf_paginate = pdf_paginate
         self.use_rembg = use_rembg
         self.debug = debug
         self.json_output = json_output
@@ -52,12 +60,32 @@ class ImageConversionProcessor:
         self.file_manager = FileManager(self.source, self.destination, self.logger)
         self.image_loader = ImageLoader()
         self.image_resizer = ImageResizer()
+        self.pdf_preset_config = None
+        if self.image_format == ImageFormat.PDF and self.pdf_preset:
+            from backend.image_converter.domain.pdf_presets import resolve_pdf_preset, resolve_pdf_scale
+            preset_res = resolve_pdf_preset(self.pdf_preset)
+            if not preset_res.is_successful:
+                raise ConversionError(preset_res.error)
+            if preset_res.value.size is not None:
+                self.pdf_preset_config = preset_res.value
+
+            scale_res = resolve_pdf_scale(self.pdf_scale)
+            if not scale_res.is_successful:
+                raise ConversionError(scale_res.error)
+            self.pdf_scale = scale_res.value
+        else:
+            self.pdf_paginate = False
+            self.pdf_margin_mm = None
         self.payload_expander = create_payload_expander(self.logger)
         self.converter = ImageConverterFactory.create_converter(
             image_format=self.image_format,
             quality=self.quality,
             logger=self.logger,
-            use_rembg=self.use_rembg
+            use_rembg=self.use_rembg,
+            pdf_preset=self.pdf_preset_config,
+            pdf_scale=self.pdf_scale,
+            pdf_margin_mm=self.pdf_margin_mm,
+            pdf_paginate=self.pdf_paginate,
         )
         self.results: List[PageProcessingResult] = []
 
@@ -141,10 +169,12 @@ class ImageConversionProcessor:
             self.logger.log(f"Opened image: {page_label} ({original_width}px, {len(data)} bytes)", LogLevel.DEBUG.value)
             new_width = original_width
 
-            if self.width and self.width > 0:
-               data = self.image_resizer.resize_image(payload.data, self.width)
-               with Image.open(BytesIO(data)) as resized_img:
-                   new_width, _ = resized_img.size
+            if self.image_format == ImageFormat.PDF and self.pdf_preset_config:
+                data = payload.data
+            elif self.width and self.width > 0:
+                data = self.image_resizer.resize_image(payload.data, self.width)
+                with Image.open(BytesIO(data)) as resized_img:
+                    new_width, _ = resized_img.size
 
             convert_result = self.converter.convert(
                 image_data=data,

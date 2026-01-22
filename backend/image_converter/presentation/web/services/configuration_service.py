@@ -1,4 +1,5 @@
 from backend.image_converter.core.internals.utilities import supported_extensions
+from backend.image_converter.core.internals.rembg_config import load_rembg_model_name
 
 class ConfigurationService:
     @staticmethod
@@ -19,3 +20,11 @@ class ConfigurationService:
             ".pdf",
             ".avif"
         ]
+
+    @staticmethod
+    def get_rembg_model_name():
+        """
+        Returns the configured rembg model name, falling back to the default when the
+        config file or env var is missing or invalid.
+        """
+        return load_rembg_model_name()

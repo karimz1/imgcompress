@@ -13,6 +13,10 @@ class CompressRequest:
     width: Optional[int]
     target_size: Optional[TargetSize]
     use_rembg: bool = False
+    pdf_preset: Optional[str] = None
+    pdf_scale: str = "fit"
+    pdf_margin_mm: Optional[float] = None
+    pdf_paginate: bool = False
 
 @dataclass
 class CompressResult:

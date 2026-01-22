@@ -36,6 +36,14 @@ interface FileConversionFormProps {
   outputFormat: string;
   setOutputFormat: (val: string) => void;
   formatRequired: boolean;
+  pdfPreset: string;
+  setPdfPreset: (val: string) => void;
+  pdfScale: string;
+  setPdfScale: (val: string) => void;
+  pdfMarginMm: string;
+  setPdfMarginMm: (val: string) => void;
+  pdfPaginate: boolean;
+  setPdfPaginate: (val: boolean) => void;
   files: File[];
   removeFile: (name: string) => void;
   clearFileSelection: () => void;
@@ -49,6 +57,7 @@ interface FileConversionFormProps {
 
   useRembg: boolean;
   setUseRembg: (val: boolean) => void;
+  rembgModelName: string | null;
 
   // From useDropzone
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
@@ -64,7 +73,15 @@ interface FileConversionFormProps {
 
 const tooltipContent = {
   outputFormat:
-    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+  pdfPreset:
+    "A4/Letter presets scale the image to the page with a configurable print-safe margin. Auto presets rotate the page based on image orientation.",
+  pdfScale:
+    "Fit preserves the entire image with possible white bars. Fill crops to cover the page.",
+  pdfMargin:
+    "Set the print-safe border in millimeters. 10mm is recommended.",
+  pdfPaginate:
+    "Splits long images into multiple pages when a PDF preset is selected.",
   quality:
     "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG and AVIF.",
   resizeWidth:
@@ -87,6 +104,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   outputFormat,
   setOutputFormat,
   formatRequired,
+  pdfPreset,
+  setPdfPreset,
+  pdfScale,
+  setPdfScale,
+  pdfMarginMm,
+  setPdfMarginMm,
+  pdfPaginate,
+  setPdfPaginate,
   files,
   removeFile,
   clearFileSelection,
@@ -97,6 +122,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setCompressionMode,
   useRembg,
   setUseRembg,
+  rembgModelName,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -120,6 +146,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const filePillClass = isDarkTheme
     ? "bg-gray-800 text-gray-100 border border-gray-700"
     : "bg-slate-100 text-slate-900 border border-slate-200";
+  const parsedPdfMargin = parseFloat(pdfMarginMm);
+  const pdfMarginValue =
+    pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
+  const rembgLabel = rembgModelName?.trim() || "rembg";
   const renderError = useMemo(
     () =>
       error && (
@@ -245,6 +275,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
             <SelectItem value="png">PNG (preserves transparency)</SelectItem>
             <SelectItem value="avif">AVIF (best compression & quality)</SelectItem>
+            <SelectItem value="pdf">PDF (single-page document)</SelectItem>
             <SelectItem value="ico">ICO (preserves transparency)</SelectItem>
           </SelectContent>
         </Select>
@@ -254,6 +285,184 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </p>
         )}
       </div>
+
+      {/* PDF Presets */}
+      {outputFormat === "pdf" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="pdfPreset" className="text-sm">
+              PDF Page Preset
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+              >
+                {tooltipContent.pdfPreset}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Select value={pdfPreset} onValueChange={setPdfPreset}>
+            <SelectTrigger
+              id="pdfPreset"
+              className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
+            >
+              <SelectValue placeholder="Original" />
+            </SelectTrigger>
+            <SelectContent className={selectSurface}>
+              <SelectItem value="original">Original (keep proportions)</SelectItem>
+              <SelectItem value="a4-auto">A4 Auto</SelectItem>
+              <SelectItem value="a4-portrait">A4 Portrait</SelectItem>
+              <SelectItem value="a4-landscape">A4 Landscape</SelectItem>
+              <SelectItem value="letter-auto">Letter Auto</SelectItem>
+              <SelectItem value="letter-portrait">Letter Portrait</SelectItem>
+              <SelectItem value="letter-landscape">Letter Landscape</SelectItem>
+              <SelectItem value="mobile-portrait">Mobile Portrait (1080x1920)</SelectItem>
+              <SelectItem value="mobile-landscape">Mobile Landscape (1920x1080)</SelectItem>
+            </SelectContent>
+          </Select>
+          {pdfPreset !== "original" && (
+            <p className={cn("text-xs", subtleText)}>
+              Resize Width is disabled while a PDF preset is selected.
+            </p>
+          )}
+        </div>
+      )}
+
+      {outputFormat === "pdf" && pdfPreset !== "original" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="pdfScale" className="text-sm">
+              PDF Scale Mode
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+              >
+                {tooltipContent.pdfScale}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Select value={pdfScale} onValueChange={setPdfScale}>
+            <SelectTrigger
+              id="pdfScale"
+              className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
+              disabled={pdfPaginate}
+            >
+              <SelectValue placeholder="Fit" />
+            </SelectTrigger>
+            <SelectContent className={selectSurface}>
+              <SelectItem value="fit">Fit (preserve full image)</SelectItem>
+              <SelectItem value="fill">Fill (crop to page)</SelectItem>
+            </SelectContent>
+          </Select>
+          {pdfPaginate && (
+            <p className={cn("text-xs", subtleText)}>
+              Pagination uses Fit mode to preserve full width.
+            </p>
+          )}
+        </div>
+      )}
+
+      {outputFormat === "pdf" && pdfPreset !== "original" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="pdfMargin" className="text-sm">
+              PDF Margin
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+              >
+                {tooltipContent.pdfMargin}
+              </TooltipContent>
+            </Tooltip>
+            <span className={cn("text-sm", subtleText)}>
+              {(pdfMarginMm && pdfMarginMm.trim() !== "" ? pdfMarginMm : "10")} mm
+            </span>
+          </div>
+          <input
+            id="pdfMargin"
+            type="range"
+            min="0"
+            max="20"
+            step="1"
+            value={pdfMarginValue}
+            onChange={(e) => setPdfMarginMm(e.target.value)}
+            disabled={isLoading}
+            className="w-full accent-blue-500"
+          />
+          <div className="relative">
+            <Input
+              id="pdfMarginInput"
+              data-testid="pdfMarginInput"
+              type="number"
+              inputMode="decimal"
+              step="1"
+              min="0"
+              max="20"
+              placeholder="10"
+              value={pdfMarginMm}
+              onChange={(e) => setPdfMarginMm(e.target.value)}
+              disabled={isLoading}
+              className={cn(surfaceInputClass, "disabled:opacity-50 disabled:cursor-not-allowed pr-12")}
+            />
+            <span className={cn("absolute inset-y-0 right-3 flex items-center text-sm pointer-events-none", subtleText)}>
+              mm
+            </span>
+          </div>
+          <p className={cn("text-xs", subtleText)}>
+            10mm is recommended and the default.
+          </p>
+        </div>
+      )}
+
+      {outputFormat === "pdf" && pdfPreset !== "original" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="pdfPaginateToggle" className="text-sm flex items-center gap-1">
+              Split long images into multiple pages
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+                >
+                  <p className="text-sm">{tooltipContent.pdfPaginate}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Switch
+              data-testid="pdf-paginate-switch"
+              id="pdfPaginateToggle"
+              checked={pdfPaginate}
+              onCheckedChange={setPdfPaginate}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      )}
 
       {/* JPEG/AVIF controls mode */}
       {(outputFormat === "jpeg" || outputFormat === "avif") && (
@@ -290,7 +499,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               htmlFor="rembgToggle"
               className="text-sm flex items-center gap-1"
             >
-              Remove background with local AI (rembg)
+              Remove background with local AI ({rembgLabel})
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -470,7 +679,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 setWidth("");
               }
             }}
-            disabled={isLoading}
+            disabled={isLoading || (outputFormat === "pdf" && pdfPreset !== "original")}
           />
         </div>
         {resizeWidthEnabled && (

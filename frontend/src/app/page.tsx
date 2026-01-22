@@ -30,6 +30,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
+import { useRembgModel } from "@/hooks/useRembgModel";
 import { cn } from "@/lib/utils";
 
 
@@ -66,6 +67,7 @@ function HomePageContent() {
     isLoading: extensionsLoading,
     error: extensionsError,
   } = useSupportedExtensions();
+  const { modelName: rembgModelName } = useRembgModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -83,6 +85,10 @@ function HomePageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState("");
   const [formatRequired, setFormatRequired] = useState(false);
+  const [pdfPreset, setPdfPreset] = useState("original");
+  const [pdfScale, setPdfScale] = useState("fit");
+  const [pdfMarginMm, setPdfMarginMm] = useState("10");
+  const [pdfPaginate, setPdfPaginate] = useState(false);
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
@@ -116,10 +122,36 @@ function HomePageContent() {
     if (outputFormat !== "png" && outputFormat !== "avif") {
       setUseRembg(false);
     }
+    if (outputFormat !== "pdf") {
+      setPdfPreset("original");
+      setPdfScale("fit");
+      setPdfMarginMm("10");
+      setPdfPaginate(false);
+    }
     if (outputFormat) {
       setFormatRequired(false);
     }
   }, [outputFormat]);
+
+  useEffect(() => {
+    if (outputFormat === "pdf" && pdfPreset !== "original") {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [outputFormat, pdfPreset]);
+
+  useEffect(() => {
+    if (outputFormat === "pdf" && pdfPreset === "original") {
+      setPdfScale("fit");
+      setPdfPaginate(false);
+    }
+  }, [outputFormat, pdfPreset]);
+
+  useEffect(() => {
+    if (outputFormat === "pdf" && pdfPaginate) {
+      setPdfScale("fit");
+    }
+  }, [outputFormat, pdfPaginate]);
 
 
   const onDrop = useCallback(
@@ -229,6 +261,16 @@ function HomePageContent() {
         formData.append("width", width);
       }
       formData.append("format", outputFormat);
+      if (outputFormat === "pdf") {
+        formData.append("pdf_preset", pdfPreset);
+        if (pdfPreset !== "original") {
+          formData.append("pdf_scale", pdfScale);
+          formData.append("pdf_margin_mm", pdfMarginMm || "10");
+          if (pdfPaginate) {
+            formData.append("pdf_paginate", "true");
+          }
+        }
+      }
       if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
         const kb = Math.round(parseFloat(targetSizeMB) * 1024);
         if (!isNaN(kb) && kb > 0) {
@@ -316,6 +358,10 @@ function HomePageContent() {
       compressionMode,
       targetSizeMB,
       useRembg,
+      pdfPreset,
+      pdfScale,
+      pdfMarginMm,
+      pdfPaginate,
     ]
   );
 
@@ -425,6 +471,14 @@ function HomePageContent() {
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}
+              pdfPreset={pdfPreset}
+              setPdfPreset={setPdfPreset}
+              pdfScale={pdfScale}
+              setPdfScale={setPdfScale}
+              pdfMarginMm={pdfMarginMm}
+              setPdfMarginMm={setPdfMarginMm}
+              pdfPaginate={pdfPaginate}
+              setPdfPaginate={setPdfPaginate}
               files={files}
               removeFile={removeFile}
               clearFileSelection={clearFileSelection}
@@ -435,6 +489,7 @@ function HomePageContent() {
               setCompressionMode={setCompressionMode}
               useRembg={useRembg}
               setUseRembg={setUseRembg}
+              rembgModelName={rembgModelName}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

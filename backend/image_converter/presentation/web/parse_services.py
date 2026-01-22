@@ -10,6 +10,10 @@ def extract_form_data(request: Request, logger: Logger) -> Result[Dict[str, Any]
     width = _parse_width(request.form.get("width", ""), logger)
     target_size_kb = _parse_target_size_kb(request.form.get("target_size_kb", ""), logger)
     use_rembg = _parse_bool(request.form.get("use_rembg"))
+    pdf_preset = request.form.get("pdf_preset", "").strip()
+    pdf_scale = request.form.get("pdf_scale", "").strip()
+    pdf_margin_mm = _parse_margin_mm(request.form.get("pdf_margin_mm", ""), logger)
+    pdf_paginate = _parse_bool(request.form.get("pdf_paginate"))
 
     allowed_files = [f for f in uploaded_files if is_file_supported(f.filename)]
     unsupported_files = [f for f in uploaded_files if not is_file_supported(f.filename)]
@@ -25,6 +29,10 @@ def extract_form_data(request: Request, logger: Logger) -> Result[Dict[str, Any]
         "format": output_format,
         "target_size_kb": target_size_kb,
         "use_rembg": use_rembg,
+        "pdf_preset": pdf_preset,
+        "pdf_scale": pdf_scale,
+        "pdf_margin_mm": pdf_margin_mm,
+        "pdf_paginate": pdf_paginate,
     })
 
 
@@ -72,3 +80,21 @@ def _parse_bool(value: Optional[str]) -> bool:
     if value is None:
         return False
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _parse_margin_mm(value: str, logger: Logger) -> float:
+    if value is None:
+        return 10.0
+    value = value.strip()
+    if not value:
+        return 10.0
+    try:
+        mm = float(value)
+        if mm < 0:
+            mm = 0.0
+        if mm > 30:
+            mm = 30.0
+        return mm
+    except ValueError:
+        logger.log(f"Invalid pdf_margin_mm '{value}'. Using default 10.", "warning")
+        return 10.0

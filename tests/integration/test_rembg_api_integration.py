@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import shutil
 
@@ -14,6 +15,17 @@ def client():
     app.config["TESTING"] = True
     with app.test_client() as client:
         yield client
+
+
+def test_rembg_model_endpoint_uses_config_value(client, monkeypatch, tmp_path):
+    cfg_path = tmp_path / "rembg.json"
+    cfg_path.write_text(json.dumps({"model_name": "custom-net"}), encoding="utf-8")
+    monkeypatch.setenv("REMBG_CONFIG_PATH", str(cfg_path))
+
+    response = client.get("/api/rembg_model")
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["model_name"] == "custom-net"
 
 
 def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
