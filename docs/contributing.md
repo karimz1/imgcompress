@@ -33,9 +33,10 @@ Developers are welcome to fork the repository and submit Pull Requests (PRs).
 
 ## Developer Resources
 
-If you are planning to write code, please refer to the comprehensive **[Developer Guide](developers.md)**.
+!!! info
+    As of Jan 26, ImgCompress has about 20k downloads ([Docker Hub](https://hub.docker.com/r/karimz1/imgcompress)). To keep the project reliable, I only accept changes that pass the full test suite (unit, integration, and E2E). If a test fails due to a feature change, please add or update E2E tests so behavior stays stable and regressions are caught early. Start with the [Developer Guide](developers.md) and the [Playwright End-to-End Testing Guide](e2e.md).
 
-It covers everything you need to know about:
+If you are planning to write code, the Developer Guide covers everything you need to know about:
 
 *   **Local Environment**: Setting up your local development environment.
 *   **Testing**: Running Unit, Integration, and E2E tests.

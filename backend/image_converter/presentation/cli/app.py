@@ -21,12 +21,25 @@ def main(argv=None):
 
     try:
         image_format = ImageFormat.from_string(args.format.upper())
+        pdf_preset = args.pdf_preset
+        pdf_scale = args.pdf_scale
+        pdf_margin_mm = args.pdf_margin_mm
+        pdf_paginate = args.pdf_paginate
+        if image_format != ImageFormat.PDF:
+            pdf_preset = None
+            pdf_scale = "fit"
+            pdf_margin_mm = None
+            pdf_paginate = False
         processor = ImageConversionProcessor(
             source=args.source,
             destination=args.destination,
             image_format=image_format,
             quality=args.quality,
             width=args.width,
+            pdf_preset=pdf_preset,
+            pdf_scale=pdf_scale,
+            pdf_margin_mm=pdf_margin_mm,
+            pdf_paginate=pdf_paginate,
             use_rembg=args.remove_background,
             debug=args.debug,
             json_output=args.json_output

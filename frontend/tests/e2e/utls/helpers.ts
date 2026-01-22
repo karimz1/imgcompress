@@ -18,10 +18,15 @@ const selectors = {
   targetSizeMBInput: '[data-testid="targetSizeMBInput"]',
   dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]',
   outputFormatSelect: '#outputFormat',
+  pdfPresetSelect: '#pdfPreset',
+  pdfScaleSelect: '#pdfScale',
+  pdfMarginInput: '[data-testid="pdfMarginInput"]',
+  pdfPaginateSwitch: '[data-testid="pdf-paginate-switch"]',
   storageManagementButton: '[data-testid="storage-management-btn"]',
   storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]',
   rembgSwitch: '[data-testid="rembg-switch"]',
   supportedFormatsBtn: '[data-testid="supported-formats-btn"]',
+  supportedFormatsCount: '[data-testid="supported-formats-count"]',
   compressionModeQualityBtn: '[data-testid="compression-mode-quality-btn"]',
   compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]'
 };
@@ -156,12 +161,27 @@ export async function setResizeWidthAsync(page: Page, width: number): Promise<vo
 
 export async function uploadFilesToDropzoneAsync(page: Page, fileNames: ImageFileDto[]): Promise<void> {
     // Wait for supported formats to be loaded to avoid race condition in onDrop
-    const supportedFormatsBtn = page.locator(selectors.supportedFormatsBtn);
-    await expect(supportedFormatsBtn).not.toContainText('(…)');
+    await waitForSupportedFormatsCountAsync(page);
 
     const dropzoneInput = page.locator(selectors.dropzoneInput);
     const filePaths = await Promise.all(fileNames.map(GetFullFilePathOfImageFileAsync));
     await dropzoneInput.setInputFiles(filePaths);
+}
+
+export async function waitForSupportedFormatsCountAsync(page: Page): Promise<number> {
+    await expect.poll(async () => {
+        const countLocator = page.locator(selectors.supportedFormatsCount);
+        if ((await countLocator.count()) === 0) {
+            return 0;
+        }
+        const text = await countLocator.first().innerText();
+        const value = Number(text.trim());
+        return Number.isFinite(value) ? value : 0;
+    }).toBeGreaterThan(0);
+
+    const finalText = await page.locator(selectors.supportedFormatsCount).first().innerText();
+    const finalValue = Number(finalText.trim());
+    return Number.isFinite(finalValue) ? finalValue : 0;
 }
 
 export async function switchCompressionModeAsync(page: Page, mode: 'quality' | 'size'): Promise<void> {
@@ -272,6 +292,45 @@ export async function setOutputFormatAsync(page: Page, format: string): Promise<
   });
   await expect(option).toBeVisible();
   await option.click();
+}
+
+export async function setPdfPresetAsync(page: Page, presetLabel: string): Promise<void> {
+  const trigger = page.locator(selectors.pdfPresetSelect);
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+
+  const option = page.locator('[data-radix-collection-item][role="option"]', {
+    hasText: new RegExp(presetLabel, 'i'),
+  });
+  await expect(option).toBeVisible();
+  await option.click();
+}
+
+export async function setPdfScaleAsync(page: Page, scaleLabel: string): Promise<void> {
+  const trigger = page.locator(selectors.pdfScaleSelect);
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+
+  const option = page.locator('[data-radix-collection-item][role="option"]', {
+    hasText: new RegExp(scaleLabel, 'i'),
+  });
+  await expect(option).toBeVisible();
+  await option.click();
+}
+
+export async function setPdfMarginMmAsync(page: Page, marginMm: number): Promise<void> {
+  const input = page.locator(selectors.pdfMarginInput);
+  await expect(input).toBeVisible();
+  await input.fill(marginMm.toString());
+}
+
+export async function setPdfPaginateEnabledAsync(page: Page, enabled: boolean): Promise<void> {
+  const toggle = page.locator(selectors.pdfPaginateSwitch);
+  await expect(toggle).toBeVisible();
+  const isChecked = await toggle.getAttribute('data-state');
+  if ((isChecked === 'checked') !== enabled) {
+    await toggle.click();
+  }
 }
 
 export async function setRembgEnabledAsync(page: Page, enabled: boolean): Promise<void> {

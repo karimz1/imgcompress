@@ -53,6 +53,8 @@ Running E2E tests locally is a 3-step process. You need to start the backend and
 2. **Terminal 2:** `./runStartLocalFrontend.sh`
 3. **Terminal 3:** `./run-e2e.sh`
 
+See the [Playwright End-to-End Testing Guide](e2e.md) for debugging tips, targeted runs, and reports.
+
 ### 📦 Docker Image Testing
 
 Use this script to test the production-ready image locally. This is useful for verifying that custom flags work as expected without needing to deploy a nightly release.

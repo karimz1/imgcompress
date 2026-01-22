@@ -10,6 +10,12 @@ from backend.image_converter.application.compress_images_usecase import Compress
 from backend.image_converter.application.dtos import CompressRequest
 from backend.image_converter.domain.units import TargetSize, to_bytes
 from backend.image_converter.core.enums.image_format import ImageFormat
+from backend.image_converter.domain.pdf_presets import (
+    resolve_pdf_preset,
+    normalize_pdf_preset,
+    resolve_pdf_scale,
+    normalize_pdf_scale,
+)
 
 class CompressionService:
     def __init__(self, logger, use_case: CompressImagesUseCase, temp_folder_service):
@@ -40,6 +46,26 @@ class CompressionService:
         if not fmt_res.is_successful:
             return Result.failure(fmt_res.error)
         fmt = fmt_res.value
+        pdf_preset = normalize_pdf_preset(form_data.get("pdf_preset"))
+        pdf_scale = normalize_pdf_scale(form_data.get("pdf_scale"))
+        pdf_margin_mm = form_data.get("pdf_margin_mm")
+        pdf_paginate = form_data.get("pdf_paginate", False)
+        if fmt == ImageFormat.PDF:
+            preset_res = resolve_pdf_preset(pdf_preset)
+            if not preset_res.is_successful:
+                return Result.failure(preset_res.error)
+            scale_res = resolve_pdf_scale(pdf_scale)
+            if not scale_res.is_successful:
+                return Result.failure(scale_res.error)
+            if preset_res.value.size is None:
+                pdf_preset = None
+                pdf_margin_mm = None
+                pdf_paginate = False
+        else:
+            pdf_preset = None
+            pdf_scale = "fit"
+            pdf_margin_mm = None
+            pdf_paginate = False
 
         src: Optional[str] = None
         dst: Optional[str] = None
@@ -65,6 +91,10 @@ class CompressionService:
                 width=form_data["width"],
                 target_size=target,
                 use_rembg=form_data.get("use_rembg", False),
+                pdf_preset=pdf_preset,
+                pdf_scale=pdf_scale,
+                pdf_margin_mm=pdf_margin_mm,
+                pdf_paginate=pdf_paginate,
             )
 
             result = self.use_case.execute(req)

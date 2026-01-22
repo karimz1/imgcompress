@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
             link.appendChild(img);
         } else {
             // 3. Configure the existing link
-            if (parentLink.href.match(/\.(jupyter|jpg|jpeg|png|gif|webp|svg|bmp)$/i)) {
+            if (parentLink.href.match(/\.(jupyter|jpg|jpeg|png|gif|webp|svg|bmp|avif)$/i)) {
                 parentLink.classList.add('custom-glightbox');
                 if (caption && !parentLink.getAttribute('data-title')) {
                     parentLink.setAttribute('data-title', caption);
@@ -44,5 +44,4 @@ document.addEventListener("DOMContentLoaded", function () {
         closeEffect: 'zoom',
     });
 });
-
 
