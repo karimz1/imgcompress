@@ -30,7 +30,7 @@ body[data-md-color-scheme="slate"] .gslide-desc {
 body[data-md-color-scheme="slate"] .gnext,
 body[data-md-color-scheme="slate"] .gprev,
 body[data-md-color-scheme="slate"] .gclose {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgb(255 255 255) !important;
 }
 
 body[data-md-color-scheme="slate"] .gnext svg,
@@ -46,4 +46,23 @@ body[data-md-color-scheme="slate"] .gslide-description {
 
 body[data-md-color-scheme="slate"] .ginfocontainer {
     background: #1e1e1e !important;
+}
+
+/* Improve readability of lightbox captions */
+.glightbox-clean .gslide-desc {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Make lightbox titles easier to read */
+.glightbox-clean .gdesc-inner h4.gslide-title {
+    font-size: 1.15rem;
+    line-height: 1.5;
+}
+
+@media (min-width: 992px) {
+    body[data-md-color-scheme="slate"] .glightbox-clean .gclose {
+        opacity: 1;
+        right: 20px;
+    }
 }
