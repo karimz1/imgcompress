@@ -1,6 +1,6 @@
 ## v0.6.0 — 2026-01-22
-- Feature: PDF Extended export — output PDFs (not just images) with A4/original sizing and optional multi-page splits with custom margins
-- Improvement: Supported Formats dialog now includes search for faster format discovery and cleaner UX.
+- Feature: PDF Extended export — output PDFs (not just images) with A4/original sizing and optional multi-page splits with custom margins [#476](https://github.com/karimz1/imgcompress/issues/476)
+- Improvement: Supported Formats dialog now includes search for faster format discovery and cleaner UX. [#477](https://github.com/karimz1/imgcompress/issues/477)
 
 ## v0.5.0 — 2026-01-21
 - Feature: Implement Automatic Update Notifications [#469](https://github.com/karimz1/imgcompress/issues/469)
