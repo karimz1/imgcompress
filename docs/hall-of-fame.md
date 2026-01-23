@@ -22,7 +22,6 @@ Supporters who help keep this project privacy-focused and free for everyone.
 
 | Date | Supporter | Project Impact |
 | :--- | :--- | :--- |
-| Jan 2026 | *Anonymous* | One-time Donation (PayPal) |
 | Oct 2025 | [@Fayyaadh](https://github.com/Fayyaadh) | One-time Donation (PayPal) |
 
 *To be featured here, please include a note with your GitHub profile link or website during support.*
