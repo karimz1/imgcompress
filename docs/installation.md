@@ -132,18 +132,22 @@ Includes the newest features and dependency updates.
 ___
 
 ## Hardened & Offline Deployment (High-Security)
+This configuration is designed for organizations requiring extreme data isolation (e.g., HIPAA, GDPR, or SOC2) by running imgcompress in a fully air-gapped state.
 
-For organizations requiring extreme data isolation (e.g., **HIPAA, GDPR, or SOC2**), `imgcompress` supports a fully air-gapped configuration. This workflow severs the container's ability to communicate with the public internet.
+!!! danger "Complexity Warning"
+    This path is for advanced or regulated environments only. Expect extra operational overhead and stricter change control.  
+    For most users, stick with the standard **[Quick Start](#quick-start-recommended)** approach. It is simpler, supported, and includes update notifications (the app never auto-updates).
 
-!!! danger "Advanced Implementation Only"
-    This architecture mandates total network isolation. **By choosing this method, the Web UI cannot notify you of new releases.** You will need to manually monitor the [GitHub Releases](https://github.com/karimz1/imgcompress/releases) to stay current. See [How Updates Notification Work](release-notes.md#transparent-update-checks) for more details.
+### Why this is more difficult
 
-??? note "Technical Implementation"
-    For zero-egress deployments, start with the hardened sample configuration below:
+- **Manual upkeep:** No in-app update checks in this mode. For how notifications work in the standard flow, see **[Transparent Update Checks](release-notes.md#transparent-update-checks)** (the app only notifies. It never updates itself).
+- **Network troubleshooting:** Blocking egress at the Docker/network layer often needs custom firewall rules or reverse-proxy tweaks that are harder to debug.
+
+??? info "Technical Implementation"
+    Start from the zero-egress compose baseline to isolate the container:
 
     ```yaml
     --8<-- "docker-compose-no-internet.yml"
     ```
 
-!!! info "Post-Installation Verification"
-    Once deployed, you should audit your network status using the built-in monitoring tools. For detailed instructions on verifying your isolation status, see the **[High-Security & Offline Usage Guide](web-ui.md#high-security-offline-usage)**.
+    For production, harden the reverse proxy, tighten network policies, and add configuration knobs that fit your stack. If you need a custom-hardened enterprise deployment, see **[Custom Solutions & Expert Support](support.md)**.
