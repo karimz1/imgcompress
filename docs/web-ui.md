@@ -117,6 +117,3 @@ When you click the button, the tool performs a basic reachability test:
     ![ImgCompress Web UI System and Connectivity Status action button in the management menu](images/web-ui-workflow/web-ui-system-status-button.webp){ width="2630" height="2244" }
 3.  Review your **System and Network Status** overview:
     ![ImgCompress Web UI System Status modal providing a detailed summary of health and network checks](images/web-ui-workflow/web-ui-system-status-view.webp){ width="2630" height="2244" }
-
-!!! tip "Secure Configuration"
-    For detailed instructions on how to configure your environment for total network isolation, see the **[Hardened & Offline Deployment Guide](installation.md#hardened-offline-deployment-high-security)**.

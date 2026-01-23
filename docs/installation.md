@@ -133,24 +133,3 @@ Includes the newest features and dependency updates.
 
 !!! note "Testing Note"
     All platforms above are built and run in CI with QEMU multi-arch emulation and a GitHub Actions matrix. That means the images pass automated tests, but not every architecture has been manually tried on physical hardware.
-
-___
-
-## Hardened & Offline Deployment (High-Security)
-This configuration is designed for organizations requiring extreme data isolation (e.g., HIPAA, GDPR, or SOC2) by running imgcompress in a fully air-gapped state.
-
-!!! danger "Complexity Warning"
-    This path is for advanced or regulated environments only. Expect extra operational overhead and stricter change control.  
-    For most users, stick with the standard **[Quick Start](#quick-start-recommended)** approach. It is simpler, supported, and includes update notifications (the app never auto-updates).
-
-### Why this is more difficult
-
-- **Manual upkeep:** No in-app update checks in this mode. For how notifications work in the standard flow, see **[Transparent Update Checks](release-notes.md#transparent-update-checks)** (the app only notifies. It never updates itself).
-- **Network troubleshooting:** Blocking egress at the Docker/network layer often needs custom firewall rules or reverse-proxy tweaks that are harder to debug.
-
-??? info "Technical Implementation"
-    Start from the zero-egress compose baseline to isolate the container:
-
-    ```yaml
-    --8<-- "docker-compose-no-internet.yml"
-    ```
