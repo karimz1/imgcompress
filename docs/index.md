@@ -13,7 +13,7 @@ tags:
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 
-[<img src="images/imgcompress-og-image.webp" width="1200" height="630" fetchpriority="high" alt="ImgCompress branding banner: The self-hosted, private alternative to TinyPNG and Squoosh">](images/imgcompress-og-image.webp)
+[<img src="images/imgcompress-og-image.webp" width="1200" height="630" fetchpriority="high" alt="ImgCompress branding banner: The self-hosted, private alternative to TinyPNG and Squoosh">](images/imgcompress-og-image.webp){ aria-label="View ImgCompress branding banner" }
 
 **ImgCompress** is a high-performance, **self-hosted Docker image optimization tool** featuring fully local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
 
@@ -21,7 +21,7 @@ tags:
 ### Instant, Private Web UI
 Experience professional image processing on your own hardware. No account required, no tracking, and 100% offline.
 
-[<img src="images/web-ui-workflow/web-ui-upload-configure.webp" width="1200" height="680" alt="ImgCompress Web UI Dashboard showing image upload and format configuration interface">](web-ui.md)
+[<img src="images/web-ui-workflow/web-ui-upload-configure.webp" width="1200" height="680" alt="ImgCompress Web UI Dashboard showing image upload and format configuration interface">](web-ui.md){ aria-label="Navigate to Web UI guide" }
 
 [Get Started with Installation :octicons-arrow-right-24:](installation.md){ .md-button .md-button--primary }
 
@@ -38,8 +38,6 @@ Experience professional image processing on your own hardware. No account requir
 | :--- | :--- |
 | ![Original sunset landscape](images/image-remover-examples/landscape-with-sunset-yixing-original.avif){ width="400" height="266" loading="lazy" } | ![Landscape with background removed by AI](images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif){ width="400" height="266" loading="lazy" } |
 
-> **Note:** AI processing is performed entirely on your local machine.  
-> *For details on the AI engine and image attributions, visit the **[Image & Library Credits](./credits.md)**.*
 
 ## Use Cases
 

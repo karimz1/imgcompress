@@ -37,7 +37,7 @@ ImgCompress is **100% open source**. I believe in complete transparency regardin
 
 ### What the update notification looks like
 
-![ImgCompress Web UI update notification banner showing an available newer version with direct link to latest release notes](images/web-ui-workflow/web-ui-update-available-info.webp){ .glightbox width="3160" height="2072" style="width: 520px; height: auto;" }
+[![ImgCompress Web UI update notification banner showing an available newer version with direct link to latest release notes](images/web-ui-workflow/web-ui-update-available-info.webp){ .glightbox width="3160" height="2072" style="width: 520px; height: auto;" }](images/web-ui-workflow/web-ui-update-available-info.webp){ aria-label="View screenshot of update notification banner" }
 
 ---
 

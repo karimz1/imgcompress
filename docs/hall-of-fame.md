@@ -15,8 +15,8 @@ tags:
 
 ## Project Supporters
 
-[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
-[![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
+[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1){ aria-label="Sponsor ImgCompress on GitHub" }
+[![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972){ aria-label="Donate to ImgCompress via PayPal" }
 
 Supporters who help keep this project privacy-focused and free for everyone.
 
