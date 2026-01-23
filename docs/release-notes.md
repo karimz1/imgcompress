@@ -31,6 +31,10 @@ ImgCompress is **100% open source**. I believe in complete transparency regardin
     - This process is **anonymous and read-only**.
     - **Pure Comparison:** The check only compares two version strings (e.g., `v0.4.0` vs `v0.5.0`).
 
+### What the update notification looks like
+
+![Update banner showing a newer version with a link to release notes](images/web-ui-workflow/web-ui-update-available-info.webp){ .glightbox width="520" }
+
 ---
 
 ## Change Log
