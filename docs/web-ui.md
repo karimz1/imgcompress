@@ -109,8 +109,8 @@ When you click the button, the tool performs a basic reachability test:
 
 3. **Privacy:** No DNS queries are sent, and no data is transmitted. This is a pure "heartbeat" check to verify outbound access from within the Docker container.
 
-!!! tip "Manual Reachability Only"
-    This check is purely user-initiated. ImgCompress does not perform background pings for connectivity; the request only occurs when you manually click the button.
+!!! tip "Manual Diagnostic Tool"
+    ImgCompress performs an automatic check for updates when you load the Web UI. This diagnostic tool is purely user-initiated and allows you to manually verify that your container can reach the internet for those **[Update Checks](release-notes.md#transparent-update-checks)**.
 
 ### How to Access the Connection Status
 
