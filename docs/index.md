@@ -21,7 +21,7 @@ tags:
 ### Instant, Private Web UI
 Experience professional image processing on your own hardware. No account required, no tracking, and 100% offline.
 
-[<img src="images/web-ui-workflow/web-ui-upload-configure.webp" width="1200" height="680" alt="ImgCompress Web UI Dashboard showing image upload and format configuration interface">](web-ui.md){ aria-label="Navigate to Web UI guide" }
+[<img src="images/web-ui-workflow/web-ui-upload-configure.webp" width="1200" height="680" alt="ImgCompress Web UI Dashboard showing image upload and format configuration interface">](images/web-ui-workflow/web-ui-upload-configure.webp){ aria-label="View larger screenshot of Web UI" }
 
 [Get Started with Installation :octicons-arrow-right-24:](installation.md){ .md-button .md-button--primary }
 

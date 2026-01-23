@@ -28,7 +28,7 @@ Your contribution allows me to stay focused on what matters most:
 
 ## Community Recognition
 
-A [**Hall of Fame**](hall-of-fame.md) is maintained to honor the individuals and organizations who support the independent development of ImgCompress. 
+A Hall of Fame is maintained to honor the individuals and organizations who support the independent development of ImgCompress. 
 
 [View the Hall of Fame &rarr;](hall-of-fame.md)
 
