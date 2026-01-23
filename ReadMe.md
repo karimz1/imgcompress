@@ -20,33 +20,6 @@
 
 ---
 
-## Quick Start
-
-Launch the Web UI in seconds using Docker:
-
-### Docker Compose (Recommended)
-```yaml
-services:
-  imgcompress:
-    image: karimz1/imgcompress:latest
-    container_name: imgcompress
-    restart: always
-    ports:
-      - "3001:5000"
-    environment:
-      - DISABLE_LOGO=false
-      - DISABLE_STORAGE_MANAGEMENT=false
-```
-
-### Docker Run
-```bash
-docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
-```
-
-Open your browser and visit **[http://localhost:3001](http://localhost:3001)**.
-
----
-
 ## Documentation & Guides
 
 For detailed configuration, advanced features, and deployment options, please refer to the official documentation portal:
