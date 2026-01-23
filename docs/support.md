@@ -1,6 +1,9 @@
 ---
 title: "Enterprise & Custom Solutions"
 description: Professional support and custom development directly from the author.
+tags:
+  - Support
+  - Enterprise
 ---
 
 # Custom Solutions & Expert Support
@@ -12,7 +15,9 @@ ImgCompress is a free, open-source project licensed under **GPL-3.0**. The core 
 
 ---
 
-### Service Offerings
+---
+
+## Service Offerings
 *Tailored solutions for complex requirements.*
 
 | Service | Focus | Ideal For |
@@ -23,7 +28,9 @@ ImgCompress is a free, open-source project licensed under **GPL-3.0**. The core 
 
 ---
 
-### Let's Work Together
+---
+
+## Let's Work Together
 If you have a project in mind, need a specialized build, or require a formal consulting engagement, feel free to reach out.
 
 [:octicons-mail-24: Get in Touch](https://www.karimzouine.com/#contact){ .md-button .md-button--primary }

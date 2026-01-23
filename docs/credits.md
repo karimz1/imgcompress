@@ -1,6 +1,9 @@
 ---
 title: "Credits: Technologies & Assets"
 description: "A tribute to the open-source libraries, AI models, and infrastructure that power ImgCompress."
+tags:
+  - Credits
+  - Legal
 ---
 
 # Credits

@@ -1,6 +1,9 @@
 ---
 title: "ImgCompress: Open Source & Privacy-Focused Image Compression"
 description: "ImgCompress: Simple, Private Docker Image Compression & AI Background Removal. The 100% offline, self-hosted Docker alternative to TinyPNG."
+tags:
+  - Introduction
+  - Overview
 ---
 
 # ImgCompress: Privacy-First Image Optimizer
@@ -9,7 +12,7 @@ description: "ImgCompress: Simple, Private Docker Image Compression & AI Backgro
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 
-[<img src="images/logo_transparent.png" width="400" alt="ImgCompress: The self-hosted alternative to TinyPNG and Squoosh">](images/logo_transparent.png)
+[<img src="images/logo_transparent.avif" width="1024" height="1024" style="width: 400px; height: auto;" fetchpriority="high" alt="ImgCompress: The self-hosted alternative to TinyPNG and Squoosh">](images/logo_transparent.avif)
 
 **ImgCompress** is a high-performance, **self-hosted Docker image compression and conversion tool** featuring fully local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
 
@@ -32,7 +35,7 @@ Unlike traditional SaaS services, ImgCompress is built around a strict **“Priv
 ## AI Demo
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
-| ![Original image](images/image-remover-examples/landscape-with-sunset-yixing.jpg){ width="400" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing.png){ width="400" } |
+| ![Original image](images/image-remover-examples/landscape-with-sunset-yixing-original.avif){ width="800" height="532" style="width: 400px; height: auto;" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif){ width="800" height="532" style="width: 400px; height: auto;" } |
 
 > **Note:** AI processing is performed entirely on your local machine. No data is sent to external servers.  
 > *For details on the AI engine and image attributions, visit the **[Credits Page](./credits.md)**.*

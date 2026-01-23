@@ -1,6 +1,9 @@
 ---
 title: "Support the Mission"
 description: Support the independent development of ImgCompress.
+tags:
+  - Sponsorship
+  - Donations
 ---
 
 # Support ImgCompress
@@ -11,7 +14,9 @@ By becoming a sponsor, you are directly investing in the project's longevity and
 
 ---
 
-### Why Sponsor?
+---
+
+## Why Sponsor?
 Your contribution allows me to stay focused on what matters most:
 
 * **Maintenance:** Keeping dependencies up to date and the codebase secure.
@@ -22,7 +27,9 @@ Your contribution allows me to stay focused on what matters most:
 
 ---
 
-### Become a Partner
+---
+
+## Become a Partner
 Whether you are an individual user or a company that relies on ImgCompress, your support makes a real difference.
 
 [**Sponsor on GitHub** :octicons-heart-fill-16:](https://github.com/sponsors/karimz1){ .md-button .md-button--primary }

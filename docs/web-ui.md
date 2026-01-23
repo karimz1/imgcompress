@@ -1,6 +1,9 @@
 ---
 title: "Web UI: Local Image Optimizer"
 description: A simple, private Web UI for compressing images and removing backgrounds. Works 100% offline on your own hardware.
+tags:
+  - Get started
+  - Usage
 ---
 
 # Using the Web UI
@@ -12,9 +15,9 @@ description: A simple, private Web UI for compressing images and removing backgr
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | [![Upload & Configure: drop images or PDFs, choose AVIF/JPEG/PNG, set quality and resize options.](images/web-ui-workflow/web-ui-upload-configure.webp){ .glightbox width="240" }](images/web-ui-workflow/web-ui-upload-configure.webp) | **Upload & Configure**<br/>Drop images or PDFs into the queue, choose AVIF/JPEG/PNG, and set quality plus resize or size limits before running. |
-| **2** | [![Processing view: queue items showing progress and local-only processing.](images/web-ui-workflow/web-ui-processing.webp){ .glightbox width="240" }](images/web-ui-workflow/web-ui-processing.webp) | **Process Locally**<br/>Watch the queue update in real time while everything runs on your machine with no external requests. |
-| **3** | [![Download view: per-file downloads and ZIP export after processing completes.](images/web-ui-workflow/web-ui-download-results.webp){ .glightbox width="240" }](images/web-ui-workflow/web-ui-download-results.webp) | **Download Results**<br/>Save finished files individually or export the entire batch as a ZIP once processing completes. |
+| **1** | [![Upload & Configure: drop images or PDFs, choose AVIF/JPEG/PNG, set quality and resize options.](images/web-ui-workflow/web-ui-upload-configure.webp){ .glightbox width="4070" height="2304" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-upload-configure.webp) | **Upload & Configure**<br/>Drop images or PDFs into the queue, choose AVIF/JPEG/PNG, and set quality plus resize or size limits before running. |
+| **2** | [![Processing view: queue items showing progress and local-only processing.](images/web-ui-workflow/web-ui-processing.webp){ .glightbox width="4090" height="2304" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-processing.webp) | **Process Locally**<br/>Watch the queue update in real time while everything runs on your machine with no external requests. |
+| **3** | [![Download view: per-file downloads and ZIP export after processing completes.](images/web-ui-workflow/web-ui-download-results.webp){ .glightbox width="4094" height="2300" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-download-results.webp) | **Download Results**<br/>Save finished files individually or export the entire batch as a ZIP once processing completes. |
 
 The Web UI provides a powerful, privacy-focused way to compress images without the need for cloud-based tools.
 
@@ -47,13 +50,13 @@ Select the format that best fits your project's needs:
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | [![Toggle Removal: output set to AVIF with the Remove Background switch on.](images/web-ui-workflow/web-ui-remove-background-toggle.webp){ .glightbox width="240" }](images/web-ui-workflow/web-ui-remove-background-toggle.webp) | **Toggle Removal**<br/>Select **AVIF** or **PNG**, then enable **Remove Background** to process cutouts locally. |
+| **1** | [![Toggle Removal: output set to AVIF with the Remove Background switch on.](images/web-ui-workflow/web-ui-remove-background-toggle.webp){ .glightbox width="4062" height="2304" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-remove-background-toggle.webp) | **Toggle Removal**<br/>Select **AVIF** or **PNG**, then enable **Remove Background** to process cutouts locally. |
 
 ### AI Demo
 
 | Original Image | Background Removed (Local AI) |
 |----------------|-------------------------------|
-| ![Original image](images/image-remover-examples/landscape-with-sunset-yixing.jpg){ width="400" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing.png){ width="400" } |
+| ![Original image](images/image-remover-examples/landscape-with-sunset-yixing-original.avif){ width="800" height="532" style="width: 400px; height: auto;" } | ![Background removed image](images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif){ width="800" height="532" style="width: 400px; height: auto;" } |
 
 > **Note:** AI processing is performed entirely on your local machine. No data is sent to external servers.  
 > *For details on the AI engine and image attributions, visit the **[Credits Page](./credits.md)**.*
@@ -68,9 +71,9 @@ If you need to meet a strict file size limit (e.g., for web uploads), ImgCompres
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | [![Choose Format: dropdown focused on JPEG/AVIF for size targeting.](images/web-ui-workflow/web-ui-select-format.webp){ .glightbox width="240" }](images/web-ui-workflow/web-ui-select-format.webp) | **Choose Format**<br/>Pick **JPEG** or **AVIF** so the size calculator knows which codec to target. |
-| **2** | [![Add Files: queued images listed and ready to convert.](images/web-ui-workflow/web-ui-add-files.webp){ .glightbox width="240" }](images/web-ui-workflow/web-ui-add-files.webp) | **Add Files**<br/>Drag your images into the queue; they stay staged until you start converting. |
-| **3** | [![Set Max Size & Convert: Set by File Size tab with MB slider, then start conversion.](images/web-ui-workflow/web-ui-set-max-size.webp){ .glightbox width="240" }](images/web-ui-workflow/web-ui-set-max-size.webp) | **Set Max Size & Convert**<br/>Open **Set by File Size**, choose your MB limit (e.g., 1 MB), then start conversion to auto-tune quality to that cap. |
+| **1** | [![Choose Format: dropdown focused on JPEG/AVIF for size targeting.](images/web-ui-workflow/web-ui-select-format.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-select-format.webp) | **Choose Format**<br/>Pick **JPEG** or **AVIF** so the size calculator knows which codec to target. |
+| **2** | [![Add Files: queued images listed and ready to convert.](images/web-ui-workflow/web-ui-add-files.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-add-files.webp) | **Add Files**<br/>Drag your images into the queue; they stay staged until you start converting. |
+| **3** | [![Set Max Size & Convert: Set by File Size tab with MB slider, then start conversion.](images/web-ui-workflow/web-ui-set-max-size.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-set-max-size.webp) | **Set Max Size & Convert**<br/>Open **Set by File Size**, choose your MB limit (e.g., 1 MB), then start conversion to auto-tune quality to that cap. |
 
 ## High-Security & Offline Usage
 
@@ -93,7 +96,7 @@ The interface provides clear visual cues regarding your current network environm
 
 | Restricted / No Internet | Online / Internet Available |
 | :--- | :--- |
-| ![Status card showing no internet](images/web-ui-workflow/web-ui-status-offline.webp) | ![Status card showing internet available](images/web-ui-workflow/web-ui-status-online.webp) |
+| ![Status card showing no internet](images/web-ui-workflow/web-ui-status-offline.webp){ width="646" height="800" } | ![Status card showing internet available](images/web-ui-workflow/web-ui-status-online.webp){ width="644" height="836" } |
 
 ## Network & Connectivity
 
@@ -111,11 +114,11 @@ When you click the button, the tool performs a basic reachability test:
 ### How to Access the Connection Status
 
 1.  Navigate to the **Storage Management** section:
-    ![Storage Management panel showing connectivity tools](images/web-ui-workflow/web-ui-storage-management.webp)
+    ![Storage Management panel showing connectivity tools](images/web-ui-workflow/web-ui-storage-management.webp){ width="2630" height="2244" }
 2.  Click the **System & Connectivity Status** button:
-    ![System & Connectivity Status button in actions menu](images/web-ui-workflow/web-ui-system-status-button.webp)
+    ![System & Connectivity Status button in actions menu](images/web-ui-workflow/web-ui-system-status-button.webp){ width="2630" height="2244" }
 3.  Review your **System and Network Status** overview:
-    ![System status modal summarizing checks](images/web-ui-workflow/web-ui-system-status-view.webp)
+    ![System status modal summarizing checks](images/web-ui-workflow/web-ui-system-status-view.webp){ width="2630" height="2244" }
 
 !!! tip "Secure Configuration"
     For detailed instructions on how to configure your environment for total network isolation, see the **[Hardened & Offline Deployment Guide](installation.md#hardened-offline-deployment-high-security)**.

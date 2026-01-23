@@ -1,13 +1,25 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
+<!-- Performance: Resource Hinting -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Critical Path CSS: Pre-render layout to eliminate FCP/LCP bottlenecks -->
+<style>
+  /* Minimal logic to ensure text visibility during font load */
+  body {
+    font-display: swap !important;
+  }
+</style>
+
 <!-- SEO & Social Meta Tags -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ImgCompress Documentation">
 <meta property="og:url" content="{{ page.canonical_url }}">
 <meta property="og:title" content="{{ page.title | default(config.site_name) }}">
 <meta property="og:description" content="{{ page.meta.description | default(config.site_description) }}">
-<meta property="og:image" content="{{ config.site_url }}images/logo_transparent.png">
+<meta property="og:image" content="{{ config.site_url }}images/logo_transparent.avif">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ImgCompress: Simple & Private Self-Hosted Docker Image Optimizer">
@@ -17,7 +29,7 @@
 <meta name="twitter:url" content="{{ page.canonical_url }}">
 <meta name="twitter:title" content="{{ page.title | default(config.site_name) }}">
 <meta name="twitter:description" content="{{ page.meta.description | default(config.site_description) }}">
-<meta name="twitter:image" content="{{ config.site_url }}images/logo_transparent.png">
+<meta name="twitter:image" content="{{ config.site_url }}images/logo_transparent.avif">
 <meta name="twitter:image:alt" content="ImgCompress: Simple & Private Self-Hosted Docker Image Optimizer">
 
 <link rel="canonical" href="{{ page.canonical_url }}">
@@ -40,6 +52,12 @@
         "description": "{{ config.site_description | replace('\n', ' ') }}",
         "softwareVersion": "latest",
         "screenshot": "{{ config.site_url }}images/web-ui-workflow/web-ui-upload-configure.webp",
+        "image": {
+          "@type": "ImageObject",
+          "url": "{{ config.site_url }}images/logo_transparent.avif",
+          "width": "1024",
+          "height": "1024"
+        },
         "featureList": [
           "Image compression and optimization",
           "AI-powered background removal",
@@ -95,6 +113,7 @@
         "about": {
           "@id": "{{ config.site_url }}#software"
         },
+        "keywords": "{% if page.meta.tags %}{{ page.meta.tags | join(', ') }}{% else %}image compression, docker, privacy, ai, background removal, web optimization{% endif %}",
         "proficiencyLevel": "Beginner"
       },
       {
