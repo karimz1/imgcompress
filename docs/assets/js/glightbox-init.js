@@ -14,6 +14,11 @@
             parentLink = img.closest('a');
             caption = img.getAttribute('alt');
 
+            // Add lazy loading for performance
+            if (!img.hasAttribute('loading')) {
+                img.setAttribute('loading', 'lazy');
+            }
+
             if (!parentLink) {
                 link = document.createElement('a');
                 link.href = img.src;
