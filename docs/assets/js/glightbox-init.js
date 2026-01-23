@@ -20,7 +20,7 @@
                 link.className = 'custom-glightbox';
                 if (caption) {
                     link.setAttribute('data-title', caption);
-                    img.removeAttribute('alt');
+                    link.setAttribute('aria-label', caption);
                 }
                 img.parentNode.insertBefore(link, img);
                 link.appendChild(img);
@@ -28,7 +28,9 @@
                 parentLink.classList.add('custom-glightbox');
                 if (caption && !parentLink.getAttribute('data-title')) {
                     parentLink.setAttribute('data-title', caption);
-                    img.removeAttribute('alt');
+                    if (!parentLink.getAttribute('aria-label')) {
+                        parentLink.setAttribute('aria-label', caption);
+                    }
                 }
             }
         }

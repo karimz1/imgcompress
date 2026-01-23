@@ -16,9 +16,9 @@ tags:
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | [![ImgCompress Web UI Upload and Configure interface showing options for format selection and image quality](images/web-ui-workflow/web-ui-upload-configure.webp){ .glightbox width="4070" height="2304" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-upload-configure.webp){ aria-label="View screenshot of Upload and Configure interface" } | **Upload & Configure**<br/>Drop images or PDFs into the queue, choose AVIF/JPEG/PNG, and set quality plus resize or size limits before running. |
-| **2** | [![ImgCompress Web UI Processing view showing real-time conversion progress of image queue](images/web-ui-workflow/web-ui-processing.webp){ .glightbox width="4090" height="2304" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-processing.webp){ aria-label="View screenshot of Processing view" } | **Process Locally**<br/>Watch the queue update in real time while everything runs on your machine with no external requests. |
-| **3** | [![ImgCompress Web UI Download view with options to save individual files or export the entire batch as a ZIP](images/web-ui-workflow/web-ui-download-results.webp){ .glightbox width="4094" height="2300" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-download-results.webp){ aria-label="View screenshot of Download results" } | **Download Results**<br/>Save finished files individually or export the entire batch as a ZIP once processing completes. |
+| **1** | ![ImgCompress Web UI Upload and Configure interface showing options for format selection and image quality](images/web-ui-workflow/web-ui-upload-configure.webp){ .glightbox width="4070" height="2304" style="width: 240px; height: auto;" } | **Upload & Configure**<br/>Drop images or PDFs into the queue, choose AVIF/JPEG/PNG, and set quality plus resize or size limits before running. |
+| **2** | ![ImgCompress Web UI Processing view showing real-time conversion progress of image queue](images/web-ui-workflow/web-ui-processing.webp){ .glightbox width="4090" height="2304" style="width: 240px; height: auto;" } | **Process Locally**<br/>Watch the queue update in real time while everything runs on your machine with no external requests. |
+| **3** | ![ImgCompress Web UI Download view with options to save individual files or export the entire batch as a ZIP](images/web-ui-workflow/web-ui-download-results.webp){ .glightbox width="4094" height="2300" style="width: 240px; height: auto;" } | **Download Results**<br/>Save finished files individually or export the entire batch as a ZIP once processing completes. |
 
 The Web UI provides a powerful, privacy-focused way to compress images without the need for cloud-based tools.
 
@@ -51,7 +51,7 @@ Select the format that best fits your project's needs:
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | [![ImgCompress Web UI Background Removal toggle enabled with AVIF output format selected](images/web-ui-workflow/web-ui-remove-background-toggle.webp){ .glightbox width="4062" height="2304" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-remove-background-toggle.webp){ aria-label="View screenshot of Background Removal toggle" } | **Toggle Removal**<br/>Select **AVIF** or **PNG**, then enable **Remove Background** to process cutouts locally. |
+| **1** | ![ImgCompress Web UI Background Removal toggle enabled with AVIF output format selected](images/web-ui-workflow/web-ui-remove-background-toggle.webp){ .glightbox width="4062" height="2304" style="width: 240px; height: auto;" } | **Toggle Removal**<br/>Select **AVIF** or **PNG**, then enable **Remove Background** to process cutouts locally. |
 
 ### AI Demo
 
@@ -69,9 +69,9 @@ If you need to meet a strict file size limit (e.g., for web uploads), ImgCompres
 
 | Step | Screenshot | Description |
 |-----:|------------|-------------|
-| **1** | [![ImgCompress Web UI Format Selection dropdown highlighting JPEG and AVIF options](images/web-ui-workflow/web-ui-select-format.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-select-format.webp){ aria-label="View screenshot of Format Selection dropdown" } | **Choose Format**<br/>Pick **JPEG** or **AVIF** so the size calculator knows which codec to target. |
-| **2** | [![ImgCompress Web UI Add Files view with images listed in the processing queue](images/web-ui-workflow/web-ui-add-files.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-add-files.webp){ aria-label="View screenshot of Add Files interface" } | **Add Files**<br/>Drag your images into the queue; they stay staged until you start converting. |
-| **3** | [![ImgCompress Web UI Max File Size settings with target MB slider for quality auto-tuning](images/web-ui-workflow/web-ui-set-max-size.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" }](images/web-ui-workflow/web-ui-set-max-size.webp){ aria-label="View screenshot of Max File Size settings" } | **Set Max Size & Convert**<br/>Open **Set by File Size**, choose your MB limit (e.g., 1 MB), then start conversion to auto-tune quality to that cap. |
+| **1** | ![ImgCompress Web UI Format Selection dropdown highlighting JPEG and AVIF options](images/web-ui-workflow/web-ui-select-format.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" } | **Choose Format**<br/>Pick **JPEG** or **AVIF** so the size calculator knows which codec to target. |
+| **2** | ![ImgCompress Web UI Add Files view with images listed in the processing queue](images/web-ui-workflow/web-ui-add-files.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" } | **Add Files**<br/>Drag your images into the queue; they stay staged until you start converting. |
+| **3** | ![ImgCompress Web UI Max File Size settings with target MB slider for quality auto-tuning](images/web-ui-workflow/web-ui-set-max-size.webp){ .glightbox width="2630" height="2244" style="width: 240px; height: auto;" } | **Set Max Size & Convert**<br/>Open **Set by File Size**, choose your MB limit (e.g., 1 MB), then start conversion to auto-tune quality to that cap. |
 
 ## High-Security & Offline Usage
 
@@ -94,7 +94,7 @@ The interface provides clear visual cues regarding your current network environm
 
 | Restricted / No Internet | Online / Internet Available |
 | :--- | :--- |
-| [![ImgCompress Web UI connectivity card showing a restricted or offline network status](images/web-ui-workflow/web-ui-status-offline.webp){ width="646" height="800" }](images/web-ui-workflow/web-ui-status-offline.webp){ aria-label="View screenshot of Offline status" } | [![ImgCompress Web UI connectivity card showing an active internet connection](images/web-ui-workflow/web-ui-status-online.webp){ width="644" height="836" }](images/web-ui-workflow/web-ui-status-online.webp){ aria-label="View screenshot of Online status" } |
+| ![ImgCompress Web UI connectivity card showing a restricted or offline network status](images/web-ui-workflow/web-ui-status-offline.webp){ width="646" height="800" } | ![ImgCompress Web UI connectivity card showing an active internet connection](images/web-ui-workflow/web-ui-status-online.webp){ width="644" height="836" } |
 
 ## Network & Connectivity
 
@@ -112,11 +112,11 @@ When you click the button, the tool performs a basic reachability test:
 ### How to Access the Connection Status
 
 1.  Navigate to the **Storage Management** section:
-    [![ImgCompress Web UI Storage Management panel highlighting system and connectivity diagnostic tools](images/web-ui-workflow/web-ui-storage-management.webp){ width="2630" height="2244" }](images/web-ui-workflow/web-ui-storage-management.webp){ aria-label="View screenshot of Storage Management panel" }
+    ![ImgCompress Web UI Storage Management panel highlighting system and connectivity diagnostic tools](images/web-ui-workflow/web-ui-storage-management.webp){ width="2630" height="2244" }
 2.  Click the **System & Connectivity Status** button:
-    [![ImgCompress Web UI System and Connectivity Status action button in the management menu](images/web-ui-workflow/web-ui-system-status-button.webp){ width="2630" height="2244" }](images/web-ui-workflow/web-ui-system-status-button.webp){ aria-label="View screenshot of Connectivity Status button" }
+    ![ImgCompress Web UI System and Connectivity Status action button in the management menu](images/web-ui-workflow/web-ui-system-status-button.webp){ width="2630" height="2244" }
 3.  Review your **System and Network Status** overview:
-    [![ImgCompress Web UI System Status modal providing a detailed summary of health and network checks](images/web-ui-workflow/web-ui-system-status-view.webp){ width="2630" height="2244" }](images/web-ui-workflow/web-ui-system-status-view.webp){ aria-label="View screenshot of System Status modal" }
+    ![ImgCompress Web UI System Status modal providing a detailed summary of health and network checks](images/web-ui-workflow/web-ui-system-status-view.webp){ width="2630" height="2244" }
 
 !!! tip "Secure Configuration"
     For detailed instructions on how to configure your environment for total network isolation, see the **[Hardened & Offline Deployment Guide](installation.md#hardened-offline-deployment-high-security)**.
