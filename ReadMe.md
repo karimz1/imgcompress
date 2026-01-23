@@ -1,76 +1,48 @@
-# ImgCompress: Privacy-First Image Optimizer
-## Local Image Compression, Format Conversion & AI Background Removal (Docker)
+# ImgCompress: The Private, Self-Hosted Image Converter
+## 100% Local Compression, AI Background Removal & Format Conversion (Docker)
 
 <div align="center"> 
-<img src="./images/logo_transparent.png" alt="imgcompress_mascot" width="400" height="auto" />
+<img src="./docs/images/imgcompress-og-image.webp" alt="ImgCompress branding banner showing logo and key feature summary" width="100%" height="auto" />
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/karimz1/imgcompress?sort=semver)](https://hub.docker.com/r/karimz1/imgcompress/tags)
-[![Release Date](https://img.shields.io/github/release-date/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/releases)
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-imgcompress.karimzouine.com-blue)](https://imgcompress.karimzouine.com/)
-[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
 
-**[Visit Official Documentation &rarr;](https://imgcompress.karimzouine.com/)**
+**ImgCompress** is a high-performance, private alternative to cloud converters. Process thousands of images on your own hardware with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
+
+### Instant, Powerful Web UI
+*Full control at your fingertips. No setup, no tracking, 100% offline.*
+<img src="./docs/images/web-ui-workflow/web-ui-upload-configure.webp" alt="ImgCompress Web UI Dashboard showing image upload and format configuration interface" width="100%" height="auto" />
 
 </div>
 
-**ImgCompress** is a high-performance, **self-hosted Docker image optimization tool** featuring fully local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
+## Key Advantages
 
----
+*   **Privacy-First Architecture**: Designed for internal corporate networks and air-gapped environments. 
+*   **Local AI Background Removal**: Professional-grade cutouts powered by local **u2net** models—zero data leaves your server.
+*   **Universal Format Support**: Convert between 70+ formats including **AVIF, WebP, HEIC, PSD, and PDF**.
+*   **Professional PDF Generation**: Effortlessly convert images into native, structured PDFs with intelligent A4 pagination, "Smart Splitting" for long captures, and customizable layout controls.
+*   **High Performance**: Multi-core batch processing for lightning-fast optimization.
 
-## Documentation & Guides
-
-For detailed configuration, advanced features, and deployment options, please refer to the official documentation portal:
-
-*   **[Installation Guide](https://imgcompress.karimzouine.com/installation/)** - Docker, Synology NAS, and Hardened/Offline setups.
-*   **[Web UI Usage](https://imgcompress.karimzouine.com/web-ui/)** - Drag & Drop, Bulk Processing, and AI controls.
-*   **[CLI & Automation](https://imgcompress.karimzouine.com/cli/)** - Headless batch processing and CI/CD integration.
-
----
-
-## Features at a Glance
-
-*   **100% Local Processing:** All AI and compression tasks run on your hardware.
-*   **Privacy-First:** Air-gapped ready; no tracking, no cloud proxies, no external API calls.
-*   **AI Background Removal:** Professional-grade background removal powered by local ONNX models.
-*   **Universal Support:** Convert between 70+ formats including **AVIF, WebP, HEIC, PSD, and PDF**.
-*   **Enterprise Ready:** Designed for compliance-heavy environments (GDPR, HIPAA, SOC2).
-
+## AI Demo: Professional Background Removal
 | Original Image | Background Removed (Local AI) |
-|----------------|-------------------------------|
-| <img src="images/image-remover-examples/landscape-with-sunset-yixing.jpg" width="400" alt="Original image before background removal"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing.png" width="400" alt="Image after AI background removal"/> |
+| :--- | :--- |
+| <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="400" alt="Original Sunset Landscape"/> | <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="400" alt="Landscape with Background Removed"/> |
 
-**Picture by** [**Evening_tao**](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) on Freepik — used as a demonstration asset for AI background removal examples.
+## Quick Start
 
----
+1.  **Deploy via Docker**:
+    ```bash
+    docker run -d -p 3001:5000 --name imgcompress karimz1/imgcompress:latest
+    ```
+2.  **Access the Dashboard**: Open `http://localhost:3001` in your browser.
+3.  **Read the Guides**: [Full Installation & Configuration &rarr;](https://imgcompress.karimzouine.com/installation/)
 
-## Hall of Fame
+## Support & Community
 
-[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1)
-[![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972)
+*   **[Sponsorship & Honor Roll &rarr;](https://imgcompress.karimzouine.com/hall-of-fame/)**: Support independent development.
+*   **[Enterprise Solutions &rarr;](https://imgcompress.karimzouine.com/support/)**: Custom builds and expert isolation setup.
+*   **[Contributing &rarr;](https://imgcompress.karimzouine.com/contributing/)**: Join the open-source community.
 
-Supporters who help keep this project privacy-focused and free for everyone.
-
-| Date | Supporter | Project Impact |
-| :--- | :--- | :--- |
-| Jan 2026 | *Anonymous* | One-time Donation (PayPal) |
-| Oct 2025 | [@Fayyaadh](https://github.com/Fayyaadh) | One-time Donation (PayPal) |
-
-*To be featured here, please include a note with your GitHub profile link or website during support.*
-
----
-
-## License
-
-Distributed under the **GPL-3.0 License**. See [LICENSE](LICENSE) for more information.
-
----
-
-## Credits
-
-**Additional library credits are listed at:**  
-https://imgcompress.karimzouine.com/credits/
-
-
+**License**: [GPL-3.0](LICENSE) | **Author**: [Karim Zouine](https://www.karimzouine.com) | **Image & Library Credits**: [View All Credits](https://imgcompress.karimzouine.com/credits/)

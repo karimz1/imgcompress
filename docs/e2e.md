@@ -23,7 +23,7 @@ cd frontend
 
 I use that on my Mac **makes debugging the Playwright tests** cleaner in an easy ui suite.
 
-[<img src="/images/e2e/playwright_ui.avif" width="1920" height="511" style="width: 100%; height: auto;" alt="e2e example on mac os">](/images/e2e/playwright_ui.avif)
+[<img src="/images/e2e/playwright_ui.avif" width="1200" height="319" loading="lazy" alt="Playwright E2E interactive UI mode dashboard showing automated browser test execution on macOS">](/images/e2e/playwright_ui.avif)
 
 ```bash
 pnpm exec playwright test --ui

@@ -15,8 +15,6 @@ By becoming a sponsor, you are directly investing in the project's longevity and
 
 ---
 
----
-
 ## Why Sponsor?
 Your contribution allows me to stay focused on what matters most:
 
@@ -27,6 +25,12 @@ Your contribution allows me to stay focused on what matters most:
 * **Infrastructure:** Covering the costs of CI/CD, testing environments, and documentation.
 
 ---
+
+## Community Recognition
+
+A [**Hall of Fame**](hall-of-fame.md) is maintained to honor the individuals and organizations who support the independent development of ImgCompress. 
+
+[View the Hall of Fame &rarr;](hall-of-fame.md)
 
 ---
 

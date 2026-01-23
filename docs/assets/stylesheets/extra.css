@@ -7,7 +7,15 @@ a[href^="http"]::after {
     margin-left: 2px;
 }
 
+.md-logo img {
+    height: 2.5rem !important;
+    width: auto !important;
+}
 
+/* Let the header grow to fit */
+.md-header__inner {
+    height: auto !important;
+}
 
 /* GLightbox Dark Mode Overrides */
 body[data-md-color-scheme="slate"] .glightbox-container {

@@ -64,7 +64,7 @@ theme:
         icon: material/brightness-4
         name: Switch to system preference
   favicon: images/favicon.ico
-  logo: images/logo.png
+  logo: images/logo-mini-2.webp
   icon:
     repo: fontawesome/brands/github
     tag:
@@ -177,4 +177,5 @@ nav:
 
   - Help & Support:
       - Sponsorship & Donations: sponsorship.md
+      - Hall of Fame: hall-of-fame.md
       - Commercial Support: support.md

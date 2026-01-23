@@ -16,8 +16,6 @@ ImgCompress is a free, open-source project licensed under **GPL-3.0**. The core 
 
 ---
 
----
-
 ## Service Offerings
 *Tailored solutions for complex requirements.*
 
@@ -26,8 +24,6 @@ ImgCompress is a free, open-source project licensed under **GPL-3.0**. The core 
 | **Custom Workflows** | Bespoke features and internal API integrations. | Unique production pipelines. |
 | **Specialized Setup** | Secure, air-gapped, or hardened deployments. | Security-conscious enterprises. |
 | **Performance Tuning** | Backend optimization for high-volume needs. | Scaled infrastructure. |
-
----
 
 ---
 
