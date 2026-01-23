@@ -154,5 +154,3 @@ This configuration is designed for organizations requiring extreme data isolatio
     ```yaml
     --8<-- "docker-compose-no-internet.yml"
     ```
-
-    For production, harden the reverse proxy, tighten network policies, and add configuration knobs that fit your stack. If you need a custom-hardened enterprise deployment, see **[Custom Solutions & Expert Support](support.md)**.
