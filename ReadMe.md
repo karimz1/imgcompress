@@ -42,7 +42,6 @@
 ## Support & Community
 
 *   **[Sponsorship & Honor Roll &rarr;](https://imgcompress.karimzouine.com/hall-of-fame/)**: Support independent development.
-*   **[Enterprise Solutions &rarr;](https://imgcompress.karimzouine.com/support/)**: Custom builds and expert isolation setup.
 *   **[Contributing &rarr;](https://imgcompress.karimzouine.com/contributing/)**: Join the open-source community.
 
 **License**: [GPL-3.0](LICENSE) | **Author**: [Karim Zouine](https://www.karimzouine.com) | **Image & Library Credits**: [View All Credits](https://imgcompress.karimzouine.com/credits/)
