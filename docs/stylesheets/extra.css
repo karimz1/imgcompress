@@ -2,10 +2,16 @@
   color: rgb(96, 239, 168);
 }
 
-.github_lin_footer{
+.github_lin_footer {
   color: rgb(96, 239, 168) !important;
 }
 
-.github_lin_footer:hover{
+.github_lin_footer:hover {
   color: rgb(45, 172, 113) !important;
+}
+
+/* Core Web Vitals: Prevent layout shift from lazy-loaded images */
+article img {
+  height: auto;
+  max-width: 100%;
 }

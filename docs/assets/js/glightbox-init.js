@@ -1,29 +1,30 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const images = document.querySelectorAll('article img');
+// GLightbox initialization - optimized for performance
+(function () {
+    'use strict';
 
-    images.forEach(img => {
-        // 1. Remove any glightbox class from the image itself 
-        // to prevent GLightbox from finding it via its default selectors
-        img.classList.remove('glightbox');
+    var imagePattern = /\.(jpe?g|png|gif|webp|svg|bmp|avif)$/i;
 
-        let parentLink = img.closest('a');
-        const caption = img.getAttribute('alt');
+    function init() {
+        var images = document.querySelectorAll('article img');
+        var i, img, parentLink, caption, link;
 
-        if (!parentLink) {
-            // 2. Wrap in a special link if not already linked
-            const link = document.createElement('a');
-            link.href = img.src;
-            link.className = 'custom-glightbox';
-            if (caption) {
-                link.setAttribute('data-title', caption);
-                // Important: clear alt to prevent GLightbox from reading it again
-                img.removeAttribute('alt');
-            }
-            img.parentNode.insertBefore(link, img);
-            link.appendChild(img);
-        } else {
-            // 3. Configure the existing link
-            if (parentLink.href.match(/\.(jupyter|jpg|jpeg|png|gif|webp|svg|bmp|avif)$/i)) {
+        for (i = 0; i < images.length; i++) {
+            img = images[i];
+            img.classList.remove('glightbox');
+            parentLink = img.closest('a');
+            caption = img.getAttribute('alt');
+
+            if (!parentLink) {
+                link = document.createElement('a');
+                link.href = img.src;
+                link.className = 'custom-glightbox';
+                if (caption) {
+                    link.setAttribute('data-title', caption);
+                    img.removeAttribute('alt');
+                }
+                img.parentNode.insertBefore(link, img);
+                link.appendChild(img);
+            } else if (imagePattern.test(parentLink.href)) {
                 parentLink.classList.add('custom-glightbox');
                 if (caption && !parentLink.getAttribute('data-title')) {
                     parentLink.setAttribute('data-title', caption);
@@ -31,17 +32,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
         }
-    });
 
-    // Initialize with a custom selector to avoid conflicts with default behaviors
-    const lightbox = GLightbox({
-        selector: '.custom-glightbox',
-        touchNavigation: true,
-        loop: false,
-        zoomable: true,
-        draggable: true,
-        openEffect: 'zoom',
-        closeEffect: 'zoom',
-    });
-});
+        GLightbox({
+            selector: '.custom-glightbox',
+            touchNavigation: true,
+            loop: false,
+            zoomable: true,
+            draggable: true,
+            openEffect: 'zoom',
+            closeEffect: 'zoom'
+        });
+    }
 
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();

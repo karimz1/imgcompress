@@ -1,4 +1,11 @@
+---
+title: "Playwright E2E Testing: Automated Browser Testing Guide"
+description: "Run and debug Playwright end-to-end tests for ImgCompress. Includes UI mode, debugging tips, and CI/CD validation commands."
+---
+
 # Playwright End-to-End Testing Guide
+
+## Overview
 
 This document outlines the commands for running and debugging E2E tests within the frontend workspace. All commands should be executed from the `frontend/` directory.
 

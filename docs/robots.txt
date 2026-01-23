@@ -1,4 +1,14 @@
+# ImgCompress Documentation - Robots Directives
+# https://imgcompress.karimzouine.com
+
 User-agent: *
 Allow: /
+Disallow: /assets/
+Disallow: /stylesheets/
+Disallow: /javascripts/
 
+# Crawl rate limiting (requests per second)
+Crawl-delay: 1
+
+# Sitemaps
 Sitemap: https://imgcompress.karimzouine.com/sitemap.xml

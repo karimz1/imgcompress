@@ -3,6 +3,7 @@
 {% block extrahead %}
 <!-- SEO & Social Meta Tags -->
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="ImgCompress Documentation">
 <meta property="og:url" content="{{ page.canonical_url }}">
 <meta property="og:title" content="{{ page.title | default(config.site_name) }}">
 <meta property="og:description" content="{{ page.meta.description | default(config.site_description) }}">
@@ -38,6 +39,16 @@
         "operatingSystem": "Docker, Windows, Linux, MacOS",
         "description": "{{ config.site_description | replace('\n', ' ') }}",
         "softwareVersion": "latest",
+        "screenshot": "{{ config.site_url }}images/web-ui-workflow/web-ui-upload-configure.webp",
+        "featureList": [
+          "Image compression and optimization",
+          "AI-powered background removal",
+          "HEIC/HEIF to JPG conversion",
+          "PDF to image extraction",
+          "Batch processing with multi-core support",
+          "CLI automation for CI/CD pipelines",
+          "70+ format support including WebP, AVIF, PSD, EPS, TIFF"
+        ],
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -67,6 +78,42 @@
         "publisher": {
           "@id": "https://karimzouine.com/#person"
         }
+      },
+      {
+        "@type": "TechArticle",
+        "@id": "{{ page.canonical_url }}#article",
+        "headline": "{{ page.title | default(config.site_name) }}",
+        "description": "{{ page.meta.description | default(config.site_description) }}",
+        "url": "{{ page.canonical_url }}",
+        "author": {
+          "@id": "https://karimzouine.com/#person"
+        },
+        "publisher": {
+          "@id": "https://karimzouine.com/#person"
+        },
+        "mainEntityOfPage": "{{ page.canonical_url }}",
+        "about": {
+          "@id": "{{ config.site_url }}#software"
+        },
+        "proficiencyLevel": "Beginner"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "{{ page.canonical_url }}#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ config.site_url }}"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "{{ page.title | default('Documentation') }}",
+            "item": "{{ page.canonical_url }}"
+          }
+        ]
       }
     ]
   }
