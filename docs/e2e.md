@@ -1,4 +1,5 @@
 ---
+icon: lucide/test-tube-2
 title: "Playwright E2E Testing: Automated Browser Testing Guide"
 description: "Run and debug Playwright end-to-end tests for ImgCompress. Includes UI mode, debugging tips, and CI/CD validation commands."
 tags:

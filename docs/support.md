@@ -1,4 +1,5 @@
 ---
+icon: lucide/building-2
 title: "Enterprise & Custom Solutions"
 description: Professional support and custom development directly from the author.
 tags:

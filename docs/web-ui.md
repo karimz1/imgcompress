@@ -1,4 +1,5 @@
 ---
+icon: lucide/monitor
 title: "Web UI: Local Image Optimizer"
 description: A simple, private Web UI for compressing images and removing backgrounds. Works 100% offline on your own hardware.
 tags:

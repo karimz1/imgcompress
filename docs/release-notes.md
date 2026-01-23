@@ -1,4 +1,5 @@
 ---
+icon: lucide/history
 title: "Release Notes & Updates | ImgCompress"
 description: Transparent version history and update process for ImgCompress.
 tags:

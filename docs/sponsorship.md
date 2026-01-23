@@ -1,4 +1,5 @@
 ---
+icon: lucide/heart
 title: "Support the Mission"
 description: Support the independent development of ImgCompress.
 tags:

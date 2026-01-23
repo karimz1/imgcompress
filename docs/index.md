@@ -1,4 +1,5 @@
 ---
+icon: lucide/home
 title: "ImgCompress: Open Source & Privacy-Focused Image Compression"
 description: "ImgCompress: Simple, Private Docker Image Compression & AI Background Removal. The 100% offline, self-hosted Docker alternative to TinyPNG."
 tags:
