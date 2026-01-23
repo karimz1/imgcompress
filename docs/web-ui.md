@@ -102,8 +102,11 @@ The Web UI includes a manual **"Check Internet Connection"** button. I've design
 
 ### How it works
 When you click the button, the tool performs a basic reachability test:
+
 1. **Target:** It attempts to open a socket connection to `1.1.1.1:53` (Cloudflare DNS).
+
 2. **Action:** It simply checks if the connection can be established.
+
 3. **Privacy:** No DNS queries are sent, and no data is transmitted. This is a pure "heartbeat" check to verify outbound access from within the Docker container.
 
 !!! tip "Manual Reachability Only"
