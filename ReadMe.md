@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-imgcompress.karimzouine.com-blue)](https://imgcompress.karimzouine.com/)
 
-**ImgCompress** is a high-performance, private alternative to cloud converters. Process thousands of images on your own hardware with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
+**ImgCompress** is a private and easy way to shrink thousands of images, remove backgrounds with AI, and convert files like PSD or HEIC. Everything runs 100% on your own hardware with **zero cloud uploads** and no tracking.
 
 ### Instant, Powerful Web UI
 *Full control at your fingertips. No setup, no tracking, 100% offline.*

@@ -1,7 +1,7 @@
 ---
 icon: lucide/home
 title: "ImgCompress: High-Performance & Private Image Optimization"
-description: "ImgCompress: Simple, Private Docker Image Compression & AI Background Removal. The 100% offline, self-hosted Docker alternative to TinyPNG."
+description: "ImgCompress: Easily shrink images, remove backgrounds with AI, and convert PSD/HEIC files. 100% offline and private."
 tags:
   - Introduction
   - Overview
@@ -13,7 +13,7 @@ tags:
 [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
 [![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
 
-[<img src="images/imgcompress-og-image.webp" width="1200" height="630" fetchpriority="high" alt="ImgCompress branding banner: The self-hosted, private alternative to TinyPNG and Squoosh">](images/imgcompress-og-image.webp){ aria-label="View ImgCompress branding banner" }
+[<img src="images/imgcompress-og-image.webp" width="1200" height="630" fetchpriority="high" alt="ImgCompress: The private and easy way to shrink images and remove backgrounds offline">](images/imgcompress-og-image.webp){ aria-label="View ImgCompress branding banner" }
 
 **ImgCompress** is a high-performance, **self-hosted Docker image optimization tool** featuring fully local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
 
@@ -27,7 +27,7 @@ Experience professional image processing on your own hardware. No account requir
 
 ## Core Features
 
-*   **Privacy by Design**: All processing happens exclusively on your CPU/GPU. No images ever leave your network.
+*   **Privacy by Design**: All processing happens exclusively on your machine. No images ever leave your network.
 *   **Local AI Removal**: 100% offline background removal powered by **u2net**.
 *   **Universal Support**: Convert between 70+ formats including **AVIF, WebP, HEIC, PSD, and PDF**.
 *   **Intelligent PDF Export**: Transform images and screenshots into professionally formatted A4 PDFs. Includes "Smart Splitting" for long-strip captures and precise layout customization.
@@ -41,6 +41,8 @@ Experience professional image processing on your own hardware. No account requir
 
 ## Use Cases
 
-- **Web Developers**: Optimize website assets to improve **Google PageSpeed** scores.
-- **Photographers**: Batch compress high-res galleries without visible quality loss.
-- **Enterprises**: Securely process sensitive documents and family photos with zero cloud exposure.
+- **Home Users**: Keep your private photos safe and save disk space by shrinking them offline.
+- **Creative Fun**: Make funny stickers and professional cutouts by removing backgrounds from your photos.
+- **Web Developers**: Make your websites load instantly by turning heavy images into tiny, high-quality AVIF files.
+- **Photographers**: Easily shrink large photo galleries without losing any quality.
+- **Enterprises**: Securely process sensitive data and documents with zero cloud exposure.

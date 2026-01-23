@@ -2,9 +2,9 @@
 site_name: ImgCompress Documentation
 site_url: https://imgcompress.karimzouine.com/
 site_description: >-
-  ImgCompress is a simple, private Docker image optimizer for your NAS, home server, or PC. 
-  100% offline background removal and compression with zero tracking. 
-  The self-hosted Docker alternative to TinyPNG and Squoosh.
+  ImgCompress is a simple, private way to shrink images and remove backgrounds. 
+  Easily convert PSD, HEIC, and 70+ formats into AVIF/WebP or professional PDFs. 
+  100% offline, on your own hardware, with zero tracking.
 site_author: Karim Zouine
 
 # Repository
