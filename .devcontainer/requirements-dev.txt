@@ -5,7 +5,7 @@ iniconfig==2.3.0
 packaging==26.0
 pillow==12.1.0
 pluggy==1.6.0
-pycparser==2.23
+pycparser==3.0
 pyheif==0.8.0
 pytest==9.0.2
 pytest-cov==7.0.0
