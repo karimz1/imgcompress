@@ -20,4 +20,4 @@ psd-tools==1.12.1
 rembg==2.0.72
 onnxruntime==1.23.2
 granian==2.6.1
-fpdf2==2.7.9
+fpdf2==2.8.5
