@@ -18,7 +18,7 @@ This document tracks all notable changes I've made to **ImgCompress**, including
 To ensure you have the latest features and security patches, I recommend keeping your installation up to date. 
 
 * **Current History:** Review the [Change Log](#change-log) below.
-* **How to Update:** Follow my [**Update Guide**](installation.md#maintenance-updates) to pull the latest Docker image.
+* **How to Update:** Follow the [**Update Guide**](installation.md#updates) to pull the latest Docker image.
 
 ---
 

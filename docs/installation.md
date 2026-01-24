@@ -51,7 +51,7 @@ Updating is quick and easy.
        docker compose up -d
        ```
 
-=== ":material-console: Using a single command (docker run)"
+=== ":material-console: Docker Run"
     1. **Get the new version**
        ```bash
        docker pull karimz1/imgcompress:latest
