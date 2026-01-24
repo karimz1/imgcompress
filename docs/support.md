@@ -1,36 +1,22 @@
 ---
-icon: lucide/building-2
-title: "Enterprise & Custom Solutions"
-description: Professional support and custom development directly from the author.
+icon: lucide/mail
+title: "Contact & Support"
+description: Get in touch for custom builds or share your ideas on GitHub.
 tags:
   - Support
-  - Enterprise
+  - Contact
 ---
 
-# Custom Solutions & Expert Support
+# Contact & Support
 
-ImgCompress is a free, open-source project licensed under **GPL-3.0**. The core tool will always remain free for the community.
+For business requests, special projects, or custom versions of **ImgCompress**, you can reach me directly on my website.
 
-!!! info "Directly from the Author"
-    **Save your team the development time.** Get an enterprise-grade version of ImgCompress built for your specific infrastructure, handled personally by the creator of the project.
-
----
-
-## Service Offerings
-*Tailored solutions for complex requirements.*
-
-| Service | Focus | Ideal For |
-| :--- | :--- | :--- |
-| **Custom Workflows** | Bespoke features and internal API integrations. | Unique production pipelines. |
-| **Specialized Setup** | Secure, air-gapped, or hardened deployments. | Security-conscious enterprises. |
-| **Performance Tuning** | Backend optimization for high-volume needs. | Scaled infrastructure. |
+[Get in touch :octicons-arrow-right-24:](https://www.karimzouine.com/#contact){ .md-button .md-button--primary }
 
 ---
 
-## Let's Work Together
-If you have a project in mind, need a specialized build, or require a formal consulting engagement, feel free to reach out.
+## Feature Requests
 
-[:octicons-mail-24: Get in Touch](https://www.karimzouine.com/#contact){ .md-button .md-button--primary }
+I love your ideas! If you have a feature request or found a bug, please share it publicly on GitHub. This helps others join the conversation.
 
----
-*For general bug reports or feature requests, please use the [GitHub Issues](https://github.com/karimz1/imgcompress/issues) page.*
+[Share on GitHub :octicons-mark-github-16:](https://github.com/karimz1/imgcompress/issues){ .md-button }

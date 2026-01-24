@@ -1,42 +1,27 @@
 ---
 icon: lucide/heart
-title: "Support the Mission"
-description: Support the independent development of ImgCompress.
+title: "Donate"
+description: Help me keep ImgCompress independent and better for everyone.
 tags:
   - Sponsorship
   - Donations
 ---
 
-# Support ImgCompress
+# Help ImgCompress grow
 
-ImgCompress is built and maintained with a simple goal: providing a high-quality, privacy-focused tool for everyone. While the software is free, **ongoing maintenance, security auditing, and feature development take significant time and resources.**
+Your support helps me focus on making the tool better and more secure for everyone.
 
-By becoming a sponsor, you are directly investing in the project's longevity and helping keep it independent.
+[![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1){ aria-label="Sponsor ImgCompress on GitHub" }
+[![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972){ aria-label="Donate to ImgCompress via PayPal" }
 
----
-
-## Why Sponsor?
-Your contribution allows me to stay focused on what matters most:
-
-* **Maintenance:** Keeping dependencies up to date and the codebase secure.
-
-* **Innovation:** Fast-tracking the roadmap and implementing community-requested features.
-
-* **Infrastructure:** Covering the costs of CI/CD, testing environments, and documentation.
+*If you donate via PayPal, please include a note with a link to your GitHub or website so I can add you to the [Hall of Fame](hall-of-fame.md).*
 
 ---
 
-## Community Recognition
+## Why support open source
+I am a big supporter of tools that respect your privacy. By keeping **imgcompress** free and open source, I hope to help others find simple ways to handle their photos without using the cloud.
 
-A Hall of Fame is maintained to honor the individuals and organizations who support the independent development of ImgCompress. 
+Your help allows me to focus on:
 
-[View the Hall of Fame &rarr;](hall-of-fame.md)
-
----
-
-## Become a Partner
-Whether you are an individual user or a company that relies on ImgCompress, your support makes a real difference.
-
-[**Sponsor on GitHub** :octicons-heart-fill-16:](https://github.com/sponsors/karimz1){ .md-button .md-button--primary }
-
-> **Note for Businesses:** If you need a formal invoice for your records or want to discuss a corporate sponsorship tier, please [get in touch](https://www.karimzouine.com/#contact).
+- **New Features**: Building things requested by the community.
+- **Infrastructure**: Covering the costs of building and testing imgcompress.
