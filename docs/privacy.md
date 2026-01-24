@@ -42,11 +42,11 @@ I've added a **Heartbeat Check** button so you can quickly see if the app can to
 3. **Comparison**: If GitHub has a newer version, an update banner appears in your app.
 
 ### What it looks like
-If there is an update, you will see a small message at the top of your screen like this:
+If there is an update, you will see a small message at the bottom of your screen like this:
 
 [![Update notification banner](images/web-ui-workflow/web-ui-update-available-info.webp){ .glightbox width="520" height="auto" }](images/web-ui-workflow/web-ui-update-available-info.webp){ aria-label="View screenshot of update notification banner" }
 
 - **Privacy First**: This check is anonymous and only reads version numbers (like v0.6.0). No personal files or info are ever shared.
 
-!!! tip "Transparency"
+!!! tip "100% Transparency"
     You can verify every code change I make directly on the [GitHub Repository](https://github.com/karimz1/imgcompress).
