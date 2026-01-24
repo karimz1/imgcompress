@@ -1,48 +1,62 @@
 ---
 icon: lucide/home
-title: "ImgCompress: High-Performance & Private Image Optimization"
-description: "ImgCompress: Easily shrink images, remove backgrounds with AI, and convert PSD/HEIC files. 100% offline and private."
+title: "ImgCompress: Simple & Private Image Optimizer"
+description: "Shrink images, remove backgrounds with AI, and convert files like HEIC/PSD locally. 100% private."
 tags:
   - Introduction
   - Overview
 ---
 
-# The Private, Self-Hosted Image Converter
-## 100% Local Compression, AI Background Removal & Format Conversion (Docker)
-
-[![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
-[![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
+# ImgCompress: The Simple Docker Image for All Your Photos
 
 [<img src="images/imgcompress-og-image.webp" width="1200" height="630" fetchpriority="high" alt="ImgCompress: The private and easy way to shrink images and remove backgrounds offline">](images/imgcompress-og-image.webp){ aria-label="View ImgCompress branding banner" }
 
-**ImgCompress** is a high-performance, **self-hosted Docker image optimization tool** featuring fully local AI-powered background removal. Process unlimited images offline with **zero cloud uploads**, no subscriptions, and complete data sovereignty.
+I started developing **imgcompress** because I was tired of the "software loop." Every time I wanted to do something simple, I realized I needed a new app:
 
-## See it in Action
-### Instant, Private Web UI
-Experience professional image processing on your own hardware. No account required, no tracking, and 100% offline.
+- **PSD files**: Needed specialized software just to convert them to an image file.
+- **HEIC files**: Needed another converter for regular photo files.
+- **Image to PDF**: Needed another app just to share a screenshot for work, since a PDF is often better for emails and easy for others to print.
+- **AI Backgrounds**: I realized I needed one more app for that too.
 
-[<img src="images/web-ui-workflow/web-ui-upload-configure.webp" width="1200" height="680" alt="ImgCompress Web UI Dashboard showing image upload and format configuration interface">](images/web-ui-workflow/web-ui-upload-configure.webp){ aria-label="View larger screenshot of Web UI" }
+I thought to myself: "Why can't one tool just do it all?" Plus, uploading personal photos to random online converters never felt right to me.
 
-[Get Started with Installation :octicons-arrow-right-24:](installation.md){ .md-button .md-button--primary }
+### One Toolbox for Everything
+So I built a single toolbox that can take over **70 different formats** and fix them all in one place. Whether you need to convert PSD or HEIC files to an image, turn a screenshot into a PDF for a work email, or shrink a massive 4K photo, this tool does it automatically. 
 
-## Core Features
+I am so thankful that the community is using it! Seeing over [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=indigo&label=Docker%20Pulls)](https://hub.docker.com/r/karimz1/imgcompress) pulls makes me so happy. It helped me realize that I was not the only one with that problem!
 
-*   **Privacy by Design**: All processing happens exclusively on your machine. No images ever leave your network.
-*   **Local AI Removal**: 100% offline background removal powered by **u2net**.
-*   **Universal Support**: Convert between 70+ formats including **AVIF, WebP, HEIC, PSD, and PDF**.
-*   **Intelligent PDF Export**: Transform images and screenshots into professionally formatted A4 PDFs. Includes "Smart Splitting" for long-strip captures and precise layout customization.
-*   **Enterprise Ready**: Maintain **GDPR, HIPAA, or SOC2 compliance** by processing all media in-house.
+### Why Docker?
+I chose Docker because it keeps your computer clean. Instead of you having to install 70 different messy libraries on your system, I packed everything into one **Ready-to-go Box** that you can run anywhere. It just works. It also makes shipping new features much easier. All you need is a few simple lines and you get the newest version instantly.
 
-## AI Demo (Local AI)
-| Original Image | Background Removed |
+## Key Advantages
+
+- **Privacy First**: Designed for private networks. No images or data ever leave your server / nas / homelab.
+- **Local AI**: Use AI to remove backgrounds without any cloud brain. Everything stays on your computer.
+- **Universal Format Support**: Convert between 70+ formats including **AVIF, WebP, HEIC, PSD, and PDF**.
+- **Professional PDF Generation**: Effortlessly convert images into native, structured PDFs with intelligent A4 pagination, "Smart Splitting" for long captures, and customizable layout controls.
+- **High Performance**: Multi-core batch processing for lightning-fast optimization.
+
+## Quick Look
+Experience easy image processing on your own hardware. No account required and no tracking.
+
+[<img src="images/web-ui-workflow/web-ui-upload-configure.webp" width="1200" height="680" alt="Drag and drop your photos to make them smaller.">](images/web-ui-workflow/web-ui-upload-configure.webp){ aria-label="View larger screenshot of Web UI" }
+
+## How to use it
+
+1. **Drag & Drop** your photos into the app.
+2. **Choose a setting**: Shrink, convert, or remove backgrounds.
+3. **Download** your new images.
+
+## Want to try it?
+Just follow the simple setup guide to get your own image toolbox running in no time.
+
+[Start the Setup Guide :octicons-arrow-right-24:](installation.md){ .md-button .md-button--primary }
+
+---
+
+## AI Background Removal
+Clear the background from any photo without using any cloud tools.
+
+| Before | After |
 | :--- | :--- |
-| ![Original sunset landscape](images/image-remover-examples/landscape-with-sunset-yixing-original.avif){ width="400" height="266" loading="lazy" } | ![Landscape with background removed by AI](images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif){ width="400" height="266" loading="lazy" } |
-
-
-## Use Cases
-
-- **Home Users**: Keep your private photos safe and save disk space by shrinking them offline.
-- **Creative Fun**: Make funny stickers and professional cutouts by removing backgrounds from your photos.
-- **Web Developers**: Make your websites load instantly by turning heavy images into tiny, high-quality AVIF files.
-- **Photographers**: Easily shrink large photo galleries without losing any quality.
-- **Enterprises**: Securely process sensitive data and documents with zero cloud exposure.
+| ![A pretty sunset](images/image-remover-examples/landscape-with-sunset-yixing-original.avif){ width="400" height="266" loading="lazy" } | ![The sunset with no background](images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif){ width="400" height="266" loading="lazy" } |

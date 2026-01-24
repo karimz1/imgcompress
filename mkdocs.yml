@@ -1,10 +1,9 @@
 # Project information
-site_name: ImgCompress Documentation
+site_name: ImgCompress Docker Image
 site_url: https://imgcompress.karimzouine.com/
 site_description: >-
-  ImgCompress is a simple, private way to shrink images and remove backgrounds. 
-  Easily convert PSD, HEIC, and 70+ formats into AVIF/WebP or professional PDFs. 
-  100% offline, on your own hardware, with zero tracking.
+  ImgCompress is the easy, private way to shrink images and remove backgrounds on your own computer. 
+  The 100% offline alternative to TinyPNG for your NAS, Home Server, or PC.
 site_author: Karim Zouine
 
 # Repository
@@ -159,20 +158,25 @@ extra:
   generator: false
   tags:
     default: default
+  announce: |
+    <a href="https://hub.docker.com/r/karimz1/imgcompress" target="_blank" rel="noopener">
+      <img src="https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=indigo&label=Docker%20Pulls" alt="Docker Pulls">
+    </a>
 
 # Page tree
 nav:
   - Home: index.md
   - Getting Started:
-    - Docker Installation Guide: installation.md
-    - Web UI Usage Guide: web-ui.md
-    - CLI & Automation Reference: cli.md
+    - Setting it up: installation.md
+    - Using the App: web-ui.md
+    - Privacy & Safety: privacy.md
+    - Expert mode (CLI): cli.md
   - Development:
-    - Changelog & Release Notes: release-notes.md
-    - Contributing Guide: contributing.md
-    - Developer Documentation: developers.md
-    - Playwright E2E Testing: e2e.md
-    - Credits & Attributions: credits.md
+    - What's New: release-notes.md
+    - Helping Out: contributing.md
+    - For Developers: developers.md
+    - Tests: e2e.md
+    - Credits: credits.md
 
 
   - Help & Support:

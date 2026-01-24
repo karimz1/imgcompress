@@ -14,7 +14,7 @@ tags:
 ## Assets & Media
 
 !!! note "Image Attributions"
-    **Picture by** [**Evening_tao**](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) on Freepik — used as a demonstration asset for AI background removal examples.
+    **Picture by** [**Evening_tao**](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm) on Freepik. This is used as a demonstration asset for AI background removal examples.
 
 ## Core Processing Engine
 

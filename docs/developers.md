@@ -23,6 +23,7 @@ The easiest way to set up a consistent development environment is to use the **V
 3.  Click the prompts to "Reopen in Container" (or run the command `Dev Containers: Reopen in Container`).
 
 ### What you get
+
 *   **Pre-installed Tools**: Python 3.10+, Node.js, pnpm, and Docker CLI.
 *   **Extensions**: Python, Docker, ESLint, Playwright, and more.
 *   **Port Forwarding**: Automatically forwards port `3001` (app) and `5000` (backend).
@@ -35,6 +36,7 @@ The easiest way to set up a consistent development environment is to use the **V
 For rapid development, I provide helper scripts that run the tests directly in your local environment.
 
 ### Prerequisites
+
 *   **Python 3.10+** (with `venv` support)
 *   **Node.js & pnpm** (for frontend/E2E)
 *   **Docker** (for integration tests)

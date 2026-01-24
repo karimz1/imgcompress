@@ -29,7 +29,7 @@ Found a bug or have an idea for a new feature?
 
 Developers are welcome to fork the repository and submit Pull Requests (PRs).
 
-*   **🐛 Fix Bugs**: Look for issues labeled `bug`.
+*   **Fix Bugs**: Look for issues labeled `bug`.
 *   **New Features**: Look for issues labeled `enhancement` or `help wanted`.
 *   **Good First Issues**: If you are new to the project, check out `good first issue` tasks.
 

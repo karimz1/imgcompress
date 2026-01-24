@@ -1,15 +1,36 @@
 # ImgCompress: The Private, Self-Hosted Image Converter
-## 100% Local Compression, AI Background Removal & Format Conversion (Docker)
+## One Simple Toolbox for All Your Photos
 
 <div align="center"> 
+
 <img src="./docs/images/imgcompress-og-image.webp" alt="ImgCompress branding banner showing logo and key feature summary" width="100%" height="auto" />
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress)](https://hub.docker.com/r/karimz1/imgcompress)
-[![Docker Image Size](https://img.shields.io/docker/image-size/karimz1/imgcompress/latest)](https://hub.docker.com/r/karimz1/imgcompress)
+[![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=indigo&label=Docker%20Pulls)](https://hub.docker.com/r/karimz1/imgcompress)
 [![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-imgcompress.karimzouine.com-blue)](https://imgcompress.karimzouine.com/)
 
-**ImgCompress** is a private and easy way to shrink thousands of images, remove backgrounds with AI, and convert files like PSD or HEIC. Everything runs 100% on your own hardware with **zero cloud uploads** and no tracking.
+</div>
+
+你好，我是 **imgcompress**！
+
+I started developing this tool because I was tired of the "software loop." Every time I wanted to do something simple, I realized I needed a new app:
+
+- **PSD files**: Needed specialized software just to convert them to an image file.
+- **HEIC files**: Needed another converter for regular photo files.
+- **Image to PDF**: Needed another app just to share a screenshot for work, since a PDF is often better for emails and easy for others to print.
+- **AI Backgrounds**: I realized I needed one more app for that too.
+
+I thought to myself: "Why can't one tool just do it all?" Plus, uploading personal photos to random online converters never felt right to me.
+
+### One Toolbox for Everything
+So I built a single toolbox that can take over **70 different formats** and fix them all in one place. Whether you need to convert PSD or HEIC files to an image, turn a screenshot into a PDF for a work email, or shrink a massive 4K photo, this tool does it automatically. 
+
+I am so thankful that the community is using it! Seeing over [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=indigo&label=Docker%20Pulls)](https://hub.docker.com/r/karimz1/imgcompress) pulls makes me so happy. It helped me realize that I was not the only one with that problem!
+
+### Why Docker?
+I chose Docker because it keeps your computer clean. Instead of you having to install 70 different messy libraries on your system, I packed everything into one **Ready-to-go Box** that you can run anywhere. It just works. It also makes shipping new features much easier. All you need is a few simple lines and you get the newest version instantly.
+
+<div align="center">
 
 ### Instant, Powerful Web UI
 *Full control at your fingertips. No setup, no tracking, 100% offline.*
@@ -19,13 +40,16 @@
 
 ## Key Advantages
 
-*   **Privacy-First Architecture**: Designed for internal corporate networks and air-gapped environments. 
-*   **Local AI Background Removal**: Professional-grade cutouts powered by local **u2net** models—zero data leaves your server.
+*   **Privacy First**: Designed for private networks. No images or data ever leave your server / nas / homelab.
+*   **Local AI**: Use AI to remove backgrounds without any cloud brain. Everything stays on your computer.
 *   **Universal Format Support**: Convert between 70+ formats including **AVIF, WebP, HEIC, PSD, and PDF**.
 *   **Professional PDF Generation**: Effortlessly convert images into native, structured PDFs with intelligent A4 pagination, "Smart Splitting" for long captures, and customizable layout controls.
 *   **High Performance**: Multi-core batch processing for lightning-fast optimization.
 
 ## AI Demo: Professional Background Removal
+
+Clear the background from any photo without using any cloud tools.
+
 | Original Image | Background Removed (Local AI) |
 | :--- | :--- |
 | <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="400" alt="Original Sunset Landscape"/> | <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="400" alt="Landscape with Background Removed"/> |

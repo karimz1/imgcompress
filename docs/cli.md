@@ -1,151 +1,92 @@
 ---
 icon: lucide/terminal
-title: "CLI: Batch Image Compression & Automation"
-description: Automate your image pipelines with the ImgCompress CLI. Headless, high-performance image optimization for servers, scripts, and CI/CD.
+title: "Mastering the Commands (CLI)"
+description: "Everything you need to know about talking directly to the imgcompress tool for fast, automatic image work."
 tags:
   - Get started
   - Automation
 ---
 
-# CLI & Automation Guide
+# Talking to the Container: The CLI
 
-For advanced workflows, CI/CD pipelines, and high-volume batch processing, **imgcompress** provides a robust command-line interface (CLI).
+Sometimes you have thousands of photos and don't want to drag and drop them all day. That's where the **CLI** (Command Line Interface) comes in. 
 
-## Performance Overview
+It is like talking directly to the **imgcompress tool**.
 
-The CLI allows you to execute the image processor directly without initializing the web server. This significantly reduces memory overhead and startup time for automation scripts and scheduled tasks.
+## Why use the CLI?
 
-| **Mode** | **Purpose**                 | **Best For**                                          |
-| -------- | --------------------------- | ----------------------------------------------------- |
-| **web**  | [Web UI](web-ui.md) (Default Mode) | Interactive usage using web interface, recommended for most users. |
-| **cli**  | Single-shot Execution       | Continuous Integration (CI), cronjobs, batch scripts. |
+- **Batch work**: Fix a whole folder of images in one go.
+- **Fast**: It starts instantly because it doesn't need to show you the Web UI.
 
-------
+---
 
-## Technical Examples
+## How to talk to the Container
+If you find this a bit tricky, here is a simple way to think about it: Your computer (the host) is talking to the **imgcompress container**. By running the command, you are allowing the **imgcompress tool** inside that container to talk back to your host so it can see and fix your photos. 
 
-The CLI operates inside the same Docker container. You must map your local directories to the container to grant it access to your files.
+Since the tool lives inside a "suitcase" (the container), you need to build a **bridge** between your computer and the suitcase so it can see your files. 
 
-!!! important
-    **Volume Mapping:** The `-v "$(pwd):/container/images"` flag creates a bridge between your local folder and the container.
+We do this with the `-v` flag.
 
-    * **Host Path:** `$(pwd)` is where your files live on your computer.
-    * **Container Path:** `/container/images` is where the tool "looks" for them inside its own isolated environment.
+- **Your side**: `$(pwd)` (this means "the folder I'm in right now").
+- **Container side**: `/container/images`. This is where the container looks for things.
 
-    Because the tool is running **inside** the container, all paths you pass as arguments must start with the internal path (e.g., `/container/...`).
+---
 
+## Examples
 
+### 1. Fixing one image
+Use these steps when you want to target just one image with specific settings.
 
-### 1. Single File Processing
-
-Use these commands when you need to target a specific asset with precise settings.
-
-**Step 1: Check your local files** Identify the image you want to convert in your current folder.
+**Step 1: Check your local files**
+First, see what files are in your current folder:
 
 ```bash
 ls
 # Output:
-# anotherImage.jpg   myExampleImage.jpg
+# photo.jpg   other-image.webp
 ```
 
-**Step 2: Run the command** Replace `myExampleImage.jpg` in the path below with the filename you saw in your `ls` output.
+**Step 2: Run the command**
+Now, replace `photo.jpg` in the command below with the name of your file:
 
 ```bash
 docker run --rm \
   -v "$(pwd):/container/images" \
-  -v "$(pwd)/converted:/container/converted" \
+  -v "$(pwd)/done:/container/done" \
   karimz1/imgcompress:latest \
   cli \
-  /container/images/myExampleImage.jpg \
-  /container/converted \
+  /container/images/photo.jpg \
+  /container/done \
   --quality 80 \
-  --width 1920 \
   --format png
 ```
 
-**AI Background Removal** Perfect for product photography. This requires the output format to be `png` to support transparency.
+### 2. Fixing a whole folder
+Want to shrink every image in your folder? Point it to the folder instead of a single file:
 
 ```bash
 docker run --rm \
   -v "$(pwd):/container/images" \
-  -v "$(pwd)/converted:/container/converted" \
-  karimz1/imgcompress:latest \
-  cli \
-  /container/images/myExampleImage.jpg \
-  /container/converted \
-  --format png \
-  --remove-background
-```
-
-### 2. Batch Processing
-
-To process **every image** in your current folder at once, provide the folder path instead of a specific filename:
-
-```bash
-docker run --rm \
-  -v "$(pwd):/container/images" \
-  -v "$(pwd)/converted:/container/converted" \
+  -v "$(pwd)/done:/container/done" \
   karimz1/imgcompress:latest \
   cli \
   /container/images \
-  /container/converted \
-  --quality 85 \
-  --width 1200 \
-  --format jpeg
+  /container/done \
+  --format jpeg \
+  --quality 85
 ```
 
-!!! TIP
-    Automation Tip: Use the ``--json-output`` flag at the end to receive structured logs. This is perfect for piping output into ``jq`` to trigger follow-up actions in your scripts.
+---
 
-------
+## Switches
+These are the switches you can flip when talking to the container:
 
-## Parameter Reference
+| Switch | What does it do? |
+| :--- | :--- |
+| `--quality` | How much to shrink it (1 to 100 percent). |
+| `--width` | How wide the image should be (it keeps the height perfect). |
+| `--format` | Choose `jpeg` or `png`. |
+| `--remove-background` | Tell the AI to take the background away. |
 
-| **Flag**              | **Default** | **Description**                                         |
-| --------------------- | ----------- | ------------------------------------------------------- |
-| `--quality`           | `85`        | Compression level (1-100).                              |
-| `--width`             | *None*      | Resize to a specific width (maintains aspect ratio).    |
-| `--format`            | `jpeg`      | Output encoding: `jpeg` or `png`.                       |
-| `--remove-background` | `False`     | Enable AI background removal (Requires `--format png`). |
-| `--json-output`       | `False`     | Output logs in JSON format for easy script integration. |
-| `--debug`             | `False`     | Enable verbose developer logs for troubleshooting.      |
-
-------
-
-## Expected Output
-
-When a process finishes successfully (as shown in [Single File Processing](#1-single-file-processing)), the CLI provides a concise summary:
-
-### Plain Text Mode (Default)
-```Plaintext
-started using mode: cli
-Processing file: /container/images/myExampleImage.jpg
-Summary: 1 file(s) processed, 0 error(s).
-```
-
-### JSON Capture Mode 
-
-Append the flag: `--json-output` at the end of the command.
-```json
-{
-    "status": "complete",
-    "conversion_results": {
-        "files": [
-            {
-                "file": "myExampleImage.png",
-                "source": "/container/images/myExampleImage.jpg",
-                "destination": "/container/converted/myExampleImage.png",
-                "original_width": 3840,
-                "resized_width": 1920,
-                "is_successful": true,
-                "error": null
-            }
-        ],
-        "file_processing_summary": {
-            "total_files_count": 1,
-            "successful_files_count": 1,
-            "failed_files_count": 0
-        }
-    }
-}
-```
+!!! tip "For Code Wizards"
+    Add `--json-output` at the end to get results that other programs can read easily.
