@@ -4,6 +4,7 @@
 <!-- Performance: Resource Hinting -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <!-- Critical Path CSS: Pre-render layout to eliminate FCP/LCP bottlenecks -->
 <style>
@@ -137,4 +138,52 @@
     ]
   }
   </script>
+{% endblock %}
+
+{% block hero %}
+{% if page.meta and page.meta.hero %}
+<header class="md-hero md-hero--imgcompress">
+  <div class="md-hero__inner">
+
+    <!-- Text Content -->
+    <h1 class="imgcompress-title">
+      {{ page.meta.hero_title }}
+      {% if page.meta.hero_subtitle_gradient %}
+      <span class="gradient-text">{{ page.meta.hero_subtitle_gradient }}</span>
+      {% endif %}
+    </h1>
+
+    <p class="imgcompress-description">
+      {{ page.meta.hero_description }}
+    </p>
+
+    <!-- Floating UI Screenshot -->
+    {% if page.meta.hero_image %}
+    <div class="imgcompress-screenshot-container">
+      <div class="window-controls">
+        <div class="window-dot dot-red"></div>
+        <div class="window-dot dot-yellow"></div>
+        <div class="window-dot dot-green"></div>
+      </div>
+      <img src="{{ page.meta.hero_image | url }}" alt="App Screenshot" loading="eager">
+    </div>
+    {% endif %}
+
+    <!-- Actions Container (Below the image, text-first) -->
+    <div class="imgcompress-actions-container">
+      {% if page.meta.hero_button_text %}
+      <a href="{{ page.meta.hero_button_link | url }}" class="imgcompress-primary-btn">
+        {{ page.meta.hero_button_text }} <i class="fa-solid fa-arrow-right"></i>
+      </a>
+      {% endif %}
+
+      <div class="imgcompress-stats" aria-label="Docker pulls">
+        <i class="fa-brands fa-docker"></i>
+        <span><span class="docker-pull-count">Loading...</span> pulls</span>
+      </div>
+    </div>
+
+  </div>
+</header>
+{% endif %}
 {% endblock %}

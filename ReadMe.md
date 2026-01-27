@@ -1,19 +1,40 @@
-# ImgCompress: The Private, Self-Hosted Image Converter
-## One Simple Toolbox for All Your Photos
+# ImgCompress
 
-<div align="center"> 
+<div align="center">
+  <p><strong>ImgCompress</strong></p>
+  <p><strong>70+ image formats supported.</strong></p>
+  <p>Offline image compression, conversion, and AI background removal for Docker homelabs.</p>
+  
+  <p>
+    <a href="https://imgcompress.karimzouine.com/installation/" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;background:#0f172a;color:#ffffff;font-weight:800;text-decoration:none;border:1px solid #0f172a;">Start Setup Guide →</a>
+    <span style="display:inline-flex;align-items:center;gap:8px;margin-left:12px;color:#0f172a;font-weight:700;">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="Docker" width="22" height="22" />
+      <span><img src="https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=0db7ed&label=pulls" alt="Docker pulls badge"/></span>
+    </span>
+  </p>
 
-<img src="./docs/images/imgcompress-og-image.webp" alt="ImgCompress branding banner showing logo and key feature summary" width="100%" height="auto" />
+  <p>
+    <img src="./docs/images/web-ui-workflow/web-ui-upload-configure.webp" alt="ImgCompress Web UI" width="100%" height="auto" />
+  </p>
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=indigo&label=Docker%20Pulls)](https://hub.docker.com/r/karimz1/imgcompress)
-[![License](https://img.shields.io/github/license/karimz1/imgcompress)](https://github.com/karimz1/imgcompress/blob/main/LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-imgcompress.karimzouine.com-blue)](https://imgcompress.karimzouine.com/)
-
+  <p>
+    <a href="https://imgcompress.karimzouine.com/" aria-label="ImgCompress documentation">Documentation</a> ·
+    <a href="https://hub.docker.com/r/karimz1/imgcompress" aria-label="Docker Hub">Docker Hub</a> ·
+    <a href="https://github.com/karimz1/imgcompress/blob/main/LICENSE" aria-label="License">GPL-3.0</a>
+  </p>
 </div>
 
-你好，我是 **imgcompress**！
+## AI Background Removal (Offline and Private)
 
-I started developing this tool because I was tired of the "software loop." Every time I wanted to do something simple, I realized I needed a new app:
+Clear the background from any photo with a **local AI background remover**, no cloud, no tracking. Everything runs 100% on your hardware for privacy and speed.
+
+| Original Image | Background Removed (Local AI) |
+| :--- | :--- |
+| <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="400" alt="Original Sunset Landscape"/> | <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="400" alt="Landscape with Background Removed"/> |
+
+## Why I built ImgCompress
+
+I was tired of the "software loop." Every time I needed something simple, I had to install another app:
 
 - **PSD files**: Needed specialized software just to convert them to an image file.
 - **HEIC files**: Needed another converter for regular photo files.
@@ -25,34 +46,11 @@ I thought to myself: "Why can't one tool just do it all?" Plus, uploading person
 ### One Toolbox for Everything
 So I built a single toolbox that can take over **70 different formats** and fix them all in one place. Whether you need to convert PSD or HEIC files to an image, turn a screenshot into a PDF for a work email, or shrink a massive 4K photo, this tool does it automatically. 
 
-I am so thankful that the community is using it! Seeing over [![Docker Pulls](https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=indigo&label=Docker%20Pulls)](https://hub.docker.com/r/karimz1/imgcompress) pulls makes me so happy. It helped me realize that I was not the only one with that problem!
+The community has now pulled the image **tens of thousands of times**, which shows the pain is real.
 
 ### Why Docker?
-I chose Docker because it keeps your computer clean. Instead of you having to install 70 different messy libraries on your system, I packed everything into one **Ready-to-go Box** that you can run anywhere. It just works. It also makes shipping new features much easier. All you need is a few simple lines and you get the newest version instantly.
+I chose Docker because it keeps your computer clean. Instead of you having to install 70 different messy libraries on your system, I packed everything into one **Ready-to-go Box** that you can run anywhere called **imgcompress**. It just works.
 
-<div align="center">
-
-### Instant, Powerful Web UI
-*Full control at your fingertips. No setup, no tracking, 100% offline.*
-<img src="./docs/images/web-ui-workflow/web-ui-upload-configure.webp" alt="ImgCompress Web UI Dashboard showing image upload and format configuration interface" width="100%" height="auto" />
-
-</div>
-
-## Key Advantages
-
-*   **Privacy First**: Designed for private networks. No images or data ever leave your server / nas / homelab.
-*   **Local AI**: Use AI to remove backgrounds without any cloud brain. Everything stays on your computer.
-*   **Universal Format Support**: Convert between 70+ formats including **AVIF, WebP, HEIC, PSD, and PDF**.
-*   **Professional PDF Generation**: Effortlessly convert images into native, structured PDFs with intelligent A4 pagination, "Smart Splitting" for long captures, and customizable layout controls.
-*   **High Performance**: Multi-core batch processing for lightning-fast optimization.
-
-## AI Demo: Professional Background Removal
-
-Clear the background from any photo without using any cloud tools.
-
-| Original Image | Background Removed (Local AI) |
-| :--- | :--- |
-| <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="400" alt="Original Sunset Landscape"/> | <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="400" alt="Landscape with Background Removed"/> |
 
 ## Quick Start
 
