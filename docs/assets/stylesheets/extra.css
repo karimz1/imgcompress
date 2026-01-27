@@ -167,6 +167,62 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
     line-height: 1.6 !important;
 }
 
+/* Light theme overrides: swap to bright background and dark text */
+body[data-md-color-scheme="default"] .md-hero--imgcompress {
+    background: radial-gradient(circle at 15% 20%, rgba(79, 70, 229, 0.08), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.10), transparent 50%),
+    radial-gradient(circle at 50% 60%, rgba(99, 102, 241, 0.08), transparent 55%),
+    #f8fafc;
+    color: #0f172a;
+}
+
+body[data-md-color-scheme="default"] .md-hero--imgcompress::before {
+    background: radial-gradient(circle, rgba(var(--md-primary-fg-color--rgb), 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+    filter: blur(70px);
+}
+
+body[data-md-color-scheme="default"] .imgcompress-eyebrow {
+    background: rgba(15, 23, 42, 0.06);
+    color: #0f172a;
+}
+
+body[data-md-color-scheme="default"] .imgcompress-title {
+    color: #0f172a !important;
+}
+
+body[data-md-color-scheme="default"] .imgcompress-description {
+    color: #334155 !important;
+}
+
+body[data-md-color-scheme="default"] .imgcompress-screenshot-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.03),
+        0 18px 40px -18px rgba(15, 23, 42, 0.25),
+        0 28px 80px -32px rgba(var(--md-primary-fg-color--rgb), 0.14);
+}
+
+body[data-md-color-scheme="default"] .imgcompress-primary-btn {
+    background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.30);
+}
+
+body[data-md-color-scheme="default"] .imgcompress-primary-btn:hover {
+    box-shadow: 0 16px 38px rgba(99, 102, 241, 0.38);
+}
+
+/* Light theme stats (Docker pulls) */
+body[data-md-color-scheme="default"] .imgcompress-stats {
+    color: #0f172a;
+}
+
+body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
+    color: #0f172a;
+}
+
 /* Floating App Screenshot */
 .imgcompress-screenshot-container {
     width: 100%;
