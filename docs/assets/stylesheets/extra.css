@@ -269,6 +269,7 @@ body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
     background: white;
     color: #0f172a;
     font-weight: 800;
+    font-size: 1.05rem;
     padding: 0.9rem 2.6rem;
     border-radius: 999px;
     border: 1px solid white;
