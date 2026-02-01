@@ -39,7 +39,7 @@ hero_secondary_button_link: "https://hub.docker.com/r/karimz1/imgcompress"
       <button class="comparison-switch-btn" data-pos="0">Original</button>
       <button class="comparison-switch-btn" data-pos="100">AI Background Removed</button>
     </div>
-    <p class="comparison-hint">Slide to see how our <strong>local AI model</strong> removes backgrounds in seconds.</p>
+    <p class="comparison-hint">Slide to see how the <strong>local AI model</strong> removes backgrounds in seconds.</p>
   </div>
 
 </div>
