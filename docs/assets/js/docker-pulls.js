@@ -20,13 +20,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     if (pullCountElements.length > 0) {
-        const targetUrl = "https://hub.docker.com/v2/repositories/karimz1/imgcompress/";
+        const targetUrl = "https://dfyf412h8jisw.cloudfront.net/pulls/karimz1/imgcompress";
+        const fallbackMessage = "Could not load";
 
         fetch(targetUrl)
             .then(response => response.json())
             .then(data => {
-                const dockerData = JSON.parse(data.contents);
-                const pullCount = Number(dockerData.pull_count);
+                const pullCount = Number(data.docker_pulls);
+
+                if (!Number.isFinite(pullCount)) {
+                    throw new Error("Invalid pull count returned from proxy");
+                }
 
                 const dockerPullsFormatedString = getFormatedDockerPulls(pullCount);
 
@@ -35,8 +39,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             })
             .catch(error => {
-                console.error("Error:", error);
-                pullCountElements.forEach(el => el.textContent = "21k+"); // Fallback to a static string
+                console.error("Error fetching docker pulls:", error);
+                pullCountElements.forEach(el => el.textContent = fallbackMessage);
             });
     }
 });
