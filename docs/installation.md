@@ -14,6 +14,11 @@ To use **imgcompress**, you just need to have [Docker installed](https://docs.do
 ## Installation
 Pick the method that works best for you. I recommend using **Docker Compose** if you want to keep the app running on your server.
 
+<div class="imgcompress-stats" style="display:inline-flex; align-items:center; gap:0.55rem; font-weight:700; margin: 0.35rem 0 1rem;">
+  <i class="fa-brands fa-docker" style="color:#2496ed;"></i>
+  <span><span class="docker-pull-count">Loading...</span> pulls</span>
+</div>
+
 === ":material-lan: Docker Compose (Recommended)"
     If you want **imgcompress** to stay on your server or NAS, use a Docker Compose file.
 
