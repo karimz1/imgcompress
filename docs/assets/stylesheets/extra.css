@@ -302,7 +302,18 @@ body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
 }
 
 .imgcompress-stats i {
-    font-size: 1.15rem;
+    font-size: 1.9rem;
+    color: #2496ed;
+    line-height: 1;
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+.docker-icon-large {
+    font-size: 1.9rem !important;
+    line-height: 1;
+    align-self: flex-start;
+    margin-top: 2px;
     color: #2496ed;
 }
 
@@ -565,4 +576,12 @@ body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
 .md-button--primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(var(--md-primary-fg-color--rgb), 0.4) !important;
+}
+
+/* Docker pulls meta line */
+.docker-pulls-meta {
+    display: inline-block;
+    font-size: 0.78em;
+    opacity: 0.72;
+    letter-spacing: 0.01em;
 }

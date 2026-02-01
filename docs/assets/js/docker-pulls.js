@@ -4,18 +4,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // 1. Initial State
     pullCountElements.forEach(el => el.textContent = "Loading...");
 
-    function getFormatedDockerPulls(num) {
-        if (isNaN(num) || num === null) return "0+";
-
-        if (num >= 1_000_000) {
-            return (num / 1_000_000).toFixed(1) + "M+";
-        }
-
-        if (num >= 1_000) {
-            return (num / 1_000).toFixed(1) + "k+";
-        }
-
-        return num + "+";
+    function formatDockerPullsFull(num) {
+        // Show the full count with dot thousands separators
+        if (!Number.isFinite(num)) return "0";
+        return Math.trunc(num).toLocaleString("de-DE");
     }
 
 
@@ -32,10 +24,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     throw new Error("Invalid pull count returned from proxy");
                 }
 
-                const dockerPullsFormatedString = getFormatedDockerPulls(pullCount);
+                const dockerPullsFormattedString = formatDockerPullsFull(pullCount);
+                const mainText = `${dockerPullsFormattedString} total installs`;
+                const metaText = "cache refreshes daily";
 
                 pullCountElements.forEach(element => {
-                    element.textContent = dockerPullsFormatedString;
+                    element.innerHTML = `${mainText}<br><small class="docker-pulls-meta">${metaText}</small>`;
+                    element.setAttribute("title", "Install count cache refreshes once per day");
                 });
             })
             .catch(error => {

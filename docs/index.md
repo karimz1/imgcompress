@@ -103,8 +103,8 @@ hero_secondary_button_link: "https://hub.docker.com/r/karimz1/imgcompress"
       Start the Setup Guide
     </a>
     <div style="display: inline-flex; align-items: center; gap: 0.6rem; color: var(--md-default-fg-color); text-decoration: none; font-weight: 700;">
-      <i class="fa-brands fa-docker" style="color: #2496ed;"></i>
-      <span><span class="docker-pull-count">Loading...</span> pulls</span>
+      <i class="fa-brands fa-docker docker-icon-large"></i>
+      <span class="docker-pull-count">Loading...</span>
     </div>
   </div>
   <span style="font-size: 0.95rem; color: var(--md-default-fg-color--light);">Trusted by People around the world.</span>
