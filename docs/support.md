@@ -9,7 +9,7 @@ tags:
 
 # Contact & Support
 
-For business requests, special projects, or custom versions of **ImgCompress**, you can reach me directly on my website.
+Want to hire me for a project, special build, or custom version of **ImgCompress**? Get in touch via my site and we can scope it together.
 
 [Get in touch :octicons-arrow-right-24:](https://www.karimzouine.com/#contact){ .md-button .md-button--primary }
 

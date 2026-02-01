@@ -139,3 +139,53 @@ docker run --rm \
   --name devcontainer_e2e \
   devcontainer:local-test -c "/app/run-e2e.sh"
 ```
+
+## Common issue: broken pnpm lockfile after Dependabot merge
+Dependabot PRs that touch dependencies can leave a corrupted **pnpm-lock.yaml** when multiple lockfile changes are merged without a rebase.
+
+### Symptoms
+!!! warning ""
+    You may see an error like:
+    ````bash
+    broken lockfile at /workspaces/imgcompress/frontend:
+    The lockfile at "/workspaces/imgcompress/frontend/pnpm-lock.yaml" is broken:
+    duplicated mapping key (1307:3)
+    ````
+    This means the lockfile is invalid YAML (often duplicated dependency entries).
+
+### Root cause (quick)
+- Multiple Dependabot lockfile edits merged together without rebasing.
+- pnpm validates YAML structure and fails fast when duplicates exist.
+
+### Fix (do this)
+Do **not** hand-edit the lockfile. Regenerate it with a pinned pnpm version:
+
+````bash
+cd /workspaces/imgcompress/frontend
+
+# Remove corrupted artifacts
+rm -rf node_modules
+rm pnpm-lock.yaml
+
+# Ensure the correct pnpm version is used
+corepack enable
+# Use the pnpm version declared in the repo (currently pnpm@9.15.0); adjust if it changes.
+corepack prepare pnpm@9.15.0 --activate
+
+# Regenerate lockfile
+pnpm install
+
+# Commit the regenerated lockfile
+git add pnpm-lock.yaml
+git commit -m "chore: regenerate pnpm lockfile after dependabot merge"
+````
+
+### Prevent it next time
+- Rebase Dependabot PRs that modify `pnpm-lock.yaml` before merging.
+- Let CI run `pnpm install` on the branch to catch lockfile structural issues early.
+- Rarely, CI/CD can still trip on this even with good hygiene. It is a known side effect when many auto-bump PRs land together. Stable release candidates remain safe because they go through QA, and the hiccup only affects the automated version-bump branches.
+
+!!! tip "Need help?"
+    Stuck on a step or spotted something unclear? Reach out. Support is just a click away.
+
+    [Contact Support](./support.md){ .md-button .md-button--primary }
