@@ -1,7 +1,8 @@
 ---
 title: "ImgCompress"
 hero: true
-hero_image: "images/web-ui-workflow/web-ui-upload-configure.webp"
+hero_image: "images/web-ui-workflow/web-ui-upload-configure-no-mascot.webp"
+hero_image_compare: "images/web-ui-workflow/web-ui-upload-configure.webp"
 hero_title: "ImgCompress"
 hero_subtitle_gradient: "70+ Image Formats Supported."
 hero_description: "Shrink images, remove backgrounds using local AI, and convert formats fully offline."
@@ -18,16 +19,29 @@ hero_secondary_button_link: "https://hub.docker.com/r/karimz1/imgcompress"
     Clear the background from any photo with a <strong>local AI background remover</strong>, no cloud, no tracking. Everything runs <strong>100% on your hardware</strong> for maximum privacy.
   </p>
   
-  <div class="comparison-container" style="padding: 1.5rem; background: var(--md-default-bg-color--lightest); border-radius: 20px;">
-    <div class="comparison-item">
-      <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="300" loading="lazy" alt="A pretty sunset" style="border-radius: 8px;">
-      <span class="comparison-label">Original</span>
+  <div class="comparison-slider-wrapper">
+    <div class="comparison-slider comparison-slider--transparency" data-start-pos="50">
+      <div class="comparison-img original">
+        <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" alt="Original">
+      </div>
+      <div class="comparison-img modified">
+        <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" alt="AI-Processed">
+      </div>
+      <div class="slider-handle">
+        <div class="handle-line"></div>
+        <div class="handle-circle">
+          <i class="fa-solid fa-arrows-left-right"></i>
+        </div>
+        <div class="handle-line"></div>
+      </div>
     </div>
-    <div class="comparison-item">
-      <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="300" loading="lazy" alt="The sunset with no background" style="border-radius: 8px;">
-      <span class="comparison-label">AI-Processed</span>
+    <div class="comparison-switch-controls">
+      <button class="comparison-switch-btn" data-pos="0">Original</button>
+      <button class="comparison-switch-btn" data-pos="100">AI Background Removed</button>
     </div>
+    <p class="comparison-hint">Slide to see how our <strong>local AI model</strong> removes backgrounds in seconds.</p>
   </div>
+
 </div>
 
 <div class="product-section">

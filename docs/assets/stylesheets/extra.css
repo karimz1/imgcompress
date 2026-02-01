@@ -294,7 +294,8 @@ body[data-md-color-scheme="default"] .imgcompress-stats:hover {
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: #1e1e1e;
-    padding: 0.5rem;
+    padding: 0;
+    /* Remove padding to let slider touch edges */
     box-shadow:
         0 0 0 1px rgba(0, 0, 0, 0.2),
         0 20px 50px -10px rgba(0, 0, 0, 0.7),
@@ -302,7 +303,15 @@ body[data-md-color-scheme="default"] .imgcompress-stats:hover {
     animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     transform: translateY(20px);
     opacity: 0;
+    overflow: hidden;
+    /* clip slider corners */
 }
+
+.imgcompress-screenshot-container .comparison-slider {
+    box-shadow: none;
+    border-radius: 0;
+}
+
 
 .imgcompress-screenshot-container img {
     display: block;
@@ -355,7 +364,7 @@ body[data-md-color-scheme="default"] .imgcompress-stats:hover {
     justify-content: center;
     gap: 4px;
     margin-top: 0;
-    margin-bottom: 3.5rem;
+    margin-bottom: 2.0rem;
     color: #94a3b8;
     font-size: 0.85rem;
     font-weight: 500;
@@ -621,37 +630,209 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
     line-height: 1;
 }
 
-/* Comparison Section */
-.comparison-container {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    background: var(--md-default-bg-color--lightest);
-    padding: 3rem;
-    border-radius: 30px;
+/* --- Modern Image Comparison Slider --- */
+.comparison-slider-wrapper {
+    max-width: 900px;
+    margin: 3rem auto;
+    position: relative;
 }
 
-.comparison-item {
-    flex: 1;
-    min-width: 300px;
-    text-align: center;
+.md-hero--imgcompress .comparison-slider-wrapper {
+    margin-top: 0;
 }
 
-.comparison-item img {
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+.comparison-slider {
+    position: relative;
+    width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    cursor: col-resize;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.comparison-img {
+    width: 100%;
+    pointer-events: none;
+}
+
+.comparison-img img {
     width: 100%;
     height: auto;
+    /* natural height */
+    display: block;
+    -webkit-user-drag: none;
+    user-select: none;
 }
 
-.comparison-label {
-    display: block;
-    margin-top: 1rem;
-    font-weight: 600;
-    color: var(--md-default-fg-color--light);
+.comparison-img.original {
+    position: relative;
+    /* Anchor for height */
+    z-index: 1;
 }
+
+.comparison-img.modified {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 2;
+    clip-path: inset(0 100% 0 0);
+}
+
+
+/* Checkered background utility for transparency sliders */
+.comparison-slider--transparency .modified {
+    background-color: #ffffff;
+    background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+        linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+        linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.slider-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    background: white;
+    z-index: 3;
+    pointer-events: auto;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.handle-circle {
+    width: 44px;
+    height: 44px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    color: #4f46e5;
+    font-size: 1.2rem;
+    cursor: grab;
+}
+
+.handle-circle:active {
+    cursor: grabbing;
+}
+
+.handle-line {
+    flex: 1;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.comparison-switch-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.comparison-switch-btn {
+    padding: 0.6rem 1.2rem;
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--md-default-fg-color--light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+body[data-md-color-scheme="slate"] .comparison-switch-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.comparison-switch-btn:hover {
+    background: rgba(79, 70, 229, 0.1);
+    color: #4f46e5;
+    border-color: rgba(79, 70, 229, 0.3);
+}
+
+.comparison-switch-btn.active {
+    background: #4f46e5;
+    color: white;
+    border-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.comparison-switch-btn code {
+    background: transparent;
+    color: inherit;
+    font-family: var(--md-code-font-family);
+    padding: 0;
+}
+
+.comparison-hint {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 1rem;
+    opacity: 0.8;
+}
+
+.comparison-hint strong {
+    color: #cbd5e1;
+}
+
+body[data-md-color-scheme="default"] .comparison-hint strong {
+    color: #1e293b;
+}
+
+/* Smooth transition when using buttons */
+.comparison-slider.is-animating .modified,
+.comparison-slider.is-animating .slider-handle {
+    transition: all 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Section label and title improvements */
+.product-section .section-title {
+    margin-bottom: 2rem !important;
+}
+
+/* Comparison Badges for Hero Slider */
+.comparison-badge {
+    position: absolute;
+    bottom: 20px;
+    padding: 6px 12px;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 5;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.badge-left {
+    left: 20px;
+}
+
+.badge-right {
+    right: 20px;
+}
+
+
 
 /* Premium Primary Button Overrides */
 .md-button--primary {

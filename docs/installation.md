@@ -23,15 +23,24 @@ Pick the method that works best for you. I recommend using **Docker Compose** if
 === ":material-lan: Docker Compose (Recommended)"
     If you want **imgcompress** to stay on your server or NAS, use a Docker Compose file.
 
-    1. Create a file named `docker-compose.yml` and paste this inside:
-       ```yaml
-       --8<-- "docker-compose.yml"
-       ```
-    2. Run this command in the same folder:
-       ```bash
-       docker compose up -d
-       ```
-    3. Open your browser and go to [**http://localhost:3001**](http://localhost:3001).
+    1.  Create a file named `docker-compose.yml` and paste this inside:
+        ```yaml
+        --8<-- "docker-compose.yml"
+        ```
+
+        !!! info "Customizing your UI"
+            You can customize your experience by editing the `environment` section:
+
+            *   **`DISABLE_LOGO=true`**: Switches to the **clean, mascot-free UI** seen on the homepage.
+            *   **`DISABLE_STORAGE_MANAGEMENT=true`**: Hides management features if you don't want users to see all processed files.
+
+    2.  Run this command in the same folder:
+        ```bash
+        docker compose up -d
+        ```
+    3.  Open your browser and go to [**http://localhost:3001**](http://localhost:3001).
+
+
 
 === ":material-console: Quick Start (docker run)"
     If you just want to try it out quickly, run this command in your terminal:

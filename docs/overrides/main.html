@@ -176,17 +176,47 @@
 
     <!-- Floating UI Screenshot -->
     {% if page.meta.hero_image %}
-    <div class="imgcompress-screenshot-container">
-      <div class="window-controls">
-        <div class="window-dot dot-red"></div>
-        <div class="window-dot dot-yellow"></div>
-        <div class="window-dot dot-green"></div>
+    <div class="comparison-slider-wrapper">
+      <div class="imgcompress-screenshot-container">
+        <div class="window-controls">
+          <div class="window-dot dot-red"></div>
+          <div class="window-dot dot-yellow"></div>
+          <div class="window-dot dot-green"></div>
+        </div>
+
+        {% if page.meta.hero_image_compare %}
+        <div class="comparison-slider">
+          <div class="comparison-img original">
+            <img src="{{ page.meta.hero_image_compare | url }}" alt="Original App View" loading="eager">
+          </div>
+          <div class="comparison-img modified">
+            <img src="{{ page.meta.hero_image | url }}" alt="Mascot-free App View" loading="eager">
+          </div>
+          <div class="slider-handle">
+            <div class="handle-line"></div>
+            <div class="handle-circle">
+              <i class="fa-solid fa-arrows-left-right"></i>
+            </div>
+            <div class="handle-line"></div>
+          </div>
+        </div>
+        {% else %}
+        <img src="{{ page.meta.hero_image | url }}" alt="App Screenshot" loading="eager">
+        {% endif %}
       </div>
-      <img src="{{ page.meta.hero_image | url }}" alt="App Screenshot" loading="eager">
+
+      {% if page.meta.hero_image_compare %}
+      <div class="comparison-switch-controls">
+        <button class="comparison-switch-btn active" data-pos="0">Standard UI</button>
+        <button class="comparison-switch-btn" data-pos="100">Clean UI</button>
+      </div>
+      <p class="comparison-hint">Toggle <code>DISABLE_LOGO=true</code> to switch to a minimal, mascot-free interface.
+      </p>
+      {% endif %}
     </div>
     {% endif %}
-
   </div>
 </header>
 {% endif %}
 {% endblock %}
+<!-- EOF -->

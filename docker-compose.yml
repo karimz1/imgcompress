@@ -6,5 +6,7 @@ services:
     ports:
       - "3001:5000"
     environment:
+      # Set to true to remove the mascot and enable a minimal, mascot-free UI
       - DISABLE_LOGO=false
+      # Set to true to disable the storage management features (e.g., for your users to not see all the files)
       - DISABLE_STORAGE_MANAGEMENT=false

@@ -34,7 +34,7 @@ Want to take the background out of a photo? It is like magic.
 |-----:|------------|-------------|
 | **1** | ![Toggle background removal](images/web-ui-workflow/web-ui-remove-background-toggle.webp){ .glightbox width="240" height="auto" } | **Flip the switch**<br/>Pick **AVIF** or **PNG**, then flip the "Remove Background" switch. |
 
-### See the Magic
+### See the Magic AI Background Removal
 Look how it takes the sky and hills away from this sunset:
 
 | Original Photo | Just the Sunset |
