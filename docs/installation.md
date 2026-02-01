@@ -9,7 +9,7 @@ tags:
 
 # Getting Started: Let's set it up!
 
-<div class="imgcompress-stats" style="margin: 0.35rem 0 0.2rem; justify-content: flex-start;">
+<div class="imgcompress-stats" style="justify-content: flex-start;">
   <span class="docker-pull-count">Loading...</span>
 </div>
 
