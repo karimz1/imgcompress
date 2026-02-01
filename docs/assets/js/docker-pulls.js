@@ -10,15 +10,33 @@ document.addEventListener("DOMContentLoaded", function () {
         return Math.trunc(num).toLocaleString("de-DE");
     }
 
+    function formatDateTime(date) {
+        if (!(date instanceof Date) || Number.isNaN(date)) return null;
+        return date.toLocaleString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "UTC",
+            timeZoneName: "short",
+        });
+    }
+
 
     if (pullCountElements.length > 0) {
         const targetUrl = "https://dfyf412h8jisw.cloudfront.net/pulls/karimz1/imgcompress";
         const fallbackMessage = "Could not load";
+        const dockerHubUrl = "https://hub.docker.com/r/karimz1/imgcompress";
 
         fetch(targetUrl)
             .then(response => response.json())
             .then(data => {
                 const pullCount = Number(data.docker_pulls);
+                const dockerHubSyncedAtRaw = data.dockerhub_synced_at;
+                const dockerHubSyncedAtDate = dockerHubSyncedAtRaw ? new Date(dockerHubSyncedAtRaw) : null;
+                const updatedAtDate = dockerHubSyncedAtDate || null;
+                const updatedAtText = formatDateTime(updatedAtDate);
 
                 if (!Number.isFinite(pullCount)) {
                     throw new Error("Invalid pull count returned from proxy");
@@ -26,11 +44,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const dockerPullsFormattedString = formatDockerPullsFull(pullCount);
                 const mainText = `${dockerPullsFormattedString} total installs`;
-                const metaText = "cache refreshes daily";
+                const metaText = updatedAtText
+                    ? `Synced from Docker Hub at ${updatedAtText}`
+                    : "Synced from Docker Hub (UTC)";
+                const infoText = "Install count refreshes once per day";
+                const titleText = `${metaText} · ${infoText}`;
 
                 pullCountElements.forEach(element => {
-                    element.innerHTML = `${mainText}<br><small class="docker-pulls-meta">${metaText}</small>`;
-                    element.setAttribute("title", "Install count cache refreshes once per day");
+                    element.innerHTML = `${mainText}<br><small class="docker-pulls-meta">${metaText}</small><br><small class="docker-pulls-meta">${infoText}</small>`;
+                    element.setAttribute("title", titleText);
+
+                    const statsContainer = element.closest(".imgcompress-stats");
+                    const dockerIcon = statsContainer ? statsContainer.querySelector(".fa-docker") : null;
+                    const openHub = () => window.open(dockerHubUrl, "_blank", "noopener");
+
+                    if (statsContainer) {
+                        statsContainer.style.cursor = "pointer";
+                        statsContainer.setAttribute("role", "link");
+                        statsContainer.setAttribute("tabindex", "0");
+                        statsContainer.setAttribute("title", "Open Docker Hub");
+                        statsContainer.classList.add("stats-link");
+                        statsContainer.addEventListener("click", openHub);
+                        statsContainer.addEventListener("keydown", (event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                openHub();
+                            }
+                        });
+                    }
+
+                    if (dockerIcon) {
+                        dockerIcon.setAttribute("aria-hidden", "true");
+                    }
                 });
             })
             .catch(error => {

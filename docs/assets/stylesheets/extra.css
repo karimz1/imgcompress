@@ -293,27 +293,45 @@ body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0.45rem 0.9rem;
     background: transparent;
     border-radius: 9999px;
     color: #cbd5e1;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.98rem;
+    font-weight: 650;
+}
+
+.imgcompress-stats.stats-link {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.12s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.imgcompress-stats.stats-link:hover,
+.imgcompress-stats.stats-link:focus-visible {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.imgcompress-stats.stats-link:focus-visible {
+    outline: 2px solid rgba(36, 150, 237, 0.6);
+    outline-offset: 2px;
 }
 
 .imgcompress-stats i {
     font-size: 1.9rem;
     color: #2496ed;
     line-height: 1;
-    align-self: flex-start;
-    margin-top: 2px;
+    align-self: center;
+    margin-top: 0;
 }
 
 .docker-icon-large {
     font-size: 1.9rem !important;
     line-height: 1;
-    align-self: flex-start;
-    margin-top: 2px;
+    align-self: center;
+    margin-top: 0;
     color: #2496ed;
 }
 
