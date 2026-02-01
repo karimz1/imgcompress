@@ -9,15 +9,18 @@ tags:
 
 # Getting Started: Let's set it up!
 
-To use **imgcompress**, you just need to have [Docker installed](https://docs.docker.com/get-docker/).
-
-## Installation
-Pick the method that works best for you. I recommend using **Docker Compose** if you want to keep the app running on your server.
-
-<div class="imgcompress-stats" style="display:inline-flex; align-items:center; gap:0.55rem; font-weight:700; margin: 0.35rem 0 1rem;">
+<div class="imgcompress-stats" style="display:inline-flex; align-items:center; gap:0.55rem; font-size:0.9rem; font-weight:650; margin: 0.35rem 0 1rem;">
   <i class="fa-brands fa-docker docker-icon-large"></i>
   <span class="docker-pull-count">Loading...</span>
 </div>
+
+
+## Installation
+
+To use **imgcompress**, you just need to have [Docker installed](https://docs.docker.com/get-docker/).
+
+Pick the method that works best for you. I recommend using **Docker Compose** if you want to keep the app running on your server.
+
 
 === ":material-lan: Docker Compose (Recommended)"
     If you want **imgcompress** to stay on your server or NAS, use a Docker Compose file.

@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 const dockerPullsFormattedString = formatDockerPullsFull(pullCount);
-                const mainText = `${dockerPullsFormattedString} total installs`;
+                const mainText = `${dockerPullsFormattedString} total imgcompress installs`;
                 const metaText = updatedAtText
                     ? `Synced from Docker Hub at ${updatedAtText}`
                     : "Synced from Docker Hub (UTC)";
@@ -51,7 +51,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 const titleText = `${metaText} · ${infoText}`;
 
                 pullCountElements.forEach(element => {
-                    element.innerHTML = `${mainText}<br><small class="docker-pulls-meta">${metaText}</small><br><small class="docker-pulls-meta">${infoText}</small>`;
+                    element.innerHTML = `
+                        <div class="docker-pulls-main">${mainText}</div>
+                        <div class="docker-pulls-meta">${metaText}</div>
+                        <div class="docker-pulls-meta">${infoText}</div>
+                    `;
                     element.setAttribute("title", titleText);
 
                     const statsContainer = element.closest(".imgcompress-stats");
