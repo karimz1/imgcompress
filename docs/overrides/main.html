@@ -5,6 +5,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- Tippy.js tooltip library -->
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
+<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/shift-away.css">
 
 <!-- Critical Path CSS: Pre-render layout to eliminate FCP/LCP bottlenecks -->
 <style>
@@ -157,6 +161,19 @@
       {{ page.meta.hero_description }}
     </p>
 
+    <!-- Actions Container -->
+    <div class="imgcompress-actions-container">
+      {% if page.meta.hero_button_text %}
+      <a href="{{ page.meta.hero_button_link | url }}" class="imgcompress-primary-btn">
+        {{ page.meta.hero_button_text }} <i class="fa-solid fa-arrow-right"></i>
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="imgcompress-stats" aria-label="Docker pulls">
+      <span class="docker-pull-count">Loading...</span>
+    </div>
+
     <!-- Floating UI Screenshot -->
     {% if page.meta.hero_image %}
     <div class="imgcompress-screenshot-container">
@@ -168,20 +185,6 @@
       <img src="{{ page.meta.hero_image | url }}" alt="App Screenshot" loading="eager">
     </div>
     {% endif %}
-
-    <!-- Actions Container (Below the image, text-first) -->
-    <div class="imgcompress-actions-container">
-      {% if page.meta.hero_button_text %}
-      <a href="{{ page.meta.hero_button_link | url }}" class="imgcompress-primary-btn">
-        {{ page.meta.hero_button_text }} <i class="fa-solid fa-arrow-right"></i>
-      </a>
-      {% endif %}
-
-      <div class="imgcompress-stats" aria-label="Docker pulls">
-        <i class="fa-brands fa-docker"></i>
-        <span class="docker-pull-count">Loading...</span>
-      </div>
-    </div>
 
   </div>
 </header>

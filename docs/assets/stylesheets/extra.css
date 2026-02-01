@@ -151,6 +151,7 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
 .imgcompress-title span.gradient-text {
     background: linear-gradient(135deg, #4F46E5 0%, #9333EA 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     display: block;
     /* Stack on new line like the example */
@@ -158,21 +159,65 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
 }
 
 .imgcompress-description {
-    font-size: 1.15rem !important;
-    /* Reduced from 1.25rem */
-    color: #94a3b8 !important;
-    /* Slate-400 */
-    max-width: 600px;
-    margin: 0 auto 2rem !important;
-    line-height: 1.6 !important;
+    font-size: 1.25rem;
+    color: #94a3b8;
+    max-width: 700px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.4;
+    height: 1.4em;
+    /* Match line-height for strict mask */
+    overflow: hidden;
+    position: relative;
+    display: block !important;
 }
+
+.phrase-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.description-phrase {
+    height: 1.4em;
+    /* Must match parent line-height to align perfectly */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    opacity: 0.15;
+    filter: blur(4px);
+    transition:
+        opacity 0.6s ease,
+        filter 0.6s ease,
+        color 0.4s ease,
+        text-shadow 0.6s ease;
+    width: 100%;
+    font-weight: 800;
+    font-size: 1.35rem;
+    color: #a78bfa;
+    /* Soft Violet */
+    letter-spacing: -0.02em;
+}
+
+.description-phrase.active {
+    opacity: 1;
+    filter: blur(0);
+    color: #d8b4fe;
+    /* Brilliant Purple */
+    text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
+    /* Purple Glow */
+}
+
 
 /* Light theme overrides: swap to bright background and dark text */
 body[data-md-color-scheme="default"] .md-hero--imgcompress {
     background: radial-gradient(circle at 15% 20%, rgba(79, 70, 229, 0.08), transparent 45%),
-    radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.10), transparent 50%),
-    radial-gradient(circle at 50% 60%, rgba(99, 102, 241, 0.08), transparent 55%),
-    #f8fafc;
+        radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.10), transparent 50%),
+        radial-gradient(circle at 50% 60%, rgba(99, 102, 241, 0.08), transparent 55%),
+        #f8fafc;
     color: #0f172a;
 }
 
@@ -214,14 +259,32 @@ body[data-md-color-scheme="default"] .imgcompress-primary-btn:hover {
     box-shadow: 0 16px 38px rgba(99, 102, 241, 0.38);
 }
 
+/* Light theme animated phrases */
+body[data-md-color-scheme="default"] .description-phrase {
+    color: #4f46e5;
+    /* Indigo */
+    opacity: 0.4;
+    filter: none;
+    /* No blur in light mode */
+}
+
+body[data-md-color-scheme="default"] .description-phrase.active {
+    color: #312e81;
+    /* Dark Royal Indigo */
+    opacity: 1;
+    text-shadow: none;
+}
+
 /* Light theme stats (Docker pulls) */
 body[data-md-color-scheme="default"] .imgcompress-stats {
+    color: #475569;
+    font-weight: 600;
+}
+
+body[data-md-color-scheme="default"] .imgcompress-stats:hover {
     color: #0f172a;
 }
 
-body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
-    color: #0f172a;
-}
 
 /* Floating App Screenshot */
 .imgcompress-screenshot-container {
@@ -248,17 +311,15 @@ body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
     border-radius: 8px;
 }
 
-/* Actions Container (Below Image) */
+/* Actions Container (Above Image) */
 .imgcompress-actions-container {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 1.5rem;
     flex-wrap: wrap;
-    margin-top: 2.2rem;
-    /* Space from image */
-    animation: slideUpFade 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    opacity: 0;
+    margin-bottom: 1.2rem;
+    /* Space before stats */
 }
 
 /* Text-first CTA */
@@ -288,56 +349,66 @@ body[data-md-color-scheme="default"] .imgcompress-stats .docker-pull-count {
     font-size: 0.95rem;
 }
 
-/* Docker Stats */
 .imgcompress-stats {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.45rem 0.9rem;
-    background: transparent;
-    border-radius: 9999px;
-    color: #cbd5e1;
-    font-size: 0.98rem;
-    font-weight: 650;
-}
-
-.imgcompress-stats.stats-link {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: transform 0.12s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
-}
-
-.imgcompress-stats.stats-link:hover,
-.imgcompress-stats.stats-link:focus-visible {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.16);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
-    transform: translateY(-1px);
-}
-
-.imgcompress-stats.stats-link:focus-visible {
-    outline: 2px solid rgba(36, 150, 237, 0.6);
-    outline-offset: 2px;
-}
-
-.imgcompress-stats i {
-    font-size: 1.9rem;
-    color: #2496ed;
-    line-height: 1;
-    align-self: center;
+    justify-content: center;
+    gap: 4px;
     margin-top: 0;
+    margin-bottom: 3.5rem;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: help;
+    transition: color 0.2s ease;
 }
 
-.docker-icon-large {
-    font-size: 1.9rem !important;
-    line-height: 1;
-    align-self: center;
-    margin-top: 0;
-    color: #2496ed;
-}
-
-.imgcompress-stats .docker-pull-count {
+.imgcompress-stats:hover {
     color: #ffffff;
 }
+
+/* Tighten spacing for headings following stats */
+.imgcompress-stats+h2,
+.imgcompress-stats+h3 {
+    margin-top: 0.5rem !important;
+}
+
+/* Tippy theme customization */
+.tippy-box[data-theme~='light-border'] {
+    background-color: #fff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.tippy-box[data-theme~='light-border'] .tippy-arrow {
+    color: #fff;
+}
+
+body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+}
+
+body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy-arrow {
+    color: #1e293b;
+}
+
+
+.docker-pull-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: inherit;
+    transition: var(--transition, all 0.2s ease);
+}
+
+
+.docker-pull-count svg {
+    flex-shrink: 0;
+}
+
 
 /* Header bar dots simulation */
 .window-controls {

@@ -97,16 +97,13 @@ hero_secondary_button_link: "https://hub.docker.com/r/karimz1/imgcompress"
 <h2 class="section-title">Ready to optimize?</h2>
 <p style="font-size: 1.2rem; margin-bottom: 2.5rem; color: var(--md-default-fg-color--light);">Join the community and shrink your images today.</p>
 
-<div style="display: flex; flex-direction: column; align-items: center; gap: 1.25rem;">
-  <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; justify-content: center;">
-    <a href="installation/" class="md-button md-button--primary" style="font-size: 1.1rem; padding: 0.75rem 2.4rem; border-radius: 999px;">
-      Start the Setup Guide
-    </a>
-    <div style="display: inline-flex; align-items: center; gap: 0.6rem; color: var(--md-default-fg-color); text-decoration: none; font-weight: 700;">
-      <i class="fa-brands fa-docker docker-icon-large"></i>
-      <span class="docker-pull-count">Loading...</span>
-    </div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+  <a href="installation/" class="md-button md-button--primary" style="font-size: 1.1rem; padding: 0.75rem 2.4rem; border-radius: 999px;">
+    Start the Setup Guide
+  </a>
+  <div class="imgcompress-stats" style="margin: 0;">
+    <span class="docker-pull-count">Loading...</span>
   </div>
-  <span style="font-size: 0.95rem; color: var(--md-default-fg-color--light);">Trusted by People around the world.</span>
+  <span style="font-size: 0.95rem; color: var(--md-default-fg-color--light); margin-top: 0.5rem;">Trusted by People around the world.</span>
 </div>
 </div>

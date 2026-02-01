@@ -9,11 +9,9 @@ tags:
 
 # Getting Started: Let's set it up!
 
-<div class="imgcompress-stats" style="display:inline-flex; align-items:center; gap:0.55rem; font-size:0.9rem; font-weight:650; margin: 0.35rem 0 1rem;">
-  <i class="fa-brands fa-docker docker-icon-large"></i>
+<div class="imgcompress-stats" style="margin: 0.35rem 0 0.2rem; justify-content: flex-start;">
   <span class="docker-pull-count">Loading...</span>
 </div>
-
 
 ## Installation
 
