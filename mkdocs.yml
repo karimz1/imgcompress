@@ -138,6 +138,9 @@ markdown_extensions:
       custom_checkbox: true
   - pymdownx.tilde
 
+extra:
+  generator: false
+
 # Page tree
 nav:
   - Home: index.md

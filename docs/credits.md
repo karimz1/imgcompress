@@ -39,9 +39,14 @@ tags:
 | :--- | :--- | :--- |
 | **Containerization** | [Docker](https://www.docker.com/) | Ensures "works everywhere" portability and strict process isolation. |
 | **Distribution** | [Docker Hub](https://hub.docker.com/r/karimz1/imgcompress) | Reliable hosting for the official [imgcompress](https://hub.docker.com/r/karimz1/imgcompress) container images. |
-| **Documentation Hosting** | [GitHub Pages](https://pages.github.com/) | Static site hosting for this documentation portal. |
-| **Documentation Site Generator** | [Zensical](https://zensical.org/) | Modern static site generator utilized for building and maintaining the project documentation of imgcompress. |
 | **Networking** | [AWS Route 53](https://aws.amazon.com/route53/) | Highly available and scalable Cloud DNS for the project domain. |
+
+## Documentation Platform
+
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Hosting** | [GitHub Pages](https://pages.github.com/) | Fast and secure static hosting for this documentation portal. |
+| **Framework** | [Zensical](https://zensical.org/) | Serves as the high-performance foundation for this site, augmented with custom JavaScript and CSS to provide the unique ImgCompress user experience. |
 
 
 
