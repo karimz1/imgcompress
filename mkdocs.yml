@@ -91,20 +91,8 @@ plugins:
       minify_html: true
       minify_js: true
       minify_css: true
-      htmlmin_opts:
-        remove_comments: true
-        remove_empty_space: true
-        remove_all_empty_space: false
-        reduce_boolean_attributes: true
-        remove_optional_attribute_quotes: false
-        convert_charrefs: true
       cache_safe: true
-      css_files:
-        - assets/stylesheets/extra.css
-      js_files:
-        - assets/js/glightbox-init.js
-        - assets/js/external-link.js
-        - assets/js/docker-pulls.js
+
   - git-revision-date-localized:
       type: datetime
       timezone: UTC
@@ -154,16 +142,6 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
-
-# Icons and generator
-extra:
-  generator: false
-  tags:
-    default: default
-  announce: |
-    <a href="https://hub.docker.com/r/karimz1/imgcompress" target="_blank" rel="noopener">
-      <img src="https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=indigo&label=Docker%20Pulls" alt="Docker Pulls">
-    </a>
 
 # Page tree
 nav:
