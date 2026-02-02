@@ -1,7 +1,7 @@
 ---
 icon: lucide/package-open
-title: "Setting up your Image Toolbox"
-description: "How to get ImgCompress running on your home server, NAS, or computer in under a minute."
+title: "Installation & Setup Guide"
+description: "Step-by-step guide to installing ImgCompress via Docker. Learn how to set up the container on any self-hosted environment in minutes."
 tags:
   - Get started
   - Setup

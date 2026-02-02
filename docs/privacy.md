@@ -1,7 +1,7 @@
 ---
 icon: lucide/shield-check
-title: "Privacy & Network Safety"
-description: "Everything you need to know about how ImgCompress keeps your photos safe and 100% private."
+title: "Privacy & Security Model"
+description: "Details on ImgCompress's 100% offline architecture, local data processing, and network isolation for maximum privacy."
 tags:
   - Privacy
   - Security

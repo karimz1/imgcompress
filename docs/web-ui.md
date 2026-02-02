@@ -1,7 +1,7 @@
 ---
 icon: lucide/monitor
-title: "Using the Web UI"
-description: "A simple, private Web UI for shrinking images and removing backgrounds. Everything stays on your computer."
+title: "Web Interface Feature Guide"
+description: "Explore the features of the ImgCompress Web UI: Drag-and-drop background removal, format conversion, and image compression."
 tags:
   - Get started
   - Usage

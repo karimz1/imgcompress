@@ -1,6 +1,6 @@
 ---
 icon: lucide/code-2
-title: "Developer Guide: Building & Testing ImgCompress"
+title: "Developer Guide: Building & Testing"
 description: Comprehensive guide for developers to build, run, and test ImgCompress locally. Includes commands for unit, integration, and E2E tests using Docker and local scripts.
 tags:
   - Development

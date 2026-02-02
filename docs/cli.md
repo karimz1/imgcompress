@@ -1,7 +1,7 @@
 ---
 icon: lucide/terminal
-title: "Mastering the Commands (CLI)"
-description: "Everything you need to know about talking directly to the imgcompress tool for fast, automatic image work."
+title: "CLI Command Reference"
+description: "Complete reference for the ImgCompress Command Line Interface. Automate batch image processing, conversion, and optimization in your terminal."
 tags:
   - Get started
   - Automation

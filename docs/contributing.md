@@ -1,7 +1,7 @@
 ---
 icon: lucide/git-pull-request
-title: "How to Contribute: ImgCompress Open Source Guide"
-description: Join the ImgCompress community! Detailed guide on how to report bugs, request features, and submit pull requests. Start contributing to open source today.
+title: "Contributing Guide"
+description: "How to contribute code, report bugs, and submit pull requests to the ImgCompress open source project."
 tags:
   - Contributing
   - Community

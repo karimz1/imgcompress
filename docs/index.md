@@ -1,11 +1,11 @@
 ---
-title: "ImgCompress"
+title: "Open Source Image Toolkit for Docker"
 hero: true
 hero_image: "images/web-ui-workflow/web-ui-upload-configure-no-mascot.webp"
 hero_image_compare: "images/web-ui-workflow/web-ui-upload-configure.webp"
 hero_title: "ImgCompress"
 hero_subtitle_gradient: "70+ Image Formats Supported."
-hero_description: "Shrink images, remove backgrounds using local AI, and convert formats fully offline."
+hero_description: "The Open Source Image Toolkit for Docker. Convert formats, shrink images, and remove backgrounds using local AI. Trusted by 22k+ users."
 hero_button_text: "Start Setup Guide"
 hero_button_link: "installation/"
 hero_secondary_button_text: "Docker pulls"

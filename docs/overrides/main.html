@@ -20,7 +20,7 @@
 
 <!-- SEO & Social Meta Tags -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="ImgCompress Documentation">
+<meta property="og:site_name" content="{{ config.site_name }}">
 <meta property="og:url" content="{{ page.canonical_url }}">
 <meta property="og:title" content="{{ page.title | default(config.site_name) }}">
 <meta property="og:description" content="{{ page.meta.description | default(config.site_description) }}">
@@ -29,6 +29,8 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ImgCompress: Simple & Private Self-Hosted Docker Image Optimizer">
 <meta property="og:locale" content="en_US">
+<meta name="keywords"
+  content="{% if page.meta.tags %}{{ page.meta.tags | join(', ') }}{% else %}docker image compressor, open source image toolkit, self-hosted background remover, offline image tools, homelab tools, privacy focused image converter, imgcompress{% endif %}">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="{{ page.canonical_url }}">
@@ -37,7 +39,11 @@
 <meta name="twitter:image" content="{{ config.site_url }}images/imgcompress-og-image.webp">
 <meta name="twitter:image:alt" content="ImgCompress: Simple & Private Self-Hosted Docker Image Optimizer">
 
-<link rel="canonical" href="{{ page.canonical_url }}">
+<!-- Explicit Favicons for Search Engines -->
+<link rel="icon" type="image/x-icon" href="{{ config.site_url }}images/favicon.ico">
+<link rel="icon" type="image/png" href="{{ config.site_url }}images/logo-mini-2.webp">
+<link rel="apple-touch-icon" href="{{ config.site_url }}images/logo-mini-2.webp">
+
 <link rel="me" href="https://github.com/karimz1">
 <link rel="me" href="https://karimzouine.com">
 
@@ -118,7 +124,7 @@
         "about": {
           "@id": "{{ config.site_url }}#software"
         },
-        "keywords": "{% if page.meta.tags %}{{ page.meta.tags | join(', ') }}{% else %}image compression, docker, privacy, ai, background removal, web optimization{% endif %}",
+        "keywords": "{% if page.meta.tags %}{{ page.meta.tags | join(', ') }}{% else %}docker image compressor, open source image toolkit, self-hosted background remover, offline image tools, homelab tools, privacy focused image converter, imgcompress{% endif %}",
         "proficiencyLevel": "Beginner"
       },
       {

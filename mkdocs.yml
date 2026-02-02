@@ -1,7 +1,7 @@
 # Project information
-site_name: ImgCompress - The Open Source App Image Toolkit
+site_name: ImgCompress
 site_url: https://imgcompress.karimzouine.com/
-site_description: "ImgCompress is the easy, private way to shrink images and remove backgrounds on your own computer. The 100% offline alternative to TinyPNG for your NAS, Home Server, or PC."
+site_description: "The Open Source Self-hosted Image Toolkit for Docker. Convert over 70+ formats, shrink file sizes, and remove backgrounds using local AI. Trusted by over 22k users."
 site_author: Karim Zouine
 
 # Repository

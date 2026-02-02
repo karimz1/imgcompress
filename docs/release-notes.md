@@ -1,7 +1,7 @@
 ---
 icon: lucide/history
-title: "Release Notes & Updates | ImgCompress"
-description: Transparent version history and update process for ImgCompress.
+title: "Release Notes & Changelog"
+description: "History of updates, new features, and improvements for the ImgCompress Docker image and application."
 tags:
   - Updates
   - Changelog
