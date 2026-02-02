@@ -87,11 +87,6 @@ plugins:
   - sitemap:
       changefreq: daily
       priority: 1.0
-  - minify:
-      minify_html: true
-      minify_js: true
-      minify_css: true
-      cache_safe: true
 
   - git-revision-date-localized:
       type: datetime
