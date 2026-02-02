@@ -22,10 +22,10 @@ hero_secondary_button_link: "https://hub.docker.com/r/karimz1/imgcompress"
   <div class="comparison-slider-wrapper">
     <div class="comparison-slider comparison-slider--transparency" data-start-pos="50">
       <div class="comparison-img original">
-        <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" alt="Original">
+        <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" alt="Original photo of a landscape with sunset before background removal">
       </div>
       <div class="comparison-img modified">
-        <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" alt="AI-Processed">
+        <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" alt="AI-Processed image with background transparently removed">
       </div>
       <div class="slider-handle">
         <div class="handle-line"></div>
