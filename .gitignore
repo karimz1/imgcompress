@@ -154,6 +154,11 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# AWS CDK (local artifacts)
+cdk.out/
+cdk.context.json
+infra/cdk/cdk-outputs.json
+
 # mypy
 .mypy_cache/
 .dmypy.json
