@@ -7,9 +7,13 @@ from aws_cdk import (
     Duration,
     RemovalPolicy,
     Stack,
+    Token,
 )
+from aws_cdk import aws_certificatemanager as acm
 from aws_cdk import aws_cloudfront as cloudfront
 from aws_cdk import aws_cloudfront_origins as origins
+from aws_cdk import aws_route53 as route53
+from aws_cdk import aws_route53_targets as route53_targets
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_s3_deployment as s3deploy
 from constructs import Construct
@@ -119,9 +123,42 @@ function handler(event) {
             bucket, origin_access_identity=origin_access_identity
         )
 
+        # Optional custom domain (Route 53 + ACM). For CloudFront, the certificate must be in us-east-1.
+        enable_custom_domain = self.node.try_get_context("enable_custom_domain")
+        if enable_custom_domain is None:
+            enable_custom_domain = True
+
+        hosted_zone_domain = self.node.try_get_context("hosted_zone_domain") or "karimzouine.com"
+        site_domain = self.node.try_get_context("site_domain") or f"ig.{hosted_zone_domain}"
+
+        domain_names: list[str] | None = None
+        certificate: acm.ICertificate | None = None
+
+        if enable_custom_domain:
+            # CloudFront requires the ACM certificate to be in us-east-1.
+            if not Token.is_unresolved(self.region) and self.region != "us-east-1":
+                raise ValueError(
+                    "Custom domain for CloudFront requires deploying this stack in us-east-1 "
+                    f"(current region: {self.region})."
+                )
+
+            zone = route53.HostedZone.from_lookup(
+                self, "HostedZone", domain_name=hosted_zone_domain
+            )
+            certificate = acm.Certificate(
+                self,
+                "SiteCertificate",
+                domain_name=site_domain,
+                validation=acm.CertificateValidation.from_dns(zone),
+            )
+            domain_names = [site_domain]
+
         distribution = cloudfront.Distribution(
             self,
             "DocsDistribution",
+            certificate=certificate,
+            domain_names=domain_names,
+            price_class=cloudfront.PriceClass.PRICE_CLASS_100,
             default_behavior=cloudfront.BehaviorOptions(
                 origin=origin,
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -193,11 +230,42 @@ function handler(event) {
             ],
         )
 
+        if enable_custom_domain:
+            # record_name is relative to the zone (e.g. "ig" for ig.karimzouine.com)
+            record_name = site_domain
+            suffix = f".{hosted_zone_domain}"
+            if record_name.endswith(suffix):
+                record_name = record_name[: -len(suffix)]
+
+            route53.ARecord(
+                self,
+                "SiteAliasA",
+                zone=zone,
+                record_name=record_name,
+                target=route53.RecordTarget.from_alias(
+                    route53_targets.CloudFrontTarget(distribution)
+                ),
+            )
+            route53.AaaaRecord(
+                self,
+                "SiteAliasAAAA",
+                zone=zone,
+                record_name=record_name,
+                target=route53.RecordTarget.from_alias(
+                    route53_targets.CloudFrontTarget(distribution)
+                ),
+            )
+
         if deploy_docs:
             s3deploy.BucketDeployment(
                 self,
                 "DeployDocs",
-                sources=[s3deploy.Source.asset(str(docs_dir))],
+                sources=[
+                    s3deploy.Source.asset(
+                        str(docs_dir),
+                        exclude=["**/.DS_Store", "**/__MACOSX/*"],
+                    )
+                ],
                 destination_bucket=bucket,
                 distribution=distribution,
                 distribution_paths=["/*"],
@@ -208,6 +276,13 @@ function handler(event) {
             "CloudFrontUrl",
             value=f"https://{distribution.domain_name}",
         )
+
+        if enable_custom_domain:
+            CfnOutput(
+                self,
+                "CustomDomainUrl",
+                value=f"https://{site_domain}",
+            )
 
         CfnOutput(
             self,

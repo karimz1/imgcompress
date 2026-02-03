@@ -19,11 +19,16 @@ def print_cloudfront_url() -> None:
         data = json.load(handle)
 
     outputs = data.get(STACK_NAME, {})
-    url = outputs.get("CloudFrontUrl")
-    if url:
-        print(f"CloudFront URL: {url}")
-    else:
-        print("CloudFrontUrl output not found. Check stack outputs.")
+    custom = outputs.get("CustomDomainUrl")
+    cf = outputs.get("CloudFrontUrl")
+
+    if custom:
+        print(f"App URL: {custom}")
+    if cf:
+        print(f"CloudFront URL: {cf}")
+
+    if not custom and not cf:
+        print("No URL outputs found. Check stack outputs.")
 
 
 def main() -> None:
