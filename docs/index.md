@@ -1,6 +1,10 @@
 ---
 title: "Open Source Image Toolkit for Docker"
+description: "Open-source image toolkit for Docker. Convert formats, shrink images, and remove backgrounds with local AI."
 hero: true
+hide:
+  - toc
+  - navigation
 hero_image: "images/web-ui-workflow/web-ui-upload-configure-no-mascot.webp"
 hero_image_compare: "images/web-ui-workflow/web-ui-upload-configure.webp"
 hero_title: "ImgCompress"
@@ -44,11 +48,12 @@ hero_secondary_button_link: "https://hub.docker.com/r/karimz1/imgcompress"
 
 </div>
 
-<div class="product-section">
+<div class="product-section product-section--wide">
+<div class="product-section__inner">
 <div class="section-label">Toolkit</div>
 <h2 class="section-title">One Toolbox for Everything</h2>
 
-<div class="feature-grid">
+<div class="feature-grid feature-grid--three">
   <div class="feature-card">
     <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
     <h3>Privacy First</h3>
@@ -79,6 +84,7 @@ hero_secondary_button_link: "https://hub.docker.com/r/karimz1/imgcompress"
     <h3>Ready-to-Go Box</h3>
     <p>Clean installation via Docker. No messy libraries on your system, just one command to run anywhere.</p>
   </div>
+</div>
 </div>
 </div>
 
