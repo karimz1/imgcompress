@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const desc = document.querySelector('.imgcompress-description');
     if (!desc) return;
+    desc.classList.add('animated');
 
     const phrases = [
         "Shrink images.",

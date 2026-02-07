@@ -170,6 +170,11 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
     overflow: hidden;
     position: relative;
     display: block !important;
+    text-align: center;
+}
+
+.imgcompress-description.animated {
+    font-size: 1.35rem;
 }
 
 .phrase-container {
@@ -197,10 +202,12 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
         text-shadow 0.6s ease;
     width: 100%;
     font-weight: 800;
-    font-size: 1.35rem;
+    font-size: inherit;
+    line-height: inherit;
     color: #a78bfa;
     /* Soft Violet */
     letter-spacing: -0.02em;
+    text-align: center;
 }
 
 .description-phrase.active {
@@ -512,6 +519,10 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
 @media screen and (max-width: 768px) {
     .imgcompress-title {
         font-size: 2.5rem !important;
+    }
+
+    .imgcompress-description.animated {
+        font-size: clamp(1rem, 4.2vw, 1.2rem);
     }
 
     .imgcompress-actions-container {
