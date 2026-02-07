@@ -1,6 +1,6 @@
 # Documentation Hosting of Imgcompress using AWS CDK
 
-Hi, I’m Karim Zouine - https://www.karimzouine.com
+This document explains how the documentation site at https://imgcompress.karimzouine.com is deployed on AWS.
 
 If you’re wondering how **imgcompress** hosts its documentation site: it’s a fully static site deployed on AWS using the **AWS CDK (CloudFormation) in Python**.
 
