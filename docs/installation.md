@@ -46,7 +46,7 @@ Pick the method that works best for you. I recommend using **Docker Compose** if
     If you just want to try it out quickly, run this command in your terminal:
     
     ```bash
-    docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
+    docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
     ```
     
     Now open your browser and go to [**http://localhost:3001**](http://localhost:3001).
@@ -74,7 +74,7 @@ Updating is quick and easy.
     2. **Swap for the new one**
        ```bash
        docker rm -f imgcompress
-       docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest web
+       docker run -d --name imgcompress -p 3001:5000 karimz1/imgcompress:latest
        ```
 
 ---
