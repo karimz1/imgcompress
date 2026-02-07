@@ -109,7 +109,10 @@ class ImgcompressStaticSiteStack(Stack):
         if cfg.enable_custom_domain:
             self._assert_cloudfront_cert_region()
             zone = route53.HostedZone.from_lookup(
-                self, "HostedZone", domain_name=cfg.hosted_zone_domain
+                self,
+                "HostedZone",
+                domain_name=cfg.hosted_zone_domain,
+                private_zone=False,
             )
             certificate = acm.Certificate(
                 self,
