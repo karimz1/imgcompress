@@ -107,9 +107,10 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
 .md-hero__inner {
     position: relative;
     z-index: 2;
-    max-width: 1200px;
+    max-width: none;
+    width: min(1600px, 100%);
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 clamp(1.5rem, 4vw, 3rem);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -305,6 +306,11 @@ body[data-md-color-scheme="default"] .imgcompress-stats:hover {
     opacity: 0;
     overflow: hidden;
     /* clip slider corners */
+}
+
+.md-hero--imgcompress .imgcompress-screenshot-container {
+    max-width: 1400px;
+    width: 100%;
 }
 
 .imgcompress-screenshot-container .comparison-slider {
@@ -538,6 +544,26 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
     margin-bottom: 6rem !important;
 }
 
+.product-section--wide {
+    position: relative;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.product-section__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1220px) {
+    .md-hero--imgcompress ~ .md-container .md-main__inner.md-grid {
+        max-width: 80rem;
+    }
+}
+
 .section-label {
     display: table;
     margin: 0 auto 1rem;
@@ -565,6 +591,7 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     margin-top: 2rem;
+    padding-bottom: 0.75rem;
 }
 
 .feature-card {
@@ -576,6 +603,7 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
 }
 
 .feature-card:hover {
@@ -602,6 +630,12 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
     line-height: 1.6;
     margin-bottom: 0;
     font-size: 0.95rem;
+}
+
+@media (min-width: 1100px) {
+    .feature-grid--three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 /* Step Cards */
@@ -639,6 +673,8 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
 
 .md-hero--imgcompress .comparison-slider-wrapper {
     margin-top: 0;
+    max-width: 1400px;
+    width: 100%;
 }
 
 .comparison-slider {
@@ -835,10 +871,12 @@ body[data-md-color-scheme="default"] .comparison-hint strong {
 
 
 /* Premium Primary Button Overrides */
+
 .md-button--primary {
     border-radius: 12px !important;
     padding: 0.6em 2em !important;
     font-weight: 600 !important;
+    border: 1px solid rgba(var(--md-primary-fg-color--rgb), 0.9) !important;
     box-shadow: 0 4px 14px 0 rgba(var(--md-primary-fg-color--rgb), 0.3) !important;
     transition: all 0.2s ease-in-out !important;
 }
@@ -847,6 +885,7 @@ body[data-md-color-scheme="default"] .comparison-hint strong {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(var(--md-primary-fg-color--rgb), 0.4) !important;
 }
+
 
 /* Docker pulls meta line */
 .docker-pulls-meta {

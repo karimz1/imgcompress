@@ -13,6 +13,12 @@ Sometimes you have thousands of photos and don't want to drag and drop them all 
 
 It is like talking directly to the **imgcompress tool**.
 
+!!! info "Recommended for most users"
+    If you are new to ImgCompress, start with the **Web UI**. It is the easiest way to upload, tweak settings, and download results.
+    Use the CLI when you want automation or batch processing.
+
+    → Go to the [Web UI Guide](web-ui.md).
+
 ## Why use the CLI?
 
 - **Batch work**: Fix a whole folder of images in one go.

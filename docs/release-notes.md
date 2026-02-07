@@ -26,3 +26,13 @@ To ensure you have the latest features and security patches, I recommend keeping
 
 
 --8<-- "frontend/public/release-notes.md"
+
+---
+
+## How to use these notes
+
+Use this page to decide whether an update is worth applying right now or to verify that a known issue has been addressed.
+
+- If you are new, start with the [Installation Guide](installation.md).
+- If you are upgrading, review changes that affect your workflow in the [Web UI Guide](web-ui.md) and [Expert CLI Mode](cli.md).
+- If you are privacy focused, check [Privacy & Safety](privacy.md).

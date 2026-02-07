@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CDK_DIR="$ROOT_DIR/infra/cdk"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+CDK_DIR="$SCRIPT_DIR/cdk"
 VENV_DIR="$CDK_DIR/.venv"
 SITE_DIR="${DOCS_OUTPUT_DIR:-$ROOT_DIR/site}"
 DIST_DIR="$CDK_DIR/dist"
 ZIP_PATH="$DIST_DIR/docs.zip"
 HOSTED_ZONE_DOMAIN="${HOSTED_ZONE_DOMAIN:-karimzouine.com}"
-SITE_DOMAIN="${SITE_DOMAIN:-ig.$HOSTED_ZONE_DOMAIN}"
+SITE_DOMAIN="${SITE_DOMAIN:-imgcompress.$HOSTED_ZONE_DOMAIN}"
 CDK_REGION="${CDK_REGION:-us-east-1}"
 
 if ! command -v uv >/dev/null 2>&1; then
@@ -27,9 +28,9 @@ uv pip install --python "$VENV_DIR/bin/python" -r "$ROOT_DIR/docs/requirements.t
 ZENSICAL_EXTRA="${ZENSICAL_BUILD_ARGS:-}"
 if [ -n "$ZENSICAL_EXTRA" ]; then
   # shellcheck disable=SC2086
-  uv run --python "$VENV_DIR/bin/python" zensical build $ZENSICAL_EXTRA
+  (cd "$ROOT_DIR" && uv run --python "$VENV_DIR/bin/python" zensical build $ZENSICAL_EXTRA)
 else
-  uv run --python "$VENV_DIR/bin/python" zensical build
+  (cd "$ROOT_DIR" && uv run --python "$VENV_DIR/bin/python" zensical build)
 fi
 
 if [ ! -d "$SITE_DIR" ]; then

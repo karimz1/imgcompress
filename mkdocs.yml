@@ -75,7 +75,7 @@ extra_javascript:
   - assets/glightbox/glightbox.min.js
   - assets/js/glightbox-init.js
   - assets/js/external-link.js
-  - assets/js/docker-pulls.js
+  - assets/js/dockerpulls.js
   - assets/js/hero-animation.js
   - assets/js/image-comparison.js
 
@@ -145,19 +145,19 @@ extra:
 nav:
   - Home: index.md
   - Getting Started:
-    - Setting it up: installation.md
-    - Using the App: web-ui.md
+    - Installation Guide: installation.md
+    - Web UI Guide: web-ui.md
     - Privacy & Safety: privacy.md
-    - Expert mode (CLI): cli.md
+    - CLI Guide: cli.md
   - Development:
-    - What's New: release-notes.md
-    - Helping Out: contributing.md
-    - For Developers: developers.md
-    - Tests: e2e.md
+    - Release Notes: release-notes.md
+    - Contributing Guide: contributing.md
+    - Developer Guide: developers.md
+    - End-to-End Tests: e2e.md
     - Credits: credits.md
 
 
   - Help & Support:
-      - Contact: support.md
+      - Contact & Support: support.md
       - Donate: sponsorship.md
       - Hall of Fame: hall-of-fame.md

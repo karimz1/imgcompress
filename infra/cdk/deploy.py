@@ -36,7 +36,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except subprocess.CalledProcessError as exc:
-        raise SystemExit(exc.returncode) from exc
+    main()

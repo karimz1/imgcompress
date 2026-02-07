@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CDK_DIR="$ROOT_DIR/infra/cdk"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+CDK_DIR="$SCRIPT_DIR/cdk"
 VENV_DIR="$CDK_DIR/.venv"
 HOSTED_ZONE_DOMAIN="${HOSTED_ZONE_DOMAIN:-karimzouine.com}"
 SITE_DOMAIN="${SITE_DOMAIN:-ig.$HOSTED_ZONE_DOMAIN}"
