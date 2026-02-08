@@ -1,39 +1,32 @@
-# Documentation Hosting of Imgcompress using AWS CDK
+# Documentation Hosting for ImgCompress (AWS CDK)
 
-This document explains how the documentation site at https://imgcompress.karimzouine.com is deployed on AWS.
+This folder contains the AWS CDK setup that deploys the ImgCompress documentation site. The site is a static build hosted on S3 and served through CloudFront, with Route 53 managing DNS.
 
-If you’re wondering how **imgcompress** hosts its documentation site: it’s a fully static site deployed on AWS using the **AWS CDK (CloudFormation) in Python**.
+I share the infra because it makes the project easier to learn from, review, and reuse. If it helps you, great. If you want to support the project, there is a sponsor link at https://github.com/sponsors/karimz1.
 
-I prefer infrastructure-as-code over manual console setup because it’s reproducible, reviewable, and easy to evolve over time.
-
-## Why do I share the infra?
-
-I love open source, and I believe that if a project is open source, the hosting and infrastructure can be open as well. There’s no reason to hide it—sharing the setup makes it easier for others to learn, reuse, and improve on it.
-
-I hope **imgcompress** is something you enjoy using.
-
-If you’d like to support the project, a donation is always appreciated—but only if it’s comfortable for you. https://github.com/sponsors/karimz1
-
-Thanks for using the tool, and have a great day 👋
 ---
 
 ## Overview
 
-This project deploys a static documentation site using:
+The stack provisions:
 
-- **Amazon S3 (private bucket)** to store the static files
-- **Amazon CloudFront** as a global CDN (fast delivery, compression, HTTP/2 + HTTP/3)
-- **AWS Certificate Manager (ACM)** for free TLS certificates (HTTPS)
-- **Amazon Route 53** to manage DNS (A/AAAA alias records to CloudFront)
+- **Amazon S3 (private bucket)** for static files
+- **Amazon CloudFront** as the CDN (HTTP/2 + HTTP/3)
+- **AWS Certificate Manager (ACM)** for TLS certificates
+- **Amazon Route 53** for DNS (A/AAAA alias records to CloudFront)
 
 ---
 
 ## Prerequisites
 
-- AWS credentials configured locally (e.g. `aws configure`, AWS SSO, or env vars)
-- A **Route 53 public hosted zone** for your domain (e.g. `karimzouine.com`)
-- CloudFront custom domains require the ACM certificate to be created in **us-east-1**
-  - This repo defaults to `CDK_REGION=us-east-1`
+- AWS credentials configured locally (AWS CLI, SSO, or env vars)
+- `uv` installed (used to manage the venv and dependencies)
+- `python` available locally
+- `zip` available locally
+- `cdk` CLI installed (`npm i -g aws-cdk`)
+- A Route 53 public hosted zone for your domain
+
+Note: CloudFront custom domains require the ACM certificate to live in `us-east-1`. The scripts default to `CDK_REGION=us-east-1`.
 
 ---
 
@@ -41,56 +34,69 @@ This project deploys a static documentation site using:
 
 The deploy scripts read configuration via environment variables:
 
-- `HOSTED_ZONE_DOMAIN` (required when using a custom domain)  
+- `HOSTED_ZONE_DOMAIN` (required)  
   Example: `karimzouine.com`
-- `SITE_DOMAIN` (required when using a custom domain)  
+- `SITE_DOMAIN` (required)  
   Example: `imgcompress.karimzouine.com`
 - `CDK_REGION` (optional, default: `us-east-1`)
 - `DOCS_OUTPUT_DIR` (optional, default: `./site`)
+
+Important: the current scripts always pass `enable_custom_domain=true`, so a custom domain and Route 53 hosted zone are required unless you edit the scripts.
+
+---
+
+## First-Time Setup
+
+If you have not used CDK in this AWS account/region before, bootstrap once:
+
+```bash
+cd infra/cdk
+AWS_REGION=us-east-1 AWS_DEFAULT_REGION=us-east-1 cdk bootstrap
+```
 
 ---
 
 ## Deploy
 
-Deploy the documentation site to a test subdomain:
+Deploy the documentation site:
 
 ```bash
 HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=imgcompress.karimzouine.com ./infra/deploy.sh
 ```
 
-What happens during deployment:
+What this does:
 
 - Builds the static docs site
 - Uploads the output to S3
 - Creates/updates the CloudFront distribution
-- Creates/updates Route 53 alias records for the configured SITE_DOMAIN
+- Creates/updates Route 53 alias records for `SITE_DOMAIN`
 - Invalidates CloudFront paths so updates are visible immediately
 
 After deployment, the script prints the CloudFront URL and (if enabled) the custom domain URL.
 
+---
 
+## Destroy
 
-## **Destroy**
+Warning: destroying the stack deletes the S3 bucket and all uploaded site files.
 
-⚠️ **Warning:** Destroying the stack deletes the S3 bucket and all uploaded site files.
-
-``` bash
+```bash
 HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=imgcompress.karimzouine.com ./infra/distroy.sh
 ```
 
+Note: the script is named `distroy.sh` (spelling).
 
+---
 
-## **Switching from a Test Domain to the Final Domain**
+## Switching from a Test Domain to the Final Domain
 
+A clean flow is:
 
+1. Deploy to a test subdomain and verify everything works.
+2. Destroy the test stack (optional).
+3. Deploy again with the final domain.
 
-A recommended flow is:
-
-1. Deploy to test-imgcompress.* and verify everything works
-2. Destroy the test stack (optional)
-3. Deploy again using the final domain
-
-``` bash
+```bash
 # 1) test deploy
 HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=test-imgcompress.karimzouine.com ./infra/deploy.sh
 
@@ -101,53 +107,36 @@ HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=test-imgcompress.karimzouine.com 
 HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=imgcompress.karimzouine.com ./infra/deploy.sh
 ```
 
+---
 
+## DNS Notes
 
-## **DNS Notes**
-
-This setup assumes HOSTED_ZONE_DOMAIN is delegated to **Route 53** (Route 53 is authoritative DNS).
+This setup assumes `HOSTED_ZONE_DOMAIN` is delegated to Route 53.
 
 CDK will create:
 
 - A (Alias) record → CloudFront
 - AAAA (Alias) record → CloudFront
 
-If your DNS is hosted elsewhere (e.g. Cloudflare), you must create the equivalent record with your DNS provider instead (commonly a CNAME to the CloudFront domain).
+If your DNS is hosted elsewhere (e.g., Cloudflare), create equivalent records with your provider (commonly a CNAME to the CloudFront domain).
 
+---
 
-------
+## Troubleshooting
 
-## **SEO Notes**
+### CloudFront URL works, but the custom domain does not
 
-For good indexing:
+- DNS may still be propagating or cached locally.
+- Verify records resolve:
+  - `dig SITE_DOMAIN +short`
+  - `dig AAAA SITE_DOMAIN +short`
 
-- ensure robots.txt is not blocking crawlers
-- generate and submit a sitemap.xml (recommended)
-- add the domain/subdomain to Google Search Console and request indexing for key pages
+### TLS / certificate issues
 
-------
+- CloudFront custom domains require the ACM certificate in `us-east-1`.
+- Make sure you deploy with `CDK_REGION=us-east-1`.
 
+### Subpages return 404
 
-## **Troubleshooting**
-
-
-### **The CloudFront URL works, but the custom domain doesn’t**
-
-- DNS may still be propagating or cached locally
-
-- verify records resolve:
-
-  - dig SITE_DOMAIN +short
-  - dig AAAA SITE_DOMAIN +short
-
-  
-### **TLS / certificate issues**
-
-- CloudFront custom domains require the ACM certificate in **us-east-1**
-- ensure you deploy with CDK_REGION=us-east-1
-
-
-### **Subpages return 404**
-
-- ensure the static build output includes an index.html per folder
-- this setup includes a CloudFront Function that rewrites /path → /path/index.html
+- Ensure the static build output includes an `index.html` per folder.
+- This setup includes a CloudFront Function that rewrites `/path` → `/path/index.html`.

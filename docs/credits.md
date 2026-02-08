@@ -39,8 +39,8 @@ tags:
 | :--- | :--- | :--- |
 | **Containerization** | [Docker](https://www.docker.com/) | Ensures "works everywhere" portability and strict process isolation. |
 | **Distribution** | [Docker Hub](https://hub.docker.com/r/karimz1/imgcompress) | Reliable hosting for the official [imgcompress](https://hub.docker.com/r/karimz1/imgcompress) container images. |
-| **Networking** | [AWS Route 53](https://aws.amazon.com/route53/) | Highly available and scalable Cloud DNS for the project domain. |
-| **Hosting** | [AWS CloudFront + AWS S3 using AWS CDK](https://aws.amazon.com/de/cloudfront/) | Fast and secure static hosting for this documentation portal. |
+| **Networking** | [AWS Route 53](https://aws.amazon.com/route53/) | Highly available and scalable Cloud DNS for my domain. |
+| **Hosting** | [AWS CloudFront](https://aws.amazon.com/cloudfront/) + [AWS S3](https://aws.amazon.com/s3/) using [AWS CDK](https://aws.amazon.com/cdk/) | Fast and secure static hosting for this documentation portal. Want to see the original CDK script that deploys it? [infra](https://github.com/karimz1/imgcompress/tree/main/infra). |
 
 ## Documentation Framework
 
@@ -55,4 +55,3 @@ tags:
 
 !!! success "Privacy Commitment"
     By utilizing these local-first libraries, **ImgCompress** guarantees that no images, metadata, or behavioral data ever leave your local network.
-
