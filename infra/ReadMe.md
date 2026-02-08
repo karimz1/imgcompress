@@ -81,10 +81,8 @@ After deployment, the script prints the CloudFront URL and (if enabled) the cust
 Warning: destroying the stack deletes the S3 bucket and all uploaded site files.
 
 ```bash
-HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=imgcompress.karimzouine.com ./infra/distroy.sh
+HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=imgcompress.karimzouine.com ./infra/destroy.sh
 ```
-
-Note: the script is named `distroy.sh` (spelling).
 
 ---
 
@@ -101,7 +99,7 @@ A clean flow is:
 HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=test-imgcompress.karimzouine.com ./infra/deploy.sh
 
 # 2) destroy test (optional)
-HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=test-imgcompress.karimzouine.com ./infra/distroy.sh
+HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=test-imgcompress.karimzouine.com ./infra/destroy.sh
 
 # 3) final deploy
 HOSTED_ZONE_DOMAIN=karimzouine.com SITE_DOMAIN=imgcompress.karimzouine.com ./infra/deploy.sh
