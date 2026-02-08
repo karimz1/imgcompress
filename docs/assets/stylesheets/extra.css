@@ -56,6 +56,54 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
     background: #1e1e1e !important;
 }
 
+/* --- Support Cards (Donate / Hall of Fame) --- */
+.support-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin: 1.5rem 0;
+}
+
+.support-card {
+    padding: 1.1rem 1.2rem;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.support-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12);
+    border-color: var(--md-primary-fg-color);
+}
+
+.support-card p {
+    margin: 0.45rem 0;
+}
+
+.support-card p:first-child {
+    margin-top: 0;
+}
+
+.support-card p:last-child {
+    margin-bottom: 0;
+}
+
+.support-card .twemoji {
+    width: 1.1rem;
+    height: 1.1rem;
+    vertical-align: -0.2rem;
+    margin-right: 0.4rem;
+}
+
+body[data-md-color-scheme="slate"] .support-card {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(20, 22, 28, 0.95), rgba(20, 22, 28, 0.6));
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
 /* Improve readability of lightbox captions */
 .glightbox-clean .gslide-desc {
     font-size: 1rem;

@@ -14,9 +14,16 @@ Your support helps me focus on making the tool better and more secure for everyo
 [![GitHub Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=❤&logo=GitHub&color=ff69b4&style=flat-square)](https://github.com/sponsors/karimz1){ aria-label="Sponsor ImgCompress on GitHub" }
 [![PayPal Support](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white&style=flat-square)](https://www.paypal.com/paypalme/KarimZouine972){ aria-label="Donate to ImgCompress via PayPal" }
 
-[Donate via Sponsorship on GitHub](https://github.com/sponsors/karimz1).
+## Ways to support
 
-*If you donate via PayPal, please include a note with a link to your GitHub or website so I can add you to the [Hall of Fame](hall-of-fame.md).*
+!!! info "GitHub Sponsorship"
+    Support ongoing development with a recurring or one-time sponsor pledge.  
+    [Become a sponsor](https://github.com/sponsors/karimz1).
+
+!!! tip "PayPal (one-time)"
+    Prefer a one-time donation?  
+    [Donate via PayPal](https://www.paypal.com/paypalme/KarimZouine972).  
+    Include a note with your GitHub or website link so I can add you to the [Hall of Fame](hall-of-fame.md).
 
 ---
 
@@ -51,7 +58,28 @@ If you want a public thank-you, I will add your name or profile to the [Hall of 
 
 Financial support is only one way to keep this project healthy. These paths help a lot too:
 
-- Star the repo on [GitHub](https://github.com/karimz1/imgcompress).
-- File bugs or suggestions on [Contact & Support](support.md).
+<div class="support-grid" markdown="1">
+<div class="support-card" markdown="1">
+
+:material-star: **Star on GitHub**  
+Boost visibility and help others find ImgCompress.  
+[Star the repo](https://github.com/karimz1/imgcompress)
+
+</div>
+<div class="support-card" markdown="1">
+
+:material-file-edit: **Improve the docs**  
+Fix typos or clarify steps to help new users.  
+[Contributing](contributing.md)
+
+</div>
+<div class="support-card" markdown="1">
+
+:material-bug: **Report bugs or ideas**  
+Open a clear issue so I can fix it fast.  
+[Contact & Support](support.md)
+
+</div>
+</div>
 
 ---
