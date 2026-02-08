@@ -68,8 +68,8 @@ theme:
       default: lucide/hash
 
 extra_css:
-  - assets/glightbox/glightbox.min.css
-  - assets/stylesheets/extra.css
+  - assets/glightbox/glightbox.min.css?v=2
+  - assets/stylesheets/extra.css?v=2
 
 extra_javascript:
   - assets/glightbox/glightbox.min.js
