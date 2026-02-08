@@ -1,6 +1,6 @@
 # Documentation Hosting for ImgCompress (AWS CDK)
 
-This folder contains the AWS CDK setup that deploys the ImgCompress documentation site. The site is a static build hosted on S3 and served through CloudFront, with Route 53 managing DNS.
+This folder contains the AWS CDK setup that deploys the [ImgCompress documentation site](https://imgcompress.karimzouine.com). The site is a static build hosted on S3 and served through CloudFront, with Route 53 managing DNS.
 
 I share the infra because it makes the project easier to learn from, review, and reuse. If it helps you, great. If you want to support the project, there is a sponsor link at https://github.com/sponsors/karimz1.
 
