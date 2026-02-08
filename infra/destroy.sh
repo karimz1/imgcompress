@@ -24,7 +24,14 @@ fi
 uv pip install --python "$VENV_DIR/bin/python" -r "$CDK_DIR/requirements.txt"
 
 # --- Destruction Step ---
-echo "⚠️  WARNING: Destroying ImgcompressStaticSiteStack in $CDK_REGION..."
+echo "⚠️  WARNING: This will destroy ImgcompressStaticSiteStack in $CDK_REGION"
+echo "    SITE_DOMAIN: $SITE_DOMAIN"
+echo "    HOSTED_ZONE_DOMAIN: $HOSTED_ZONE_DOMAIN"
+read -r -p "Type 'destroy' to continue: " confirm
+if [ "$confirm" != "destroy" ]; then
+  echo "Aborted."
+  exit 1
+fi
 
 export PATH="$VENV_DIR/bin:$PATH"
 
