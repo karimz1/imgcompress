@@ -22,13 +22,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     let currentIndex = 0;
-    const itemHeight = 1.4; // em
+    let itemHeightPx = 0;
+
+    function updateItemHeight() {
+        if (!phraseElements[0]) return;
+        itemHeightPx = phraseElements[0].getBoundingClientRect().height;
+    }
 
     function showNextPhrase() {
         currentIndex = (currentIndex + 1) % phrases.length;
 
         // Update container transform to "scroll" up
-        container.style.transform = `translateY(-${currentIndex * itemHeight}em)`;
+        container.style.transform = `translateY(-${currentIndex * itemHeightPx}px)`;
 
         // Update active class for opacity/blur effects
         phraseElements.forEach((el, i) => {
@@ -38,6 +43,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initial state
     phraseElements[0].classList.add('active');
+    updateItemHeight();
+
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(updateItemHeight);
+    }
+
+    window.addEventListener('resize', updateItemHeight);
 
     // Cycle every 2.5 seconds (slightly faster for a modern feel)
     setInterval(showNextPhrase, 2500);

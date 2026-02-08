@@ -76,7 +76,7 @@ extra_javascript:
   - assets/js/glightbox-init.js
   - assets/js/external-link.js
   - assets/js/dockerpulls.js
-  - assets/js/hero-animation.js
+  - assets/js/hero-animation.js?v=2
   - assets/js/image-comparison.js
 
 # Plugins

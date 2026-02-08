@@ -164,9 +164,9 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
     color: #94a3b8;
     max-width: 700px;
     margin: 0 auto 2.5rem;
-    line-height: 1.4;
-    height: 1.4em;
-    /* Match line-height for strict mask */
+    line-height: 1.6;
+    height: 1.8em;
+    /* Slightly taller mask prevents iOS glyph clipping */
     overflow: hidden;
     position: relative;
     display: block !important;
@@ -187,8 +187,8 @@ body[data-md-color-scheme="slate"] .ginfocontainer {
 }
 
 .description-phrase {
-    height: 1.4em;
-    /* Must match parent line-height to align perfectly */
+    height: 1.8em;
+    /* Must match parent mask height */
     display: flex;
     align-items: center;
     justify-content: center;
