@@ -4,8 +4,6 @@
 <!-- Performance: DNS Prefetch & Preconnect for critical third-party origins -->
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-<link rel="dns-prefetch" href="https://unpkg.com">
 <link rel="dns-prefetch" href="https://dfyf412h8jisw.cloudfront.net">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,21 +11,20 @@
 <link rel="preconnect" href="https://dfyf412h8jisw.cloudfront.net">
 
 <!-- Preload critical resources -->
-<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style">
+<link rel="preload" href="{{ 'assets/vendor/fontawesome/all.min.css' | url }}" as="style">
 <link rel="preload" as="fetch" href="https://dfyf412h8jisw.cloudfront.net/pulls/karimz1/imgcompress" crossorigin>
 
 <!-- Font Awesome with async loading -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print"
+<link rel="stylesheet" href="{{ 'assets/vendor/fontawesome/all.min.css' | url }}" media="print"
   onload="this.media='all'">
 <noscript>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{{ 'assets/vendor/fontawesome/all.min.css' | url }}">
 </noscript>
 
 <!-- Tippy.js tooltip library - defer loading -->
-<script src="https://unpkg.com/@popperjs/core@2" defer></script>
-<script src="https://unpkg.com/tippy.js@6" defer></script>
-<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/shift-away.css" media="print"
-  onload="this.media='all'">
+<script src="{{ 'assets/vendor/popper/popper.min.js' | url }}" defer></script>
+<script src="{{ 'assets/vendor/tippy/tippy-bundle.umd.min.js' | url }}" defer></script>
+<link rel="stylesheet" href="{{ 'assets/vendor/tippy/shift-away.css' | url }}" media="print" onload="this.media='all'">
 
 <!-- Critical Path CSS: Pre-render layout to eliminate FCP/LCP bottlenecks -->
 <style>

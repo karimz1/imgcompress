@@ -29,6 +29,14 @@ uv pip install --python "$VENV_DIR/bin/python" \
   -r "$CDK_DIR/requirements.txt" \
   -r "$ROOT_DIR/docs/requirements.txt"
 
+# --- Formatting & Asset Bundling ---
+echo "Bundling documentation assets..."
+(
+  cd "$ROOT_DIR/docs"
+  npm install
+  npm run bundle-assets
+)
+
 # --- Build Step ---
 echo "Building static site with zensical..."
 ZENSICAL_EXTRA="${ZENSICAL_BUILD_ARGS:-}"

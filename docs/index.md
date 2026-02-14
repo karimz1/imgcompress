@@ -8,7 +8,7 @@ hero_image: "images/web-ui-workflow/web-ui-upload-configure-no-mascot.webp"
 hero_image_compare: "images/web-ui-workflow/web-ui-upload-configure.webp"
 hero_title: "ImgCompress"
 hero_subtitle_gradient: "Universal Self-Hosted Image Toolkit"
-hero_description: "The ultimate batch converter and optimizer for Docker. Process 70+ formats, compress, and remove backgrounds with private local AI—100% offline."
+hero_description: "The ultimate batch converter and optimizer for Docker. Process 70+ formats, compress, and remove backgrounds with private local AI, 100% offline."
 hero_phrases:
   - "Convert 70+ formats (HEIC, PSD, & more)."
   - "Remove image backgrounds instantly."
@@ -20,13 +20,12 @@ hero_secondary_button_text: "What is this?"
 hero_secondary_button_link: "#why-imgcompress"
 ---
 
-<!-- Hide the auto-generated H1 page title since we have a Hero section -->
+
 <style>
   .md-typeset h1, 
   .md-content__inner h1:first-child {
     display: none !important;
   }
-  /* Ensure local TOC headers are hidden visually but detectable by scroll spy */
   h2.toc-hide {
     display: block !important;
     height: 0;
@@ -35,11 +34,8 @@ hero_secondary_button_link: "#why-imgcompress"
     margin: 0;
     padding: 0;
     pointer-events: none;
-    /* Optional: precise anchor positioning offset if needed, 
-       but standard Material theme handles h2 offsets well */
   }
   
-  /* Hide 'Edit this page' button on homepage */
   .md-content__button {
     display: none !important;
   }
@@ -51,7 +47,7 @@ hero_secondary_button_link: "#why-imgcompress"
   <div class="section-label">AI Magic</div>
   <h2 class="section-title">Instant AI Background Removal (100% Private)</h2>
   <p style="font-size: 1.1rem; line-height: 1.6; color: var(--md-default-fg-color--light); max-width: 700px; margin: 0 auto 3rem;">
-    Instantly remove backgrounds with our powerful <strong>local AI</strong>—no cloud processing, no subscriptions, no tracking. Everything runs <strong>offline on your machine</strong> for total privacy.
+    Instantly remove backgrounds with our powerful <strong>local AI</strong>, no cloud processing, no subscriptions, no tracking. Everything runs <strong>offline on your machine</strong> for total privacy.
   </p>
   
   <div class="comparison-slider-wrapper">
@@ -130,17 +126,17 @@ hero_secondary_button_link: "#why-imgcompress"
   <div class="step-card">
     <div class="step-number">01</div>
     <h3>Drag & Drop</h3>
-    <p>Drag <strong>1 or 1,000 photos</strong> straight into your browser.</p>
+    <p>Drop your photos directly into the web interface.</p>
   </div>
   <div class="step-card">
     <div class="step-number">02</div>
-    <h3>One-Click Magic</h3>
-    <p><strong>Compress, Convert, or Clean</strong> backgrounds instantly.</p>
+    <h3>Pick a Task</h3>
+    <p>Shrink, convert, or remove backgrounds in one click.</p>
   </div>
   <div class="step-card">
     <div class="step-number">03</div>
-    <h3>Instant Export</h3>
-    <p>Grab your <strong>optimized files</strong> back in seconds. Done.</p>
+    <h3>Download</h3>
+    <p>Get your optimized images back instantly.</p>
   </div>
 </div>
 </div>
@@ -184,7 +180,7 @@ hero_secondary_button_link: "#why-imgcompress"
     
     <div class="solution-section">
       <h3 class="solution-title">One Toolbox for Everything</h3>
-      <p class="solution-text">So I built a single toolbox that accepts <strong>over 70+ input formats</strong>—even <strong>vector graphics</strong> or complex <strong>design projects</strong>—and converts them into usable images instantly. Whether you need to turn a <strong>PSD design</strong> into a PNG, convert <strong>HEIC photos</strong>, or shrink a massive 4K image, this tool does it automatically.</p>
+      <p class="solution-text">So I built a single toolbox that accepts <strong>over 70+ input formats</strong>, even <strong>vector graphics</strong> or complex <strong>design projects</strong>, and converts them into usable images instantly. Whether you need to turn a <strong>PSD design</strong> into a PNG, convert <strong>HEIC photos</strong>, or shrink a massive 4K image, this tool does it automatically.</p>
       <p class="solution-text">The community has now pulled the image <strong>tens of thousands of times</strong>, which shows the pain is real.</p>
     </div>
     

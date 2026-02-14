@@ -9,6 +9,15 @@ repo_name: karimz1/imgcompress
 repo_url: https://github.com/karimz1/imgcompress
 edit_uri: edit/main/docs/
 
+# Exclusion
+exclude_docs:
+  - node_modules/
+  - node_modules/*
+  - package.json
+  - package-lock.json
+  - runDocsLocal.sh
+  - requirements.txt
+
 # Copyright
 copyright: |
   &copy; 2026 Karim Zouine &middot; 
@@ -88,6 +97,12 @@ plugins:
       changefreq: daily
       priority: 1.0
 
+  - minify:
+      minify_html: true
+      minify_css: true
+      minify_js: true
+      cache_safe: true
+
   - git-revision-date-localized:
       type: datetime
       timezone: UTC
@@ -142,6 +157,7 @@ markdown_extensions:
 
 extra:
   generator: false
+  version: "v1.0.0"
 
 # Page tree
 nav:

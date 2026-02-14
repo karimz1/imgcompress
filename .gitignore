@@ -216,3 +216,6 @@ tmp/
 node_modules/
 
 readme-generated.md
+
+docs/node_modules/
+docs/assets/vendor/
