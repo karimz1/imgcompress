@@ -55,7 +55,7 @@
     "pdf-lib": "^1.17.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5",
-    "pnpm": "^10.28.2"
+    "pnpm": "^10.29.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["sharp"]
