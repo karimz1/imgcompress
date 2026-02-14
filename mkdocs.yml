@@ -77,16 +77,16 @@ theme:
       default: lucide/hash
 
 extra_css:
-  - assets/glightbox/glightbox.min.css
-  - assets/stylesheets/extra.css
+  - assets/glightbox/glightbox.min.css?v=1
+  - assets/stylesheets/extra.css?v=v1
 
 extra_javascript:
-  - assets/glightbox/glightbox.min.js
-  - assets/js/glightbox-init.js
-  - assets/js/external-link.js
-  - assets/js/dockerpulls.js
-  - assets/js/hero-animation.js
-  - assets/js/image-comparison.js
+  - assets/glightbox/glightbox.min.js?v=1
+  - assets/js/glightbox-init.js?v=1
+  - assets/js/external-link.js?v=1
+  - assets/js/dockerpulls.js?v=1
+  - assets/js/hero-animation.js?v=1
+  - assets/js/image-comparison.js?v=1
 
 # Plugins
 plugins:

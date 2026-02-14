@@ -113,6 +113,7 @@ class ImgcompressStaticSiteStack(Stack):
             default_ttl=Duration.hours(1),
             enable_accept_encoding_brotli=True,
             enable_accept_encoding_gzip=True,
+            query_string_behavior=cloudfront.CacheQueryStringBehavior.all(), 
         )
 
         assets_cache = cloudfront.CachePolicy(
@@ -122,6 +123,7 @@ class ImgcompressStaticSiteStack(Stack):
             max_ttl=Duration.days(365),
             enable_accept_encoding_brotli=True,
             enable_accept_encoding_gzip=True,
+            query_string_behavior=cloudfront.CacheQueryStringBehavior.all(),
         )
 
         request_policy = cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN
@@ -206,7 +208,7 @@ class ImgcompressStaticSiteStack(Stack):
                 "DeployDocs",
                 sources=[
                     s3deploy.Source.asset(
-                        str(cfg.docs_dir), exclude=["**/.DS_Store", "**/__MACOSX/*"]
+                        str(cfg.docs_dir), exclude=["**/.DS_Store", "**/__MACOSX/*", "node_modules/**"]
                     )
                 ],
                 destination_bucket=bucket,
