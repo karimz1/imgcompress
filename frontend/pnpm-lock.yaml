@@ -69,8 +69,8 @@ importers:
         specifier: ^19.2.0
         version: 19.2.4(react@19.2.4)
       react-dropzone:
-        specifier: ^14.4.0
-        version: 14.4.0(react@19.2.4)
+        specifier: ^15.0.0
+        version: 15.0.0(react@19.2.4)
       react-toastify:
         specifier: ^11.0.5
         version: 11.0.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2220,8 +2220,8 @@ packages:
     peerDependencies:
       react: ^19.2.4
 
-  react-dropzone@14.4.0:
-    resolution: {integrity: sha512-8VvsHqg9WGAr+wAnP0oVErK5HOwAoTOzRsxLPzbBXrtXtFfukkxMyuvdI/lJ+5OxtsrzmvWE5Eoo3Y4hMsaxpA==}
+  react-dropzone@15.0.0:
+    resolution: {integrity: sha512-lGjYV/EoqEjEWPnmiSvH4v5IoIAwQM2W4Z1C0Q/Pw2xD0eVzKPS359BQTUMum+1fa0kH2nrKjuavmTPOGhpLPg==}
     engines: {node: '>= 10.13'}
     peerDependencies:
       react: '>= 16.8 || 18.0.0'
@@ -4751,7 +4751,7 @@ snapshots:
       react: 19.2.4
       scheduler: 0.27.0
 
-  react-dropzone@14.4.0(react@19.2.4):
+  react-dropzone@15.0.0(react@19.2.4):
     dependencies:
       attr-accept: 2.2.5
       file-selector: 2.1.2
