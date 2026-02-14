@@ -419,6 +419,40 @@ body[data-md-color-scheme="default"] .imgcompress-stats:hover {
     font-size: 0.95rem;
 }
 
+/* Secondary button (ghost style) */
+.imgcompress-secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.9rem 2rem;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    transition: all 0.2s ease;
+}
+
+.imgcompress-secondary-btn:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+body[data-md-color-scheme="default"] .imgcompress-secondary-btn {
+    color: #0f172a;
+    border-color: rgba(15, 23, 42, 0.3);
+}
+
+body[data-md-color-scheme="default"] .imgcompress-secondary-btn:hover {
+    border-color: rgba(15, 23, 42, 0.6);
+    background: rgba(15, 23, 42, 0.05);
+}
+
+
 .imgcompress-stats {
     display: flex;
     align-items: center;
@@ -618,7 +652,7 @@ body[data-md-color-scheme="slate"] .tippy-box[data-theme~='light-border'] .tippy
 }
 
 @media (min-width: 1220px) {
-    .md-hero--imgcompress ~ .md-container .md-main__inner.md-grid {
+    .md-hero--imgcompress~.md-container .md-main__inner.md-grid {
         max-width: 80rem;
     }
 }
@@ -959,4 +993,283 @@ body[data-md-color-scheme="default"] .comparison-hint strong {
 .docker-pulls-main {
     line-height: 1.5;
     margin-bottom: 2px;
+}
+
+/* --- Fix Layout Shift for Docker Pull Count Widget --- */
+/* Reserve space to prevent CLS (Cumulative Layout Shift) */
+.docker-pull-count {
+    min-height: 24px;
+    min-width: 200px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.imgcompress-stats {
+    min-height: 24px;
+}
+
+/* --- Story Section Styling --- */
+.story-section {
+    max-width: 100%;
+    /* Fluid width */
+    margin: 0 auto 6rem;
+    padding: 0 4rem;
+    /* More padding for wide layout */
+}
+
+/* Ensure inner content respects constraints except grid */
+.story-content {
+    max-width: 1400px;
+    /* Limit inner content to a reasonable wide size */
+    margin: 0 auto;
+    width: 100%;
+}
+
+.story-intro {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: var(--md-default-fg-color--light);
+    text-align: center;
+    margin-bottom: 3rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Pain Points Grid */
+.pain-points-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+
+.pain-point {
+    background: var(--md-default-bg-color);
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.pain-point::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ef4444, #f59e0b);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.pain-point:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    border-color: var(--md-primary-fg-color--light);
+}
+
+.pain-point:hover::before {
+    opacity: 1;
+}
+
+.pain-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+
+.pain-point h3 {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    margin: 0.5rem 0 1rem !important;
+    color: var(--md-default-fg-color);
+}
+
+.pain-point p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--md-default-fg-color--light);
+    margin: 0;
+}
+
+/* Story Quote */
+.story-quote {
+    position: relative;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(147, 51, 234, 0.08));
+    border-left: 4px solid var(--md-primary-fg-color);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    margin: 4rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--md-default-fg-color);
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Logo Watermark */
+.story-quote::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background-image: url('../../images/mini-logo.webp');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.05;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.story-quote::before {
+    content: "\201C";
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-size: 5rem;
+    color: var(--md-primary-fg-color);
+    opacity: 0.2;
+    font-family: Georgia, serif;
+    z-index: 2;
+}
+
+.quote-subtext {
+    display: block;
+    font-size: 1rem;
+    font-weight: 400;
+    margin-top: 1rem;
+    color: var(--md-default-fg-color--light);
+    font-style: italic;
+    position: relative;
+    z-index: 2;
+}
+
+body[data-md-color-scheme="slate"] .story-quote {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(147, 51, 234, 0.15));
+}
+
+/* Solution Section */
+.solution-section {
+    background: var(--md-code-bg-color);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    margin: 3rem 0;
+    border: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.solution-title {
+    font-size: 1.8rem !important;
+    font-weight: 800 !important;
+    margin: 0 0 1.5rem !important;
+    color: var(--md-primary-fg-color);
+    text-align: center;
+}
+
+.solution-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--md-default-fg-color--light);
+    margin-bottom: 1.2rem;
+}
+
+.solution-text:last-child {
+    margin-bottom: 0;
+}
+
+.solution-text strong {
+    color: var(--md-default-fg-color);
+    /* Changed from primary color to avoid link confusion */
+    font-weight: 700;
+}
+
+/* Docker Why Section */
+.docker-why-section {
+    background: linear-gradient(135deg, rgba(36, 150, 237, 0.1), rgba(79, 70, 229, 0.1));
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    margin: 3rem 0 0;
+    border: 1px solid rgba(36, 150, 237, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.docker-why-section::before {
+    content: "🐳";
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    font-size: 8rem;
+    opacity: 0.05;
+}
+
+.docker-why-title {
+    font-size: 1.8rem !important;
+    font-weight: 800 !important;
+    margin: 0 0 1.5rem !important;
+    color: #2496ED;
+    text-align: center;
+}
+
+body[data-md-color-scheme="slate"] .docker-why-title {
+    color: #58a6ff;
+}
+
+.docker-why-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--md-default-fg-color--light);
+    margin: 0;
+}
+
+.docker-why-text strong {
+    color: var(--md-default-fg-color);
+    font-weight: 700;
+}
+
+/* Responsive adjustments for story section */
+@media screen and (max-width: 768px) {
+    .story-section {
+        padding: 0 1rem;
+    }
+
+    .story-intro {
+        font-size: 1.05rem;
+    }
+
+    .pain-points-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .story-quote {
+        font-size: 1.2rem;
+        padding: 2rem 1.5rem;
+    }
+
+    .solution-section,
+    .docker-why-section {
+        padding: 2rem 1.5rem;
+    }
+
+    .solution-title,
+    .docker-why-title {
+        font-size: 1.4rem !important;
+    }
+
+    .solution-text,
+    .docker-why-text {
+        font-size: 1rem;
+    }
 }

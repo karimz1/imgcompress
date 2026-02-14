@@ -3,11 +3,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!desc) return;
     desc.classList.add('animated');
 
-    const phrases = [
-        "Shrink images.",
-        "Remove backgrounds using local AI.",
-        "Convert formats fully offline."
-    ];
+    // Check for phrases from data attribute (set in index.md)
+    const dataPhrases = desc.getAttribute('data-phrases');
+    const phrases = dataPhrases ? dataPhrases.split(':::') : [];
+
+    // If no phrases, do not animate (leave static text)
+    if (!phrases.length) return;
 
     desc.innerHTML = '<div class="phrase-container"></div>';
     const container = desc.querySelector('.phrase-container');

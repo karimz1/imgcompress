@@ -34,6 +34,31 @@ Pick the method that works best for you. I recommend using **Docker Compose** if
             *   **`DISABLE_LOGO=true`**: Switches to the **clean, mascot-free UI** seen on the homepage.
             *   **`DISABLE_STORAGE_MANAGEMENT=true`**: Hides management features if you don't want users to see all processed files.
 
+        **Visual Preview:**
+        
+        <div class="comparison-slider-wrapper" style="margin: 2rem 0;">
+          <div class="comparison-slider" data-start-pos="50">
+            <div class="comparison-img original">
+              <img src="../images/web-ui-workflow/web-ui-upload-configure.webp" alt="Standard UI with mascot" loading="lazy">
+            </div>
+            <div class="comparison-img modified">
+              <img src="../images/web-ui-workflow/web-ui-upload-configure-no-mascot.webp" alt="Clean UI without mascot (DISABLE_LOGO=true)" loading="lazy">
+            </div>
+            <div class="slider-handle">
+              <div class="handle-line"></div>
+              <div class="handle-circle">
+                <i class="fa-solid fa-arrows-left-right"></i>
+              </div>
+              <div class="handle-line"></div>
+            </div>
+          </div>
+          <div class="comparison-switch-controls">
+            <button class="comparison-switch-btn active" data-pos="0">Standard UI</button>
+            <button class="comparison-switch-btn" data-pos="100">Clean UI (DISABLE_LOGO=true)</button>
+          </div>
+          <p class="comparison-hint">Slide to compare the two UI styles. Toggle <code>DISABLE_LOGO=true</code> in your docker-compose.yml to switch.</p>
+        </div>
+
     2.  Run this command in the same folder:
         ```bash
         docker compose up -d
