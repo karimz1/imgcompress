@@ -8,7 +8,7 @@ flask==3.1.2
 apscheduler==3.11.2
 granian==2.6.1
 pillow_heif==1.1.1
-pypdfium2==5.3.0
+pypdfium2==5.4.0
 psd-tools==1.12.1
 rembg==2.0.69
 onnxruntime==1.20.1

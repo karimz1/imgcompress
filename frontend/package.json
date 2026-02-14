@@ -28,12 +28,12 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "decode-ico": "^0.4.1",
-    "lucide-react": "^0.563.0",
+    "lucide-react": "^0.564.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
     "react": "^19.2.3",
     "react-dom": "^19.2.0",
-    "react-dropzone": "^14.4.0",
+    "react-dropzone": "^15.0.0",
     "react-toastify": "^11.0.5",
     "semver": "^7.7.4",
     "sharp": "^0.34.5",
@@ -55,7 +55,7 @@
     "pdf-lib": "^1.17.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5",
-    "pnpm": "^10.28.2"
+    "pnpm": "^10.29.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["sharp"]
