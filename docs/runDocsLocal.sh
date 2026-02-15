@@ -28,6 +28,12 @@ echo "Installing documentation dependencies..."
 
 # Start local documentation server
 echo "Starting local documentation server..."
-echo "Open http://127.0.0.1:8000 in your browser"
 
-(cd "$ROOT_DIR" && uv run .venv/bin/zensical serve)
+# Get local IP for convenience
+LOCAL_IP=$(ipconfig getifaddr en0 || ipconfig getifaddr en1 || echo "localhost")
+echo "------------------------------------------------"
+echo "💻 Local:   http://127.0.0.1:8000"
+echo "📱 Mobile:  http://$LOCAL_IP:8000"
+echo "------------------------------------------------"
+
+(cd "$ROOT_DIR" && uv run .venv/bin/zensical serve --dev-addr 0.0.0.0:8000)

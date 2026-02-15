@@ -78,14 +78,14 @@ theme:
 
 extra_css:
   - assets/glightbox/glightbox.min.css?v=1
-  - assets/stylesheets/extra.css?v=v1
+  - assets/stylesheets/extra.css?v=v2
 
 extra_javascript:
   - assets/glightbox/glightbox.min.js?v=1
   - assets/js/glightbox-init.js?v=1
   - assets/js/external-link.js?v=1
   - assets/js/dockerpulls.js?v=1
-  - assets/js/hero-animation.js?v=1
+  - assets/js/hero-animation.js?v=2
   - assets/js/image-comparison.js?v=1
 
 # Plugins

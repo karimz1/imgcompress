@@ -212,8 +212,8 @@ body[data-md-color-scheme="slate"] .support-card {
     color: #94a3b8;
     max-width: 700px;
     margin: 0 auto 2.5rem;
-    line-height: 1.6;
-    height: 1.8em;
+    line-height: 1.4;
+    min-height: 1.8em;
     /* Slightly taller mask prevents iOS glyph clipping */
     overflow: hidden;
     position: relative;
@@ -235,12 +235,13 @@ body[data-md-color-scheme="slate"] .support-card {
 }
 
 .description-phrase {
-    height: 1.8em;
+    min-height: 1.8em;
     /* Must match parent mask height */
     display: flex;
     align-items: center;
     justify-content: center;
-    white-space: nowrap;
+    white-space: normal;
+    padding: 4px 0;
     opacity: 0.15;
     filter: blur(4px);
     transition:
