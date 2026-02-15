@@ -1218,13 +1218,19 @@ body[data-md-color-scheme="slate"] .story-quote {
     overflow: hidden;
 }
 
+.docker-why-section > * {
+    position: relative;
+    z-index: 1;
+}
+
 .docker-why-section::before {
     content: "🐳";
     position: absolute;
     top: -20px;
     right: -20px;
-    font-size: 8rem;
-    opacity: 0.05;
+    font-size: 6rem;
+    opacity: 0.2;
+    z-index: 0;
 }
 
 .docker-why-title {

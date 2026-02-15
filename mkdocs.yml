@@ -78,7 +78,7 @@ theme:
 
 extra_css:
   - assets/glightbox/glightbox.min.css?v=1
-  - assets/stylesheets/extra.css?v=v2
+  - assets/stylesheets/extra.css?v=v3
 
 extra_javascript:
   - assets/glightbox/glightbox.min.js?v=1
