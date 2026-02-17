@@ -9,7 +9,9 @@
     <a href="https://imgcompress.karimzouine.com/installation/" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;background:#0f172a;color:#ffffff;font-weight:800;text-decoration:none;border:1px solid #0f172a;">Start Setup Guide →</a>
     <span style="display:inline-flex;align-items:center;gap:8px;margin-left:12px;color:#0f172a;font-weight:700;">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="Docker" width="22" height="22" />
-      <span><img src="https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=0db7ed&label=pulls" alt="Docker pulls badge"/></span>
+      <a href="https://hub.docker.com/r/karimz1/imgcompress" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=0db7ed&label=pulls" alt="Docker pulls badge"/>
+      </a>
     </span>
   </p>
 
