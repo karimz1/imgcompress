@@ -53,7 +53,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "pdf-lib": "^1.17.1",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.2.0",
     "typescript": "^5",
     "pnpm": "^10.30.1"
   },
