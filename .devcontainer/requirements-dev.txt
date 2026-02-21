@@ -18,6 +18,6 @@ pillow_heif==1.2.0
 pypdfium2==5.5.0
 psd-tools==1.12.1
 rembg==2.0.72
-onnxruntime==1.24.1
+onnxruntime==1.24.2
 granian==2.7.1
 fpdf2==2.8.6
