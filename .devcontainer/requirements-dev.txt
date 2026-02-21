@@ -14,7 +14,7 @@ colorama==0.4.6
 flask==3.1.2
 jsonify==0.5
 apscheduler==3.11.2
-pillow_heif==1.2.0
+pillow_heif==1.2.1
 pypdfium2==5.5.0
 psd-tools==1.12.1
 rembg==2.0.72
