@@ -16,7 +16,7 @@ jsonify==0.5
 apscheduler==3.11.2
 pillow_heif==1.2.1
 pypdfium2==5.5.0
-psd-tools==1.12.1
+psd-tools==1.12.2
 rembg==2.0.72
 onnxruntime==1.24.2
 granian==2.7.1
