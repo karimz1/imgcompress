@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 IMAGE_NAME="karimz1/imgcompress:local-test"
 PORT_CONTAINER=5000
@@ -9,7 +9,7 @@ DISABLE_LOGO=${DISABLE_LOGO:-false}
 DISABLE_STORAGE_MANAGEMENT=${DISABLE_STORAGE_MANAGEMENT:-false}
 
 echo "🚧 Building Docker image: $IMAGE_NAME"
-docker buildx build -t "$IMAGE_NAME" .
+docker buildx build --pull --no-cache -t "$IMAGE_NAME" .
 
 echo "🚀 Running container on http://localhost:$PORT_HOST with DISABLE_LOGO=$DISABLE_LOGO"
 docker run --rm \
