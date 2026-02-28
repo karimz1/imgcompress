@@ -46,7 +46,8 @@ LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 #
 # Together, these libraries ensure Pillow (PIL) can handle nearly every major image type used in production.
 # But I haven't tested all in CI, yet.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update --allow-releaseinfo-change -o Acquire::Retries=5 -o Acquire::http::Timeout=30; \
+    apt-get install -y --no-install-recommends \
     python3-dev python3-pip \
     libjpeg-dev libpng-dev libtiff-dev libwebp-dev libopenjp2-7-dev \
     libimagequant-dev libheif-dev liblcms2-dev \
