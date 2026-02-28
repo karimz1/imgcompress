@@ -176,7 +176,7 @@ jobs:
 
       - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-test-results-${{ env.ARCH }}
           path: e2e-test-results-${{ env.ARCH }}.zip
