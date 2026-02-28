@@ -19,5 +19,5 @@ pypdfium2==5.5.0
 psd-tools==1.12.2
 rembg==2.0.72
 onnxruntime==1.24.2
-granian==2.7.1
+granian==2.7.2
 fpdf2==2.8.6
