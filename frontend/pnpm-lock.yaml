@@ -104,7 +104,7 @@ importers:
         version: 0.5.7
       '@types/node':
         specifier: ^25
-        version: 25.3.0
+        version: 25.3.2
       '@types/react':
         specifier: ^19
         version: 19.2.14
@@ -1033,8 +1033,8 @@ packages:
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
 
-  '@types/node@25.3.0':
-    resolution: {integrity: sha512-4K3bqJpXpqfg2XKGK9bpDTc6xO/xoUP/RBWS7AtRMug6zZFaRekiLzjVtAoZMquxoAbzBvy5nxQ7veS5eYzf8A==}
+  '@types/node@25.3.2':
+    resolution: {integrity: sha512-RpV6r/ij22zRRdyBPcxDeKAzH43phWVKEjL2iksqo1Vz3CuBUrgmPpPhALKiRfU7OMCmeeO9vECBMsV0hMTG8Q==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -3419,7 +3419,7 @@ snapshots:
 
   '@types/adm-zip@0.5.7':
     dependencies:
-      '@types/node': 25.3.0
+      '@types/node': 25.3.2
 
   '@types/estree@1.0.8': {}
 
@@ -3427,7 +3427,7 @@ snapshots:
 
   '@types/json5@0.0.29': {}
 
-  '@types/node@25.3.0':
+  '@types/node@25.3.2':
     dependencies:
       undici-types: 7.18.2
 
