@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "bundle-assets": "mkdir -p assets/vendor/fontawesome assets/vendor/tippy assets/vendor/popper && cp node_modules/@fortawesome/fontawesome-free/css/all.min.css assets/vendor/fontawesome/ && cp -r node_modules/@fortawesome/fontawesome-free/webfonts assets/vendor/ && cp node_modules/@popperjs/core/dist/umd/popper.min.js assets/vendor/popper/ && cp node_modules/tippy.js/dist/tippy-bundle.umd.min.js assets/vendor/tippy/ && cp node_modules/tippy.js/animations/shift-away.css assets/vendor/tippy/"
+    "bundle-assets": "mkdir -p assets/vendor/fontawesome assets/vendor/tippy assets/vendor/popper && cp node_modules/@fortawesome/fontawesome-free/css/all.min.css assets/vendor/fontawesome/ && cp -r node_modules/@fortawesome/fontawesome-free/webfonts assets/vendor/ && cp node_modules/@popperjs/core/dist/umd/popper.min.js assets/vendor/popper/ && cp node_modules/tippy.js/dist/tippy-bundle.umd.min.js assets/vendor/tippy/ && cp node_modules/tippy.js/animations/shift-away.css assets/vendor/tippy/ && rm -rf node_modules"
   },
   "repository": {
     "type": "git",
