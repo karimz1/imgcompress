@@ -22,6 +22,9 @@ fi
 echo "Bundling third-party assets..."
 (cd "$SCRIPT_DIR" && npm install && npm run bundle-assets)
 
+# Zensical doesn't support exclude_docs, so keep docs_dir clean for search indexing
+rm -rf "$SCRIPT_DIR/node_modules"
+
 # Install documentation dependencies
 echo "Installing documentation dependencies..."
 (cd "$ROOT_DIR" && uv pip install -r docs/requirements.txt)

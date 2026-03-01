@@ -35,6 +35,8 @@ echo "Bundling documentation assets..."
   cd "$ROOT_DIR/docs"
   npm install
   npm run bundle-assets
+  # Keep docs_dir clean so Zensical doesn't index node_modules READMEs
+  rm -rf node_modules
 )
 
 # --- Build Step ---
