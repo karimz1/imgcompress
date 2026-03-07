@@ -43,7 +43,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build Dev Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .devcontainer/
           platforms: ${{ matrix.platform }}
@@ -97,7 +97,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build Application Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: ${{ matrix.platform }}
@@ -132,7 +132,7 @@ jobs:
           echo "Application is up! Continuing..."
 
       - name: Build Dev Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .devcontainer/
           platforms: ${{ matrix.platform }}
