@@ -45,7 +45,7 @@
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.2.1",
-    "@types/adm-zip": "^0.5.7",
+    "@types/adm-zip": "^0.5.8",
     "@types/semver": "^7.7.1",
     "@types/node": "^25",
     "@types/react": "^19",
