@@ -17,7 +17,7 @@ apscheduler==3.11.2
 pillow_heif==1.3.0
 pypdfium2==5.6.0
 psd-tools==1.14.2
-rembg==2.0.72
+rembg==2.0.73
 onnxruntime==1.24.4
 granian==2.7.2
 fpdf2==2.8.7
