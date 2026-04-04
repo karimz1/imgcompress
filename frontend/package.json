@@ -24,7 +24,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-use-effect-event": "^0.0.2",
-    "adm-zip": "^0.5.16",
+    "adm-zip": "^0.5.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "decode-ico": "^0.4.1",
