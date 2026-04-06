@@ -5,7 +5,7 @@ I built **ImgCompress** to end the "software loop" of cloud-based converters. Wh
 <img src="./images/logo_transparent.png" alt="ImgCompress Web UI" width="auto" height="300px" />
 
 > [!TIP]
-> **New to the project?** Start with the **[Installation & Setup Guide](https://imgcompress.karimzouine.com/installation/)** to see the tool in action before diving into the code.
+> **New to the project?** Start with the **[Installation & Setup Guide](https://imgcompress.karimzouine.com/docs/installation/)** to see the tool in action before diving into the code.
 
 ### 🛠 Developer Resources
 If you want to see how "imgcompress" works or help build the next feature:
