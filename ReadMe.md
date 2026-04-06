@@ -6,7 +6,7 @@
   <p>Offline image compression, conversion, and AI background removal for Docker homelabs.</p>
   
   <p>
-    <a href="https://imgcompress.karimzouine.com/installation/" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;background:#0f172a;color:#ffffff;font-weight:800;text-decoration:none;border:1px solid #0f172a;">Start Setup Guide →</a>
+    <a href="https://imgcompress.karimzouine.com/docs/installation" style="display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;background:#0f172a;color:#ffffff;font-weight:800;text-decoration:none;border:1px solid #0f172a;">Docker Setup Guide</a>
     <span style="display:inline-flex;align-items:center;gap:8px;margin-left:12px;color:#0f172a;font-weight:700;">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="Docker" width="22" height="22" />
       <a href="https://hub.docker.com/r/karimz1/imgcompress" target="_blank" rel="noopener noreferrer">
@@ -20,7 +20,8 @@
   </p>
 
   <p>
-    <a href="https://imgcompress.karimzouine.com/" aria-label="ImgCompress documentation">Documentation</a> ·
+    <a href="https://imgcompress.karimzouine.com/" aria-label="ImgCompress documentation">Official Website</a> ·
+     <a href="https://imgcompress.karimzouine.com/docs" aria-label="ImgCompress documentation">Documentaion</a> ·
     <a href="https://hub.docker.com/r/karimz1/imgcompress" aria-label="Docker Hub">Docker Hub</a> ·
     <a href="https://github.com/karimz1/imgcompress/blob/main/LICENSE" aria-label="License">GPL-3.0</a>
   </p>
@@ -65,7 +66,7 @@ I chose Docker because it keeps your computer clean. Instead of you having to in
 
 ## Support & Community
 
-*   **[Sponsorship & Honor Roll &rarr;](https://imgcompress.karimzouine.com/hall-of-fame/)**: Support independent development.
-*   **[Contributing &rarr;](https://imgcompress.karimzouine.com/contributing/)**: Join the open-source community.
+*   **[Sponsorship & Honor Roll &rarr;](https://imgcompress.karimzouine.com/docs/hall-of-fame)**: Support independent development.
+*   **[Contributing &rarr;](./contributing.md)**: Join the open-source community.
 
-**License**: [GPL-3.0](LICENSE) | **Author**: [Karim Zouine](https://www.karimzouine.com) | **Image & Library Credits**: [View All Credits](https://imgcompress.karimzouine.com/credits/)
+**License**: [GPL-3.0](LICENSE) | **Author**: [Karim Zouine](https://www.karimzouine.com) | **Image & Library Credits**: [View All Credits](https://imgcompress.karimzouine.com/docs/credits)
