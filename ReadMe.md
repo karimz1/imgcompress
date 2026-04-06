@@ -99,7 +99,7 @@ I thought to myself: "Why can't one tool just do it all?" Plus, uploading person
 
 So I built a single toolbox that can take over **70 different formats** and fix them all in one place. Whether you need to convert PSD or HEIC files to an image, turn a screenshot into a PDF for a work email, or shrink a massive 4K photo, this tool does it automatically.
 
-The community has now pulled the image **34,000+ times**, which shows the pain is real.
+The community has now pulled the image tens of thousands of times, which shows the pain is real.
 
 ### Why Docker?
 
