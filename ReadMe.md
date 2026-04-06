@@ -80,7 +80,7 @@ docker run -d \
   karimz1/imgcompress:latest
 ```
 
-For Docker Compose, GPU acceleration, volume mounts, and environment variables, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
+For Docker Compose, environment variables, and deploying without the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
 ---
 
