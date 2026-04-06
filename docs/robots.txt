@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://imgcompress.karimzouine.com/sitemap.xml
