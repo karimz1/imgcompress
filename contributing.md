@@ -1,6 +1,8 @@
-## 🤝 Contributing & Community
+## Contributing & Community
 
 I built **ImgCompress** to end the "software loop" of cloud-based converters. While I started this as a solo project, I welcome fellow developers to help expand our 70+ format support and improve our offline AI models!
+
+<img src="./images/logo_transparent.png" alt="ImgCompress Web UI" width="auto" height="300px" />
 
 > [!TIP]
 > **New to the project?** Start with the **[Installation & Setup Guide](https://imgcompress.karimzouine.com/installation/)** to see the tool in action before diving into the code.
