@@ -16,7 +16,7 @@
   </p>
 
   <p>
-    <img src="./docs/images/web-ui-workflow/web-ui-upload-configure.webp" alt="ImgCompress Web UI" width="100%" height="auto" />
+    <img src="./images/web-ui/web-ui-upload-configure.webp" alt="ImgCompress Web UI" width="100%" height="auto" />
   </p>
 
   <p>
@@ -32,7 +32,7 @@ Clear the background from any photo with a **local AI background remover**, no c
 
 | Original Image | Background Removed (Local AI) |
 | :--- | :--- |
-| <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="400" alt="Original Sunset Landscape"/> | <img src="docs/images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="400" alt="Landscape with Background Removed"/> |
+| <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="400" alt="Original Sunset Landscape"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="400" alt="Landscape with Background Removed"/> |
 
 ## Why I built ImgCompress
 
