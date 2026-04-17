@@ -46,7 +46,7 @@ const GitHubStarBanner: React.FC<GitHubStarBannerProps> = ({ compressionId }) =>
   if (!visible) return null;
 
   return (
-    <div className="mx-4 mt-3 rounded-lg border border-amber-200/50 bg-amber-50/40 px-4 py-3 dark:border-amber-500/15 dark:bg-amber-500/5">
+    <div data-testid="github-star-banner" className="mx-4 mt-3 rounded-lg border border-amber-200/50 bg-amber-50/40 px-4 py-3 dark:border-amber-500/15 dark:bg-amber-500/5">
       <div className="flex items-start gap-3">
         <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />
         <div className="min-w-0 flex-1">
@@ -63,6 +63,7 @@ const GitHubStarBanner: React.FC<GitHubStarBannerProps> = ({ compressionId }) =>
             helps others discover it.
           </p>
           <button
+            data-testid="github-star-banner-dismiss-btn"
             onClick={dismiss}
             className="mt-1 text-xs text-slate-400 underline underline-offset-2 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-400"
           >
