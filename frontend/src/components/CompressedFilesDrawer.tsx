@@ -15,6 +15,7 @@ import {
 import { pluralize } from "@/lib/helpers";
 import { toast, ToastContainer } from "react-toastify";
 import { FileDown } from "lucide-react";
+import GitHubStarBanner from "@/components/GitHubStarBanner";
 
 interface CompressedFilesDrawerProps {
   converted: string[];
@@ -68,6 +69,7 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
               Download your compressed {pluralize(converted.length, "Image", "Images")} individually or all at once.
             </DrawerDescription>
           </DrawerHeader>
+          <GitHubStarBanner compressionId={converted.join(",")} />
           <div className="p-1 pb-0 flex flex-col items-center">
             {converted.length > 1 && (
               <div className="text-center p-5">
