@@ -1,6 +1,6 @@
-## v0.6.1 — 2026-04-17
-- Feature: Add GitHub Star Banner to Compressed Files Drawer[#599](https://github.com/karimz1/imgcompress/issues/599)
-- Internal: Update Dependencies.
+## v0.6.1 — 2026-04-18
+- Feature: Add GitHub Star Banner to Compressed Files Drawer [#599](https://github.com/karimz1/imgcompress/issues/599)
+- Update Dependencies: This update brings all dependencies to the latest release candidates available at the time, improving security, stability, and overall reliability for imgcompress.
 
 ## v0.6.0 — 2026-01-22
 - Feature: Enhanced Image to PDF Export: Multi-Page Formatting and Page Controls [#476](https://github.com/karimz1/imgcompress/issues/476)
