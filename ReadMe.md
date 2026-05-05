@@ -53,6 +53,7 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 | **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
 | **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, image batches to paginated PDF, and more |
+| **Per-File Cropping** | Crop each upload before conversion with ratio presets (Free, 1:1, 16:9, 4:3) or custom pixel dimensions |
 | **Web UI + CLI** | Browser dashboard for day-to-day use; CLI for scripting pipelines |
 | **Single Container** | Every codec and library pre-bundled, zero host dependencies |
 | **Air-Gap Ready** | Once pulled, runs fully offline. No internet required, ever |

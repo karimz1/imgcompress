@@ -6,15 +6,12 @@ CONFIG_DIR="/container/backend/image_converter/presentation/web/static_site/conf
 
 mkdir -p "$CONFIG_DIR"
 
-# Generate runtime.json dynamically using ENV
 cat <<EOF > "$CONFIG_DIR/runtime.json"
 {
   "DISABLE_LOGO": "${DISABLE_LOGO:-false}",
-  "DISABLE_STORAGE_MANAGEMENT": "${DISABLE_STORAGE_MANAGEMENT:-false}"
+  "DISABLE_STORAGE_MANAGEMENT": "${DISABLE_STORAGE_MANAGEMENT:-false}",
+  "DEV_MODE": "${DEV_MODE:-false}"
 }
 EOF
-
-#echo "Generated runtime config:"
-#cat "$CONFIG_DIR/runtime.json"
 
 exec python -m backend.image_converter.bootstraper "$@"

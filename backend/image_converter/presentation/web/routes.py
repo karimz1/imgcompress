@@ -1,10 +1,9 @@
 import os
 import shutil
 import tempfile
-import time
 from datetime import datetime, timezone
 
-from flask import Blueprint, request, jsonify, send_from_directory
+from flask import Blueprint, Response, request, jsonify, send_file, send_from_directory
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.payload_expander_factory import create_payload_expander
@@ -14,8 +13,11 @@ from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.presentation.web.parse_services import extract_form_data
+from backend.image_converter.presentation.web.services.backend_diagnostics_service import BackendDiagnosticsService
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
+from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
+from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 
@@ -25,17 +27,22 @@ TEMP_DIR = tempfile.gettempdir()
 EXPIRATION_TIME = 3600
 logger = Logger(debug=False, json_output=False)
 
-# Core Logic
 resizer = ImageResizer()
 storage = LocalStorage()
 payload_expander = create_payload_expander(logger)
 use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
 
-# Web Services
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
 storage_management_service = StorageManagementService()
 configuration_service = ConfigurationService()
+crop_preview_service = CropPreviewService(logger, payload_expander)
+crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
+backend_diagnostics_service = BackendDiagnosticsService(
+    logger,
+    TEMP_DIR,
+    storage_management_service,
+)
 
 
 def _storage_management_disabled_response():
@@ -153,3 +160,29 @@ def verified_image_formats():
 @api_blueprint.route("/rembg_model", methods=["GET"])
 def rembg_model():
     return jsonify({"model_name": configuration_service.get_rembg_model_name()}), 200
+
+
+@api_blueprint.route("/crop_unsupported_formats", methods=["GET"])
+def crop_unsupported_formats():
+    return jsonify({
+        "unsupported_formats": crop_preview_service.get_unsupported_extensions()
+    }), 200
+
+
+@api_blueprint.route("/crop/bitmap", methods=["POST"])
+def crop_bitmap():
+    result = crop_bitmap_request_service.build(request.files)
+    if not result.is_successful:
+        return jsonify({"error": result.error}), result.status_code
+
+    return send_file(result.value, mimetype="image/png")
+
+
+@api_blueprint.route("/logs/backend", methods=["GET"])
+def backend_logs():
+    document = backend_diagnostics_service.build_log_document()
+    response = Response(document.body, mimetype=document.mimetype)
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="{document.filename}"'
+    )
+    return response

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "license": "GPL-3.0-or-later",
   "private": true,
+  "packageManager": "pnpm@10.33.2",
   "scripts": {
     "dev": "next dev --turbopack",
     "clean": "rm -rf node_modules && rm -rf .next",
@@ -54,10 +55,6 @@
     "eslint-config-next": "16.2.4",
     "pdf-lib": "^1.17.1",
     "tailwindcss": "^4.2.4",
-    "typescript": "^6",
-    "pnpm": "^10.33.2"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["sharp"]
+    "typescript": "^6"
   }
 }

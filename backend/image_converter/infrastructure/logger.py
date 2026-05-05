@@ -1,13 +1,74 @@
 import logging
+import os
 import sys
+import tempfile
+from collections import deque
+from datetime import datetime, timezone
+from threading import Lock
+
 from colorama import Fore, Style
+
+_LOG_FILE_LOCK = Lock()
+_BACKEND_LOG_FILE_ENV = "IMGCOMPRESS_BACKEND_LOG_FILE"
+_PARENT_STDOUT_CAPTURE_ENV = "IMGCOMPRESS_PARENT_STDOUT_CAPTURE"
+
+
+def get_backend_log_file_path() -> str:
+    return os.environ.get(
+        _BACKEND_LOG_FILE_ENV,
+        os.path.join(tempfile.gettempdir(), "imgcompress-backend.log"),
+    )
+
+
+def append_backend_log_line(line: str):
+    if not line:
+        return
+    ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    with _LOG_FILE_LOCK:
+        with open(get_backend_log_file_path(), "a", encoding="utf-8") as f:
+            f.write(f"[{ts}] {line.rstrip()}\n")
+
+
+class TeeStream:
+    def __init__(self, wrapped, prefix: str = ""):
+        self.wrapped = wrapped
+        self.prefix = prefix
+
+    def write(self, text: str):
+        self.wrapped.write(text)
+        self.wrapped.flush()
+        for line in text.splitlines():
+            if line.strip():
+                append_backend_log_line(f"{self.prefix}{line}")
+
+    def flush(self):
+        self.wrapped.flush()
+
+
+def install_stdout_stderr_capture():
+    if os.environ.get("IMGCOMPRESS_STDIO_CAPTURE_INSTALLED") == "true":
+        return
+    os.environ["IMGCOMPRESS_STDIO_CAPTURE_INSTALLED"] = "true"
+    sys.stdout = TeeStream(sys.stdout)
+    sys.stderr = TeeStream(sys.stderr, "[stderr] ")
+
+
+def read_backend_log_file() -> str:
+    path = get_backend_log_file_path()
+    if not os.path.exists(path):
+        return ""
+    with _LOG_FILE_LOCK:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read()
 
 
 class Logger:
-    def __init__(self, debug: bool = False, json_output: bool = False):
+    def __init__(self, debug: bool = False, json_output: bool = False, buffer_size: int = 1000):
         self.debug = debug
         self.json_output = json_output
         self.logs = []
+        self._buffer: deque[str] = deque(maxlen=buffer_size)
+        self._buffer_lock = Lock()
         self._setup_logger()
 
     def _setup_logger(self):
@@ -23,10 +84,26 @@ class Logger:
     def log(self, message: str, level: str = "info", **kwargs):
         if self._should_skip_debug(level):
             return
+        self._record_to_buffer(message, level)
         if self.json_output:
             self._store_json_log(message, level, **kwargs)
         else:
             self._log_plain_text(message, level)
+
+    def dump_buffer(self) -> str:
+        with self._buffer_lock:
+            return "\n".join(self._buffer)
+
+    def _record_to_buffer(self, message: str, level: str):
+        ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        line = f"[{ts}] [{level.upper()}] {message}"
+        with self._buffer_lock:
+            self._buffer.append(line)
+        if (
+            os.environ.get(_PARENT_STDOUT_CAPTURE_ENV) != "true"
+            and os.environ.get("IMGCOMPRESS_STDIO_CAPTURE_INSTALLED") != "true"
+        ):
+            append_backend_log_line(f"[{level.upper()}] {message}")
 
     def _should_skip_debug(self, level: str) -> bool:
         return level == "debug" and not self.debug

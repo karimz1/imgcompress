@@ -11,9 +11,10 @@ COPY frontend/ ./frontend
 WORKDIR /app/frontend
 
 # Install dependencies and build the static site.
-RUN npm i pnpm -g
-RUN CI=true pnpm install --frozen-lockfile
-RUN pnpm run build
+RUN PNPM_PACKAGE="$(node -p "require('./package.json').packageManager")" && \
+    CI=true npm exec --yes --package="$PNPM_PACKAGE" -- pnpm install --frozen-lockfile
+RUN PNPM_PACKAGE="$(node -p "require('./package.json').packageManager")" && \
+    npm exec --yes --package="$PNPM_PACKAGE" -- pnpm run build
 
 # The built static files are in /app/frontend/out/
 
