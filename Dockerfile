@@ -83,7 +83,6 @@ RUN mkdir -p /container && \
 # Switch to non-root user
 USER nonroot
 
-
 # prevents Python from writing .pyc files, saving disk space and improving load times
 # ensures Python output (logs) is sent straight to stdout/stderr without buffering
 ENV PYTHONDONTWRITEBYTECODE=1
