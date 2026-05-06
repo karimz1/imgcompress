@@ -20,7 +20,7 @@ COPY frontend/ ./frontend
 
 WORKDIR /app/frontend
 # Install dependencies and build the static site.
-# Note: This hardened node image already has pnpm installed so no need to install it.
+# Note: This hardened node image already has pnpm so no need to install it.
 RUN CI=true pnpm install --frozen-lockfile
 RUN pnpm run build
 
@@ -60,7 +60,7 @@ COPY --from=dhi.io/uv:0-debian13-dev /uv /uvx /bin/
 # (apt doesn't need to resolve metadata again after first successful run)
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
-    
+
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
@@ -128,6 +128,7 @@ PY
 # Copy entrypoint and healthcheck scripts
 COPY --chown=nonroot:nonroot entrypoint.py ./entrypoint.py
 COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
+
 # Create the directory where the static frontend will be placed.
 # Since we are nonroot, we need to ensure the parent directories exist and we have permissions.
 # The backend folder was copied earlier, so we just need to create the nested structure.
