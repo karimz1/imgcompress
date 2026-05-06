@@ -20,6 +20,7 @@ COPY frontend/ ./frontend
 
 WORKDIR /app/frontend
 # Install dependencies and build the static site.
+# Note: This hardened node image already has pnpm installed so no need to install it.
 RUN CI=true pnpm install --frozen-lockfile
 RUN pnpm run build
 
@@ -124,8 +125,9 @@ new_session(model_name)
 print(f"rembg model cached: {model_name}")
 PY
 
-# Copy entrypoint script
-COPY entrypoint.py ./entrypoint.py
+# Copy entrypoint and healthcheck scripts
+COPY --chown=nonroot:nonroot entrypoint.py ./entrypoint.py
+COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 # Create the directory where the static frontend will be placed.
 # Since we are nonroot, we need to ensure the parent directories exist and we have permissions.
 # The backend folder was copied earlier, so we just need to create the nested structure.
@@ -163,11 +165,15 @@ COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/v
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
+COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py
 
 # Copy the built frontend static site from frontend builder stage.
 COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/out/. \
     /container/backend/image_converter/presentation/web/static_site
 
 EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD ["python", "/container/healthcheck.py"]
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "python", "/container/entrypoint.py"]
