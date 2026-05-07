@@ -66,7 +66,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
-    apt-get upgrade -y && \
     apt-get install -y \
     libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
     libimagequant0 libheif1 liblcms2-2 \
