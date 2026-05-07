@@ -1,6 +1,7 @@
 import urllib.request
 import sys
 
+# Check backend health by accessing the health endpoint
 def check_health():
     url = 'http://localhost:5000/api/health/backend'
     try:

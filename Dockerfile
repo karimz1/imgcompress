@@ -10,6 +10,7 @@
 #
 # Attention required: Node 25 is not a LTS version. Should use Node 24 instead.
 # (supported by Docker Hardened Image catalog until 2027).
+# For more details, visit https://hub.docker.com/hardened-images/catalog/dhi/node
 FROM dhi.io/node:24-debian13-sfw-dev AS frontend-build-stage
 
 ENV NODE_ENV=production
@@ -49,11 +50,11 @@ COPY --from=dhi.io/uv:0-debian13-dev /uv /uvx /bin/
 # Together, these libraries ensure Pillow (PIL) can handle nearly every major image type used in production.
 # But I haven't tested all in CI, yet.
 #
-# We should spend time to install and test the production OS deps,
-# so that we can use Ubuntu Chisel to cherry-pick them instead of installing all packages blindly.
+# The dev OS deps were changed to runtime OS deps,
+# We can use Ubuntu Chisel (work on Debian packages) to further reduce the deps size.
 # About Ubuntu Chisel: https://documentation.ubuntu.com/chisel/latest/tutorial/getting-started/
 #
-# Could further use docker-slim toolkit (but it only works if we have strong code coverage).
+# Or use docker-slim, but it only works if we have strong code coverage.
 # For now, I will keep all the packages for backward compatibility.
 #
 # Feature: Docker cache mounts for faster builds
@@ -67,11 +68,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
     apt-get upgrade -y && \
     apt-get install -y \
-    python3-dev python3-pip \
-    libjpeg-dev libpng-dev libtiff-dev libwebp-dev libopenjp2-7-dev \
-    libimagequant-dev libheif-dev liblcms2-dev \
-    libfreetype6-dev libharfbuzz-dev libfribidi-dev \
-    libxcb1-dev zlib1g-dev libgif-dev \
+    libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
+    libimagequant0 libheif1 liblcms2-2 \
+    libfreetype6  libharfbuzz0b libfribidi0 \
+    libxcb1 zlib1g libgif7 \
     ghostscript dumb-init
 
 # Create container directory and set permissions for "non-root" user.
@@ -92,7 +92,8 @@ ENV PYTHONUNBUFFERED=1
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-RUN uv venv $VIRTUAL_ENV
+# Use the exact Python from the hardened image to avoid uv downloading a Python version that may have CVEs
+RUN uv venv --python /opt/python/bin/python $VIRTUAL_ENV
 
 # Main directory to deploy the application.
 WORKDIR /container
@@ -173,7 +174,7 @@ COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/out/. \
 
 EXPOSE 5000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD ["python", "/container/healthcheck.py"]
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "python", "/container/entrypoint.py"]
