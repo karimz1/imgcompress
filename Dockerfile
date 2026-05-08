@@ -3,9 +3,9 @@
 # Use Docker Hardened Image to ensure the build tools and environment is secure.
 # For more details, visit https://hub.docker.com/hardened-images/catalog/dhi/node
 #
-# The image is Debian 13 and comes with Socket Firewall Free preinstalled and configured.
-# Socket Firewall Free is a lightweight tool that protects build machines in real time, 
-# blocking malicious dependencies before they reach your build system.
+# The image is Debian 13, comes with Socket Firewall preinstalled and configured.
+# Socket Firewall is a lightweight tool that protects build machines in real time, 
+# blocking malicious dependencies before they reach build system.
 # For more details, visit https://github.com/SocketDev/sfw-free.
 #
 # Attention required: Node 25 is not a LTS version. Should use Node 24 instead.
@@ -29,11 +29,14 @@ RUN pnpm run build
 
 
 # Stage 2: PYTHON BACKEND BUILD
+# We use the DHI Python 11 + Debian for drop-in replacement
+# with the old python:11-slim-debian image.
+# Same OS, with a Socket Firewall, safer to install deps.
 # -------------------------------------------------------------
 FROM dhi.io/python:3.11-debian13-sfw-dev AS backend-build-stage
 
 # Copy uv from dhi.io/uv, a faster and smarter package manager for Python.
-# Heavily recommend the usage of uv instead of pip.
+# Heavily recommend to use uv as the replacement for pip.
 # For more details, visit https://github.com/astral-sh/uv
 COPY --from=dhi.io/uv:0-debian13-dev /uv /uvx /bin/
 
@@ -49,19 +52,18 @@ COPY --from=dhi.io/uv:0-debian13-dev /uv /uvx /bin/
 #
 # Together, these libraries ensure Pillow (PIL) can handle nearly every major image type used in production.
 # But I haven't tested all in CI, yet.
-#
-# The dev OS deps were changed to runtime OS deps,
-# We can use Ubuntu Chisel (work on Debian packages) to further reduce the deps size.
-# About Ubuntu Chisel: https://documentation.ubuntu.com/chisel/latest/tutorial/getting-started/
-#
-# Or use docker-slim, but it only works if we have strong code coverage.
-# For now, I will keep all the packages for backward compatibility.
-#
-# Feature: Docker cache mounts for faster builds
+
+# Feature: Docker cache mounts for faster builds.
 # (apt doesn't need to resolve metadata again after first successful run)
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
+# The dev OS dependencies above now changed to runtime OS dependencies (cherrry-picked by hand),
+# We can use Ubuntu Chisel (work on Debian distros) to further reduce the deps size.
+# About Ubuntu Chisel: https://documentation.ubuntu.com/chisel/latest/tutorial/getting-started/
+#
+# Or just use docker-slim, but it only works if we have strong coverage on test suites,
+# which I have no idea to confirm. For now, I keep all the packages for backward compatibility.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
@@ -74,24 +76,23 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     ghostscript dumb-init
 
 # Create container directory and set permissions for "non-root" user.
-# This user is already created in the Python Docker Hardened Image
-# and has UID/GID 65532:65532.
+# This user is already created in the Python Docker Hardened Image,
+# UID/GID 65532:65532.
 RUN mkdir -p /container && \
     chown -R nonroot:nonroot /container
 
 # Switch to non-root user
 USER nonroot
 
-# prevents Python from writing .pyc files, saving disk space and improving load times
-# ensures Python output (logs) is sent straight to stdout/stderr without buffering
+# Prevents Python from writing .pyc files, saving disk space and improving load times
+# Ensures Python output (logs) is sent straight to stdout/stderr without buffering
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Set up uv virtual environment
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Use the exact Python from the hardened image to avoid uv downloading a Python version that may have CVEs
+# Use the exact Python from this image to avoid uv downloading Python (that may have CVEs)
 RUN uv venv --python /opt/python/bin/python $VIRTUAL_ENV
 
 # Main directory to deploy the application.
@@ -128,9 +129,8 @@ PY
 COPY --chown=nonroot:nonroot entrypoint.py ./entrypoint.py
 COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 
-# Create the directory where the static frontend will be placed.
+# Create the directory where the static frontend will be copied into.
 # Since we are nonroot, we need to ensure the parent directories exist and we have permissions.
-# The backend folder was copied earlier, so we just need to create the nested structure.
 RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
 ## ---------------------------------------------------------------------------------
@@ -149,7 +149,6 @@ LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-# Set up uv virtual environment
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV U2NET_HOME=/container/.u2net
@@ -160,19 +159,21 @@ WORKDIR /container
 COPY --from=backend-build-stage /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=backend-build-stage --chown=65532:65532 /usr/bin/dumb-init /usr/bin/dumb-init
 
-# Copy Virtual Environment compiled from backend builder stage
+# Copy all installed stuffs from backend builder stage
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py
 
-# Copy the built frontend static site from frontend builder stage.
+# Copy the built frontend static site from frontend builder stage
 COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/out/. \
     /container/backend/image_converter/presentation/web/static_site
 
 EXPOSE 5000
 
+# Add instruction for container orchestrator to healthcheck the container properly
+# Use built-in Python script because this runtime hardened image doesn't have shell to exec anything
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD ["python", "/container/healthcheck.py"]
 
