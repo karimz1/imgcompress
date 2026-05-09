@@ -34,6 +34,12 @@ on:
 jobs:
   test-backend:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'issue_comment' ||
+      (
+        github.event.issue.pull_request &&
+        contains(github.event.comment.body, '/deploy-nightly')
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +96,12 @@ jobs:
   
   test-e2e:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'issue_comment' ||
+      (
+        github.event.issue.pull_request &&
+        contains(github.event.comment.body, '/deploy-nightly')
+      )
     strategy:
       fail-fast: false
       matrix:
