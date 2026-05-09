@@ -52,30 +52,23 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "number=${PR_NUMBER_INPUT}" >> "$GITHUB_OUTPUT"
+
           pr_json="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER_INPUT}")"
-          author="$(jq -r '.user.login' <<< "$pr_json")"
           head_repo="$(jq -r '.head.repo.full_name' <<< "$pr_json")"
           head_ref="$(jq -r '.head.ref' <<< "$pr_json")"
 
-          if [[ "$author" != "dependabot[bot]" ]]; then
-            echo "::error::PR #${PR_NUMBER_INPUT} author is ${author}, not Dependabot. Refusing to repair."
-            exit 1
-          fi
+          echo "head_ref=${head_ref}" >> "$GITHUB_OUTPUT"
+
           if [[ "$head_repo" != "$REPOSITORY" ]]; then
-            echo "::error::PR #${PR_NUMBER_INPUT} head repo is ${head_repo}; refusing to push to a fork."
-            exit 1
-          fi
-          if [[ ! "$head_ref" =~ ^dependabot/ ]]; then
-            echo "::error::PR #${PR_NUMBER_INPUT} head ref ${head_ref} does not look like a Dependabot branch."
-            exit 1
+            echo "is_fork=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping repair: PR #${PR_NUMBER_INPUT} head repo ${head_repo} is a fork."
+          else
+            echo "is_fork=false" >> "$GITHUB_OUTPUT"
           fi
 
-          {
-            echo "number=${PR_NUMBER_INPUT}"
-            echo "head_ref=${head_ref}"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Checkout Dependabot branch
+      - name: Checkout PR branch
+        if: steps.pr.outputs.is_fork != 'true'
         uses: actions/checkout@v6
         with:
           ref: ${{ steps.pr.outputs.head_ref }}
@@ -83,11 +76,13 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Set up Node
+        if: steps.pr.outputs.is_fork != 'true'
         uses: actions/setup-node@v6
         with:
           node-version: "24"
 
       - name: Configure git identity as imgcompress-chan
+        if: steps.pr.outputs.is_fork != 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
@@ -98,6 +93,7 @@ jobs:
           git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
 
       - name: Refresh branch from main
+        if: steps.pr.outputs.is_fork != 'true'
         run: |
           set -euo pipefail
           git fetch origin main
@@ -107,11 +103,13 @@ jobs:
           fi
 
       - name: Regenerate frontend pnpm lockfile
+        if: steps.pr.outputs.is_fork != 'true'
         env:
           PNPM_INSTALL_ARGS: "--lockfile-only --ignore-scripts"
         run: ./applyFrontendDependencyFix.sh
 
       - name: Push repaired branch
+        if: steps.pr.outputs.is_fork != 'true'
         run: git push origin "HEAD:${{ steps.pr.outputs.head_ref }}"
 
       - name: Comment outcome on PR
@@ -120,10 +118,20 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
+          IS_FORK: ${{ steps.pr.outputs.is_fork }}
           STATUS: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [[ "$STATUS" == "success" ]]; then
+          if [[ "$IS_FORK" == "true" ]]; then
+            body=$(cat <<'EOF'
+          ### Can't reach this one from here 🥺
+
+          Hi~! This PR comes from a fork, so I don't have permission to push the lockfile fix back to it. (╥﹏╥)
+
+          If you'd like the repair anyway, run `./applyFrontendDependencyFix.sh` locally on the branch and push, ne~? 💛
+          EOF
+          )
+          elif [[ "$STATUS" == "success" ]]; then
             body=$(cat <<'EOF'
           ### Frontend pnpm lockfile repaired! 🎉
 
