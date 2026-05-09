@@ -43,7 +43,12 @@ rm -rf node_modules
 rm -f pnpm-lock.yaml
 
 echo "Regenerating frontend/pnpm-lock.yaml..."
-corepack pnpm install
+PNPM_INSTALL_ARGS_ARRAY=()
+if [[ -n "${PNPM_INSTALL_ARGS:-}" ]]; then
+  read -r -a PNPM_INSTALL_ARGS_ARRAY <<< "$PNPM_INSTALL_ARGS"
+  echo "Using additional pnpm install args: $PNPM_INSTALL_ARGS"
+fi
+corepack pnpm install "${PNPM_INSTALL_ARGS_ARRAY[@]}"
 
 git -C "$SCRIPT_DIR" add frontend/pnpm-lock.yaml
 
