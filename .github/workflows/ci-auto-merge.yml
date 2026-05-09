@@ -20,6 +20,14 @@ on:
         type: boolean
         required: false
         default: false
+      test_ref:
+        description: "Branch or ref to test instead of the workflow dispatch ref"
+        required: false
+        default: ""
+      test_sha:
+        description: "Exact commit SHA expected for repaired Dependabot CI"
+        required: false
+        default: ""
   issue_comment:
     types: [created]
 
@@ -33,6 +41,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.test_sha || github.event.inputs.test_ref || github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -87,6 +97,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.test_sha || github.event.inputs.test_ref || github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -253,15 +265,18 @@ jobs:
       pull-requests: write
     if: >
       github.event_name == 'workflow_dispatch' &&
-      startsWith(github.ref_name, 'dependabot/')
+      (
+        startsWith(github.event.inputs.test_ref, 'dependabot/') ||
+        startsWith(github.ref_name, 'dependabot/')
+      )
     steps:
       - name: Inspect repaired Dependabot PR
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          HEAD_REF: ${{ github.ref_name }}
-          HEAD_SHA: ${{ github.sha }}
+          HEAD_REF: ${{ github.event.inputs.test_ref || github.ref_name }}
+          HEAD_SHA: ${{ github.event.inputs.test_sha || github.sha }}
         run: |
           set -euo pipefail
 
