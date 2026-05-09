@@ -125,11 +125,11 @@ jobs:
         run: |
           if [[ "$STATUS" == "success" ]]; then
             body=$(cat <<'EOF'
-          ### Frontend pnpm lockfile repair ✨
+          ### Frontend pnpm lockfile repaired! 🎉
 
           Yatta~! I refreshed your branch from `main` and regenerated `frontend/pnpm-lock.yaml` for you. (｡♥‿♥｡)
 
-          Gonna take a little nap while CI re-runs on the new commit~ ☁️💤
+          Gonna take a little nap while pipeline re-runs on the new commit~ ☁️💤
           EOF
           )
           else
