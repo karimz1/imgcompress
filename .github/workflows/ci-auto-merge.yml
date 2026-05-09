@@ -219,8 +219,10 @@ jobs:
     if: >
       github.event_name == 'pull_request' &&
       (
-        github.actor == 'dependabot[bot]' ||
-        github.actor == 'dependabot-preview[bot]'
+        github.actor == 'dependabot[bot]' || 
+        github.actor == 'dependabot-preview[bot]' ||
+        github.event.pull_request.user.login == 'dependabot[bot]' ||
+        github.event.pull_request.user.login == 'dependabot-preview[bot]'
       )
     steps:
       - name: Checkout
