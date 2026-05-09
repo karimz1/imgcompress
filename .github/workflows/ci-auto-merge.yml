@@ -24,6 +24,12 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded runs on the same PR / branch so we don't waste minutes
+# building stale commits and so auto-merge always acts on the latest CI.
+concurrency:
+  group: ci-auto-merge-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-backend:
     runs-on: ubuntu-latest

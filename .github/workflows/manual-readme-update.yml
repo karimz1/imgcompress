@@ -3,9 +3,14 @@ name: Manual Docker Hub Readme Update
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   update-dockerhub-description:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
