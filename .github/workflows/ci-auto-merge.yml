@@ -20,20 +20,15 @@ on:
         type: boolean
         required: false
         default: false
-      test_ref:
-        description: "Branch or ref to test instead of the workflow dispatch ref"
-        required: false
-        default: ""
-      test_sha:
-        description: "Exact commit SHA expected for repaired Dependabot CI"
-        required: false
-        default: ""
-  issue_comment:
-    types: [created]
+
+permissions:
+  contents: read
 
 jobs:
   test-backend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +37,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.inputs.test_sha || github.event.inputs.test_ref || github.ref }}
+          persist-credentials: false
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -87,9 +82,11 @@ jobs:
             devcontainer:local-test /app/runIntegrationTests.sh
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
-  
+
   test-e2e:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -98,7 +95,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.inputs.test_sha || github.event.inputs.test_ref || github.ref }}
+          persist-credentials: false
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -171,11 +168,11 @@ jobs:
 
       - name: Get CPU Architecture
         run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
-    
+
       - name: Ensure E2E Test Results Directory Exists
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
         run: mkdir -p frontend/e2e-test-results
-      
+
       - name: Zip E2E Test Results for ${{ env.ARCH }}
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
         run: |
@@ -195,235 +192,61 @@ jobs:
           retention-days: 3
 
   deploy-nightly:
-    needs: 
-      - test-backend 
+    needs:
+      - test-backend
       - test-e2e
     if: >
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true) ||
-      (github.event_name == 'issue_comment' && 
-       github.event.issue.pull_request && 
-       contains(github.event.comment.body, '/deploy-nightly'))
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true)
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
     steps:
       - name: Trigger Deployment Workflow (nightly)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          DEPLOY_REF: ${{ github.head_ref || github.ref_name }}
         run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${GH_TOKEN}" \
-            https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d "{\"event_type\": \"deploy\", \"client_payload\": {\"ref\": \"${{ github.head_ref || github.ref_name }}\"}}"
-  
+          gh api \
+            --method POST \
+            "repos/${REPOSITORY}/dispatches" \
+            -f event_type=deploy \
+            -f "client_payload[ref]=${DEPLOY_REF}"
+
   auto-merge-dependabot:
-    needs: 
-      - test-backend 
-      - test-e2e
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    if: >
-      github.event_name == 'pull_request' &&
-      (
-        github.actor == 'dependabot[bot]' || 
-        github.actor == 'dependabot-preview[bot]' ||
-        github.event.pull_request.user.login == 'dependabot[bot]' ||
-        github.event.pull_request.user.login == 'dependabot-preview[bot]'
-      )
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Auto-merge Dependabot
-        uses: pascalgn/automerge-action@v0.16.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
-          MERGE_LABELS: "dependencies"
-
-      - name: Trigger Deployment Workflow
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d "{\"event_type\": \"deploy\", \"client_payload\": {\"ref\": \"${{ github.head_ref || github.ref_name }}\"}}"
-
-  auto-merge-repaired-dependabot:
     needs:
       - test-backend
       - test-e2e
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      issues: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
     if: >
-      github.event_name == 'workflow_dispatch' &&
-      (
-        startsWith(github.event.inputs.test_ref, 'dependabot/') ||
-        startsWith(github.ref_name, 'dependabot/')
-      )
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Inspect repaired Dependabot PR
-        id: pr
+      - name: Mint imgcompress-chan token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+
+      - name: Squash-merge Dependabot PR
         env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_REF: ${{ github.event.inputs.test_ref || github.ref_name }}
-          HEAD_SHA: ${{ github.event.inputs.test_sha || github.sha }}
-        run: |
-          set -euo pipefail
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --squash --delete-branch "$PR_URL"
 
-          repair_marker="<!-- imgcompress-dependabot-repair:attempted -->"
-          legacy_repair_marker="<!-- imgcompress-frontend-dependabot-lockfile-repair:attempted -->"
-          escalation_marker="<!-- imgcompress-dependabot-repair:escalated -->"
-          legacy_escalation_marker="<!-- imgcompress-frontend-dependabot-lockfile-repair:escalated -->"
-
-          pr_number="$(
-            gh pr list \
-              --repo "$REPOSITORY" \
-              --head "$HEAD_REF" \
-              --state open \
-              --json number \
-              --jq '.[0].number // ""'
-          )"
-
-          should_merge="false"
-          skip_reason=""
-          current_head_sha=""
-
-          if [[ -z "$pr_number" ]]; then
-            skip_reason="Could not resolve an open PR for branch ${HEAD_REF}."
-          else
-            for attempt in {1..10}; do
-              pr_json="$(gh api "repos/${REPOSITORY}/pulls/${pr_number}")"
-              mergeable="$(jq -r '.mergeable // "UNKNOWN"' <<< "$pr_json")"
-              if [[ "$mergeable" != "UNKNOWN" ]]; then
-                break
-              fi
-              sleep 2
-            done
-
-            author="$(jq -r '.user.login' <<< "$pr_json")"
-            head_repo="$(jq -r '.head.repo.full_name' <<< "$pr_json")"
-            current_head_sha="$(jq -r '.head.sha' <<< "$pr_json")"
-            draft="$(jq -r '.draft' <<< "$pr_json")"
-            has_dependabot_label="$(
-              gh api "repos/${REPOSITORY}/issues/${pr_number}" --jq \
-                'any(.labels[].name; . == "dependabot")'
-            )"
-            has_dependencies_label="$(
-              gh api "repos/${REPOSITORY}/issues/${pr_number}" --jq \
-                'any(.labels[].name; . == "dependencies")'
-            )"
-
-            if gh api --paginate "repos/${REPOSITORY}/issues/${pr_number}/comments" --jq '.[].body' | grep -Fq -e "$repair_marker" -e "$legacy_repair_marker"; then
-              repair_attempted="true"
-            else
-              repair_attempted="false"
-            fi
-
-            if gh api --paginate "repos/${REPOSITORY}/issues/${pr_number}/comments" --jq '.[].body' | grep -Fq -e "$escalation_marker" -e "$legacy_escalation_marker"; then
-              already_escalated="true"
-            else
-              already_escalated="false"
-            fi
-
-            if [[ "$author" != "dependabot[bot]" && "$author" != "dependabot-preview[bot]" ]]; then
-              skip_reason="PR #${pr_number} author is ${author}, not Dependabot."
-            elif [[ "$has_dependabot_label" != "true" || "$has_dependencies_label" != "true" ]]; then
-              skip_reason="PR #${pr_number} is missing the required dependabot/dependencies labels."
-            elif [[ "$repair_attempted" != "true" ]]; then
-              skip_reason="PR #${pr_number} was not repaired by the Dependabot repair workflow."
-            elif [[ "$already_escalated" == "true" ]]; then
-              skip_reason="PR #${pr_number} already has a repair escalation marker."
-            elif [[ "$head_repo" != "$REPOSITORY" ]]; then
-              skip_reason="PR #${pr_number} head repo is ${head_repo}, not ${REPOSITORY}."
-            elif [[ "$HEAD_SHA" != "$current_head_sha" ]]; then
-              skip_reason="CI passed for ${HEAD_SHA}, but current PR head is ${current_head_sha}."
-            elif [[ "$draft" == "true" ]]; then
-              skip_reason="PR #${pr_number} is a draft."
-            elif [[ "$mergeable" != "true" ]]; then
-              skip_reason="PR #${pr_number} is not currently mergeable: ${mergeable}."
-            else
-              should_merge="true"
-            fi
-          fi
-
-          {
-            echo "number=${pr_number}"
-            echo "should_merge=${should_merge}"
-            echo "skip_reason=${skip_reason}"
-            echo "head_sha=${current_head_sha}"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Comment before squash merge
-        if: steps.pr.outputs.should_merge == 'true'
+      - name: Trigger Deployment Workflow
         env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          body_file="$(mktemp)"
-          cat > "$body_file" <<'EOF'
-          Hey, it's me, imgcompress-chan. Backend and E2E CI passed on the repaired Dependabot branch, so I'll squash-merge this PR now.
-          EOF
-          gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
-            -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
-
-      - name: Squash merge repaired Dependabot PR
-        if: steps.pr.outputs.should_merge == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-          REPOSITORY: ${{ github.repository }}
-          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
-        run: |
-          set -euo pipefail
-
-          title="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.title')"
           gh api \
-            --method PUT \
-            "repos/${REPOSITORY}/pulls/${PR_NUMBER}/merge" \
-            -f merge_method=squash \
-            -f commit_title="$title" \
-            -f commit_message="Squash-merged automatically after repaired Dependabot CI passed." \
-            -f sha="$HEAD_SHA"
-
-      - name: Comment when merge guard blocks
-        if: steps.pr.outputs.should_merge != 'true' && steps.pr.outputs.number != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-          REPOSITORY: ${{ github.repository }}
-          SKIP_REASON: ${{ steps.pr.outputs.skip_reason }}
-        run: |
-          body_file="$(mktemp)"
-          {
-            echo "imgcompress-chan report: backend and E2E CI passed for the repaired branch, but I did not auto-merge."
-            echo
-            echo "Reason: ${SKIP_REASON:-merge guard did not pass.}"
-          } > "$body_file"
-          gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
-            -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
-
-      - name: Comment when squash merge fails
-        if: failure() && steps.pr.outputs.should_merge == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          body_file="$(mktemp)"
-          cat > "$body_file" <<'EOF'
-          <!-- imgcompress-dependabot-repair:escalated -->
-          @KarimZ1 imgcompress-chan got stuck. Backend and E2E CI passed and I tried to squash-merge this repaired Dependabot PR, but GitHub rejected the merge. Please take a look when you can.
-          EOF
-          gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
-            -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
+            --method POST \
+            "repos/${REPOSITORY}/dispatches" \
+            -f event_type=deploy \
+            -f "client_payload[ref]=main"
