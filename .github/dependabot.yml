@@ -7,7 +7,7 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 20
-    labels: ["dependencies", "backend-dependencies-update"]
+    labels: ["dependencies", "backend-dependencies-update", "dependabot"]
 
   - package-ecosystem: "docker"
     directories:
@@ -15,16 +15,17 @@ updates:
       - "/.devcontainer"
     schedule:
       interval: "weekly"
-
+    labels: ["dependencies", "docker-dependencies-update", "dependabot"]
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
     rebase-strategy: auto
     open-pull-requests-limit: 20
-    labels: ["dependencies", "frontend-dependencies-update"]
+    labels: ["dependencies", "frontend-dependencies-update", "dependabot"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels: ["dependencies", "github-actions-dependencies-update", "dependabot"]
