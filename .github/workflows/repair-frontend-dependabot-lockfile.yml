@@ -139,9 +139,9 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [[ "$STATUS" == "success" ]]; then
-            body="Frontend pnpm lockfile repair completed. CI will re-run on the new commit."
+            body=$'### Frontend pnpm lockfile repair ✨\n\nYatta~! I refreshed your branch from `main` and regenerated `frontend/pnpm-lock.yaml` for you. (｡♥‿♥｡)\n\nGonna take a little nap while CI re-runs on the new commit~ ☁️💤'
           else
-            body="Frontend pnpm lockfile repair finished with status \`${STATUS}\`. See [run log](${RUN_URL})."
+            body=$'### Frontend pnpm lockfile repair 💔\n\nUwaa... gomen, senpai. The repair finished with status `'"$STATUS"$'` and I couldn'"'"'t fix it on my own. (╥﹏╥)\n\nCould you peek at the [run log]('"$RUN_URL"$') and pat my head when it'"'"'s sorted? 🥺'
           fi
           gh pr comment --repo "$REPOSITORY" "$PR_NUMBER" --body "$body" \
             || echo "::warning::Could not comment on PR #${PR_NUMBER}."
