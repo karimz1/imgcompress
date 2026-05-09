@@ -353,12 +353,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
+          default_branch="$(gh api "repos/${REPOSITORY}" --jq '.default_branch')"
+          head_sha="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+
           gh workflow run ci-auto-merge.yml \
             --repo "$REPOSITORY" \
-            --ref "$HEAD_REF" \
+            --ref "$default_branch" \
             -f upload_e2e_artifacts=false \
-            -f deploy_nightly=false
+            -f deploy_nightly=false \
+            -f test_ref="$HEAD_REF" \
+            -f test_sha="$head_sha"
 
       - name: Comment after CI-only retry dispatch
         if: steps.pr.outputs.should_dispatch_ci == 'true'
@@ -369,7 +375,7 @@ jobs:
         run: |
           body_file="$(mktemp)"
           cat > "$body_file" <<'EOF'
-          imgcompress-chan report: I dispatched CI for the already repaired branch. No new branch edits were made. If backend and E2E pass, that CI run will try to squash-merge this PR automatically.
+          imgcompress-chan report: I dispatched `CI and Auto Merge for imgcompress` from the default branch, testing this already repaired Dependabot branch. No new branch edits were made. If backend and E2E pass, that CI run will try to squash-merge this PR automatically.
           EOF
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
@@ -411,7 +417,7 @@ jobs:
             echo "- refreshed from \`main\`: ${REFRESH_CHANGED}"
             echo "- regenerated \`frontend/pnpm-lock.yaml\`: ${repair_changed}"
             echo
-            echo "I dispatched CI for the repaired branch. If backend and E2E pass, that CI run will try to squash-merge this PR automatically."
+            echo "I dispatched \`CI and Auto Merge for imgcompress\` from the default branch, testing the repaired Dependabot branch. If backend and E2E pass, that CI run will try to squash-merge this PR automatically."
           } > "$body_file"
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
