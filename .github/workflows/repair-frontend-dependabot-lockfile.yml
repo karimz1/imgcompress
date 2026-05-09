@@ -128,7 +128,11 @@ jobs:
 
           Hi~! This PR comes from a fork, so I don't have permission to push the lockfile fix back to it. (╥﹏╥)
 
-          If you'd like the repair anyway, run `./applyFrontendDependencyFix.sh` locally on the branch and push, ne~? 💛
+          If you'd like the repair anyway, please:
+
+          1. Refresh your branch by merging `main` into it first
+          2. Run `./applyFrontendDependencyFix.sh` locally
+          3. Push the result up to your fork, ne~? 💛
           EOF
           )
           elif [[ "$STATUS" == "success" ]]; then
