@@ -4,12 +4,19 @@ name: Repair frontend Dependabot pnpm lockfile
 #   - workflow_dispatch (maintainers manually pick a PR number)
 #   - PR comment "/repair-frontend-dependabot-lockfile" by karimz1
 #
+# Acts as imgcompress-chan[bot] (GitHub App). App-token pushes trigger
+# downstream pull_request workflows naturally, so ci-auto-merge runs after
+# the repair commit lands.
+#
+# Required secrets:
+#   - IMGCOMPRESS_CHAN_APP_ID
+#   - IMGCOMPRESS_CHAN_PRIVATE_KEY
+#
 # Security model:
-#   - The actor check is in the job-level `if:`, before any checkout or token use.
-#   - Only push to PRs whose head branch lives in this repo (Dependabot does;
-#     forks do not). We refuse to push to fork branches.
-#   - Lockfile regeneration uses `--lockfile-only --ignore-scripts` so no
-#     `postinstall`/`preinstall` scripts in PR-controlled package.json execute.
+#   - Actor check is at job-level `if:` before any checkout or token use.
+#   - We refuse to push to fork branches.
+#   - pnpm install uses --lockfile-only --ignore-scripts so PR-controlled
+#     package.json lifecycle hooks never execute.
 #   - We do NOT use pull_request_target.
 
 on:
@@ -41,13 +48,20 @@ jobs:
       )
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
     steps:
+      - name: Mint imgcompress-chan token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+
       - name: Resolve and validate PR
         id: pr
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER_INPUT: ${{ inputs.pr_number || github.event.issue.number }}
         run: |
@@ -81,17 +95,22 @@ jobs:
         with:
           ref: ${{ steps.pr.outputs.head_ref }}
           fetch-depth: 0
-          token: ${{ github.token }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: "24"
 
-      - name: Configure git identity
+      - name: Configure git identity as imgcompress-chan
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          set -euo pipefail
+          user_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq '.id')"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
 
       - name: Refresh branch from main
         run: |
@@ -111,17 +130,14 @@ jobs:
         run: git push origin "HEAD:${{ steps.pr.outputs.head_ref }}"
 
       - name: Comment outcome on PR
-        if: always()
+        if: always() && steps.pr.outputs.number != ''
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           STATUS: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [[ -z "$PR_NUMBER" ]]; then
-            exit 0
-          fi
           if [[ "$STATUS" == "success" ]]; then
             body="Frontend pnpm lockfile repair completed. CI will re-run on the new commit."
           else
