@@ -151,11 +151,23 @@ jobs:
       - name: Ensure repair token is configured
         if: steps.pr.outputs.should_repair == 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
           FRONTEND_DEPENDABOT_FIX_TOKEN: ${{ secrets.FRONTEND_DEPENDABOT_FIX_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
 
           if [[ -z "$FRONTEND_DEPENDABOT_FIX_TOKEN" ]]; then
+            body_file="$(mktemp)"
+            cat > "$body_file" <<'EOF'
+          I heard the Dependabot repair command, but I cannot push the repair commit yet.
+
+          Missing secret: `FRONTEND_DEPENDABOT_FIX_TOKEN`
+
+          Please add a fine-grained PAT or GitHub App token with `contents: write`. The default `GITHUB_TOKEN` can push, but GitHub will not start a fresh PR CI run from that push.
+          EOF
+            gh pr comment "$PR_NUMBER" --repo "$REPOSITORY" --body-file "$body_file"
             echo "::error::Set FRONTEND_DEPENDABOT_FIX_TOKEN to a fine-grained PAT or GitHub App token with contents:write. Commits made with the default GITHUB_TOKEN do not trigger a fresh PR CI run."
             exit 1
           fi
