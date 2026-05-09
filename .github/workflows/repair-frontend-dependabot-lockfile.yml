@@ -54,6 +54,7 @@ jobs:
           WORKFLOW_RUN_HEAD_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
           WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || '' }}
           COMMENT_AUTHOR: ${{ github.event_name == 'issue_comment' && github.event.comment.user.login || '' }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
 
@@ -77,6 +78,7 @@ jobs:
               echo "head_ref="
               echo "skip_reason=Could not resolve a pull request for this workflow run."
               echo "fix_frontend_lockfile=false"
+              echo "should_dispatch_ci=false"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -106,6 +108,7 @@ jobs:
             gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}" --jq \
               'any(.labels[].name; . == "dependabot")'
           )"
+
           if gh api --paginate "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" --jq '.[].body' | grep -Fq -e "$repair_marker" -e "$legacy_repair_marker"; then
             repair_attempted="true"
           else
@@ -120,6 +123,7 @@ jobs:
 
           should_repair="false"
           should_escalate="false"
+          should_dispatch_ci="false"
           fix_frontend_lockfile="false"
           skip_reason=""
           if [[ -n "$COMMENT_AUTHOR" && "$comment_author_permission" != "admin" && "$comment_author_permission" != "maintain" && "$comment_author_permission" != "write" ]]; then
@@ -142,16 +146,19 @@ jobs:
             if [[ "$has_frontend_label" == "true" ]]; then
               fix_frontend_lockfile="true"
             fi
-          elif [[ "$already_escalated" != "true" ]]; then
-            should_escalate="true"
-          else
+          elif [[ "$already_escalated" == "true" ]]; then
             skip_reason="lockfile repair has already been tried and escalated for PR #${PR_NUMBER}."
             echo "Skipping: ${skip_reason}"
+          elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            should_escalate="true"
+          else
+            should_dispatch_ci="true"
           fi
 
           {
             echo "should_repair=${should_repair}"
             echo "should_escalate=${should_escalate}"
+            echo "should_dispatch_ci=${should_dispatch_ci}"
             echo "number=${PR_NUMBER}"
             echo "head_ref=${head_ref}"
             echo "skip_reason=${skip_reason}"
@@ -162,7 +169,8 @@ jobs:
         if: >
           github.event_name == 'issue_comment' &&
           steps.pr.outputs.should_repair != 'true' &&
-          steps.pr.outputs.should_escalate != 'true'
+          steps.pr.outputs.should_escalate != 'true' &&
+          steps.pr.outputs.should_dispatch_ci != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -171,9 +179,9 @@ jobs:
         run: |
           body_file="$(mktemp)"
           {
-            echo "I heard the Dependabot repair command, but I skipped the repair."
+            echo "Hey, it's me, imgcompress-chan. I heard the Dependabot repair command, but I skipped the repair."
             echo
-            echo "Reason: ${SKIP_REASON:-the PR did not match the frontend Dependabot repair rules.}"
+            echo "Reason: ${SKIP_REASON:-the PR did not match the Dependabot repair rules.}"
           } > "$body_file"
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
@@ -190,18 +198,32 @@ jobs:
           if [[ "$FIX_FRONTEND_LOCKFILE" == "true" ]]; then
             cat > "$body_file" <<'EOF'
           <!-- imgcompress-dependabot-repair:attempted -->
-          I saw this frontend Dependabot PR may have a pnpm lockfile issue, so I'll refresh this branch from `main` and try running `applyFrontendDependencyFix.sh` once, following @KarimZ1's recovery notes: https://imgcompress.karimzouine.com/docs/developers#root-cause
+          Hey, it's me, imgcompress-chan. I spotted a frontend Dependabot PR that may have the pnpm lockfile desync, so I'll refresh this branch from `main` and try running `applyFrontendDependencyFix.sh` once, following @KarimZ1's recovery notes: https://imgcompress.karimzouine.com/docs/developers#root-cause
 
-          This is a one-shot repair. If CI still fails after this, I'll stop and ask for help.
+          This is a one-shot repair. If backend and E2E CI pass after this, I'll try to squash-merge it automatically. If CI still fails, I'll stop and call @KarimZ1.
           EOF
           else
             cat > "$body_file" <<'EOF'
           <!-- imgcompress-dependabot-repair:attempted -->
-          I saw this Dependabot PR is failing, so I'll refresh this branch from `main` once. This is not a frontend dependency PR, so I will not run the pnpm lockfile repair.
+          Hey, it's me, imgcompress-chan. I saw this Dependabot PR is failing, so I'll refresh this branch from `main` once. This is not a frontend dependency PR, so I will not run the pnpm lockfile repair.
 
-          This is a one-shot repair. If CI still fails after this, I'll stop and ask for help.
+          This is a one-shot repair. If backend and E2E CI pass after this, I'll try to squash-merge it automatically. If CI still fails, I'll stop and call @KarimZ1.
           EOF
           fi
+          gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
+
+      - name: Comment before CI-only retry
+        if: steps.pr.outputs.should_dispatch_ci == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          body_file="$(mktemp)"
+          cat > "$body_file" <<'EOF'
+          Hey, it's me, imgcompress-chan. I already tried the one-shot Dependabot repair on this PR, so I will not edit the branch again. I'll dispatch backend and E2E CI once more; if it passes, CI will try to squash-merge this PR automatically.
+          EOF
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
 
@@ -234,7 +256,7 @@ jobs:
         run: |
           body_file="$(mktemp)"
           cat > "$body_file" <<'EOF'
-          I'm going to refresh this Dependabot branch from `main` before applying the one-shot repair.
+          imgcompress-chan report: I'm going to refresh this Dependabot branch from `main` before applying the one-shot repair.
           EOF
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
@@ -269,21 +291,21 @@ jobs:
           if [[ "$REFRESH_CHANGED" == "true" ]]; then
             if [[ "$FIX_FRONTEND_LOCKFILE" == "true" ]]; then
               cat > "$body_file" <<'EOF'
-          Refreshed this branch from `main` successfully. I'll now regenerate `frontend/pnpm-lock.yaml` and push the repair commit if anything changed.
+          imgcompress-chan report: refreshed this branch from `main` successfully. I'll now regenerate `frontend/pnpm-lock.yaml` and push the repair commit if anything changed.
           EOF
             else
               cat > "$body_file" <<'EOF'
-          Refreshed this branch from `main` successfully. I'll push the refresh commit now so CI can try again.
+          imgcompress-chan report: refreshed this branch from `main` successfully. I'll push the refresh commit now so CI can try again.
           EOF
             fi
           else
             if [[ "$FIX_FRONTEND_LOCKFILE" == "true" ]]; then
               cat > "$body_file" <<'EOF'
-          This branch was already up to date with `main`. I'll still regenerate `frontend/pnpm-lock.yaml` once to check whether pnpm can repair it.
+          imgcompress-chan report: this branch was already up to date with `main`. I'll still regenerate `frontend/pnpm-lock.yaml` once to check whether pnpm can repair it.
           EOF
             else
               cat > "$body_file" <<'EOF'
-          This branch was already up to date with `main`, and this is not a frontend dependency PR, so there is no pnpm lockfile repair to run.
+          imgcompress-chan report: this branch was already up to date with `main`, and this is not a frontend dependency PR, so there is no pnpm lockfile repair to run.
           EOF
             fi
           fi
@@ -308,7 +330,7 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Push repaired lockfile
+      - name: Push repaired branch
         if: >
           steps.pr.outputs.should_repair == 'true' &&
           (
@@ -319,10 +341,13 @@ jobs:
 
       - name: Dispatch CI for repaired branch
         if: >
-          steps.pr.outputs.should_repair == 'true' &&
+          steps.pr.outputs.should_dispatch_ci == 'true' ||
           (
-            steps.refresh.outputs.changed == 'true' ||
-            steps.repair.outputs.changed == 'true'
+            steps.pr.outputs.should_repair == 'true' &&
+            (
+              steps.refresh.outputs.changed == 'true' ||
+              steps.repair.outputs.changed == 'true'
+            )
           )
         env:
           GH_TOKEN: ${{ github.token }}
@@ -334,6 +359,35 @@ jobs:
             --ref "$HEAD_REF" \
             -f upload_e2e_artifacts=false \
             -f deploy_nightly=false
+
+      - name: Comment after CI-only retry dispatch
+        if: steps.pr.outputs.should_dispatch_ci == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          body_file="$(mktemp)"
+          cat > "$body_file" <<'EOF'
+          imgcompress-chan report: I dispatched CI for the already repaired branch. No new branch edits were made. If backend and E2E pass, that CI run will try to squash-merge this PR automatically.
+          EOF
+          gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
+
+      - name: Comment when CI-only retry dispatch fails
+        if: failure() && steps.pr.outputs.should_dispatch_ci == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          body_file="$(mktemp)"
+          cat > "$body_file" <<'EOF'
+          <!-- imgcompress-dependabot-repair:escalated -->
+          @KarimZ1 imgcompress-chan got stuck. I tried to dispatch CI for this already repaired Dependabot PR, but GitHub rejected the dispatch. Please take a look when you can.
+          EOF
+          gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
 
       - name: Comment after pushing one-shot repair
         if: >
@@ -352,12 +406,12 @@ jobs:
           body_file="$(mktemp)"
           repair_changed="${REPAIR_CHANGED:-false}"
           {
-            echo "Pushed the one-shot Dependabot repair."
+            echo "imgcompress-chan report: pushed the one-shot Dependabot repair."
             echo
             echo "- refreshed from \`main\`: ${REFRESH_CHANGED}"
             echo "- regenerated \`frontend/pnpm-lock.yaml\`: ${repair_changed}"
             echo
-            echo "I dispatched CI for the repaired branch."
+            echo "I dispatched CI for the repaired branch. If backend and E2E pass, that CI run will try to squash-merge this PR automatically."
           } > "$body_file"
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
@@ -375,7 +429,7 @@ jobs:
           body_file="$(mktemp)"
           cat > "$body_file" <<'EOF'
           <!-- imgcompress-dependabot-repair:escalated -->
-          @KarimZ1 I tried the one-shot Dependabot repair, but refreshing from `main` and the frontend lockfile repair, when applicable, did not produce any changes. I'm lost now, please take a look when you can: https://imgcompress.karimzouine.com/docs/developers#root-cause
+          @KarimZ1 imgcompress-chan got stuck. I tried the one-shot Dependabot repair, but refreshing from `main` and the frontend lockfile repair, when applicable, did not produce any changes. Please take a look when you can: https://imgcompress.karimzouine.com/docs/developers#root-cause
           EOF
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
@@ -390,7 +444,7 @@ jobs:
           body_file="$(mktemp)"
           cat > "$body_file" <<'EOF'
           <!-- imgcompress-dependabot-repair:escalated -->
-          @KarimZ1 I tried the one-shot Dependabot repair once, but CI is still failing. I'm lost now, please take a look when you can: https://imgcompress.karimzouine.com/docs/developers#root-cause
+          @KarimZ1 imgcompress-chan got stuck. I tried the one-shot Dependabot repair once, but CI is still failing. Please take a look when you can: https://imgcompress.karimzouine.com/docs/developers#root-cause
           EOF
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
@@ -405,7 +459,7 @@ jobs:
           body_file="$(mktemp)"
           cat > "$body_file" <<'EOF'
           <!-- imgcompress-dependabot-repair:escalated -->
-          @KarimZ1 I tried the one-shot Dependabot repair, but the repair workflow itself failed before I could hand CI a clean retry. I'm lost now, please take a look when you can: https://imgcompress.karimzouine.com/docs/developers#root-cause
+          @KarimZ1 imgcompress-chan got stuck. I tried the one-shot Dependabot repair, but the repair workflow itself failed before I could hand CI a clean retry. Please take a look when you can: https://imgcompress.karimzouine.com/docs/developers#root-cause
           EOF
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" \
             -f body="$(cat "$body_file")" || echo "::warning::Could not comment on PR #${PR_NUMBER}."
