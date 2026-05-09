@@ -221,21 +221,28 @@ jobs:
       - test-e2e
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
     if: >
       github.event_name == 'pull_request' &&
       github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
+      - name: Mint imgcompress-chan token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+
       - name: Squash-merge Dependabot PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --squash --delete-branch "$PR_URL"
 
       - name: Trigger Deployment Workflow
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           REPOSITORY: ${{ github.repository }}
         run: |
           gh api \
