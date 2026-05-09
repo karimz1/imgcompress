@@ -2,7 +2,7 @@ name: Repair frontend Dependabot pnpm lockfile
 
 # Triggered by:
 #   - workflow_dispatch (maintainers manually pick a PR number)
-#   - PR comment "/repair-frontend-dependabot-lockfile" by KarimZ1
+#   - PR comment "/repair-frontend-dependabot-lockfile" by karimz1
 #
 # Security model:
 #   - The actor check is in the job-level `if:`, before any checkout or token use.
@@ -36,7 +36,7 @@ jobs:
       (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request &&
-        github.event.comment.user.login == 'KarimZ1' &&
+        github.event.comment.user.login == 'karimz1' &&
         contains(github.event.comment.body, '/repair-frontend-dependabot-lockfile')
       )
     runs-on: ubuntu-latest
