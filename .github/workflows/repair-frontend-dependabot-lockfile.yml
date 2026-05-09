@@ -4,6 +4,14 @@ on:
   workflow_run:
     workflows: ["CI and Auto Merge for imgcompress"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Existing Dependabot PR number to repair once"
+        required: true
+        type: number
+  issue_comment:
+    types: [created]
 
 permissions:
   actions: read
@@ -12,15 +20,23 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: frontend-dependabot-lockfile-repair-${{ github.event.workflow_run.head_branch }}
+  group: frontend-dependabot-lockfile-repair-${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.event_name == 'issue_comment' && github.event.issue.number || inputs.pr_number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
   repair-lockfile:
     if: >
-      github.event.workflow_run.conclusion == 'failure' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.pull_requests[0].number != null
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        contains(github.event.comment.body, '/repair-frontend-deps')
+      ) ||
+      (
+        github.event.workflow_run.conclusion == 'failure' &&
+        github.event.workflow_run.event == 'pull_request' &&
+        github.event.workflow_run.pull_requests[0].number != null
+      )
     runs-on: ubuntu-latest
 
     steps:
@@ -28,19 +44,27 @@ jobs:
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event_name == 'issue_comment' && github.event.issue.number || github.event.workflow_run.pull_requests[0].number }}
           REPOSITORY: ${{ github.repository }}
-          WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          WORKFLOW_RUN_HEAD_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
+          COMMENT_AUTHOR: ${{ github.event_name == 'issue_comment' && github.event.comment.user.login || '' }}
         run: |
           set -euo pipefail
 
           repair_marker="<!-- imgcompress-frontend-dependabot-lockfile-repair:attempted -->"
           escalation_marker="<!-- imgcompress-frontend-dependabot-lockfile-repair:escalated -->"
+          comment_author_permission="not_applicable"
 
           author="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.user.login')"
           head_repo="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.repo.full_name')"
           head_ref="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.ref')"
           current_head_sha="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+
+          if [[ -n "$COMMENT_AUTHOR" ]]; then
+            comment_author_permission="$(
+              gh api "repos/${REPOSITORY}/collaborators/${COMMENT_AUTHOR}/permission" --jq '.permission' 2>/dev/null || echo "none"
+            )"
+          fi
 
           has_frontend_label="$(
             gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}" --jq \
@@ -64,9 +88,11 @@ jobs:
 
           should_repair="false"
           should_escalate="false"
-          if [[ "$author" != "dependabot[bot]" && "$author" != "dependabot-preview[bot]" ]]; then
+          if [[ -n "$COMMENT_AUTHOR" && "$comment_author_permission" != "admin" && "$comment_author_permission" != "maintain" && "$comment_author_permission" != "write" ]]; then
+            echo "Skipping: @${COMMENT_AUTHOR} has ${comment_author_permission} permission, not write/maintain/admin."
+          elif [[ "$author" != "dependabot[bot]" && "$author" != "dependabot-preview[bot]" ]]; then
             echo "Skipping: PR #${PR_NUMBER} author is ${author}, not Dependabot."
-          elif [[ "$WORKFLOW_RUN_HEAD_SHA" != "$current_head_sha" ]]; then
+          elif [[ -n "$WORKFLOW_RUN_HEAD_SHA" && "$WORKFLOW_RUN_HEAD_SHA" != "$current_head_sha" ]]; then
             echo "Skipping: workflow run head ${WORKFLOW_RUN_HEAD_SHA} is stale; current PR head is ${current_head_sha}."
           elif [[ "$has_dependabot_label" != "true" ]]; then
             echo "Skipping: PR #${PR_NUMBER} does not have dependabot."
