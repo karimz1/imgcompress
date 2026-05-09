@@ -13,7 +13,7 @@ export CI="${CI:-true}"
 
 export SHELL="${SHELL:-/bin/sh}"
 export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"
-export PATH="$PNPM_HOME:$PATH"
+export PATH="$PNPM_HOME/bin:$PNPM_HOME:$PATH"
 echo "SHELL is: $SHELL"
 echo "PATH is: $PATH"
 
@@ -32,7 +32,8 @@ if ! command -v pnpm >/dev/null 2>&1; then
   # Fallback: direct installer (handles cases where npm is missing but curl is present)
   if ! command -v pnpm >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
     curl -fsSL https://get.pnpm.io/install.sh | SHELL="$SHELL" sh -
-    export PATH="$PNPM_HOME:$PATH"
+    export PATH="$PNPM_HOME/bin:$PNPM_HOME:$PATH"
+    hash -r
   fi
 
   if ! command -v pnpm >/dev/null 2>&1; then
