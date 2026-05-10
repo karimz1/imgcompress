@@ -2,7 +2,7 @@
 ############################################################
 # Use the build platform for this stage so that the Node
 # build tools run on the build host.
-FROM node:25 AS frontend-build
+FROM node:26 AS frontend-build
 
 WORKDIR /app
 # Copy the frontend code into this stage

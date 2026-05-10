@@ -11,6 +11,10 @@ echo "Using base URL: ${BASE_URL}"
 echo "Running E2E Tests..."
 
 export CI="${CI:-true}"
+
+export SHELL="${SHELL:-/bin/sh}"
+export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"
+export PATH="$PNPM_HOME/bin:$PNPM_HOME:$PATH"
 echo "SHELL is: $SHELL"
 echo "PATH is: $PATH"
 
@@ -34,9 +38,11 @@ run_pnpm() {
     return
   fi
 
-  if command -v pnpm >/dev/null 2>&1; then
-    pnpm "$@"
-    return
+  # Fallback: direct installer (handles cases where npm is missing but curl is present)
+  if ! command -v pnpm >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
+    curl -fsSL https://get.pnpm.io/install.sh | SHELL="$SHELL" sh -
+    export PATH="$PNPM_HOME/bin:$PNPM_HOME:$PATH"
+    hash -r
   fi
 
   echo "Neither npm nor pnpm is available; aborting E2E tests." >&2
