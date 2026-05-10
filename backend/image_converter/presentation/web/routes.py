@@ -180,6 +180,9 @@ def crop_bitmap():
 
 @api_blueprint.route("/logs/backend", methods=["GET"])
 def backend_logs():
+    if not storage_management_service.is_storage_management_enabled():
+        return _storage_management_disabled_response()
+
     document = backend_diagnostics_service.build_log_document()
     response = Response(document.body, mimetype=document.mimetype)
     response.headers["Content-Disposition"] = (

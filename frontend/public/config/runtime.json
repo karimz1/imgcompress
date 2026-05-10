@@ -1,5 +1,5 @@
 {
   "DISABLE_LOGO": "false",
   "DISABLE_STORAGE_MANAGEMENT": "false",
-  "DEV_MODE": "true"
+  "DEV_MODE": "false"
 }
