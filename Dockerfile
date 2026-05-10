@@ -4,7 +4,7 @@
 # For more details, visit https://hub.docker.com/hardened-images/catalog/dhi/node
 #
 # The image is Debian 13, comes with Socket Firewall preinstalled and configured.
-# Socket Firewall is a lightweight tool that protects build machines in real time, 
+# Socket Firewall is a lightweight tool that protects build machines in real time,
 # blocking malicious dependencies before they reach build system.
 # For more details, visit https://github.com/SocketDev/sfw-free.
 #
@@ -41,7 +41,7 @@ FROM dhi.io/python:3.11-debian13-sfw-dev AS backend-build-stage
 COPY --from=dhi.io/uv:0-debian13-dev /uv /uvx /bin/
 
 # 🧩 Install system dependencies required for full Pillow image format support
-# 
+#
 # This layer installs libraries that enable reading/writing many image formats:
 #   - libjpeg, libpng, libtiff, libwebp, libopenjp2: common raster formats (JPEG, PNG, TIFF, WebP, JPEG2000)
 #   - libimagequant: high-quality PNG quantization
@@ -113,7 +113,7 @@ COPY --chown=nonroot:nonroot backend/ ./backend
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
     uv pip install .
 
-# Pre-download rembg model so background removal feature 
+# Pre-download rembg model so background removal feature
 # doesn't need to download it at runtime.
 ENV U2NET_HOME=/container/.u2net
 RUN python - <<'PY'

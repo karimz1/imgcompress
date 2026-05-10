@@ -10,6 +10,9 @@ on:
   repository_dispatch:
     types: [ deploy ]
 
+permissions:
+  contents: read
+
 jobs:
   deploy-image-to-dockerhub:
     runs-on: ubuntu-latest

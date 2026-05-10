@@ -122,6 +122,7 @@ I chose Docker because it keeps your computer clean. Instead of you having to in
 
 - [Installation & Configuration](https://imgcompress.karimzouine.com/docs/installation): Docker setup, environment variables, reverse proxy examples
 - [Developer Guide](https://imgcompress.karimzouine.com/docs/developers): VS Code Dev Containers, architecture overview, local env setup
+- [imgcompress-chan (Bot)](https://imgcompress.karimzouine.com/docs/imgcompress-chan): Custom helper bot that repairs Dependabot pnpm lockfiles and auto-merges dependency PRs
 - [E2E Testing with Playwright](https://imgcompress.karimzouine.com/docs/e2e): How offline stability is verified across all 70+ formats
 - [Credits & Libraries](https://imgcompress.karimzouine.com/docs/credits): The open source projects that power ImgCompress
 - [Hall of Fame](https://imgcompress.karimzouine.com/docs/hall-of-fame): Sponsors and contributors
@@ -138,6 +139,13 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 - Read the **[Contributing Guide](contributing.md)** before opening a PR
 - Browse [`good-first-issue`](https://github.com/karimz1/imgcompress/labels/good-first-issue) labels for a starting point
 - Every change is verified by a Playwright E2E suite that covers all supported formats
+
+> [!NOTE]
+> **Meet [imgcompress-chan](https://imgcompress.karimzouine.com/docs/imgcompress-chan)**, the repo's custom helper bot. She auto-merges Dependabot PRs once CI passes, and if a frontend dependency update leaves a broken `pnpm-lock.yaml` you can also ask her to fix it on the spot:
+>
+> > Hey chan, can you `/chan-fix` it please? 💛
+>
+> She'll refresh the branch from `main`, regenerate the lockfile, and push the repair commit so CI re-runs. More tricks coming as she learns.
 
 ---
 

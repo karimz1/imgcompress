@@ -20,12 +20,21 @@ on:
         type: boolean
         required: false
         default: false
-  issue_comment:
-    types: [created]
+
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same PR / branch so we don't waste minutes
+# building stale commits and so auto-merge always acts on the latest CI.
+concurrency:
+  group: ci-auto-merge-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-backend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -33,6 +42,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -77,9 +88,11 @@ jobs:
             devcontainer:local-test /app/runIntegrationTests.sh
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
-  
+
   test-e2e:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -87,6 +100,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -159,11 +174,11 @@ jobs:
 
       - name: Get CPU Architecture
         run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
-    
+
       - name: Ensure E2E Test Results Directory Exists
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
         run: mkdir -p frontend/e2e-test-results
-      
+
       - name: Zip E2E Test Results for ${{ env.ARCH }}
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
         run: |
@@ -183,59 +198,61 @@ jobs:
           retention-days: 3
 
   deploy-nightly:
-    needs: 
-      - test-backend 
+    needs:
+      - test-backend
       - test-e2e
     if: >
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true) ||
-      (github.event_name == 'issue_comment' && 
-       github.event.issue.pull_request && 
-       contains(github.event.comment.body, '/deploy-nightly'))
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true)
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
     steps:
       - name: Trigger Deployment Workflow (nightly)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          DEPLOY_REF: ${{ github.head_ref || github.ref_name }}
         run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${GH_TOKEN}" \
-            https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d "{\"event_type\": \"deploy\", \"client_payload\": {\"ref\": \"${{ github.head_ref || github.ref_name }}\"}}"
-  
+          gh api \
+            --method POST \
+            "repos/${REPOSITORY}/dispatches" \
+            -f event_type=deploy \
+            -f "client_payload[ref]=${DEPLOY_REF}"
+
   auto-merge-dependabot:
-    needs: 
-      - test-backend 
+    needs:
+      - test-backend
       - test-e2e
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
     if: >
       github.event_name == 'pull_request' &&
-      (
-        github.actor == 'dependabot[bot]' ||
-        github.actor == 'dependabot-preview[bot]'
-      )
+      github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Mint imgcompress-chan token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
 
-      - name: Auto-merge Dependabot
-        uses: pascalgn/automerge-action@v0.16.4
+      - name: Squash-merge Dependabot PR
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
-          MERGE_LABELS: "dependencies"
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --squash --delete-branch "$PR_URL"
 
       - name: Trigger Deployment Workflow
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d "{\"event_type\": \"deploy\", \"client_payload\": {\"ref\": \"${{ github.head_ref || github.ref_name }}\"}}"
+          gh api \
+            --method POST \
+            "repos/${REPOSITORY}/dispatches" \
+            -f event_type=deploy \
+            -f "client_payload[ref]=main"
