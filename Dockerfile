@@ -52,7 +52,6 @@ COPY --from=dhi.io/uv:0-debian12-dev /uv /uvx /bin/
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
-# Info: python3-dev is unaffected by CVE-2026-6100, so we install it safely here.
 # Workaround: BuildKit 'COPY' cannot dynamically resolve host-architecture triplet 
 # paths (e.g. x86_64 vs aarch64). We export the matching directory to a predictable 
 # path (/dpkg-export) to facilitate architecture-agnostic multi-arch copying later.
@@ -61,7 +60,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     set -eux; \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
     apt-get install -y \
-    python3 \
     libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
     libimagequant0 libheif1 liblcms2-2 \
     libfreetype6  libharfbuzz0b libfribidi0 \
@@ -77,9 +75,12 @@ USER nonroot
 
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-# Constraint: Point to system Python interpreter to prevent uv from downloading 
-# a separate binary (which bypasses container image scanning).
-RUN uv venv --python /usr/bin/python3.11 $VIRTUAL_ENV
+# Setup standalone Python managed by uv to avoid missing python in final stage.
+# This standalone python is statically built and does not depend on OS libraries.
+ENV UV_PYTHON_INSTALL_DIR=/container/python
+RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
+    uv python install 3.11 && \
+    uv venv --python 3.11 $VIRTUAL_ENV
 
 WORKDIR /container
 
@@ -139,6 +140,7 @@ WORKDIR /container
 COPY --from=backend-build-stage /dpkg-export/usr/lib/ /usr/lib/
 COPY --from=backend-build-stage --chown=65532:65532 /usr/bin/dumb-init /usr/bin/dumb-init
 
+COPY --from=backend-build-stage --chown=65532:65532 /container/python /container/python
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
