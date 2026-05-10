@@ -4,7 +4,7 @@
 # to protect build environment from malicious dependencies.
 # Ref: https://hub.docker.com/hardened-images/catalog/dhi/node
 # Constraint: Node 26 is not yet available in DHI, fallback to LTS Node 24 (supported until 2027).
-FROM dhi.io/node:24-debian13-sfw-dev AS frontend-build-stage
+FROM dhi.io/node:24-debian13-sfw-dev@sha256:d33e9108a3a7ef728ee61f90a951dce680433a768a9a09134fd721b10f8b110b AS frontend-build-stage
 
 ENV NODE_ENV=production
 
@@ -25,14 +25,14 @@ RUN pnpm run build
 
 # Stage 2: PYTHON BACKEND BUILD
 # ------------------------------------------------------------------------------------------
-# Intent: Fallback to Debian 12 (Bookworm) because dhi.io/python:3.11-debian13 is 
+# Intent: Fallback to debian-base:trixie-debian13-dev because dhi.io/python:3.11-debian13 is 
 # currently affected by CVE-2026-6100 (CVSS 9.1) without an upstream patch.
 # Ref: https://scout.docker.com/vulnerabilities/id/CVE-2026-6100
-FROM dhi.io/debian-base:bookworm-debian12-dev AS backend-build-stage
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:9415967aa0ed8adea8b5c048994259d1982026dca143d0303c7bbe0e11ed67d3 AS backend-build-stage
 
 # Use 'uv' for high-performance Python package management instead of standard pip.
 # Ref: https://github.com/astral-sh/uv
-COPY --from=dhi.io/uv:0-debian12-dev /uv /uvx /bin/
+COPY --from=dhi.io/uv:0.11.11-debian13@sha256:33783120b652192063c0193ffbb6f5685d798221bb730906595188d7c1b2a37e /uv /uvx /bin/
 
 # 🧩 Install system dependencies required for full Pillow image format support
 #
@@ -59,12 +59,23 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
-    apt-get install -y \
+    dpkg-query -W -f='${Package}\n' | sort > /tmp/before.txt && \
+    apt-get update && apt-get install -y \
     libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
     libimagequant0 libheif1 liblcms2-2 \
     libfreetype6  libharfbuzz0b libfribidi0 \
     libxcb1 zlib1g libgif7 \
     ghostscript dumb-init && \
+    dpkg-query -W -f='${Package}\n' | sort > /tmp/after.txt && \
+    comm -13 /tmp/before.txt /tmp/after.txt > /tmp/new.txt && \
+    mkdir -p /dpkg-export && \
+    cat /tmp/new.txt | while read p; do \
+        dpkg -L "$p" | while IFS= read -r f; do \
+            if [ -f "$f" ] || [ -L "$f" ]; then \
+                cp --parents -a "$f" /dpkg-export/ 2>/dev/null || true; \
+            fi; \
+        done; \
+    done && \
     mkdir -p /dpkg-export/usr/lib && cp -a /usr/lib/*-linux-gnu /dpkg-export/usr/lib/
 
 # Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
@@ -120,7 +131,7 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
-FROM dhi.io/debian-base:bookworm-debian12 AS final-stage
+FROM dhi.io/debian-base:trixie-debian13@sha256:79ea7f22d1b7e3f73b0988258b62bcbf73da44f0d82476fbb95d811130168e55 AS final-stage
 
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
@@ -137,9 +148,7 @@ ENV U2NET_HOME=/container/.u2net
 
 WORKDIR /container
 
-COPY --from=backend-build-stage /dpkg-export/usr/lib/ /usr/lib/
-COPY --from=backend-build-stage --chown=65532:65532 /usr/bin/dumb-init /usr/bin/dumb-init
-
+COPY --from=backend-build-stage /dpkg-export/ /
 COPY --from=backend-build-stage --chown=65532:65532 /container/python /container/python
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
