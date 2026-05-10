@@ -3,7 +3,8 @@ IMAGE ?= imgcompress
 TAG ?= docker-hardened
 CLOUD_BUILDER=
 
-# Build image with sbom and provenance, good for Docker Scout to indexing layers and attestation.
+# Build image with sbom and provenance, 
+# good for Docker Scout to indexing layers and attestation.
 build:
 	docker buildx build \
 	--sbom="generator=docker/buildkit-syft-scanner:latest" \
@@ -11,7 +12,8 @@ build:
 	-t $(REGISTRY)/$(IMAGE):$(TAG) \
 	.
 
-# Use Cloudbuild for faster build. Need a Docker Hub account and init a Cloud Builder
+# Use Docker Hub Cloudbuild for faster build. 
+# Need a Docker Hub account and must init a Cloud Builder first.
 # cloud_build:
 # 	docker buildx build \
 # 	--builder $(CLOUD_BUILDER) \
@@ -21,7 +23,8 @@ build:
 # 	--push \
 # 	.
 
-# Call Trivy scan image for vulnerabilites. It is a best practice to check the image after you build it.
+# Call Trivy to scan image for vulnerabilites. 
+# It is a best practice to check the image after you build it.
 trivy:
 	docker run --rm -v \
 	/var/run/docker.sock:/var/run/docker.sock \
