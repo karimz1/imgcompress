@@ -16,15 +16,15 @@ build:
 
 # Use Docker Hub Cloudbuild for faster build. 
 # Need a Docker Hub account and must init a Cloud Builder first.
-# cloud_build:
-# 	docker buildx build \
-# 	--platform linux/amd64,linux/arm64 \
-# 	--builder $(CLOUD_BUILDER) \
-# 	--sbom="generator=docker/buildkit-syft-scanner:latest" \
-# 	--provenance="mode=max" \
-# 	-t $(REGISTRY)/$(IMAGE):$(TAG) \
-# 	--push \
-# 	.
+cloud_build:
+	docker buildx build \
+	--platform linux/amd64,linux/arm64 \
+	--builder $(CLOUD_BUILDER) \
+	--sbom="generator=docker/buildkit-syft-scanner:latest" \
+	--provenance="mode=max" \
+	-t $(REGISTRY)/$(IMAGE):$(TAG) \
+	--push \
+	.
 
 # Call Trivy to scan image for vulnerabilites. 
 # It is a best practice to check the image after you build it.

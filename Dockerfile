@@ -1,43 +1,38 @@
 # Stage 1: FRONTEND BUILD
 # ------------------------------------------------------------------------------------------
-# Use Docker Hardened Image to ensure the build tools and environment is secure.
-# For more details, visit https://hub.docker.com/hardened-images/catalog/dhi/node
-#
-# The image is Debian 13, comes with Socket Firewall preinstalled and configured.
-# Socket Firewall is a lightweight tool that protects build machines in real time,
-# blocking malicious dependencies before they reach build system.
-# For more details, visit https://github.com/SocketDev/sfw-free.
-#
-# Attention: Node 26 has not yet been added to Docker Hardened Image catalog, 
-# must use Node 24 instead (supported until 2027).
+# Docker Hardened Image (DHI) Debian 13 base with Socket Firewall pre-installed
+# to protect build environment from malicious dependencies.
+# Ref: https://hub.docker.com/hardened-images/catalog/dhi/node
+# Constraint: Node 26 is not yet available in DHI, fallback to LTS Node 24 (supported until 2027).
 FROM dhi.io/node:24-debian13-sfw-dev AS frontend-build-stage
 
 ENV NODE_ENV=production
 
 WORKDIR /app
-# Copy the frontend code
 COPY frontend/ ./frontend
 
 WORKDIR /app/frontend
-# Install dependencies and build the static site.
-# Note: This hardened node image already has pnpm so no need to install it.
-RUN CI=true pnpm install --frozen-lockfile
+# Note: Hardened Node image pre-installs pnpm.
+# Intent: Use BuildKit cache mount for the pnpm global store to speed up rebuilds
+# when package.json is modified.
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm config set store-dir /pnpm/store && \
+    CI=true pnpm install --frozen-lockfile
 RUN pnpm run build
 
 # The built static files are in /app/frontend/out/
 
 
 # Stage 2: PYTHON BACKEND BUILD
-# We use the DHI Python 11 + Debian for drop-in replacement
-# with the old python:11-slim-debian image.
-# Same OS, with a Socket Firewall, safer to install deps.
-# -------------------------------------------------------------
-FROM dhi.io/python:3.11-debian13-sfw-dev AS backend-build-stage
+# ------------------------------------------------------------------------------------------
+# Intent: Fallback to Debian 12 (Bookworm) because dhi.io/python:3.11-debian13 is 
+# currently affected by CVE-2026-6100 (CVSS 9.1) without an upstream patch.
+# Ref: https://scout.docker.com/vulnerabilities/id/CVE-2026-6100
+FROM dhi.io/debian-base:bookworm-debian12-dev AS backend-build-stage
 
-# Copy uv from dhi.io/uv, a faster and smarter package manager for Python.
-# Heavily recommend to use uv as the replacement for pip.
-# For more details, visit https://github.com/astral-sh/uv
-COPY --from=dhi.io/uv:0-debian13-dev /uv /uvx /bin/
+# Use 'uv' for high-performance Python package management instead of standard pip.
+# Ref: https://github.com/astral-sh/uv
+COPY --from=dhi.io/uv:0-debian12-dev /uv /uvx /bin/
 
 # 🧩 Install system dependencies required for full Pillow image format support
 #
@@ -57,65 +52,55 @@ COPY --from=dhi.io/uv:0-debian13-dev /uv /uvx /bin/
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
-# The dev OS dependencies above now changed to runtime OS dependencies (cherrry-picked by hand),
-# We can use Ubuntu Chisel (work on Debian distros) to further reduce the deps size.
-# About Ubuntu Chisel: https://documentation.ubuntu.com/chisel/latest/tutorial/getting-started/
-#
-# Or just use docker-slim, but it only works if we have strong coverage on test suites,
-# which I have no idea to confirm. For now, I keep all the packages for backward compatibility.
+# Info: python3-dev is unaffected by CVE-2026-6100, so we install it safely here.
+# Workaround: BuildKit 'COPY' cannot dynamically resolve host-architecture triplet 
+# paths (e.g. x86_64 vs aarch64). We export the matching directory to a predictable 
+# path (/dpkg-export) to facilitate architecture-agnostic multi-arch copying later.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
     apt-get install -y \
+    python3-dev \
     libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
     libimagequant0 libheif1 liblcms2-2 \
     libfreetype6  libharfbuzz0b libfribidi0 \
     libxcb1 zlib1g libgif7 \
-    ghostscript dumb-init
+    ghostscript dumb-init && \
+    mkdir -p /dpkg-export/usr/lib && cp -a /usr/lib/*-linux-gnu /dpkg-export/usr/lib/
 
-# Create container directory and set permissions for "non-root" user.
-# This user is already created in the Python Docker Hardened Image,
-# UID/GID 65532:65532.
+# Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
 RUN mkdir -p /container && \
     chown -R nonroot:nonroot /container
 
-# Switch to non-root user
 USER nonroot
 
-# Prevents Python from writing .pyc files, saving disk space and improving load times
-# Ensures Python output (logs) is sent straight to stdout/stderr without buffering
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set up uv virtual environment
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-# Use the exact Python from this image to avoid uv downloading Python (that may have CVEs)
-RUN uv venv --python /opt/python/bin/python $VIRTUAL_ENV
+# Constraint: Point to system Python interpreter to prevent uv from downloading 
+# a separate binary (which bypasses container image scanning).
+RUN uv venv --python /usr/bin/python3.11 $VIRTUAL_ENV
 
-# Main directory to deploy the application.
 WORKDIR /container
 
-# Copy requirements and setup files first to leverage layer caching for dependencies
 COPY --chown=nonroot:nonroot requirements.txt .
 COPY --chown=nonroot:nonroot setup.py .
 
-# Feat: Docker cache mounts for faster builds (preserve uv cache between builds)
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
     uv pip install -r requirements.txt
 
-# Copy backend code
 COPY --chown=nonroot:nonroot backend/ ./backend
 
-# Install the backend code itself
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
     uv pip install .
 
-# Pre-download rembg model so background removal feature
-# doesn't need to download it at runtime.
+# Pre-download rembg model to prevent download overhead during runtime.
 ENV U2NET_HOME=/container/.u2net
-RUN python - <<'PY'
+# Intent: Since backend code is copied earlier, any code change invalidates layer cache.
+# We use a BuildKit cache mount at /cache/u2net so the model is not re-downloaded 
+# from the internet, then copy it to the persistent U2NET_HOME inside the image.
+RUN --mount=type=cache,target=/cache/u2net,uid=65532,gid=65532 \
+    U2NET_HOME=/cache/u2net python - <<'PY' && cp -a /cache/u2net/. /container/.u2net/
 import json
 from rembg import new_session
 with open("backend/image_converter/config/rembg.json", "r", encoding="utf-8") as f:
@@ -124,55 +109,49 @@ new_session(model_name)
 print(f"rembg model cached: {model_name}")
 PY
 
-# Copy entrypoint and healthcheck scripts
 COPY --chown=nonroot:nonroot entrypoint.py ./entrypoint.py
 COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 
-# Create the directory where the static frontend will be copied into.
-# Since we are nonroot, we need to ensure the parent directories exist and we have permissions.
+# Create static site directory. Required pre-creation as a nonroot user 
+# to avoid permission issues when copying frontend assets.
 RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
-## ---------------------------------------------------------------------------------
-## Final stage (use the same tag as backend build stage but without the -dev suffix)
-FROM dhi.io/python:3.11-debian13 AS final-stage
 
-# Metadata labels
-LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>"
-LABEL org.opencontainers.image.vendor="Karim Zouine"
-LABEL org.opencontainers.image.title="imgcompress - High Performance Image Compression & Background Removal"
-LABEL org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), and background removal using local AI. Supports 70+ formats."
-LABEL org.opencontainers.image.url="https://github.com/karimz1/imgcompress"
-LABEL org.opencontainers.image.source="https://github.com/karimz1/imgcompress"
-LABEL org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress"
-LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
+# Stage 3: FINAL RUNTIME
+# ------------------------------------------------------------------------------------------
+FROM dhi.io/debian-base:bookworm-debian12 AS final-stage
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
+      org.opencontainers.image.vendor="Karim Zouine" \
+      org.opencontainers.image.title="imgcompress - High Performance Image Compression & Background Removal" \
+      org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), and background removal using local AI. Supports 70+ formats." \
+      org.opencontainers.image.url="https://github.com/karimz1/imgcompress" \
+      org.opencontainers.image.source="https://github.com/karimz1/imgcompress" \
+      org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later"
+
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV U2NET_HOME=/container/.u2net
 
 WORKDIR /container
 
-# Copy OS deps required from backend builder stage
-COPY --from=backend-build-stage /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
+COPY --from=backend-build-stage /dpkg-export/usr/lib/ /usr/lib/
 COPY --from=backend-build-stage --chown=65532:65532 /usr/bin/dumb-init /usr/bin/dumb-init
 
-# Copy all installed stuffs from backend builder stage
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py
 
-# Copy the built frontend static site from frontend builder stage
 COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/out/. \
     /container/backend/image_converter/presentation/web/static_site
 
 EXPOSE 5000
 
-# Add instruction for container orchestrator to healthcheck the container properly
-# Use built-in Python script because this runtime hardened image doesn't have shell to exec anything
+# Constraint: The runtime hardened image lacks a shell (/bin/sh). 
+# We execute the healthcheck via python directly.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD ["python", "/container/healthcheck.py"]
 
