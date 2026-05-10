@@ -202,7 +202,7 @@ jobs:
       - test-backend
       - test-e2e
     if: >
-      github.event_name == 'pull_request' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true)
     runs-on: ubuntu-latest
