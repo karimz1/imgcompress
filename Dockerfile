@@ -8,9 +8,8 @@
 # blocking malicious dependencies before they reach build system.
 # For more details, visit https://github.com/SocketDev/sfw-free.
 #
-# Attention required: Node 25 is not a LTS version. Should use Node 24 instead.
-# (supported by Docker Hardened Image catalog until 2027).
-# For more details, visit https://hub.docker.com/hardened-images/catalog/dhi/node
+# Attention: Node 26 has not yet been added to Docker Hardened Image catalog, 
+# must use Node 24 instead (supported until 2027).
 FROM dhi.io/node:24-debian13-sfw-dev AS frontend-build-stage
 
 ENV NODE_ENV=production

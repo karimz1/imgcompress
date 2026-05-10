@@ -1,12 +1,14 @@
 REGISTRY ?= docker.io/karimz1
 IMAGE ?= imgcompress
-TAG ?= docker-hardened
+TAG ?= latest
+SCOUT_TAG ?= 1-debian13-dev
 CLOUD_BUILDER=
 
 # Build image with sbom and provenance, 
 # good for Docker Scout to indexing layers and attestation.
 build:
 	docker buildx build \
+	--platform linux/amd64,linux/arm64 \
 	--sbom="generator=docker/buildkit-syft-scanner:latest" \
 	--provenance="mode=max" \
 	-t $(REGISTRY)/$(IMAGE):$(TAG) \
@@ -16,6 +18,7 @@ build:
 # Need a Docker Hub account and must init a Cloud Builder first.
 # cloud_build:
 # 	docker buildx build \
+# 	--platform linux/amd64,linux/arm64 \
 # 	--builder $(CLOUD_BUILDER) \
 # 	--sbom="generator=docker/buildkit-syft-scanner:latest" \
 # 	--provenance="mode=max" \
