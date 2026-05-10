@@ -161,6 +161,8 @@ COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/out/. \
 
 EXPOSE 5000
 
+USER 65532:65532
+
 # Constraint: The runtime hardened image lacks a shell (/bin/sh). 
 # We execute the healthcheck via python directly.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
