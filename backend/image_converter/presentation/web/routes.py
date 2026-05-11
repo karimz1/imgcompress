@@ -1,12 +1,10 @@
-import os
-import shutil
-import tempfile
 from datetime import datetime, timezone
 
 from flask import Blueprint, Response, request, jsonify, send_file, send_from_directory
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.payload_expander_factory import create_payload_expander
+from backend.image_converter.config import settings
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
@@ -21,10 +19,12 @@ from backend.image_converter.presentation.web.services.crop_preview_service impo
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 
+settings.validate_all()
+
 api_blueprint = Blueprint("api", __name__)
 
-TEMP_DIR = tempfile.gettempdir()
-EXPIRATION_TIME = 3600
+TEMP_DIR = settings.temp_dir()
+EXPIRATION_TIME = settings.temp_expiration_seconds()
 logger = Logger(debug=False, json_output=False)
 
 resizer = ImageResizer()
@@ -36,7 +36,11 @@ temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
 storage_management_service = StorageManagementService()
 configuration_service = ConfigurationService()
-crop_preview_service = CropPreviewService(logger, payload_expander)
+crop_preview_service = CropPreviewService(
+    logger,
+    payload_expander,
+    max_attempts=settings.crop_preview_max_attempts(),
+)
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
 backend_diagnostics_service = BackendDiagnosticsService(
     logger,
@@ -55,8 +59,8 @@ def compress_images():
 
     data_result = extract_form_data(request, logger)
     if not data_result.is_successful:
-         return jsonify({"error": str(data_result.error)}), 400
-   
+        return jsonify({"error": str(data_result.error)}), 400
+
     result = compression_service.compress(data_result.value)
     if not result.is_successful:
         return jsonify({"error": "Compression failed", "message": result.error}), 500
@@ -71,18 +75,14 @@ def compress_images():
 def download_file():
     temp_folder_service.cleanup()
 
-    folder = request.args.get("folder")
-    filename = request.args.get("file")
-    if not folder or not filename:
-        return jsonify({"error": "Folder and file params required"}), 400
+    target = temp_folder_service.resolve_download_target(
+        request.args.get("folder"),
+        request.args.get("file"),
+    )
+    if target is None:
+        return jsonify({"error": "File not available."}), 404
 
-    if not temp_folder_service.is_in_temp(folder):
-        return jsonify({"error": "Invalid folder path."}), 400
-
-    path = os.path.join(folder, filename)
-    if not (os.path.exists(path) and os.path.isfile(path)):
-        return jsonify({"error": "File does not exist."}), 404
-
+    folder, filename = target
     return send_from_directory(folder, filename, as_attachment=True)
 
 
@@ -103,14 +103,9 @@ def storage_info():
     if not storage_management_service.is_storage_management_enabled():
         return _storage_management_disabled_response()
 
-    container_files = temp_folder_service.get_container_files()
-    total_used_mb = container_files.get("total_size_mb", 0)
-    _, _, free = shutil.disk_usage(TEMP_DIR)
-    mib = 1024 * 1024
-    return jsonify({
-        "used_storage_mb": total_used_mb,
-        "available_storage_mb": round(free / mib, 2),
-    }), 200
+    used_mb = temp_folder_service.get_container_files().get("total_size_mb", 0)
+    summary = storage_management_service.get_storage_summary(TEMP_DIR, used_mb)
+    return jsonify(summary), 200
 
 
 @api_blueprint.route("/force_cleanup", methods=["POST"])

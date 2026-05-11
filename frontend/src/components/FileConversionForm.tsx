@@ -829,7 +829,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         {resizeWidthEnabled && (
           <Input
             data-testid="resize-width-input"
-            itemProp="data-testid: convert-btn"
             id="width"
             type="number"
             placeholder="800"

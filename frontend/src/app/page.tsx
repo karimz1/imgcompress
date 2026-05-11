@@ -366,7 +366,6 @@ function HomePageContent() {
         );
       } catch (err) {
         if ((err as Error).name === "AbortError") {
-          console.log("Upload aborted");
           return;
         }
         console.error(err);

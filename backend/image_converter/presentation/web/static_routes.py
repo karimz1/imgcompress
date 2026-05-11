@@ -1,7 +1,20 @@
 import os
 from flask import Blueprint, jsonify, send_from_directory, abort, current_app
 
+from backend.image_converter.config import settings
+
 static_blueprint = Blueprint("static_blueprint", __name__)
+
+
+@static_blueprint.route("/config/runtime.json")
+def serve_runtime_config():
+    return jsonify({
+        "DISABLE_LOGO": "false" if settings.show_logo() else "true",
+        "DISABLE_STORAGE_MANAGEMENT": (
+            "false" if settings.storage_management_enabled() else "true"
+        ),
+        "DEV_MODE": "true" if settings.dev_mode() else "false",
+    })
 
 def serve_static_file(filename: str):
     """

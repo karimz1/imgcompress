@@ -1,0 +1,24 @@
+{
+  "temp_dir": "/tmp",
+  "temp_expiration_seconds": 3600,
+  "max_upload_bytes": 42949672960,
+  "web": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "workers": "auto"
+  },
+  "logging": {
+    "backend_log_file": "/tmp/imgcompress-backend.log"
+  },
+  "crop_preview": {
+    "max_attempts": 3
+  },
+  "features": {
+    "storage_management_enabled": true,
+    "show_logo": true,
+    "dev_mode": false
+  },
+  "rembg": {
+    "model_name": "u2net"
+  }
+}

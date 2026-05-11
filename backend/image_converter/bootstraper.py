@@ -3,10 +3,10 @@ import subprocess
 import traceback
 import pillow_heif
 from backend.image_converter.argument_parser import parse_arguments
+from backend.image_converter.config import settings
 from backend.image_converter.infrastructure.logger import (
     Logger,
     append_backend_log_line,
-    get_backend_log_file_path,
     install_stdout_stderr_capture,
 )
 from backend.image_converter.presentation.cli.app import main as cli_main
@@ -14,23 +14,16 @@ from backend.image_converter.presentation.web.server import start_scheduler
 
 def launch_web_prod():
     start_scheduler()
-    workers_setting = os.environ.get("GRANIAN_WORKERS", "auto").strip().lower()
-    if workers_setting == "auto":
-        workers = os.cpu_count() or 1
-    else:
-        try:
-            workers = max(int(workers_setting), 1)
-        except ValueError:
-            workers = os.cpu_count() or 1
+    workers_setting = settings.web_workers()
+    workers = os.cpu_count() or 1 if workers_setting == "auto" else workers_setting
     env = os.environ.copy()
-    env.setdefault("IMGCOMPRESS_BACKEND_LOG_FILE", get_backend_log_file_path())
     env["IMGCOMPRESS_PARENT_STDOUT_CAPTURE"] = "true"
     proc = subprocess.Popen([
         "granian",
         "--interface", "wsgi",
         "--workers", str(workers),
-        "--host", "0.0.0.0",
-        "--port", "5000",
+        "--host", settings.web_host(),
+        "--port", str(settings.web_port()),
         "backend.image_converter.presentation.web.server:app"
     ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=env)
     assert proc.stdout is not None
@@ -46,12 +39,12 @@ def launch_web_prod():
 
 
 def main():
+    settings.validate_all()
     install_stdout_stderr_capture()
     app_logger = Logger(debug=False, json_output=False)
     pillow_heif.register_heif_opener()
     args, remaining = parse_arguments()
 
-    # fallback so defaults to web if no args are given...
     if args.mode is None:
         args.mode = "web"
 

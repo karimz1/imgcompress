@@ -5,8 +5,9 @@ services:
     restart: always
     ports:
       - "3001:5000"
-    environment:
-      # Set to true to remove the mascot and enable a minimal, mascot-free UI
-      - DISABLE_LOGO=false
-      # Set to true to disable the storage management features (e.g., for your users to not see all the files)
-      - DISABLE_STORAGE_MANAGEMENT=false
+    # Feature flags and operational config (workers, ports, expiration, upload
+    # limits, logo/storage/dev-mode toggles) live in
+    # backend/image_converter/config/app.json inside the image. To override,
+    # mount a customized file:
+    #   volumes:
+    #     - ./app.json:/container/backend/image_converter/config/app.json:ro

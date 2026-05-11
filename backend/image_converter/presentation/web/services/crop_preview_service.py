@@ -99,7 +99,6 @@ class CropPreviewService:
             raise RuntimeError("No content to render.")
 
         with Image.open(BytesIO(first_payload.data)) as img:
-            img.load()
             normalized = self._normalize_image(img)
             buffer = BytesIO()
             normalized.save(buffer, format="PNG", optimize=False, compress_level=6)
@@ -108,9 +107,9 @@ class CropPreviewService:
         return buffer
 
     def _normalize_image(self, img: Image.Image) -> Image.Image:
-        if img.mode not in ("RGB", "RGBA", "L", "LA"):
-            img = img.convert("RGBA" if "A" in img.getbands() else "RGB")
-        return Image.frombytes(img.mode, img.size, img.tobytes())
+        if img.mode in ("RGB", "RGBA", "L", "LA"):
+            return img
+        return img.convert("RGBA" if "A" in img.getbands() else "RGB")
 
     def _is_unsupported(self, filename: str) -> bool:
         return Path(filename).suffix.lower() in NON_CROP_COMPATIBLE_EXTENSIONS

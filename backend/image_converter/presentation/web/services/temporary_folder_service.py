@@ -1,6 +1,6 @@
 import os
 import tempfile
-from typing import Optional
+from typing import Optional, Tuple
 
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 
@@ -18,23 +18,36 @@ class TemporaryFolderService:
     def create_temp_dir(self, prefix: str) -> str:
         return tempfile.mkdtemp(prefix=prefix)
 
-    def is_in_temp(self, path: str) -> bool:
-        return os.path.abspath(path).startswith(os.path.abspath(self.temp_dir))
-
-    def get_validated_path(self, folder_name: str) -> Optional[str]:
-        """
-        Ensures the requested folder is a sub-directory of the safe TEMP_DIR.
-        """
+    def get_validated_path(self, folder_name: Optional[str]) -> Optional[str]:
         if not folder_name:
             return None
+        resolved = self._resolve_inside_temp(folder_name)
+        return resolved if resolved and os.path.isdir(resolved) else None
 
-        # Normalize paths to resolve '..' and symlinks
-        base_dir = os.path.abspath(self.temp_dir)
-        # Use normpath to prevent directory traversal
-        target_path = os.path.abspath(os.path.join(base_dir, folder_name))
-
-        # Security check: Ensure target is inside base_dir
-        if os.path.commonpath([base_dir, target_path]) != base_dir:
+    def resolve_download_target(
+        self,
+        folder: Optional[str],
+        filename: Optional[str],
+    ) -> Optional[Tuple[str, str]]:
+        if not folder or not filename:
             return None
+        safe_name = os.path.basename(filename)
+        if safe_name in ("", ".", ".."):
+            return None
+        folder_abs = self._resolve_inside_temp(folder)
+        if folder_abs is None:
+            return None
+        target = os.path.join(folder_abs, safe_name)
+        if not os.path.isfile(target):
+            return None
+        return folder_abs, safe_name
 
-        return target_path if os.path.isdir(target_path) else None
+    def _resolve_inside_temp(self, path: str) -> Optional[str]:
+        base_dir = os.path.realpath(self.temp_dir)
+        candidate = path if os.path.isabs(path) else os.path.join(base_dir, path)
+        resolved = os.path.realpath(candidate)
+        try:
+            common = os.path.commonpath([base_dir, resolved])
+        except ValueError:
+            return None
+        return resolved if common == base_dir else None

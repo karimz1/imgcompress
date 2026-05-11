@@ -1,23 +1,20 @@
 import logging
 import os
 import sys
-import tempfile
 from collections import deque
 from datetime import datetime, timezone
 from threading import Lock
 
 from colorama import Fore, Style
 
+from backend.image_converter.config import settings
+
 _LOG_FILE_LOCK = Lock()
-_BACKEND_LOG_FILE_ENV = "IMGCOMPRESS_BACKEND_LOG_FILE"
 _PARENT_STDOUT_CAPTURE_ENV = "IMGCOMPRESS_PARENT_STDOUT_CAPTURE"
 
 
 def get_backend_log_file_path() -> str:
-    return os.environ.get(
-        _BACKEND_LOG_FILE_ENV,
-        os.path.join(tempfile.gettempdir(), "imgcompress-backend.log"),
-    )
+    return settings.backend_log_file()
 
 
 def append_backend_log_line(line: str):
