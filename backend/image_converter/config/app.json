@@ -26,8 +26,6 @@
     "bytes_per_megabyte": 1048576
   },
   "features": {
-    "storage_management_enabled": true,
-    "show_logo": true,
     "dev_mode": false
   },
   "rembg": {
