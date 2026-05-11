@@ -57,10 +57,16 @@ copy_so_from_ldd() {
 copy_data_from_packages() {
     for pkg in "$@"; do
         dpkg -L "$pkg" 2>/dev/null | while IFS= read -r f; do
-            [ -f "$f" ] || [ -L "$f" ] || continue
-            # Resolve usrmerge symlinks (same reason as Phase 1)
-            real_f=$(realpath "$f" 2>/dev/null || echo "$f")
-            cp --parents -a "$real_f" "$TARGET_DIR/" 2>/dev/null || true
+            if [ -L "$f" ]; then
+                # Symlinks must be preserved as-is (not resolved).
+                # e.g. iccprofiles → ../../color/icc/ghostscript is a dir-symlink
+                # that realpath would turn into a directory path, breaking cp.
+                cp --parents -a "$f" "$TARGET_DIR/" 2>/dev/null || true
+            elif [ -f "$f" ]; then
+                # Regular files: resolve usrmerge paths (/lib → /usr/lib).
+                real_f=$(realpath "$f" 2>/dev/null || echo "$f")
+                cp --parents -a "$real_f" "$TARGET_DIR/" 2>/dev/null || true
+            fi
         done
         echo "[extract_deps]   ✓ $pkg"
     done
@@ -82,6 +88,7 @@ echo "[extract_deps] Phase 2: Copying data files from packages..."
 copy_data_from_packages \
     ghostscript \
     libgs10-common \
+    libgs-common \
     fonts-urw-base35 \
     fontconfig-config \
     poppler-data \
