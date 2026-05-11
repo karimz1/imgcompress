@@ -55,28 +55,25 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
 # Workaround: BuildKit 'COPY' cannot dynamically resolve host-architecture triplet 
 # paths (e.g. x86_64 vs aarch64). We export the matching directory to a predictable 
 # path (/dpkg-export) to facilitate architecture-agnostic multi-arch copying later.
+#
+# Strategy: Runtime Closure Extractor (ldd + dpkg-L hybrid)
+#   - Phase 1: ldd scans our ELF binaries to find every .so loaded at runtime.
+#   - Phase 2: dpkg-query -S maps each .so back to its owning Debian package.
+#   - Phase 3: dpkg -L extracts ALL files (libs, fonts, CMaps, configs) from those
+#              packages into /dpkg-export — capturing what ldd-only misses.
+# Ref: extract_deps.sh
+COPY extract_deps.sh /tmp/extract_deps.sh
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
-    dpkg-query -W -f='${Package}\n' | sort > /tmp/before.txt && \
-    apt-get update && apt-get install -y \
-    libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
-    libimagequant0 libheif1 liblcms2-2 \
-    libfreetype6  libharfbuzz0b libfribidi0 \
-    libxcb1 zlib1g libgif7 \
-    ghostscript dumb-init && \
-    dpkg-query -W -f='${Package}\n' | sort > /tmp/after.txt && \
-    comm -13 /tmp/before.txt /tmp/after.txt > /tmp/new.txt && \
-    mkdir -p /dpkg-export && \
-    cat /tmp/new.txt | while read p; do \
-        dpkg -L "$p" | while IFS= read -r f; do \
-            if [ -f "$f" ] || [ -L "$f" ]; then \
-                cp --parents -a "$f" /dpkg-export/ 2>/dev/null || true; \
-            fi; \
-        done; \
-    done && \
-    mkdir -p /dpkg-export/usr/lib && cp -a /usr/lib/*-linux-gnu /dpkg-export/usr/lib/
+    apt-get install -y --no-install-recommends \
+        libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
+        libimagequant0 libheif1 liblcms2-2 \
+        libfreetype6 libharfbuzz0b libfribidi0 \
+        libxcb1 zlib1g libgif7 \
+        ghostscript dumb-init && \
+    sh /tmp/extract_deps.sh /dpkg-export
 
 # Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
 RUN mkdir -p /container && \
