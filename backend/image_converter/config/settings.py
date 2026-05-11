@@ -153,20 +153,6 @@ def bytes_per_megabyte() -> int:
     return _require_int("storage.bytes_per_megabyte", minimum=1)
 
 
-def storage_management_enabled() -> bool:
-    override = _env_bool("DISABLE_STORAGE_MANAGEMENT")
-    if override is not None:
-        return not override
-    return _require_bool("features.storage_management_enabled")
-
-
-def show_logo() -> bool:
-    override = _env_bool("DISABLE_LOGO")
-    if override is not None:
-        return not override
-    return _require_bool("features.show_logo")
-
-
 def dev_mode() -> bool:
     override = _env_bool("DEV_MODE")
     if override is not None:
