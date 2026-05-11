@@ -72,26 +72,19 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
     apt-get install -y --no-install-recommends \
+        ghostscript \
         libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
         libimagequant0 libheif1 liblcms2-2 \
         libfreetype6 libharfbuzz0b libfribidi0 \
         libxcb1 zlib1g libgif7 \
-        ghostscript dumb-init \
+        dumb-init \
         libstdc++6 libgomp1 && \
     \
-    # Extract files from each installed package into /dpkg-export using dpkg -L.
-    # This is the precise alternative to the broad "cp -a /usr/lib/*-linux-gnu" approach.
-    # libstdc++6, libgomp1: C++ runtime libs required by compiled Python extensions
-    #   (pillow_heif, onnxruntime). Pre-installed in the dev base image but absent
-    #   in the hardened runtime image — must be made explicit here.
-    sh /tmp/extract_deps.sh \
-        libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
-        libimagequant0 libheif1 liblcms2-2 \
-        libfreetype6 libharfbuzz0b libfribidi0 \
-        libxcb1 zlib1g libgif7 \
-        ghostscript libgs10 libgs10-common \
-        dumb-init \
-        libstdc++6 libgomp1
+    # Phase 1 (ldd):   resolve .so paths from gs binary → copy directly by filesystem path.
+    #                   Immune to Debian t64 renames (libpng16-16 → libpng16-16t64, etc.)
+    # Phase 2 (dpkg-L): copy data files (CMaps, fonts, dumb-init binary) that ldd misses.
+    # See extract_deps.sh for details.
+    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh /usr/bin/gs
 
 # Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
 RUN mkdir -p /container && \
