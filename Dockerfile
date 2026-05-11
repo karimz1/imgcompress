@@ -63,10 +63,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     \
-    # Stub out init-system hooks so postinst scripts don't crash in a shell-less container.
-    # x11-common (a ghostscript transitive dep) calls update-rc.d in its postinst,
-    # which doesn't exist in a minimal/hardened image without sysvinit.
-    printf '#!/bin/sh\nexit 0\n' > /usr/sbin/update-rc.d && chmod +x /usr/sbin/update-rc.d; \
+    # Stub SysV init helpers so postinst scripts don't crash in a container.
+    # x11-common (a ghostscript transitive dep) calls both update-rc.d and invoke-rc.d
+    # in its postinst, but neither exists in a minimal image without sysvinit/openrc.
+    printf '#!/bin/sh\nexit 0\n'   > /usr/sbin/update-rc.d && chmod +x /usr/sbin/update-rc.d; \
+    printf '#!/bin/sh\nexit 0\n'   > /usr/sbin/invoke-rc.d && chmod +x /usr/sbin/invoke-rc.d; \
     printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d; \
     \
     apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
@@ -77,7 +78,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         libxcb1 zlib1g libgif7 \
         ghostscript dumb-init && \
     \
-    sh /tmp/extract_deps.sh /dpkg-export
+    # Extract files from each installed package into /dpkg-export using dpkg -L.
+    # This is the precise alternative to the broad "cp -a /usr/lib/*-linux-gnu" approach.
+    sh /tmp/extract_deps.sh \
+        libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
+        libimagequant0 libheif1 liblcms2-2 \
+        libfreetype6 libharfbuzz0b libfribidi0 \
+        libxcb1 zlib1g libgif7 \
+        ghostscript dumb-init
 
 # Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
 RUN mkdir -p /container && \
