@@ -42,7 +42,7 @@ class TeeStream:
         self.wrapped.flush()
 
 
-def install_stdout_stderr_capture():
+def enable_error_capture_in_docker_env():
     if os.environ.get("IMGCOMPRESS_STDIO_CAPTURE_INSTALLED") == "true":
         return
     os.environ["IMGCOMPRESS_STDIO_CAPTURE_INSTALLED"] = "true"

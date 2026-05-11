@@ -85,6 +85,21 @@ def _require_bool(path: str) -> bool:
     return value
 
 
+def _require_str_list(path: str) -> list[str]:
+    value = _lookup(path)
+    if not isinstance(value, list):
+        raise ConfigError(f"config key '{path}' must be a list")
+    normalized = []
+    for item in value:
+        if not isinstance(item, str) or not item.strip():
+            raise ConfigError(f"config key '{path}' must contain only non-empty strings")
+        extension = item.strip().lower()
+        if not extension.startswith("."):
+            raise ConfigError(f"config key '{path}' extensions must start with '.'")
+        normalized.append(extension)
+    return normalized
+
+
 def _require_int_or_auto(path: str, *, minimum: int) -> Union[int, str]:
     value = _lookup(path)
     if isinstance(value, str):
@@ -130,6 +145,10 @@ def crop_preview_max_attempts() -> int:
     return _require_int("crop_preview.max_attempts", minimum=1)
 
 
+def crop_preview_unsupported_extensions() -> list[str]:
+    return _require_str_list("crop_preview.unsupported_extensions")
+
+
 def bytes_per_megabyte() -> int:
     return _require_int("storage.bytes_per_megabyte", minimum=1)
 
@@ -168,6 +187,7 @@ _REQUIRED_GETTERS = (
     web_workers,
     backend_log_file,
     crop_preview_max_attempts,
+    crop_preview_unsupported_extensions,
     bytes_per_megabyte,
     storage_management_enabled,
     show_logo,

@@ -11,7 +11,16 @@
     "backend_log_file": "/tmp/imgcompress-backend.log"
   },
   "crop_preview": {
-    "max_attempts": 3
+    "max_attempts": 3,
+    "unsupported_extensions": [
+      ".pdf",
+      ".svg",
+      ".raw",
+      ".cr2",
+      ".nef",
+      ".arw",
+      ".dng"
+    ]
   },
   "storage": {
     "bytes_per_megabyte": 1048576

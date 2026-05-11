@@ -6,6 +6,8 @@ from backend.image_converter.application.file_payload_expander import PagePayloa
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
 
+UNSUPPORTED_EXTENSIONS = [".pdf", ".svg"]
+
 
 class RecordingLogger:
     def __init__(self):
@@ -44,7 +46,12 @@ def test_crop_preview_service_retries_then_returns_png(monkeypatch):
     )
     logger = RecordingLogger()
     expander = FlakyPayloadExpander(failures_before_success=2)
-    service = CropPreviewService(logger, expander, max_attempts=3)
+    service = CropPreviewService(
+        logger,
+        expander,
+        unsupported_extensions=UNSUPPORTED_EXTENSIONS,
+        max_attempts=3,
+    )
 
     result = service.build_preview("test.psd", _png_bytes(), request_id="unit-retry")
 
@@ -65,7 +72,12 @@ def test_crop_preview_service_fails_after_max_attempts(monkeypatch):
     )
     logger = RecordingLogger()
     expander = FlakyPayloadExpander(failures_before_success=99)
-    service = CropPreviewService(logger, expander, max_attempts=3)
+    service = CropPreviewService(
+        logger,
+        expander,
+        unsupported_extensions=UNSUPPORTED_EXTENSIONS,
+        max_attempts=3,
+    )
 
     result = service.build_preview("test.psd", _png_bytes(), request_id="unit-fail")
 
@@ -79,7 +91,12 @@ def test_crop_preview_service_fails_after_max_attempts(monkeypatch):
 def test_crop_preview_service_rejects_non_crop_compatible_extension():
     logger = RecordingLogger()
     expander = FlakyPayloadExpander(failures_before_success=0)
-    service = CropPreviewService(logger, expander, max_attempts=3)
+    service = CropPreviewService(
+        logger,
+        expander,
+        unsupported_extensions=UNSUPPORTED_EXTENSIONS,
+        max_attempts=3,
+    )
 
     result = service.build_preview("document.pdf", _png_bytes())
 

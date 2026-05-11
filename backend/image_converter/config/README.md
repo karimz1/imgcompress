@@ -12,7 +12,7 @@ A small set of operator-facing feature flags also accept an environment variable
 | `features.storage_management_enabled` | `DISABLE_STORAGE_MANAGEMENT` | Inverse: `DISABLE_STORAGE_MANAGEMENT=true` disables the storage panel and its endpoints. |
 | `features.dev_mode` | `DEV_MODE` | Enables the in-app developer panel for error-surface testing. Never enable in production. |
 
-Accepted env-var truthy values: `true`, `1`, `yes`, `on` (case-insensitive). Anything else is treated as false.
+Accepted env-var truthy values: `true`, `1`, `yes`, `on` (case-insensitive). Accepted falsy values: `false`, `0`, `no`, `off`. An empty string falls back to `app.json`; any other value raises `ConfigError`.
 
 ## Keys
 
@@ -30,11 +30,12 @@ Accepted env-var truthy values: `true`, `1`, `yes`, `on` (case-insensitive). Any
 
 ### `logging`
 
-- **`logging.backend_log_file`** (string, required) — Path of the backend log file. The TeeStream writes here when stdout/stderr capture is installed. `runStartLocalBackend.sh` reads this value to know which file to truncate and tail.
+- **`logging.backend_log_file`** (string, required) — Path of the backend log file. The TeeStream writes here when stdout/stderr capture is enabled in the Python process.
 
 ### `crop_preview`
 
 - **`crop_preview.max_attempts`** (int ≥ 1, required) — Number of decode attempts the crop preview service makes before returning a failure. Transient PSD/PIL decode failures retry with backoff; permanent failures (`UnidentifiedImageError`) short-circuit.
+- **`crop_preview.unsupported_extensions`** (list of strings, required) — File extensions that the crop editor should reject before decoding because the preview pipeline cannot faithfully render them. Each extension must start with `.` and is normalized to lowercase.
 
 ### `storage`
 
@@ -53,7 +54,7 @@ Accepted env-var truthy values: `true`, `1`, `yes`, `on` (case-insensitive). Any
 ## Adding a new tunable
 
 1. Add the key (with a real value) to `app.json`.
-2. Add a typed accessor in `settings.py` using `_require_str` / `_require_int` / `_require_bool` / `_require_int_or_auto` with appropriate bounds.
+2. Add a typed accessor in `settings.py` using `_require_str` / `_require_int` / `_require_bool` / `_require_int_or_auto` / `_require_str_list` with appropriate bounds.
 3. Append the accessor to `_REQUIRED_GETTERS` so `validate_all()` checks it.
 4. Inject the value at the composition root (constructor arg or function parameter) — never read `settings` from inside a service.
 5. Document the key in this README.
@@ -65,6 +66,5 @@ The following env vars exist but are *not* deployment config — they coordinate
 
 - `IMGCOMPRESS_STDIO_CAPTURE_INSTALLED` — the parent process tells the child "I already installed the stdout tee, don't install it twice."
 - `IMGCOMPRESS_PARENT_STDOUT_CAPTURE` — the parent process tells the child "I'm capturing your stdout, don't write the log file yourself."
-- `IMGCOMPRESS_EXTERNAL_STDOUT_TEE` — `runStartLocalBackend.sh` tells the Python process "the shell is teeing stdout already."
 
 These do not belong in `app.json`. They are part of the IPC contract, not user-facing configuration.

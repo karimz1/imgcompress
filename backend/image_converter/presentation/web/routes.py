@@ -34,11 +34,15 @@ use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage
 
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
-storage_management_service = StorageManagementService()
+storage_management_service = StorageManagementService(
+    enabled=settings.storage_management_enabled(),
+    bytes_per_megabyte=settings.bytes_per_megabyte(),
+)
 configuration_service = ConfigurationService()
 crop_preview_service = CropPreviewService(
     logger,
     payload_expander,
+    unsupported_extensions=settings.crop_preview_unsupported_extensions(),
     max_attempts=settings.crop_preview_max_attempts(),
 )
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
@@ -82,8 +86,11 @@ def download_file():
     if target is None:
         return jsonify({"error": "File not available."}), 404
 
-    folder, filename = target
-    return send_from_directory(folder, filename, as_attachment=True)
+    return send_file(
+        target.file_path,
+        as_attachment=True,
+        download_name=target.download_name,
+    )
 
 
 @api_blueprint.route("/download_all", methods=["GET"])

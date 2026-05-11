@@ -5,7 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import pillow_heif
 
 from backend.image_converter.config import settings
-from backend.image_converter.infrastructure.logger import Logger, install_stdout_stderr_capture
+from backend.image_converter.infrastructure.logger import Logger, enable_error_capture_in_docker_env
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.presentation.web.routes import api_blueprint
 from backend.image_converter.presentation.web.error_handlers import (
@@ -15,7 +15,7 @@ from backend.image_converter.presentation.web.error_handlers import (
 )
 from backend.image_converter.presentation.web.static_routes import static_blueprint
 
-install_stdout_stderr_capture()
+enable_error_capture_in_docker_env()
 pillow_heif.register_heif_opener()
 
 TEMP_DIR = settings.temp_dir()

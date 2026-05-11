@@ -7,7 +7,7 @@ from backend.image_converter.config import settings
 from backend.image_converter.infrastructure.logger import (
     Logger,
     append_backend_log_line,
-    install_stdout_stderr_capture,
+    enable_error_capture_in_docker_env,
 )
 from backend.image_converter.presentation.cli.app import main as cli_main
 from backend.image_converter.presentation.web.server import start_scheduler
@@ -28,10 +28,9 @@ def launch_web_prod():
     ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=env)
     assert proc.stdout is not None
     stdout_capture_installed = os.environ.get("IMGCOMPRESS_STDIO_CAPTURE_INSTALLED") == "true"
-    externally_teeing_stdout = os.environ.get("IMGCOMPRESS_EXTERNAL_STDOUT_TEE") == "true"
     for line in proc.stdout:
         print(line, end="")
-        if not externally_teeing_stdout and not stdout_capture_installed:
+        if not stdout_capture_installed:
             append_backend_log_line(line)
     exit_code = proc.wait()
     if exit_code != 0:
@@ -40,7 +39,7 @@ def launch_web_prod():
 
 def main():
     settings.validate_all()
-    install_stdout_stderr_capture()
+    enable_error_capture_in_docker_env()
     app_logger = Logger(debug=False, json_output=False)
     pillow_heif.register_heif_opener()
     args, remaining = parse_arguments()

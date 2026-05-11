@@ -2,33 +2,33 @@ import time
 import uuid
 from io import BytesIO
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
 from PIL import Image, UnidentifiedImageError
 
 from backend.image_converter.core.internals.utilities import Result
 
-NON_CROP_COMPATIBLE_EXTENSIONS = {
-    ".pdf",
-    ".svg",
-    ".raw",
-    ".cr2",
-    ".nef",
-    ".arw",
-    ".dng",
-}
-
 
 class CropPreviewService:
     _PERMANENT_ERROR_TYPES = (UnidentifiedImageError,)
 
-    def __init__(self, logger, payload_expander, max_attempts: int = 3):
+    def __init__(
+        self,
+        logger,
+        payload_expander,
+        unsupported_extensions: Iterable[str],
+        max_attempts: int,
+    ):
         self.logger = logger
         self.payload_expander = payload_expander
         self.max_attempts = max_attempts
+        self.unsupported_extensions = frozenset(
+            extension.strip().lower()
+            for extension in unsupported_extensions
+        )
 
     def get_unsupported_extensions(self) -> list[str]:
-        return sorted(NON_CROP_COMPATIBLE_EXTENSIONS)
+        return sorted(self.unsupported_extensions)
 
     def build_preview(
         self,
@@ -112,7 +112,7 @@ class CropPreviewService:
         return img.convert("RGBA" if "A" in img.getbands() else "RGB")
 
     def _is_unsupported(self, filename: str) -> bool:
-        return Path(filename).suffix.lower() in NON_CROP_COMPATIBLE_EXTENSIONS
+        return Path(filename).suffix.lower() in self.unsupported_extensions
 
     def _log(self, request_id: str, message: str, level: str = "info"):
         self.logger.log(f"[crop-preview rid={request_id}] {message}", level)

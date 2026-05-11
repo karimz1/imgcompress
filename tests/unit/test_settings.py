@@ -12,7 +12,10 @@ VALID_CONFIG = {
     "max_upload_bytes": 42949672960,
     "web": {"host": "0.0.0.0", "port": 5000, "workers": "auto"},
     "logging": {"backend_log_file": "/tmp/imgcompress-backend.log"},
-    "crop_preview": {"max_attempts": 3},
+    "crop_preview": {
+        "max_attempts": 3,
+        "unsupported_extensions": [".pdf", ".svg", ".raw"],
+    },
     "storage": {"bytes_per_megabyte": 1048576},
     "features": {
         "storage_management_enabled": True,
@@ -57,6 +60,7 @@ def test_all_getters_return_typed_values(config_file):
     assert settings.web_workers() == "auto"
     assert settings.backend_log_file() == "/tmp/imgcompress-backend.log"
     assert settings.crop_preview_max_attempts() == 3
+    assert settings.crop_preview_unsupported_extensions() == [".pdf", ".svg", ".raw"]
     assert settings.bytes_per_megabyte() == 1048576
     assert settings.storage_management_enabled() is True
     assert settings.show_logo() is True
@@ -133,6 +137,48 @@ def test_int_required_enforces_minimum(config_file):
     config_file(cfg)
     with pytest.raises(ConfigError, match=">= 1"):
         settings.crop_preview_max_attempts()
+
+
+def test_crop_preview_unsupported_extensions_missing_key_raises(config_file):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    del cfg["crop_preview"]["unsupported_extensions"]
+    config_file(cfg)
+    with pytest.raises(
+        ConfigError,
+        match="missing required config key: crop_preview.unsupported_extensions",
+    ):
+        settings.crop_preview_unsupported_extensions()
+
+
+def test_crop_preview_unsupported_extensions_rejects_non_list(config_file):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["crop_preview"]["unsupported_extensions"] = ".pdf"
+    config_file(cfg)
+    with pytest.raises(ConfigError, match="must be a list"):
+        settings.crop_preview_unsupported_extensions()
+
+
+def test_crop_preview_unsupported_extensions_rejects_non_string_item(config_file):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["crop_preview"]["unsupported_extensions"] = [".pdf", True]
+    config_file(cfg)
+    with pytest.raises(ConfigError, match="non-empty strings"):
+        settings.crop_preview_unsupported_extensions()
+
+
+def test_crop_preview_unsupported_extensions_rejects_missing_dot(config_file):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["crop_preview"]["unsupported_extensions"] = ["pdf"]
+    config_file(cfg)
+    with pytest.raises(ConfigError, match="must start with"):
+        settings.crop_preview_unsupported_extensions()
+
+
+def test_crop_preview_unsupported_extensions_normalizes_values(config_file):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["crop_preview"]["unsupported_extensions"] = [" .PDF ", ".Svg"]
+    config_file(cfg)
+    assert settings.crop_preview_unsupported_extensions() == [".pdf", ".svg"]
 
 
 def test_web_port_enforces_upper_bound(config_file):
@@ -239,10 +285,26 @@ def test_disable_storage_management_env_disables_feature(config_file, monkeypatc
     assert settings.storage_management_enabled() is False
 
 
+def test_disable_storage_management_env_falsy_enables_feature(config_file, monkeypatch):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["features"]["storage_management_enabled"] = False
+    config_file(cfg)
+    monkeypatch.setenv("DISABLE_STORAGE_MANAGEMENT", "false")
+    assert settings.storage_management_enabled() is True
+
+
 def test_dev_mode_env_enables_dev_panel(config_file, monkeypatch):
     config_file(VALID_CONFIG)
     monkeypatch.setenv("DEV_MODE", "true")
     assert settings.dev_mode() is True
+
+
+def test_dev_mode_env_falsy_disables_dev_panel(config_file, monkeypatch):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["features"]["dev_mode"] = True
+    config_file(cfg)
+    monkeypatch.setenv("DEV_MODE", "off")
+    assert settings.dev_mode() is False
 
 
 def test_env_override_falls_back_to_json_when_unset(config_file, monkeypatch):
@@ -259,19 +321,40 @@ def test_env_override_falls_back_to_json_when_unset(config_file, monkeypatch):
     assert settings.storage_management_enabled() is False
 
 
-def test_env_override_rejects_garbage_value(config_file, monkeypatch):
+@pytest.mark.parametrize(
+    ("env_name", "getter"),
+    [
+        ("DISABLE_LOGO", settings.show_logo),
+        ("DISABLE_STORAGE_MANAGEMENT", settings.storage_management_enabled),
+        ("DEV_MODE", settings.dev_mode),
+    ],
+)
+def test_env_override_rejects_garbage_value(config_file, monkeypatch, env_name, getter):
     config_file(VALID_CONFIG)
-    monkeypatch.setenv("DISABLE_LOGO", "maybe")
-    with pytest.raises(ConfigError, match="DISABLE_LOGO"):
-        settings.show_logo()
+    monkeypatch.setenv(env_name, "maybe")
+    with pytest.raises(ConfigError, match=env_name):
+        getter()
 
 
-def test_env_override_empty_string_falls_back_to_json(config_file, monkeypatch):
+@pytest.mark.parametrize(
+    ("env_name", "getter", "expected"),
+    [
+        ("DISABLE_LOGO", settings.show_logo, True),
+        ("DISABLE_STORAGE_MANAGEMENT", settings.storage_management_enabled, True),
+        ("DEV_MODE", settings.dev_mode, False),
+    ],
+)
+def test_env_override_empty_string_falls_back_to_json(
+    config_file,
+    monkeypatch,
+    env_name,
+    getter,
+    expected,
+):
     cfg = json.loads(json.dumps(VALID_CONFIG))
-    cfg["features"]["show_logo"] = True
     config_file(cfg)
-    monkeypatch.setenv("DISABLE_LOGO", "")
-    assert settings.show_logo() is True
+    monkeypatch.setenv(env_name, "")
+    assert getter() is expected
 
 
 def test_shipped_app_json_is_valid():
