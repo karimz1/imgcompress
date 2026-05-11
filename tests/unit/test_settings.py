@@ -13,6 +13,7 @@ VALID_CONFIG = {
     "web": {"host": "0.0.0.0", "port": 5000, "workers": "auto"},
     "logging": {"backend_log_file": "/tmp/imgcompress-backend.log"},
     "crop_preview": {"max_attempts": 3},
+    "storage": {"bytes_per_megabyte": 1048576},
     "features": {
         "storage_management_enabled": True,
         "show_logo": True,
@@ -22,8 +23,14 @@ VALID_CONFIG = {
 }
 
 
+_FEATURE_ENV_VARS = ("DISABLE_LOGO", "DISABLE_STORAGE_MANAGEMENT", "DEV_MODE")
+
+
 @pytest.fixture
 def config_file(tmp_path, monkeypatch):
+    for var in _FEATURE_ENV_VARS:
+        monkeypatch.delenv(var, raising=False)
+
     def _write(data):
         path = tmp_path / "app.json"
         path.write_text(json.dumps(data), encoding="utf-8")
@@ -50,10 +57,19 @@ def test_all_getters_return_typed_values(config_file):
     assert settings.web_workers() == "auto"
     assert settings.backend_log_file() == "/tmp/imgcompress-backend.log"
     assert settings.crop_preview_max_attempts() == 3
+    assert settings.bytes_per_megabyte() == 1048576
     assert settings.storage_management_enabled() is True
     assert settings.show_logo() is True
     assert settings.dev_mode() is False
     assert settings.rembg_model_name() == "u2net"
+
+
+def test_bytes_per_megabyte_rejects_zero(config_file):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["storage"]["bytes_per_megabyte"] = 0
+    config_file(cfg)
+    with pytest.raises(ConfigError, match=">= 1"):
+        settings.bytes_per_megabyte()
 
 
 def test_web_workers_accepts_integer(config_file):
@@ -199,6 +215,63 @@ def test_non_object_top_level_raises(tmp_path, monkeypatch):
     settings.reset_cache()
     with pytest.raises(ConfigError, match="JSON object at the top level"):
         settings.temp_dir()
+
+
+@pytest.mark.parametrize("truthy", ["true", "TRUE", "1", "yes", "on"])
+def test_disable_logo_env_overrides_json(config_file, monkeypatch, truthy):
+    config_file(VALID_CONFIG)
+    monkeypatch.setenv("DISABLE_LOGO", truthy)
+    assert settings.show_logo() is False
+
+
+@pytest.mark.parametrize("falsy", ["false", "FALSE", "0", "no", "off"])
+def test_disable_logo_env_falsy_keeps_logo(config_file, monkeypatch, falsy):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["features"]["show_logo"] = False
+    config_file(cfg)
+    monkeypatch.setenv("DISABLE_LOGO", falsy)
+    assert settings.show_logo() is True
+
+
+def test_disable_storage_management_env_disables_feature(config_file, monkeypatch):
+    config_file(VALID_CONFIG)
+    monkeypatch.setenv("DISABLE_STORAGE_MANAGEMENT", "true")
+    assert settings.storage_management_enabled() is False
+
+
+def test_dev_mode_env_enables_dev_panel(config_file, monkeypatch):
+    config_file(VALID_CONFIG)
+    monkeypatch.setenv("DEV_MODE", "true")
+    assert settings.dev_mode() is True
+
+
+def test_env_override_falls_back_to_json_when_unset(config_file, monkeypatch):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["features"]["show_logo"] = False
+    cfg["features"]["dev_mode"] = True
+    cfg["features"]["storage_management_enabled"] = False
+    config_file(cfg)
+    monkeypatch.delenv("DISABLE_LOGO", raising=False)
+    monkeypatch.delenv("DEV_MODE", raising=False)
+    monkeypatch.delenv("DISABLE_STORAGE_MANAGEMENT", raising=False)
+    assert settings.show_logo() is False
+    assert settings.dev_mode() is True
+    assert settings.storage_management_enabled() is False
+
+
+def test_env_override_rejects_garbage_value(config_file, monkeypatch):
+    config_file(VALID_CONFIG)
+    monkeypatch.setenv("DISABLE_LOGO", "maybe")
+    with pytest.raises(ConfigError, match="DISABLE_LOGO"):
+        settings.show_logo()
+
+
+def test_env_override_empty_string_falls_back_to_json(config_file, monkeypatch):
+    cfg = json.loads(json.dumps(VALID_CONFIG))
+    cfg["features"]["show_logo"] = True
+    config_file(cfg)
+    monkeypatch.setenv("DISABLE_LOGO", "")
+    assert settings.show_logo() is True
 
 
 def test_shipped_app_json_is_valid():

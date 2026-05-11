@@ -13,6 +13,9 @@
   "crop_preview": {
     "max_attempts": 3
   },
+  "storage": {
+    "bytes_per_megabyte": 1048576
+  },
   "features": {
     "storage_management_enabled": true,
     "show_logo": true,

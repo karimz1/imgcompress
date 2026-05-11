@@ -3,7 +3,8 @@ import time
 import shutil
 from typing import Dict, List
 import traceback
-from backend.image_converter.core.internals.utilities import Result                                       
+from backend.image_converter.config import settings
+from backend.image_converter.core.internals.utilities import Result
 
 class CleanupService:
     """
@@ -86,7 +87,7 @@ class CleanupService:
                 for fname in os.listdir(folder_path):
                     file_path = os.path.join(folder_path, fname)
                     if os.path.isfile(file_path):
-                        size_mb = round(os.path.getsize(file_path) / (1024 * 1024), 2)
+                        size_mb = round(os.path.getsize(file_path) / settings.bytes_per_megabyte(), 2)
                         files_list.append({
                             "folder": folder,
                             "folder_path": folder_path,
@@ -101,7 +102,7 @@ class CleanupService:
             if fname.startswith("converted_") and fname.endswith(".zip"):
                 file_path = os.path.join(self.temp_dir, fname)
                 if os.path.isfile(file_path):
-                    size_mb = round(os.path.getsize(file_path) / (1024 * 1024), 2)
+                    size_mb = round(os.path.getsize(file_path) / settings.bytes_per_megabyte(), 2)
                     files_list.append({
                         "folder": "zip",
                         "folder_path": self.temp_dir,
