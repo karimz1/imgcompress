@@ -190,7 +190,12 @@ def test_malformed_image_fails_fast_without_retrying(monkeypatch):
 
     expander = _Expander()
     logger = _Logger()
-    service = CropPreviewService(logger, expander, max_attempts=5)
+    service = CropPreviewService(
+        logger,
+        expander,
+        unsupported_extensions=(),
+        max_attempts=5,
+    )
 
     result = service.build_preview("malformed.png", _png_bytes()[:8], request_id="malformed")
 

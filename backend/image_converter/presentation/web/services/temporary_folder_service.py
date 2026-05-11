@@ -1,3 +1,4 @@
+import os.path
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -60,15 +61,24 @@ class TemporaryFolderService:
         return DownloadTarget(str(resolved_target), resolved_target.name)
 
     def _resolve_inside_temp(self, path: str) -> Optional[Path]:
-        candidate = Path(path)
-        if candidate.is_absolute():
-            resolved = candidate.resolve()
+        if not path:
+            return None
+        base = str(self.base_dir)
+        # os.path.realpath is treated as a sanitizer by CodeQL's path-injection
+        # query (it normalizes the path AND follows symlinks before we use it),
+        # so any downstream operation receives untainted data. We then check
+        # containment with os.path.commonpath, another recognized sanitizer.
+        if os.path.isabs(path):
+            real = os.path.realpath(path)
         else:
-            target = safe_join(str(self.base_dir), path)
-            if target is None:
-                return None
-            resolved = Path(target).resolve()
-        return resolved if self._is_inside(self.base_dir, resolved) else None
+            real = os.path.realpath(os.path.join(base, path))
+        try:
+            common = os.path.commonpath([base, real])
+        except ValueError:
+            return None
+        if common != base:
+            return None
+        return Path(real)
 
     @staticmethod
     def _is_inside(base_dir: Path, candidate: Path) -> bool:
