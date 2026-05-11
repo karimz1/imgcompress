@@ -76,16 +76,22 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         libimagequant0 libheif1 liblcms2-2 \
         libfreetype6 libharfbuzz0b libfribidi0 \
         libxcb1 zlib1g libgif7 \
-        ghostscript dumb-init && \
+        ghostscript dumb-init \
+        libstdc++6 libgomp1 && \
     \
     # Extract files from each installed package into /dpkg-export using dpkg -L.
     # This is the precise alternative to the broad "cp -a /usr/lib/*-linux-gnu" approach.
+    # libstdc++6, libgomp1: C++ runtime libs required by compiled Python extensions
+    #   (pillow_heif, onnxruntime). Pre-installed in the dev base image but absent
+    #   in the hardened runtime image — must be made explicit here.
     sh /tmp/extract_deps.sh \
         libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
         libimagequant0 libheif1 liblcms2-2 \
         libfreetype6 libharfbuzz0b libfribidi0 \
         libxcb1 zlib1g libgif7 \
-        ghostscript dumb-init
+        ghostscript libgs10 libgs10-common \
+        dumb-init \
+        libstdc++6 libgomp1
 
 # Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
 RUN mkdir -p /container && \
