@@ -56,11 +56,11 @@ copy_so_from_ldd() {
 # --- Phase 2: Copy data files from named packages via dpkg -L ---
 copy_data_from_packages() {
     for pkg in "$@"; do
-        file_count=0
         dpkg -L "$pkg" 2>/dev/null | while IFS= read -r f; do
             [ -f "$f" ] || [ -L "$f" ] || continue
-            cp --parents -a "$f" "$TARGET_DIR/" 2>/dev/null || true
-            file_count=$((file_count + 1))
+            # Resolve usrmerge symlinks (same reason as Phase 1)
+            real_f=$(realpath "$f" 2>/dev/null || echo "$f")
+            cp --parents -a "$real_f" "$TARGET_DIR/" 2>/dev/null || true
         done
         echo "[extract_deps]   ✓ $pkg"
     done
@@ -82,6 +82,8 @@ echo "[extract_deps] Phase 2: Copying data files from packages..."
 copy_data_from_packages \
     ghostscript \
     libgs10-common \
+    fonts-urw-base35 \
+    fontconfig-config \
     poppler-data \
     dumb-init
 

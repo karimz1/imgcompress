@@ -84,7 +84,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     #                   Immune to Debian t64 renames (libpng16-16 → libpng16-16t64, etc.)
     # Phase 2 (dpkg-L): copy data files (CMaps, fonts, dumb-init binary) that ldd misses.
     # See extract_deps.sh for details.
-    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh /usr/bin/gs
+    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh /usr/bin/gs && \
+    \
+    # Generate ld.so.cache so the dynamic linker can find all .so files at runtime.
+    # Without this, libgs.so.10 fails to load its device plugins ("Unable to open
+    # the initial device") because the hardened runtime image has no ld.so.cache.
+    ldconfig && cp --parents /etc/ld.so.cache /dpkg-export/
 
 # Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
 RUN mkdir -p /container && \
