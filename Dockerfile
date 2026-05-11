@@ -48,7 +48,7 @@ COPY --from=dhi.io/uv:0.11.11-debian13@sha256:33783120b652192063c0193ffbb6f5685d
 # But I haven't tested all in CI, yet.
 
 # Feature: Docker cache mounts for faster builds.
-# (apt doesn't need to resolve metadata again after first successful run)
+# (apt doesn't need to resolve again after first successful run)
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
@@ -57,10 +57,6 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
 # path (/dpkg-export) to facilitate architecture-agnostic multi-arch copying later.
 #
 # Strategy: Runtime Closure Extractor (ldd + dpkg-L hybrid)
-#   - Phase 1: ldd scans our ELF binaries to find every .so loaded at runtime.
-#   - Phase 2: dpkg-query -S maps each .so back to its owning Debian package.
-#   - Phase 3: dpkg -L extracts ALL files (libs, fonts, CMaps, configs) from those
-#              packages into /dpkg-export — capturing what ldd-only misses.
 # Ref: extract_deps.sh
 COPY extract_deps.sh /tmp/extract_deps.sh
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -155,10 +151,14 @@ COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /c
 
 COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/out/. \
     /container/backend/image_converter/presentation/web/static_site
+COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/.next \
+    /container/backend/image_converter/presentation/web/static_site
+COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/public \
+    /container/backend/image_converter/presentation/web/static_site
+
+USER nonroot
 
 EXPOSE 5000
-
-USER 65532:65532
 
 # Constraint: The runtime hardened image lacks a shell (/bin/sh). 
 # We execute the healthcheck via python directly.

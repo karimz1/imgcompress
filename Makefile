@@ -31,7 +31,8 @@ cloud_build:
 trivy:
 	docker run --rm -v \
 	/var/run/docker.sock:/var/run/docker.sock \
-	aquasec/trivy image \
+	aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+	image \
 	--severity HIGH,CRITICAL \
 	--format table \
 	--output scan-result.log \
