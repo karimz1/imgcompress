@@ -340,6 +340,64 @@ jobs:
           path: feature-flags-${{ matrix.label }}.zip
           retention-days: 3
 
+  test-unverified-formats-smoke:
+    # Exploratory smoke job for the long tail of "Other possible formats"
+    # advertised by the UI ("These haven't been fully tested yet, but they
+    # might work!"). Synthesizes one input per writable extension and asserts
+    # the docker CLI produces a non-blank PNG. Non-blocking — a failing exotic
+    # format must never gate a merge or deploy. Treat the result as a signal,
+    # not a gate.
+    name: unverified-formats smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    continue-on-error: true
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Application Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: karimz1/imgcompress:local-test
+          cache-from: type=gha,scope=app-linux/amd64
+          cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Build Dev Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .devcontainer/
+          platforms: linux/amd64
+          load: true
+          tags: devcontainer:local-test
+          cache-from: type=gha,scope=devcontainer-linux/amd64
+          cache-to: type=gha,mode=max,scope=devcontainer-linux/amd64
+
+      - name: Run unverified-formats matrix smoke test
+        run: |
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint /bin/sh \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$(pwd):/app/" \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+            --name devcontainer_unverified_smoke \
+            devcontainer:local-test \
+            -c ". /venv/bin/activate && pytest tests/integration/test_unverified_formats_matrix.py -s --tb=short -ra"
+
   deploy-nightly:
     needs:
       - test-backend
