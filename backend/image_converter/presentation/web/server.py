@@ -52,7 +52,11 @@ def global_handle_exception(e):
         return handle_http_exception(e)
 
     app_logger.log(f"Exception occurred: {traceback.format_exc()}", "error")
-    return jsonify({"error": "InternalServerError", "message": "Internal server error"}), 500
+    response = {
+        "error": type(e).__name__,
+        "message": "An unexpected error occurred. See server logs for details.",
+    }
+    return jsonify(response), 500
 
 
 def start_scheduler():
