@@ -51,13 +51,8 @@ def global_handle_exception(e):
     if isinstance(e, HTTPException):
         return handle_http_exception(e)
 
-    response = {
-        "error": type(e).__name__,
-        "message": str(e),
-        "stacktrace": traceback.format_exc(),
-    }
     app_logger.log(f"Exception occurred: {traceback.format_exc()}", "error")
-    return jsonify(response), 500
+    return jsonify({"error": "InternalServerError", "message": "Internal server error"}), 500
 
 
 def start_scheduler():
