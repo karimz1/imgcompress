@@ -23,6 +23,15 @@
   </p>
 
   <p>
+    <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#readme">
+      <img src="https://awesome.re/mentioned-badge-flat.svg" alt="Mentioned in Awesome Self-Hosted" />
+    </a>
+    <a href="https://coolify.io/docs/services/imgcompress?utm_source=github.com">
+      <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as official Coolify service" />
+    </a>
+  </p>
+
+  <p>
     <a href="https://imgcompress.karimzouine.com/">Website</a> ·
     <a href="https://imgcompress.karimzouine.com/docs">Docs</a> ·
     <a href="https://imgcompress.karimzouine.com/docs/installation">Installation Guide</a> ·
@@ -115,6 +124,17 @@ I chose Docker because it keeps your computer clean. Instead of you having to in
 | **No telemetry** | No analytics, no crash reporting, no feature flags phoning home. Completely silent on the network after startup. |
 | **Offline after pull** | Once the image is pulled, no internet connection is ever needed again. No license checks, no expiry. |
 | **Open source** | GPL-3.0. Audit the code, fork it, self-host it forever. |
+
+---
+
+## Featured On
+
+ImgCompress is recognized by the self-hosted community and is part of curated lists and platforms that self-hosters already rely on:
+
+- **[Awesome Self-Hosted](https://github.com/awesome-selfhosted/awesome-selfhosted#readme)** [![Stars](https://img.shields.io/github/stars/awesome-selfhosted/awesome-selfhosted?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/awesome-selfhosted/awesome-selfhosted): community-curated index of self-hosted software, listed alongside the tools self-hosters already run in production. [Jump to the imgcompress entry](https://awesome-selfhosted.net/index.html#imgcompress).
+- **[Coolify](https://github.com/coollabsio/coolify)** [![Stars](https://img.shields.io/github/stars/coollabsio/coolify?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/coollabsio/coolify): open-source, self-hostable deployment platform. ImgCompress is available as an **official Coolify service**, so you can add it to your stack straight from the Coolify dashboard. [Jump to the imgcompress entry](https://coolify.io/docs/services/imgcompress?utm_source=github.com).
+
+> Know another platform that features ImgCompress, or want to add it to one? [Get in touch](https://www.karimzouine.com/#contact). Big thanks to the open-source community for getting ImgCompress noticed in the first place.
 
 ---
 
