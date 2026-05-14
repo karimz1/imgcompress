@@ -54,7 +54,7 @@ RUN set -eux; \
     libjpeg-dev libpng-dev libtiff-dev libwebp-dev libopenjp2-7-dev \
     libimagequant-dev libheif-dev liblcms2-dev \
     libfreetype6-dev libharfbuzz-dev libfribidi-dev \
-    ghostscript \
+    libxcb1-dev zlib1g-dev libgif-dev ghostscript \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
