@@ -1,4 +1,5 @@
 import os
+import json
 import pytest
 import subprocess
 import shlex
@@ -11,7 +12,12 @@ from tests.test_utils import (
     is_github_actions,
 )
 
+import pillow_heif
 from PIL import Image, ImageDraw
+
+# Register the HEIF/AVIF opener so Image.open(...).format works for AVIF files
+# produced by the CLI under test.
+pillow_heif.register_heif_opener()
 
 class TestDockerIntegration:
     INTEGRATION_TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -313,10 +319,101 @@ class TestDockerIntegration:
         with Image.open(output_path) as output_img:
             assert output_img.format.upper() == "PNG"
             assert "A" in output_img.mode
-            
+
             has_transparency = any(
                 output_img.getpixel((x, y))[3] < 255
                 for x in range(0, output_img.width, 10)
                 for y in range(0, output_img.height, 10)
             )
             assert has_transparency, "Expected some transparent pixels in background-removed image"
+
+    def test_run_docker_cli_avifFormat_producesValidAvifFile(self):
+        """
+        Tests --format avif at the CLI level. README documents AVIF as a supported
+        output format. Web UI e2e covers AVIF but the CLI surface did not.
+        """
+        single_file_name = "pexels-pealdesign-28594392.jpg"
+        local_path = os.path.join(self.SAMPLE_IMAGES_DIR, single_file_name)
+        assert os.path.exists(local_path), f"Missing test image: {local_path}"
+
+        self.run_docker_singlefile_processing(
+            single_file_name,
+            extra_args=["--format", "avif"],
+        )
+
+        output_files = os.listdir(self.OUTPUT_DIR)
+        assert len(output_files) == 1, f"Expected 1 output file, found {len(output_files)}."
+        out_path = os.path.join(self.OUTPUT_DIR, output_files[0])
+        assert out_path.lower().endswith(".avif"), f"Expected .avif output, got: {out_path}"
+        validate_image_dimensions(out_path, self.EXPECTED_IMAGE_WIDTH)
+
+        with Image.open(out_path) as out_img:
+            # pillow_heif reports AVIF as 'AVIF' or sometimes 'HEIF' depending on
+            # the build; either confirms a valid HEIF-family container was written.
+            assert out_img.format.upper() in {"AVIF", "HEIF"}, (
+                f"Unexpected output format: {out_img.format}"
+            )
+        print(f"AVIF file '{out_path}' validated at {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
+
+    def test_run_docker_cli_jsonOutput_emitsParseableMachineReadablePayload(self):
+        """
+        Tests --json-output at the CLI level. The README "For Code Wizards"
+        section promises a structured JSON payload pipe-able into jq. If this
+        contract drifts (renamed fields, structural change) downstream pipelines
+        break silently. This test asserts the actual emitted schema.
+        """
+        single_file_name = "pexels-pealdesign-28594392.jpg"
+        local_path = os.path.join(self.SAMPLE_IMAGES_DIR, single_file_name)
+        assert os.path.exists(local_path), f"Missing test image: {local_path}"
+
+        strategy = self._mounting_strategy()
+        cmd = [
+            "docker", "run", "--rm",
+            *strategy["volume_args"],
+            self.DOCKER_IMAGE_NAME,
+            "cli",
+            os.path.join(strategy["input_path"], single_file_name),
+            strategy["output_path"],
+            "--quality", "80",
+            "--format", "jpeg",
+            "--json-output",
+        ]
+        print("Docker --json-output command:", shlex.join(cmd))
+        completed = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+        # The CLI prints JSON to stdout; everything else (logger output) goes to
+        # stderr. So stdout must parse cleanly on its own.
+        stdout = completed.stdout.strip()
+        assert stdout, "Expected JSON on stdout when --json-output is set"
+        try:
+            payload = json.loads(stdout)
+        except json.JSONDecodeError as e:
+            pytest.fail(
+                f"--json-output produced invalid JSON: {e}\n"
+                f"stdout was:\n{stdout!r}\nstderr was:\n{completed.stderr!r}"
+            )
+
+        # Top-level schema: status + conversion_results
+        assert payload.get("status") == "complete", payload
+        assert "conversion_results" in payload, payload
+        results = payload["conversion_results"]
+
+        # File processing summary block
+        assert "file_processing_summary" in results, results
+        summary = results["file_processing_summary"]
+        assert summary.get("total_files_count") == 1, summary
+        assert summary.get("successful_files_count") == 1, summary
+        assert summary.get("failed_files_count") == 0, summary
+
+        # files[] block
+        assert "files" in results, results
+        files = results["files"]
+        assert isinstance(files, list) and len(files) == 1, files
+        entry = files[0]
+        assert entry.get("is_successful") is True, entry
+        # Keys the JSON contract actually emits (do not silently drift):
+        for key in ("file", "source", "destination", "original_width", "resized_width", "is_successful"):
+            assert key in entry, f"Missing key {key!r} in files[0]: {entry}"
+        assert entry["destination"].endswith(".jpeg") or entry["destination"].endswith(".jpg"), (
+            f"Unexpected destination extension: {entry['destination']}"
+        )
