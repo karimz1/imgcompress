@@ -7,6 +7,24 @@ APP_ROOT="$(cd "$(dirname "$0")" && pwd)"
 E2E_FRONTEND_DIR="${E2E_FRONTEND_DIR:-/tmp/imgcompress-e2e-frontend}"
 echo "Using base URL: ${BASE_URL}"
 
+# Playwright writes results inside the throwaway $E2E_FRONTEND_DIR copy of
+# the frontend. Sync them back to the host-mounted frontend/e2e-test-results
+# so callers (CI artifact uploads, local inspection) can actually see them.
+# Runs on both success and failure via the EXIT trap.
+sync_test_results() {
+  local results_src="$E2E_FRONTEND_DIR/e2e-test-results"
+  local results_dst="$APP_ROOT/frontend/e2e-test-results"
+  if [ -d "$results_src" ]; then
+    rm -rf "$results_dst"
+    mkdir -p "$results_dst"
+    cp -R "$results_src/." "$results_dst/" || true
+    echo "Synced test results to $results_dst"
+  else
+    echo "No Playwright results at $results_src; skipping sync"
+  fi
+}
+trap sync_test_results EXIT
+
 # Run E2E Tests in Dev Container
 echo "Running E2E Tests..."
 
