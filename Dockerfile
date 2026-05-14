@@ -66,18 +66,6 @@ COPY requirements.txt /container/
 COPY setup.py /container/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ⚠️ DELIBERATE SABOTAGE — REMOVE BEFORE MERGING
-# Drop Pillow's TIFF plugin from the app container ONLY. The dev container
-# (where the unverified-formats-api test runs) still has full Pillow, so
-# `supported_extensions` will still list .tif/.tiff. When the test posts a
-# TIFF to /api/compress here, decoding will fail and the test rows
-# `[.tif]` and `[.tiff]` will go red — proving the matrix catches a
-# container missing a decoder for a format the UI advertises as supported.
-# Revert this RUN line once the demonstration is observed in CI.
-RUN find /usr/local/lib/python*/site-packages/PIL \
-        \( -name 'TiffImagePlugin.py' -o -name 'TiffImagePlugin.*.pyc' \) \
-        -print -delete
-
 # Copy backend code and other necessary files
 COPY backend/ /container/backend
 COPY entrypoint.sh /container/entrypoint.sh
