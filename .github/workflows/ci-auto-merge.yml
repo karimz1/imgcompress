@@ -18,9 +18,9 @@ on:
         required: false
         default: "false"
       upload_feature_flags_artifacts:
-        description: "Upload feature-flags matrix screenshots / videos artifact?"
+        description: "Upload feature-flags matrix screenshots / videos artifact? (default on)"
         required: false
-        default: "false"
+        default: "true"
       deploy_nightly:
         description: "After E2E tests succeed, trigger the nightly deployment workflow"
         type: boolean
@@ -319,11 +319,11 @@ jobs:
           docker rm app || true
 
       - name: Ensure feature-flags results directory exists
-        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_feature_flags_artifacts == 'true'
+        if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
         run: mkdir -p frontend/e2e-test-results
 
       - name: Zip feature-flags results — ${{ matrix.scenario }}
-        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_feature_flags_artifacts == 'true'
+        if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
         run: |
           if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
             zip -r "feature-flags-${{ matrix.label }}.zip" frontend/e2e-test-results
@@ -333,7 +333,7 @@ jobs:
           fi
 
       - name: Upload feature-flags artifact — ${{ matrix.scenario }}
-        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_feature_flags_artifacts == 'true'
+        if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
         uses: actions/upload-artifact@v7
         with:
           name: feature-flags-${{ matrix.label }}
