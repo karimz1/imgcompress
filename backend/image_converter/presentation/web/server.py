@@ -1,33 +1,36 @@
-from werkzeug.exceptions import HTTPException
 import traceback
-from flask import Flask, jsonify
-from apscheduler.schedulers.background import BackgroundScheduler
+
 import pillow_heif
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask, jsonify
+from werkzeug.exceptions import HTTPException
 
 from backend.image_converter.config import settings
-from backend.image_converter.infrastructure.logger import Logger, enable_error_capture_in_docker_env
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
-from backend.image_converter.presentation.web.routes import api_blueprint
+from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.presentation.web.error_handlers import (
-    handle_request_entity_too_large,
     handle_http_exception,
-    not_found
+    handle_request_entity_too_large,
+    not_found,
 )
+from backend.image_converter.presentation.web.routes import api_blueprint
 from backend.image_converter.presentation.web.static_routes import static_blueprint
 
-enable_error_capture_in_docker_env()
+
 pillow_heif.register_heif_opener()
 
-TEMP_DIR = settings.temp_dir()
-EXPIRATION_TIME = settings.temp_expiration_seconds()
+_config = settings.get()
+
+TEMP_DIR = _config.temporary_storage.directory
+EXPIRATION_TIME = _config.temporary_storage.max_age_seconds
 
 app = Flask(
     __name__,
     static_folder="static_site",
-    static_url_path="/static"
+    static_url_path="/static",
 )
 app.config["MAX_FORM_MEMORY_SIZE"] = None
-app.config["MAX_CONTENT_LENGTH"] = settings.max_upload_bytes()
+app.config["MAX_CONTENT_LENGTH"] = _config.uploads.max_file_size_bytes
 
 app_logger = Logger(debug=False, json_output=False)
 
@@ -51,7 +54,7 @@ def global_handle_exception(e):
     response = {
         "error": type(e).__name__,
         "message": str(e),
-        "stacktrace": traceback.format_exc()
+        "stacktrace": traceback.format_exc(),
     }
     app_logger.log(f"Exception occurred: {traceback.format_exc()}", "error")
     return jsonify(response), 500
@@ -71,7 +74,7 @@ def start_scheduler():
     scheduler.add_job(
         func=scheduled_cleanup,
         trigger="interval",
-        seconds=EXPIRATION_TIME
+        seconds=EXPIRATION_TIME,
     )
     scheduler.start()
     app_logger.log("Scheduler started for periodic temp folder cleanup.", "info")
@@ -79,4 +82,4 @@ def start_scheduler():
 
 if __name__ == "__main__":
     start_scheduler()
-    app.run(host=settings.web_host(), port=settings.web_port(), threaded=True)
+    app.run(host=_config.web.host, port=_config.web.port, threaded=True)

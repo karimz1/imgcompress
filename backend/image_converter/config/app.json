@@ -1,7 +1,11 @@
 {
-  "temp_dir": "/tmp",
-  "temp_expiration_seconds": 3600,
-  "max_upload_bytes": 42949672960,
+  "temporary_storage": {
+    "directory": "/tmp",
+    "max_age_seconds": 3600
+  },
+  "uploads": {
+    "max_file_size_mebibytes": 40960
+  },
   "web": {
     "host": "0.0.0.0",
     "port": 5000,
@@ -11,8 +15,8 @@
     "backend_log_file": "/tmp/imgcompress-backend.log"
   },
   "crop_preview": {
-    "max_attempts": 3,
-    "unsupported_extensions": [
+    "max_retry_attempts": 3,
+    "unsupported_input_extensions": [
       ".pdf",
       ".svg",
       ".raw",
@@ -22,11 +26,10 @@
       ".dng"
     ]
   },
-  "storage": {
-    "bytes_per_megabyte": 1048576
-  },
   "features": {
-    "dev_mode": false
+    "is_storage_management_enabled": true,
+    "is_logo_enabled": true,
+    "is_dev_mode_enabled": false
   },
   "rembg": {
     "model_name": "u2net"

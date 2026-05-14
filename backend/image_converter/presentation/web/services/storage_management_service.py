@@ -1,25 +1,27 @@
 import shutil
 
+from backend.image_converter.domain.storage import DiskUsage, StorageSummary
+from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
+
 
 class StorageManagementService:
-    def __init__(self, enabled: bool, bytes_per_megabyte: int):
-        self.enabled = enabled
-        self.bytes_per_megabyte = bytes_per_megabyte
+    def __init__(self, is_enabled: bool):
+        self.is_enabled = is_enabled
 
     def is_storage_management_enabled(self) -> bool:
-        return self.enabled
+        return self.is_enabled
 
-    def get_disk_usage(self, path: str = "/"):
+    def get_disk_usage(self, path: str = "/") -> DiskUsage:
         total, used, free = shutil.disk_usage(path)
-        return {
-            "total_storage_mb": round(total / self.bytes_per_megabyte, 2),
-            "used_storage_mb": round(used / self.bytes_per_megabyte, 2),
-            "available_storage_mb": round(free / self.bytes_per_megabyte, 2),
-        }
+        return DiskUsage(
+            total_storage_mb=round(total / BYTES_PER_MEBIBYTE, 2),
+            used_storage_mb=round(used / BYTES_PER_MEBIBYTE, 2),
+            available_storage_mb=round(free / BYTES_PER_MEBIBYTE, 2),
+        )
 
-    def get_storage_summary(self, path: str, used_mb: float) -> dict:
+    def get_storage_summary(self, path: str, used_mb: float) -> StorageSummary:
         _, _, free = shutil.disk_usage(path)
-        return {
-            "used_storage_mb": used_mb,
-            "available_storage_mb": round(free / self.bytes_per_megabyte, 2),
-        }
+        return StorageSummary(
+            used_storage_mb=used_mb,
+            available_storage_mb=round(free / BYTES_PER_MEBIBYTE, 2),
+        )

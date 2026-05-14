@@ -19,12 +19,12 @@ from backend.image_converter.presentation.web.services.crop_preview_service impo
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 
-settings.validate_all()
+_config = settings.get()
 
 api_blueprint = Blueprint("api", __name__)
 
-TEMP_DIR = settings.temp_dir()
-EXPIRATION_TIME = settings.temp_expiration_seconds()
+TEMP_DIR = _config.temporary_storage.directory
+EXPIRATION_TIME = _config.temporary_storage.max_age_seconds
 logger = Logger(debug=False, json_output=False)
 
 resizer = ImageResizer()
@@ -35,15 +35,14 @@ use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
 storage_management_service = StorageManagementService(
-    enabled=settings.storage_management_enabled(),
-    bytes_per_megabyte=settings.bytes_per_megabyte(),
+    is_enabled=_config.features.is_storage_management_enabled,
 )
-configuration_service = ConfigurationService()
+configuration_service = ConfigurationService(rembg_model_name=_config.rembg.model_name)
 crop_preview_service = CropPreviewService(
     logger,
     payload_expander,
-    unsupported_extensions=settings.crop_preview_unsupported_extensions(),
-    max_attempts=settings.crop_preview_max_attempts(),
+    unsupported_extensions=_config.crop_preview.unsupported_input_extensions,
+    max_attempts=_config.crop_preview.max_retry_attempts,
 )
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
 backend_diagnostics_service = BackendDiagnosticsService(
@@ -69,10 +68,7 @@ def compress_images():
     if not result.is_successful:
         return jsonify({"error": "Compression failed", "message": result.error}), 500
 
-    return jsonify({
-        "status": "ok",
-        **result.value
-    }), 200
+    return jsonify({"status": "ok", **result.value.to_json_dict()}), 200
 
 
 @api_blueprint.route("/download", methods=["GET"])
@@ -110,9 +106,9 @@ def storage_info():
     if not storage_management_service.is_storage_management_enabled():
         return _storage_management_disabled_response()
 
-    used_mb = temp_folder_service.get_container_files().get("total_size_mb", 0)
-    summary = storage_management_service.get_storage_summary(TEMP_DIR, used_mb)
-    return jsonify(summary), 200
+    inventory = temp_folder_service.get_container_files()
+    summary = storage_management_service.get_storage_summary(TEMP_DIR, inventory.total_size_mb)
+    return jsonify(summary.to_json_dict()), 200
 
 
 @api_blueprint.route("/force_cleanup", methods=["POST"])
@@ -131,7 +127,8 @@ def container_files():
     if not storage_management_service.is_storage_management_enabled():
         return _storage_management_disabled_response()
 
-    return jsonify(temp_folder_service.get_container_files()), 200
+    inventory = temp_folder_service.get_container_files()
+    return jsonify(inventory.to_json_dict()), 200
 
 @api_blueprint.route("/health/internet", methods=["GET"])
 def health_internet():

@@ -14,6 +14,10 @@ class PagePayload:
 
 
 class FilePayloadExpander:
+    """
+    Normalizes supported upload containers into raster payloads for conversion.
+    """
+
     def __init__(self, pdf_extractor: PdfPageExtractor, psd_renderer: PsdRenderer):
         self.pdf_extractor = pdf_extractor
         self.psd_renderer = psd_renderer

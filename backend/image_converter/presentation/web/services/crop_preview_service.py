@@ -2,7 +2,7 @@ import time
 import uuid
 from io import BytesIO
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 from PIL import Image, UnidentifiedImageError
 
@@ -44,13 +44,13 @@ class CropPreviewService:
         file_path: str,
         request_id: Optional[str] = None,
     ) -> Result[BytesIO]:
-        path = Path(file_path)
+        path = Path(file_path).resolve(strict=True)
         return self._build(filename, path.read_bytes, path.stat().st_size, request_id)
 
     def _build(
         self,
         filename: str,
-        load_bytes,
+        load_bytes: Callable[[], bytes],
         byte_count: int,
         request_id: Optional[str],
     ) -> Result[BytesIO]:
@@ -108,9 +108,7 @@ class CropPreviewService:
         return buffer
 
     def _normalize_image(self, img: Image.Image) -> Image.Image:
-        # Rebuild via frombytes so the returned image carries no shared `info`
-        # or decoder state — required for deterministic PNG output under
-        # concurrent decodes (see test_high_concurrency_psd_does_not_leak_state).
+        """Detach the preview image from decoder state before writing PNG bytes."""
         if img.mode not in ("RGB", "RGBA", "L", "LA"):
             img = img.convert("RGBA" if "A" in img.getbands() else "RGB")
         return Image.frombytes(img.mode, img.size, img.tobytes())

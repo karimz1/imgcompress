@@ -5,8 +5,11 @@ import shutil
 import pytest
 from PIL import Image
 
-from backend.image_converter.config import settings
+from backend.image_converter.presentation.web import routes
 from backend.image_converter.presentation.web.server import app
+from backend.image_converter.presentation.web.services.configuration_service import (
+    ConfigurationService,
+)
 import backend.image_converter.core.factory.rembg_png_converter as rembg_module
 
 
@@ -18,7 +21,11 @@ def client():
 
 
 def test_rembg_model_endpoint_uses_config_value(client, monkeypatch):
-    monkeypatch.setattr(settings, "rembg_model_name", lambda: "custom-net")
+    monkeypatch.setattr(
+        routes,
+        "configuration_service",
+        ConfigurationService(rembg_model_name="custom-net"),
+    )
 
     response = client.get("/api/rembg_model")
     assert response.status_code == 200

@@ -16,6 +16,8 @@ class DownloadTarget:
 
 
 class TemporaryFolderService:
+    """Owns temp-directory path validation before files are read, zipped, or served."""
+
     def __init__(self, temp_dir: str, expiration_time: int, logger):
         self.temp_dir = temp_dir
         self.base_dir = Path(temp_dir).resolve()
@@ -64,10 +66,6 @@ class TemporaryFolderService:
         if not path:
             return None
         base = str(self.base_dir)
-        # os.path.realpath is treated as a sanitizer by CodeQL's path-injection
-        # query (it normalizes the path AND follows symlinks before we use it),
-        # so any downstream operation receives untainted data. We then check
-        # containment with os.path.commonpath, another recognized sanitizer.
         if os.path.isabs(path):
             real = os.path.realpath(path)
         else:

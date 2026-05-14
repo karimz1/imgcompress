@@ -17,15 +17,16 @@ def client():
 
 def test_backend_logs_endpoint_respects_storage_management_flag(client, monkeypatch):
     monkeypatch.setenv("DISABLE_STORAGE_MANAGEMENT", "true")
+    settings.reset_cache()
     monkeypatch.setattr(
         routes,
         "storage_management_service",
         StorageManagementService(
-            enabled=settings.storage_management_enabled(),
-            bytes_per_megabyte=settings.bytes_per_megabyte(),
+            is_enabled=settings.get().features.is_storage_management_enabled,
         ),
     )
 
     response = client.get("/api/logs/backend")
 
     assert response.status_code == 403
+    settings.reset_cache()

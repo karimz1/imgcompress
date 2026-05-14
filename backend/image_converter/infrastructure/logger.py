@@ -10,11 +10,11 @@ from colorama import Fore, Style
 from backend.image_converter.config import settings
 
 _LOG_FILE_LOCK = Lock()
-_PARENT_STDOUT_CAPTURE_ENV = "IMGCOMPRESS_PARENT_STDOUT_CAPTURE"
+_stdio_capture_installed = False
 
 
 def get_backend_log_file_path() -> str:
-    return settings.backend_log_file()
+    return settings.get().logging.backend_log_file
 
 
 def append_backend_log_line(line: str):
@@ -42,10 +42,19 @@ class TeeStream:
         self.wrapped.flush()
 
 
-def enable_error_capture_in_docker_env():
-    if os.environ.get("IMGCOMPRESS_STDIO_CAPTURE_INSTALLED") == "true":
+def enable_error_capture_in_docker_env() -> None:
+    """Tee stdout/stderr into the backend log file.
+
+    Called exactly once from the composition root (`bootstraper.main`). The
+    process that calls this becomes the single writer to the log file —
+    anything Python writes to stdout/stderr from this point on (including
+    captured stdout of subprocess children that we relay through `print`) is
+    appended to the log. Idempotent within a process via a module-level flag.
+    """
+    global _stdio_capture_installed
+    if _stdio_capture_installed:
         return
-    os.environ["IMGCOMPRESS_STDIO_CAPTURE_INSTALLED"] = "true"
+    _stdio_capture_installed = True
     sys.stdout = TeeStream(sys.stdout)
     sys.stderr = TeeStream(sys.stderr, "[stderr] ")
 
@@ -96,11 +105,6 @@ class Logger:
         line = f"[{ts}] [{level.upper()}] {message}"
         with self._buffer_lock:
             self._buffer.append(line)
-        if (
-            os.environ.get(_PARENT_STDOUT_CAPTURE_ENV) != "true"
-            and os.environ.get("IMGCOMPRESS_STDIO_CAPTURE_INSTALLED") != "true"
-        ):
-            append_backend_log_line(f"[{level.upper()}] {message}")
 
     def _should_skip_debug(self, level: str) -> bool:
         return level == "debug" and not self.debug

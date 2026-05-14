@@ -79,7 +79,7 @@ ENV U2NET_HOME=/container/.u2net
 RUN python - <<'PY'
 from backend.image_converter.config import settings
 from rembg import new_session
-model_name = settings.rembg_model_name()
+model_name = settings.get().rembg.model_name
 new_session(model_name)
 print(f"rembg model cached: {model_name}")
 PY

@@ -6,7 +6,7 @@ from io import BytesIO
 from typing import Optional
 
 
-@dataclass
+@dataclass(frozen=True)
 class CropBitmapResponse:
     value: Optional[BytesIO]
     error: Optional[str]
@@ -18,6 +18,8 @@ class CropBitmapResponse:
 
 
 class CropBitmapRequestService:
+    """Spools crop preview uploads to disk before invoking preview generation."""
+
     def __init__(self, preview_service, temp_dir: str):
         self.preview_service = preview_service
         self.temp_dir = temp_dir
