@@ -199,10 +199,109 @@ jobs:
           path: e2e-test-results-${{ env.ARCH }}.zip
           retention-days: 3
 
+  test-feature-flags-matrix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - disable_logo: "true"
+            disable_storage_management: "true"
+          - disable_logo: "true"
+            disable_storage_management: "false"
+          - disable_logo: "false"
+            disable_storage_management: "true"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Application Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: karimz1/imgcompress:local-test
+          cache-from: type=gha,scope=app-linux/amd64
+          cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Run Application Container with feature flags
+        run: |
+          docker run --rm -d \
+            --platform linux/amd64 \
+            --network host \
+            --name app \
+            -e DISABLE_LOGO=${{ matrix.disable_logo }} \
+            -e DISABLE_STORAGE_MANAGEMENT=${{ matrix.disable_storage_management }} \
+            karimz1/imgcompress:local-test web
+
+      - name: Wait for Application to be Ready (using localhost)
+        run: |
+          BASE_URL="http://localhost:5000"
+          echo "Waiting for the application to be ready on ${BASE_URL}..."
+          max_attempts=120
+          attempt_num=1
+          until curl -s --fail "$BASE_URL" > /dev/null; do
+            if [ "$attempt_num" -eq "$max_attempts" ]; then
+              echo "Application failed to start after $max_attempts attempts."
+              docker logs --tail 200 app || true
+              exit 1
+            fi
+            echo "Waiting for app... attempt $attempt_num"
+            attempt_num=$((attempt_num+1))
+            sleep 1
+          done
+          echo "Application is up! Continuing..."
+
+      - name: Build Dev Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .devcontainer/
+          platforms: linux/amd64
+          load: true
+          tags: devcontainer:local-test
+          cache-from: type=gha,scope=devcontainer-linux/amd64
+          cache-to: type=gha,mode=max,scope=devcontainer-linux/amd64
+
+      - name: Make E2E script executable
+        run: chmod +x ./run-e2e.sh
+
+      - name: Run feature-flags spec in Dev Container (Host Networking)
+        run: |
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint /bin/sh \
+            --network host \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$(pwd):/app/" \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+            -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
+            --name devcontainer_flags \
+            devcontainer:local-test -c "/app/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts"
+
+      - name: Stop Application Container
+        if: always()
+        run: |
+          docker stop app || true
+          docker rm app || true
+
   deploy-nightly:
     needs:
       - test-backend
       - test-e2e
+      - test-feature-flags-matrix
     if: >
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
@@ -227,6 +326,7 @@ jobs:
     needs:
       - test-backend
       - test-e2e
+      - test-feature-flags-matrix
     runs-on: ubuntu-latest
     permissions:
       contents: read

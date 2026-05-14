@@ -56,6 +56,6 @@ run_pnpm() {
 
 run_pnpm install --frozen-lockfile
 run_pnpm exec playwright install --with-deps chromium
-run_pnpm test:e2e
+run_pnpm test:e2e -- "$@"
 
 echo "E2E Tests completed successfully!"
