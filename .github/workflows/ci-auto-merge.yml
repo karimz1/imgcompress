@@ -8,6 +8,8 @@ on:
       - bugfix/*
       - enhancements/*
       - release/*
+      - prepare-rc-*
+      - prepair-rc-*
   pull_request:
   workflow_dispatch:
     inputs:

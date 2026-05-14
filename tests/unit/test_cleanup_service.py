@@ -85,6 +85,7 @@ def test_cleanup_temp_folders_returns_typed_summary(tmp_path):
     summary = result.value
     assert isinstance(summary, CleanupSummary)
     assert summary.errors == []
+    assert summary.deleted == []
     assert all(isinstance(item, CleanedItem) for item in summary.deleted)
     assert os.path.isdir(fresh)
 

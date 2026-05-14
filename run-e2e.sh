@@ -45,8 +45,13 @@ run_pnpm() {
     hash -r
   fi
 
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm "$@"
+    return
+  fi
+
   echo "Neither npm nor pnpm is available; aborting E2E tests." >&2
-    exit 1
+  exit 1
 }
 
 run_pnpm install --frozen-lockfile

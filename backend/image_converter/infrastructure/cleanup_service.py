@@ -97,13 +97,14 @@ class CleanupService:
         dir_path: str,
         force: bool,
         current_time: float,
-    ) -> Result[None]:
+    ) -> Result[bool]:
         try:
             creation_time = os.path.getctime(dir_path)
             if force or (current_time - creation_time > self.expiration_time):
                 shutil.rmtree(dir_path, ignore_errors=True)
                 self.logger.log(f"Deleted temp folder: {dir_path}", "info")
-            return Result.success(None)
+                return Result.success(True)
+            return Result.success(False)
         except Exception:
             tb = traceback.format_exc()
             self.logger.log(f"Error deleting folder {dir_path}: {tb}", "error")
@@ -114,13 +115,14 @@ class CleanupService:
         zip_path: str,
         force: bool,
         current_time: float,
-    ) -> Result[None]:
+    ) -> Result[bool]:
         try:
             creation_time = os.path.getctime(zip_path)
             if force or (current_time - creation_time > self.expiration_time):
                 os.remove(zip_path)
                 self.logger.log(f"Deleted ZIP file: {zip_path}", "info")
-            return Result.success(None)
+                return Result.success(True)
+            return Result.success(False)
         except Exception:
             tb = traceback.format_exc()
             self.logger.log(f"Error deleting ZIP file {zip_path}: {tb}", "error")
@@ -131,10 +133,11 @@ class CleanupService:
         summary: CleanupSummary,
         kind: str,
         path: str,
-        result: Result[None],
+        result: Result[bool],
     ) -> None:
         if result.is_successful:
-            summary.deleted.append(CleanedItem(kind=kind, path=path))
+            if result.value:
+                summary.deleted.append(CleanedItem(kind=kind, path=path))
             return
         summary.errors.append(CleanupError(kind=kind, path=path, error=result.error))
 
