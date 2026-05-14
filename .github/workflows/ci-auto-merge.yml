@@ -17,6 +17,10 @@ on:
         description: "Upload E2E test results artifact?"
         required: false
         default: "false"
+      upload_feature_flags_artifacts:
+        description: "Upload feature-flags matrix screenshots / videos artifact?"
+        required: false
+        default: "false"
       deploy_nightly:
         description: "After E2E tests succeed, trigger the nightly deployment workflow"
         type: boolean
@@ -200,6 +204,9 @@ jobs:
           retention-days: 3
 
   test-feature-flags-matrix:
+    # Job display name reads as the actual user-facing UI state instead of
+    # a confusing tuple of `disable_* = true/false` (double negative).
+    name: feature-flags (${{ matrix.scenario }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -207,12 +214,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # logo hidden + storage hidden  (DISABLE_LOGO=true, DISABLE_STORAGE_MANAGEMENT=true)
           - disable_logo: "true"
             disable_storage_management: "true"
+            scenario: "logo HIDDEN | storage HIDDEN"
+            label: "logo-hidden_storage-hidden"
+          # logo hidden + storage shown   (DISABLE_LOGO=true, DISABLE_STORAGE_MANAGEMENT=false)
           - disable_logo: "true"
             disable_storage_management: "false"
+            scenario: "logo HIDDEN | storage SHOWN"
+            label: "logo-hidden_storage-shown"
+          # logo shown  + storage hidden  (DISABLE_LOGO=false, DISABLE_STORAGE_MANAGEMENT=true)
           - disable_logo: "false"
             disable_storage_management: "true"
+            scenario: "logo SHOWN  | storage HIDDEN"
+            label: "logo-shown_storage-hidden"
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -237,8 +253,13 @@ jobs:
           cache-from: type=gha,scope=app-linux/amd64
           cache-to: type=gha,mode=max,scope=app-linux/amd64
 
-      - name: Run Application Container with feature flags
+      - name: Start app — ${{ matrix.scenario }}
         run: |
+          echo "::group::Feature flag configuration for this matrix entry"
+          echo "Scenario:                    ${{ matrix.scenario }}"
+          echo "DISABLE_LOGO:                ${{ matrix.disable_logo }}   -> Logo $([ '${{ matrix.disable_logo }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
+          echo "DISABLE_STORAGE_MANAGEMENT:  ${{ matrix.disable_storage_management }}   -> Storage management button $([ '${{ matrix.disable_storage_management }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
+          echo "::endgroup::"
           docker run --rm -d \
             --platform linux/amd64 \
             --network host \
@@ -278,7 +299,7 @@ jobs:
       - name: Make E2E script executable
         run: chmod +x ./run-e2e.sh
 
-      - name: Run feature-flags spec in Dev Container (Host Networking)
+      - name: Run feature-flags spec — ${{ matrix.scenario }}
         run: |
           docker run --rm \
             --platform linux/amd64 \
@@ -296,6 +317,28 @@ jobs:
         run: |
           docker stop app || true
           docker rm app || true
+
+      - name: Ensure feature-flags results directory exists
+        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_feature_flags_artifacts == 'true'
+        run: mkdir -p frontend/e2e-test-results
+
+      - name: Zip feature-flags results — ${{ matrix.scenario }}
+        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_feature_flags_artifacts == 'true'
+        run: |
+          if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
+            zip -r "feature-flags-${{ matrix.label }}.zip" frontend/e2e-test-results
+          else
+            echo "No feature-flags results found, creating an empty zip."
+            touch "feature-flags-${{ matrix.label }}.zip"
+          fi
+
+      - name: Upload feature-flags artifact — ${{ matrix.scenario }}
+        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.upload_feature_flags_artifacts == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: feature-flags-${{ matrix.label }}
+          path: feature-flags-${{ matrix.label }}.zip
+          retention-days: 3
 
   deploy-nightly:
     needs:

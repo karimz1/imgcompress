@@ -37,4 +37,19 @@ test('feature flags served by the running container match the rendered UI', asyn
     } else {
         await expect(storageBtn).toBeVisible();
     }
+
+    // Visual proof of the rendered UI for this flag combination.
+    // Small JPEG so artifact size stays low even when all 3 matrix runs upload.
+    const label = `logo-${logoDisabled ? 'disabled' : 'enabled'}__storage-${storageDisabled ? 'disabled' : 'enabled'}`;
+    const screenshotPath = test.info().outputPath(`featureFlags-${label}.jpg`);
+    await page.screenshot({
+        path: screenshotPath,
+        type: 'jpeg',
+        quality: 60,
+        fullPage: false,
+    });
+    await test.info().attach(`feature-flags-${label}`, {
+        path: screenshotPath,
+        contentType: 'image/jpeg',
+    });
 });
