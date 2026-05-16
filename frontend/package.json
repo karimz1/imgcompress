@@ -43,7 +43,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/adm-zip": "^0.5.8",
     "@types/node": "^25",
