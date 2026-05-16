@@ -115,8 +115,8 @@ importers:
         specifier: ^1.17.1
         version: 1.17.1
       pnpm:
-        specifier: ^11.0.9
-        version: 11.0.9
+        specifier: ^11.1.2
+        version: 11.1.2
       tailwindcss:
         specifier: ^4.3.0
         version: 4.3.0
@@ -1114,8 +1114,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  pnpm@11.0.9:
-    resolution: {integrity: sha512-NM6C5ngCM8+crYaFApqPgdLgYZbFqbrZiHn3QklAxoF8TkUk+304uFU87tSLl1i4668avTYAwjLEyM9zZghvOA==}
+  pnpm@11.1.2:
+    resolution: {integrity: sha512-QVocwll0cx51RVwUaDcb50xapft2IbUNQFbSIkUWCfEUEvI/1gLmFp8eBgRmZB95hZfhvpYaEGiINqZ7FlaUmQ==}
     engines: {node: '>=22.13'}
     hasBin: true
 
@@ -2086,7 +2086,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  pnpm@11.0.9: {}
+  pnpm@11.1.2: {}
 
   postcss@8.4.31:
     dependencies:
