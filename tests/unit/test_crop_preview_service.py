@@ -103,3 +103,39 @@ def test_crop_preview_service_rejects_non_crop_compatible_extension():
     assert not result.is_successful
     assert expander.calls == 0
     assert "not compatible" in result.error
+
+
+class MalformedPayloadExpander:
+    """Returns success with bytes that look valid to the expander but are
+    rejected by the actual image decoder. Used to verify the service
+    surfaces the decode failure instead of looping through retries."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def expand(self, source_name, data):
+        self.calls += 1
+        return Result.success(
+            [PagePayload(data=b"not-an-image", page_index=None, label=source_name)]
+        )
+
+
+def test_crop_preview_service_fails_fast_on_undecodable_payload(monkeypatch):
+    monkeypatch.setattr(
+        "backend.image_converter.presentation.web.services.crop_preview_service.time.sleep",
+        lambda _seconds: None,
+    )
+    logger = RecordingLogger()
+    expander = MalformedPayloadExpander()
+    service = CropPreviewService(
+        logger,
+        expander,
+        unsupported_extensions=UNSUPPORTED_EXTENSIONS,
+        max_attempts=5,
+    )
+
+    result = service.build_preview("malformed.png", _png_bytes()[:8], request_id="unit-malformed")
+
+    assert not result.is_successful
+    assert expander.calls == 1
+    assert any(lvl == "error" for _, lvl in logger.messages)

@@ -148,6 +148,10 @@ export async function isImageDecodable(src: string): Promise<boolean> {
   }
 }
 
+// Formats every browser can decode directly via <img>, so the crop UI can
+// preview them client-side without a server round-trip. This is intentionally
+// NOT the backend-supported format list (that comes from the backend at
+// runtime); anything outside this set falls back to /api/crop/bitmap.
 const BROWSER_NATIVE_EXTS = new Set(["png", "jpg", "jpeg"]);
 
 function fileExtensionLower(file: File): string {
