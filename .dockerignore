@@ -9,6 +9,11 @@ __pycache__/
 *.log
 *.txt
 
+# These folders will be picked up by copy all /frontend,
+# need to exclude them
+frontend/e2e-test-results
+frontend/node_modules
+
 # Explicitly include requirements files (override *.txt above)
 !requirements.txt
 !requirements-dev.txt
