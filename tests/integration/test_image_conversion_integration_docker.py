@@ -108,6 +108,7 @@ class TestDockerIntegration:
         if os.path.exists(self.OUTPUT_DIR):
             shutil.rmtree(self.OUTPUT_DIR, ignore_errors=True)
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
+        os.chmod(self.OUTPUT_DIR, 0o777)
 
         assert os.path.exists(self.SAMPLE_IMAGES_DIR), "SAMPLE_IMAGES_DIR does not exist."
 
