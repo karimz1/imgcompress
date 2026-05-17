@@ -59,6 +59,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      - name: Authenticate to dhi.io for DHI base images
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/login-action@v4
+        with:
+          registry: dhi.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build Dev Container for ${{ matrix.platform }}
         uses: docker/build-push-action@v7
         with:
@@ -88,6 +96,7 @@ jobs:
             --platform=${{ matrix.platform }} \
             --entrypoint /bin/sh \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
@@ -116,6 +125,14 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
+
+      - name: Authenticate to dhi.io for DHI base images
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/login-action@v4
+        with:
+          registry: dhi.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Application Container for ${{ matrix.platform }}
         uses: docker/build-push-action@v7
@@ -457,41 +474,3 @@ jobs:
             "repos/${REPOSITORY}/dispatches" \
             -f event_type=deploy \
             -f "client_payload[ref]=${DEPLOY_REF}"
-
-  auto-merge-dependabot:
-    needs:
-      - test-backend
-      - test-e2e
-      - test-feature-flags-matrix
-      - test-unverified-formats-api
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.user.login == 'dependabot[bot]'
-    steps:
-      - name: Mint imgcompress-chan token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
-          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
-
-      - name: Squash-merge Dependabot PR
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --squash --delete-branch "$PR_URL"
-
-      - name: Trigger Deployment Workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          gh api \
-            --method POST \
-            "repos/${REPOSITORY}/dispatches" \
-            -f event_type=deploy \
-            -f "client_payload[ref]=main"

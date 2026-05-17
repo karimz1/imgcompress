@@ -222,3 +222,7 @@ readme-generated.md
 
 docs/node_modules/
 docs/assets/vendor/
+
+
+# local worktrees
+**/worktrees/
