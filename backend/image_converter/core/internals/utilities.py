@@ -91,50 +91,54 @@ class FileUrl:
         return self.path
 
 
-from typing import Generic, TypeVar, Any, Optional
+from typing import Generic, Optional, TypeVar
 
 T = TypeVar("T")
 
 
 class Result(Generic[T]):
-    """A result type that can either be successful with a value or failed with an error."""
+    """Typed success-or-failure carrier.
 
-    def __init__(self, success: bool, value: Optional[T] = None, error: Optional[str] = None):
+    `Result[T]` is either successful with a `value: T` or failed with a
+    `error: str`. Callers must check `is_successful` before reading either
+    property; the inactive side is `None`. The type parameter `T` flows
+    through `success()` and the `value` accessor, so we never need `Any`.
+    """
+
+    def __init__(
+        self,
+        success: bool,
+        value: Optional[T] = None,
+        error: Optional[str] = None,
+    ) -> None:
         self._success = success
         self._value = value
         self._error = error
 
     @property
     def is_successful(self) -> bool:
-        """Use this property to check if the operation succeeded."""
         return self._success
 
     @property
-    def value(self) -> T:
+    def value(self) -> Optional[T]:
+        """The payload of a successful Result, or `None` for a failed one.
+
+        Callers check `is_successful` first; the type stays `Optional[T]` so
+        the static type checker sees the discriminated nature of the union.
+        """
         return self._value
 
     @property
-    def error(self) -> str:
+    def error(self) -> Optional[str]:
+        """The error message of a failed Result, or `None` for a successful one."""
         return self._error
 
     @staticmethod
-    def success(value: T) -> 'Result[T]':
-        """Static factory method to create a successful result."""
-        safe_value = Result._clone_with_flags(value, True)
-        return Result(True, value=safe_value)
+    def success(value: T) -> "Result[T]":
+        return Result(True, value=value)
 
     @staticmethod
-    def failure(error: Any) -> 'Result[T]':
-        """Static factory method to create a failed result."""
-        safe_error = Result._clone_with_flags(error, False)
-        return Result(False, error=str(safe_error))
-
-    @staticmethod
-    def _clone_with_flags(payload: Any, is_successful: bool) -> Any:
-        if isinstance(payload, dict):
-            cloned = payload.copy()
-            cloned["is_successful"] = is_successful
-            if is_successful:
-                cloned["error"] = None
-            return cloned
-        return payload
+    def failure(error: str) -> "Result[T]":
+        if not error:
+            raise ValueError("Result.failure requires a non-empty error message")
+        return Result(False, error=error)

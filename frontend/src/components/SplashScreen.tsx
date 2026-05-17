@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
+import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 
 interface SplashScreenProps {
@@ -263,13 +263,11 @@ export function SplashScreen({
               {!disableLogo && (
                 <div className="w-full flex justify-center animate-breathe">
                   <div className="relative w-[460px] h-[220px] max-w-[92vw] sm:w-[520px] sm:h-[240px] animate-glow after:absolute after:inset-0 after:rounded-[36%] after:bg-gradient-to-r after:from-blue-500/20 after:to-fuchsia-500/20 after:blur-3xl after:-z-10">
-                    <Image
-                      src="/logo_transparent.png"
-                      alt="ImgCompress Logo"
+                    <BrandLogo
                       fill
-                      draggable={false}
+                      alt="ImgCompress Logo"
+                      sizes="(min-width: 640px) 520px, 460px"
                       className="object-contain"
-                      priority
                     />
                   </div>
                 </div>

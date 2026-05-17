@@ -8,6 +8,8 @@ on:
       - bugfix/*
       - enhancements/*
       - release/*
+      - prepare-rc-*
+      - prepair-rc-*
   pull_request:
   workflow_dispatch:
     inputs:
@@ -15,6 +17,10 @@ on:
         description: "Upload E2E test results artifact?"
         required: false
         default: "false"
+      upload_feature_flags_artifacts:
+        description: "Upload feature-flags matrix screenshots / videos artifact? (default on)"
+        required: false
+        default: "true"
       deploy_nightly:
         description: "After E2E tests succeed, trigger the nightly deployment workflow"
         type: boolean
@@ -214,10 +220,241 @@ jobs:
           path: e2e-test-results-${{ env.ARCH }}.zip
           retention-days: 3
 
+  test-feature-flags-matrix:
+    # Job display name reads as the actual user-facing UI state instead of
+    # a confusing tuple of `disable_* = true/false` (double negative).
+    name: feature-flags (${{ matrix.scenario }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # logo hidden + storage hidden  (DISABLE_LOGO=true, DISABLE_STORAGE_MANAGEMENT=true)
+          - disable_logo: "true"
+            disable_storage_management: "true"
+            scenario: "logo HIDDEN | storage HIDDEN"
+            label: "logo-hidden_storage-hidden"
+          # logo hidden + storage shown   (DISABLE_LOGO=true, DISABLE_STORAGE_MANAGEMENT=false)
+          - disable_logo: "true"
+            disable_storage_management: "false"
+            scenario: "logo HIDDEN | storage SHOWN"
+            label: "logo-hidden_storage-shown"
+          # logo shown  + storage hidden  (DISABLE_LOGO=false, DISABLE_STORAGE_MANAGEMENT=true)
+          - disable_logo: "false"
+            disable_storage_management: "true"
+            scenario: "logo SHOWN  | storage HIDDEN"
+            label: "logo-shown_storage-hidden"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Application Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: karimz1/imgcompress:local-test
+          cache-from: type=gha,scope=app-linux/amd64
+          cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Start app — ${{ matrix.scenario }}
+        run: |
+          echo "::group::Feature flag configuration for this matrix entry"
+          echo "Scenario:                    ${{ matrix.scenario }}"
+          echo "DISABLE_LOGO:                ${{ matrix.disable_logo }}   -> Logo $([ '${{ matrix.disable_logo }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
+          echo "DISABLE_STORAGE_MANAGEMENT:  ${{ matrix.disable_storage_management }}   -> Storage management button $([ '${{ matrix.disable_storage_management }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
+          echo "::endgroup::"
+          docker run --rm -d \
+            --platform linux/amd64 \
+            --network host \
+            --name app \
+            -e DISABLE_LOGO=${{ matrix.disable_logo }} \
+            -e DISABLE_STORAGE_MANAGEMENT=${{ matrix.disable_storage_management }} \
+            karimz1/imgcompress:local-test web
+
+      - name: Wait for Application to be Ready (using localhost)
+        run: |
+          BASE_URL="http://localhost:5000"
+          echo "Waiting for the application to be ready on ${BASE_URL}..."
+          max_attempts=120
+          attempt_num=1
+          until curl -s --fail "$BASE_URL" > /dev/null; do
+            if [ "$attempt_num" -eq "$max_attempts" ]; then
+              echo "Application failed to start after $max_attempts attempts."
+              docker logs --tail 200 app || true
+              exit 1
+            fi
+            echo "Waiting for app... attempt $attempt_num"
+            attempt_num=$((attempt_num+1))
+            sleep 1
+          done
+          echo "Application is up! Continuing..."
+
+      - name: Build Dev Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .devcontainer/
+          platforms: linux/amd64
+          load: true
+          tags: devcontainer:local-test
+          cache-from: type=gha,scope=devcontainer-linux/amd64
+          cache-to: type=gha,mode=max,scope=devcontainer-linux/amd64
+
+      - name: Make E2E script executable
+        run: chmod +x ./run-e2e.sh
+
+      - name: Run feature-flags spec — ${{ matrix.scenario }}
+        run: |
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint /bin/sh \
+            --network host \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$(pwd):/app/" \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+            -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
+            --name devcontainer_flags \
+            devcontainer:local-test -c "/app/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts"
+
+      - name: Stop Application Container
+        if: always()
+        run: |
+          docker stop app || true
+          docker rm app || true
+
+      - name: Ensure feature-flags results directory exists
+        if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
+        run: mkdir -p frontend/e2e-test-results
+
+      - name: Zip feature-flags results — ${{ matrix.scenario }}
+        if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
+        run: |
+          if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
+            zip -r "feature-flags-${{ matrix.label }}.zip" frontend/e2e-test-results
+          else
+            echo "No feature-flags results found, creating an empty zip."
+            touch "feature-flags-${{ matrix.label }}.zip"
+          fi
+
+      - name: Upload feature-flags artifact — ${{ matrix.scenario }}
+        if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
+        uses: actions/upload-artifact@v7
+        with:
+          name: feature-flags-${{ matrix.label }}
+          path: feature-flags-${{ matrix.label }}.zip
+          retention-days: 3
+
+  test-unverified-formats-api:
+    # Reader test for the long tail of "Other possible formats" advertised
+    # by the UI. Brings up the app container, then for each unverified
+    # extension generates an input file with Pillow, POSTs it to
+    # /api/compress, downloads the resulting PNG, and asserts it is real
+    # and non-blank. Blocking — if a format the UI claims to support stops
+    # working through the public HTTP API in the running image, deploys
+    # are gated. Read-only formats (no Pillow writer) are skipped with a
+    # documented reason; skips are not failures.
+    name: unverified-formats API reader
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Application Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: karimz1/imgcompress:local-test
+          cache-from: type=gha,scope=app-linux/amd64
+          cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Run Application Container (Host Networking)
+        run: |
+          docker run --rm -d \
+            --platform linux/amd64 \
+            --network host \
+            --name app \
+            karimz1/imgcompress:local-test web
+
+      - name: Wait for Application to be Ready
+        run: |
+          BASE_URL="http://localhost:5000"
+          echo "Waiting for the application to be ready on ${BASE_URL}..."
+          max_attempts=120
+          attempt_num=1
+          until curl -s --fail "$BASE_URL/api/health/backend" > /dev/null; do
+            if [ "$attempt_num" -eq "$max_attempts" ]; then
+              echo "Application failed to start after $max_attempts attempts."
+              docker logs --tail 200 app || true
+              exit 1
+            fi
+            echo "Waiting for app... attempt $attempt_num"
+            attempt_num=$((attempt_num+1))
+            sleep 1
+          done
+          echo "Application is up! Continuing..."
+
+      - name: Build Dev Container
+        uses: docker/build-push-action@v7
+        with:
+          context: .devcontainer/
+          platforms: linux/amd64
+          load: true
+          tags: devcontainer:local-test
+          cache-from: type=gha,scope=devcontainer-linux/amd64
+          cache-to: type=gha,mode=max,scope=devcontainer-linux/amd64
+
+      - name: Run unverified-formats API reader test
+        run: |
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint /bin/sh \
+            --network host \
+            -v "$(pwd):/app/" \
+            -e IMGCOMPRESS_API_BASE=http://localhost:5000 \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+            --name devcontainer_unverified_api \
+            devcontainer:local-test \
+            -c ". /venv/bin/activate && pytest tests/integration/test_unverified_formats_api.py -s --tb=short -ra"
+
+      - name: Stop Application Container
+        if: always()
+        run: |
+          docker stop app || true
+          docker rm app || true
+
   deploy-nightly:
     needs:
       - test-backend
       - test-e2e
+      - test-feature-flags-matrix
+      - test-unverified-formats-api
     if: >
       (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||

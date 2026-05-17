@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 SI, IEC = 1000, 1024
+BYTES_PER_MEBIBYTE = IEC**2
 
 def to_bytes(value: float, unit: str = "KB", system: str = "IEC") -> int:
     base = IEC if system.upper() == "IEC" else SI

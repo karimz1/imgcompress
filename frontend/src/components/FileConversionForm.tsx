@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Info, Loader2, Trash } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Crop as CropIcon, Info, Loader2, Trash, X } from "lucide-react";
+import { useMountedTheme } from "@/hooks/useMountedTheme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select";
 
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
+import { CropDialog } from "@/components/crop/CropDialog";
+import { CropConfig, isCropableFile, isCropUnsupportedFile } from "@/lib/crop";
 import { cn } from "@/lib/utils";
 
 interface FileConversionFormProps {
@@ -49,6 +51,11 @@ interface FileConversionFormProps {
   clearFileSelection: () => void;
   onSubmit: (e: React.FormEvent) => void;
 
+  crops: Record<string, CropConfig>;
+  openCropFor: string | null;
+  setOpenCropFor: (name: string | null) => void;
+  setCropForFile: (name: string, crop: CropConfig | null) => void;
+
   targetSizeMB: string;
   setTargetSizeMB: (val: string) => void;
 
@@ -64,11 +71,14 @@ interface FileConversionFormProps {
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
 
-  // ✅ Extended API data
   supportedExtensions: string[]
   verifiedExtensions: string[]
+  cropUnsupportedExtensions: string[]
   extensionsLoading: boolean
   extensionsError: Error | null
+  disableLogo?: boolean
+
+  onReportCropError?: (payload: { message: string; details?: string }) => void
 }
 
 const tooltipContent = {
@@ -116,6 +126,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   removeFile,
   clearFileSelection,
   onSubmit,
+  crops,
+  openCropFor,
+  setOpenCropFor,
+  setCropForFile,
   targetSizeMB,
   setTargetSizeMB,
   compressionMode,
@@ -128,11 +142,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   isDragActive,
   supportedExtensions,
   verifiedExtensions,
+  cropUnsupportedExtensions,
   extensionsLoading,
   extensionsError,
+  disableLogo = false,
+  onReportCropError,
 }) => {
-  const { resolvedTheme } = useTheme();
-  const isDarkTheme = resolvedTheme !== "light";
+  const [confirmCropRemoveFor, setConfirmCropRemoveFor] = useState<string | null>(null);
+  const { isDarkTheme } = useMountedTheme();
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
     ? "bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
@@ -175,32 +192,159 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       files.length > 0 && (
         <div className="mt-2 space-y-1">
           <Label>Files to convert:</Label>
-          {files.map((file) => (
-            <div
-              key={file.name}
-              className={cn(
-                "flex items-center justify-between rounded-md p-2 transition-colors",
-                filePillClass
-              )}
-              data-testid="dropzone-added-file-wrapper"
-            >
-              <span className="text-sm" data-testid="dropzone-added-file">
-                {file.name}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={isLoading}
-                onClick={() => removeFile(file.name)}
-                data-testid="dropzone-remove-file-btn"
+          {files.map((file) => {
+            const cropUnsupported = isCropUnsupportedFile(file, cropUnsupportedExtensions);
+            const cropable =
+              !cropUnsupported && isCropableFile(file, supportedExtensions);
+            const savedCrop = crops[file.name];
+            const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
+            return (
+              <div
+                key={file.name}
+                className={cn(
+                  "flex flex-wrap items-center justify-between gap-2 rounded-md p-2 transition-colors",
+                  filePillClass
+                )}
+                data-testid="dropzone-added-file-wrapper"
               >
-                Remove
-              </Button>
-            </div>
-          ))}
+                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                  <span
+                    className="text-sm truncate"
+                    data-testid="dropzone-added-file"
+                  >
+                    {file.name}
+                  </span>
+                  {savedCrop && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span
+                          className="inline-flex items-center gap-1 text-xs font-medium rounded-full pl-2 pr-1 py-0.5 bg-green-500/15 text-green-600 dark:text-green-300 border border-green-500/30"
+                          data-testid="dropzone-crop-badge"
+                        >
+                          cropped {savedCrop.width} × {savedCrop.height}
+                          <button
+                            type="button"
+                            aria-label="Remove saved crop"
+                            disabled={isLoading}
+                            onClick={() => setConfirmCropRemoveFor(file.name)}
+                            className="rounded-full p-0.5 hover:bg-green-500/25 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            data-testid="dropzone-crop-badge-clear-btn"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className={cn("max-w-56 p-2 rounded shadow-lg border", tooltipSurface)}
+                      >
+                        This file has a saved crop. Click the x to remove that crop.
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {cropable && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => setOpenCropFor(file.name)}
+                          className={cn(
+                            "h-7 gap-1.5 px-2",
+                            savedCrop
+                              ? "border-green-500/40 bg-green-500/10 text-green-700 hover:bg-green-500/15 dark:text-green-200"
+                              : "border-blue-500/35 bg-blue-500/5 text-blue-700 hover:bg-blue-500/10 dark:text-blue-200"
+                          )}
+                          data-testid="dropzone-crop-file-btn"
+                        >
+                          <CropIcon className="h-3.5 w-3.5" />
+                          {savedCrop ? "Edit" : "Crop"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className={cn("max-w-56 p-2 rounded shadow-lg border", tooltipSurface)}
+                      >
+                        {savedCrop
+                          ? "Edit the saved crop for this file."
+                          : "Choose the visible area before converting this file."}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {!cropable && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            disabled
+                            className="h-7 gap-1.5 px-2 opacity-55"
+                            data-testid="dropzone-crop-disabled-btn"
+                          >
+                            <CropIcon className="h-3.5 w-3.5" />
+                            Crop
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className={cn("max-w-60 p-2 rounded shadow-lg border", tooltipSurface)}
+                      >
+                        {fileExt === "pdf"
+                          ? "PDF crop is not supported yet. PDFs can contain multiple pages, so crop needs a dedicated page-selection workflow first."
+                          : "Crop is not supported for this format at the moment."}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => removeFile(file.name)}
+                    data-testid="dropzone-remove-file-btn"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ),
-    [files, isDarkTheme, isLoading, removeFile, filePillClass]
+    [
+      files,
+      isLoading,
+      removeFile,
+      filePillClass,
+      crops,
+      setOpenCropFor,
+      setCropForFile,
+      supportedExtensions,
+      cropUnsupportedExtensions,
+      tooltipSurface,
+    ]
+  );
+
+  const cropDialogNode = (
+    <CropDialog
+      files={files}
+      crops={crops}
+      openFileName={openCropFor}
+      setOpenFileName={setOpenCropFor}
+      setCropForFile={setCropForFile}
+      confirmRemoveFor={confirmCropRemoveFor}
+      setConfirmRemoveFor={setConfirmCropRemoveFor}
+      onReportError={onReportCropError}
+      isDarkTheme={isDarkTheme}
+      disableLogo={disableLogo}
+    />
   );
 
   const renderDropZone = useMemo(
@@ -685,7 +829,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         {resizeWidthEnabled && (
           <Input
             data-testid="resize-width-input"
-            itemProp="data-testid: convert-btn"
             id="width"
             type="number"
             placeholder="800"
@@ -708,6 +851,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
       {/* Files List */}
       {renderFilesList}
+
+      {cropDialogNode}
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between gap-4">

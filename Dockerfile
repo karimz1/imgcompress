@@ -11,9 +11,10 @@ COPY frontend/ ./frontend
 WORKDIR /app/frontend
 
 # Install dependencies and build the static site.
-RUN npm i pnpm -g
-RUN CI=true pnpm install --frozen-lockfile
-RUN pnpm run build
+RUN PNPM_PACKAGE="$(node -p "require('./package.json').packageManager")" && \
+    CI=true npm exec --yes --package="$PNPM_PACKAGE" -- pnpm install --frozen-lockfile
+RUN PNPM_PACKAGE="$(node -p "require('./package.json').packageManager")" && \
+    npm exec --yes --package="$PNPM_PACKAGE" -- pnpm run build
 
 # The built static files are in /app/frontend/out/
 
@@ -76,10 +77,9 @@ RUN pip install --no-cache-dir .
 # Pre-download rembg model so background removal doesn't fetch at runtime.
 ENV U2NET_HOME=/container/.u2net
 RUN python - <<'PY'
-import json
+from backend.image_converter.config import settings
 from rembg import new_session
-with open("backend/image_converter/config/rembg.json", "r", encoding="utf-8") as f:
-    model_name = json.load(f).get("model_name", "u2net")
+model_name = settings.get().rembg.model_name
 new_session(model_name)
 print(f"rembg model cached: {model_name}")
 PY

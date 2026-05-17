@@ -22,7 +22,7 @@ export default defineConfig({
     headless: true,
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     launchOptions: {
-      slowMo: 2000,
+      slowMo: process.env.CI ? 0 : 2000,
     },
     video: { mode: "on" },
   },

@@ -15,7 +15,7 @@ class PagePayload:
 
 class FilePayloadExpander:
     """
-    Normalizes various upload types (images, PDFs) into a generator of raster payloads.
+    Normalizes supported upload containers into raster payloads for conversion.
     """
 
     def __init__(self, pdf_extractor: PdfPageExtractor, psd_renderer: PsdRenderer):
@@ -23,9 +23,6 @@ class FilePayloadExpander:
         self.psd_renderer = psd_renderer
 
     def expand(self, source_name: str, data: bytes) -> Result[Iterable[PagePayload]]:
-        """
-        Returns an iterable of PagePayload objects for the given source.
-        """
         if self._is_pdf(source_name):
             return self._expand_pdf_payloads(source_name, data)
         if self._is_psd(source_name):
