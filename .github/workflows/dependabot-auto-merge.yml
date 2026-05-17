@@ -14,10 +14,18 @@ permissions:
 
 jobs:
   auto-merge:
+    # Accept runs triggered by dependabot[bot] *and* by imgcompress-chan[bot]:
+    # after `/chan-fix` repairs a Dependabot PR, chan is the actor of subsequent
+    # CI runs, so a dependabot-only gate would never re-fire on a repaired PR.
+    # The "Resolve Dependabot PR for head SHA" step below revalidates that the
+    # PR is authored by Dependabot before we merge anything.
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.actor.login == 'dependabot[bot]' &&
+      (
+        github.event.workflow_run.actor.login == 'dependabot[bot]' ||
+        github.event.workflow_run.actor.login == 'imgcompress-chan[bot]'
+      ) &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
