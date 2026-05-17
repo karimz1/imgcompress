@@ -237,3 +237,45 @@ jobs:
             "repos/${REPOSITORY}/dispatches" \
             -f event_type=deploy \
             -f "client_payload[ref]=${DEPLOY_REF}"
+
+  auto-merge-dependabot:
+    needs:
+      - test-backend
+      - test-e2e
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    # Same-branch sibling job: gates on the PR's author (always
+    # `dependabot[bot]` for a Dependabot PR), so it stays correct even when
+    # `imgcompress-chan[bot]` is the actor of the most recent push after
+    # `/chan-fix` has repaired the branch. Also restricted to same-repo PRs
+    # so fork PRs can't trigger an auto-merge with the chan App token.
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Mint imgcompress-chan token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+
+      - name: Squash-merge Dependabot PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --squash --delete-branch "$PR_URL"
+
+      - name: Trigger Deployment Workflow
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          gh api \
+            --method POST \
+            "repos/${REPOSITORY}/dispatches" \
+            -f event_type=deploy \
+            -f "client_payload[ref]=main"
