@@ -136,7 +136,7 @@ ImgCompress is built with a **Security-Hardened, Minimal Image** architecture, b
 | **Minimal Surface** | No shell (`bash`, `sh`), no network tools (`curl`, `wget`, etc.), no package manager. The attack surface is drastically reduced. |
 | **Minimal Components** | System dependencies are aggressively pruned to maintain a minimal runtime environment. |
 | **Non-root User** | Runs as a non-root user `nonroot` by default. |
-| **DHI Base Images** | Using Docker Hardened Images from the official [DHI](https://dhi-project.org/) project for build phases and runtime Image. |
+| **DHI Base Images** | Using Docker Hardened Images from the official [DHI](https://www.docker.com/products/hardened-images/) project for build phases and runtime Image. |
 | **SBOM and Provenance** | The Docker Image is built with a full Software Bill of Materials (SBOM) and build provenance attestation. |
 
 <div **align**="right">
