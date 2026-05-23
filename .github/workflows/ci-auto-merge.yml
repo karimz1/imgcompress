@@ -258,7 +258,7 @@ jobs:
     steps:
       - name: Mint imgcompress-chan token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
           private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
