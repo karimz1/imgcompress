@@ -1,6 +1,6 @@
 REGISTRY ?= docker.io/karimz1
 IMAGE ?= imgcompress
-TAG ?= latest
+TAG ?= local-dev
 IMAGE_REF ?= $(REGISTRY)/$(IMAGE):$(TAG)
 LOCAL_PLATFORM ?= linux/amd64
 
@@ -26,6 +26,12 @@ build-local: lint
 
 scan: build-local
 	IMAGE_REF="$(IMAGE_REF)" ./scripts/runTrivyImageScan.sh
+
+deploy-local: lint
+	./scripts/runLocalDockerBuildTester.sh
+
+deploy-local-dev-mode: lint
+	./scripts/runLocalDockerBuildTester.sh
 
 trivy: scan
 

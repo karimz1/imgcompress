@@ -1,14 +1,6 @@
-"""Strongly-typed backend configuration.
-
-`AppConfig` is the materialized, validated view of `app.json` (with feature-flag
-env overrides applied). Every section is a frozen value object; every leaf is
-a typed primitive or a domain value object. Feature code receives an `AppConfig`
-or one of its sections from the composition root — no string lookups, no
-`Any`, no `dict[str, Any]`.
-"""
+"""Typed backend configuration models."""
 
 from dataclasses import dataclass
-from typing import Tuple
 
 from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
 from backend.image_converter.domain.web_workers import WebWorkerCount
@@ -44,7 +36,7 @@ class LoggingConfig:
 @dataclass(frozen=True)
 class CropPreviewConfig:
     max_retry_attempts: int
-    unsupported_input_extensions: Tuple[str, ...]
+    unsupported_input_extensions: tuple[str, ...]
 
 
 @dataclass(frozen=True)

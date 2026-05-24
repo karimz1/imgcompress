@@ -1,10 +1,4 @@
 """Application-layer DTOs (data carriers across service / route boundaries).
-
-Every cross-boundary payload in this project is a typed object defined here
-(or in `domain/`). We do not return raw `dict`s from services — callers must
-always be able to discover the shape from the type rather than from runtime
-inspection. JSON serialization happens through explicit `to_json_dict()`
-methods so the wire contract stays decoupled from internal field names.
 """
 
 from dataclasses import asdict, dataclass, field
