@@ -1,34 +1,42 @@
 REGISTRY ?= docker.io/karimz1
-IMAGE    ?= imgcompress
-TAG      ?= latest
-TRIVY    ?= aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e
+IMAGE ?= imgcompress
+TAG ?= latest
+SCOUT_TAG ?= 1-debian13-dev
+CLOUD_BUILDER=
 
-IMAGE_REF := $(REGISTRY)/$(IMAGE):$(TAG)
-
-.PHONY: build local trivy clean
-
-# Multi-arch production build with SBOM + provenance attestations.
+# Build image with sbom and provenance, 
+# good for Docker Scout to indexing layers and attestation.
 build:
 	docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--sbom="generator=docker/buildkit-syft-scanner:latest" \
-		--provenance="mode=max" \
-		-t $(IMAGE_REF) \
-		.
+	--platform linux/amd64,linux/arm64 \
+	--sbom="generator=docker/buildkit-syft-scanner:latest" \
+	--provenance="mode=max" \
+	-t $(REGISTRY)/$(IMAGE):$(TAG) \
+	.
 
-# Local smoke-test build + run via the shared script.
-local:
-	@bash runLocalDockerBuildTester.sh
+# Use Docker Hub Cloudbuild for faster build. 
+# Need a Docker Hub account and must init a Cloud Builder first.
+cloud_build:
+	docker buildx build \
+	--platform linux/amd64,linux/arm64 \
+	--builder $(CLOUD_BUILDER) \
+	--sbom="generator=docker/buildkit-syft-scanner:latest" \
+	--provenance="mode=max" \
+	-t $(REGISTRY)/$(IMAGE):$(TAG) \
+	--push \
+	.
 
-# Scan the built image for HIGH/CRITICAL CVEs.
+# Call Trivy to scan image for vulnerabilites. 
+# It is a best practice to check the image after you build it.
 trivy:
-	docker run --rm \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		$(TRIVY) image \
-		--severity HIGH,CRITICAL \
-		--format table \
-		--output scan-result.log \
-		$(IMAGE_REF)
+	docker run --rm -v \
+	/var/run/docker.sock:/var/run/docker.sock \
+	aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+	image \
+	--severity HIGH,CRITICAL \
+	--format table \
+	--output scan-result.log \
+	$(REGISTRY)/$(IMAGE):$(TAG)
 
-clean:
-	-rm -f scan-result.log
+local_build:
+	@bash runLocalDockerBuildTester.sh

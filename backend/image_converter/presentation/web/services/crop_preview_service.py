@@ -59,7 +59,6 @@ class CropPreviewService:
             self._log(rid, f"rejected unsupported extension for '{filename}'")
             return Result.failure("This format is not compatible with the crop editor.")
 
-        last_error: Optional[Exception] = None
         for attempt in range(1, self.max_attempts + 1):
             try:
                 self._log(
@@ -69,11 +68,9 @@ class CropPreviewService:
                 )
                 return Result.success(self._build_preview_png(filename, load_bytes()))
             except self._PERMANENT_ERROR_TYPES as exc:
-                last_error = exc
                 self._log(rid, f"permanent failure for '{filename}': {exc}", "error")
                 break
             except Exception as exc:
-                last_error = exc
                 self._log(
                     rid,
                     f"transient failure for '{filename}' "
@@ -83,8 +80,6 @@ class CropPreviewService:
                 if attempt < self.max_attempts:
                     time.sleep(0.25 * attempt)
 
-        if last_error is not None:
-            self._log(rid, f"giving up on '{filename}': {last_error!r}", "error")
         return Result.failure(
             "Could not decode this format for cropping "
             f"after {self.max_attempts} attempts."

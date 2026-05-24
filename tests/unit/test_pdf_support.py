@@ -41,11 +41,23 @@ def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
     import pypdfium2
     monkeypatch.setattr(pypdfium2, "PdfDocument", boom)
 
-    extractor = PdfPageExtractor()
+    class _RecordingLogger:
+        def __init__(self):
+            self.messages = []
+
+        def log(self, message, level):
+            self.messages.append((message, level))
+
+    logger = _RecordingLogger()
+    extractor = PdfPageExtractor(logger=logger)
     result = extractor.rasterize_pages(b"", "broken.pdf")
 
     assert result.is_successful is False
-    assert "boom" in result.error
+    assert "PDF could not be rendered." == result.error
+    assert any(
+        "boom" in message and "broken.pdf" in message
+        for message, _ in logger.messages
+    )
 
 
 class DummyRenderer:
