@@ -2,10 +2,10 @@ from io import BytesIO
 
 from PIL import Image
 
+from backend.image_converter.config import settings
 from backend.image_converter.core.internals.utilities import (
     Result,
     supported_extensions,
-    EXTRA_SUPPORTED_EXTENSIONS,
 )
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.application.file_payload_expander import FilePayloadExpander
@@ -14,7 +14,7 @@ SAMPLE_PDF = "tests/sample-images/imgcompress_screenshot.pdf"
 
 
 def test_When_LoadingSupportedExtensions_Expect_AllExtraFormatsIncluded():
-    for extra in EXTRA_SUPPORTED_EXTENSIONS:
+    for extra in settings.get().formats.custom_pipeline_extensions:
         assert extra in supported_extensions
 
 

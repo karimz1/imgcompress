@@ -17,12 +17,14 @@ from backend.image_converter.config.app_config import (
     AppConfig,
     CropPreviewConfig,
     FeaturesConfig,
+    FormatsConfig,
     LoggingConfig,
     RembgConfig,
     TemporaryStorageConfig,
     UploadsConfig,
     WebConfig,
 )
+
 from backend.image_converter.domain.web_workers import WebWorkerCount
 
 
@@ -86,6 +88,11 @@ def load_from_file(path: Path) -> AppConfig:
             ("crop_preview", "unsupported_input_extensions"),
         ),
     )
+    formats = FormatsConfig(
+        custom_pipeline_extensions=reader.require_extension_list(
+            ("formats", "custom_pipeline_extensions"),
+        ),
+    )
     features = FeaturesConfig(
         is_storage_management_enabled=reader.require_feature_flag(
             ("features", "is_storage_management_enabled"),
@@ -108,6 +115,7 @@ def load_from_file(path: Path) -> AppConfig:
         web=web,
         logging=logging_cfg,
         crop_preview=crop_preview,
+        formats=formats,
         features=features,
         rembg=rembg,
     )

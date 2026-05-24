@@ -34,6 +34,7 @@ VALID_CONFIG = {
         "max_retry_attempts": 3,
         "unsupported_input_extensions": [".pdf", ".svg", ".raw"],
     },
+    "formats": {"custom_pipeline_extensions": [".pdf", ".psd"]},
     "features": {
         "is_storage_management_enabled": True,
         "is_logo_enabled": True,
@@ -53,8 +54,7 @@ def config_file(tmp_path, monkeypatch):
     def _write(data) -> Path:
         path = tmp_path / "app.json"
         path.write_text(json.dumps(data), encoding="utf-8")
-        monkeypatch.setattr(settings, "_CONFIG_PATH", path)
-        settings.reset_cache()
+        settings.reset_cache(config_path=path)
         return path
 
     yield _write
@@ -218,26 +218,24 @@ def test_loader_collects_every_error_at_once(config_file):
     assert "config key 'features.is_dev_mode_enabled' must be a boolean" in message
 
 
-def test_missing_malformed_or_non_object_config_file_raises(tmp_path, monkeypatch):
+def test_missing_malformed_or_non_object_config_file_raises(tmp_path):
     missing = tmp_path / "nope.json"
-    monkeypatch.setattr(settings, "_CONFIG_PATH", missing)
-    settings.reset_cache()
+    settings.reset_cache(config_path=missing)
     with pytest.raises(ConfigError, match="not found"):
         settings.get()
 
     malformed = tmp_path / "malformed.json"
     malformed.write_text("{not json", encoding="utf-8")
-    monkeypatch.setattr(settings, "_CONFIG_PATH", malformed)
-    settings.reset_cache()
+    settings.reset_cache(config_path=malformed)
     with pytest.raises(ConfigError, match="not valid JSON"):
         settings.get()
 
     non_object = tmp_path / "non-object.json"
     non_object.write_text("[]", encoding="utf-8")
-    monkeypatch.setattr(settings, "_CONFIG_PATH", non_object)
-    settings.reset_cache()
+    settings.reset_cache(config_path=non_object)
     with pytest.raises(ConfigError, match="JSON object at the top level"):
         settings.get()
+    settings.reset_cache()
 
 
 @pytest.mark.parametrize(
@@ -263,26 +261,26 @@ def test_feature_flag_env_overrides(
     falsy_expected,
     json_key,
 ):
-    config_file(VALID_CONFIG)
+    path = config_file(VALID_CONFIG)
 
     monkeypatch.setenv(env_name, "true")
-    settings.reset_cache()
+    settings.reset_cache(config_path=path)
     assert getattr(settings.get().features, feature_attr) is truthy_expected
 
     monkeypatch.setenv(env_name, "off")
-    settings.reset_cache()
+    settings.reset_cache(config_path=path)
     assert getattr(settings.get().features, feature_attr) is falsy_expected
 
     monkeypatch.setenv(env_name, "maybe")
-    settings.reset_cache()
+    settings.reset_cache(config_path=path)
     with pytest.raises(ConfigError, match=env_name):
         settings.get()
 
     cfg = _copy_config()
     cfg["features"][json_key] = not falsy_expected
-    config_file(cfg)
+    path = config_file(cfg)
     monkeypatch.setenv(env_name, "")
-    settings.reset_cache()
+    settings.reset_cache(config_path=path)
     assert getattr(settings.get().features, feature_attr) is (not falsy_expected)
 
 

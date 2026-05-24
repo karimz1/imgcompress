@@ -1,11 +1,6 @@
-"""Value objects describing disk-usage and storage-summary readings.
+"""Storage-related value objects."""
 
-Both objects use binary mebibytes (MiB) — see `domain.units.BYTES_PER_MEBIBYTE`.
-They are immutable, carry no behavior, and exist so that callers (and the wire
-contract) get a typed shape instead of an anonymous dictionary.
-"""
-
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -14,8 +9,12 @@ class DiskUsage:
     used_storage_mb: float
     available_storage_mb: float
 
-    def to_json_dict(self) -> dict:
-        return asdict(self)
+    def to_json_dict(self) -> dict[str, float]:
+        return {
+            "total_storage_mb": self.total_storage_mb,
+            "used_storage_mb": self.used_storage_mb,
+            "available_storage_mb": self.available_storage_mb,
+        }
 
 
 @dataclass(frozen=True)
@@ -23,5 +22,8 @@ class StorageSummary:
     used_storage_mb: float
     available_storage_mb: float
 
-    def to_json_dict(self) -> dict:
-        return asdict(self)
+    def to_json_dict(self) -> dict[str, float]:
+        return {
+            "used_storage_mb": self.used_storage_mb,
+            "available_storage_mb": self.available_storage_mb,
+        }

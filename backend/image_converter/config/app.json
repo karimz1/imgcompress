@@ -26,6 +26,12 @@
       ".dng"
     ]
   },
+  "formats": {
+    "custom_pipeline_extensions": [
+      ".pdf",
+      ".psd"
+    ]
+  },
   "features": {
     "is_storage_management_enabled": true,
     "is_logo_enabled": true,

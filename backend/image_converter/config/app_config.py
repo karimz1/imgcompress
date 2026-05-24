@@ -40,6 +40,11 @@ class CropPreviewConfig:
 
 
 @dataclass(frozen=True)
+class FormatsConfig:
+    custom_pipeline_extensions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class FeaturesConfig:
     is_storage_management_enabled: bool
     is_logo_enabled: bool
@@ -58,5 +63,6 @@ class AppConfig:
     web: WebConfig
     logging: LoggingConfig
     crop_preview: CropPreviewConfig
+    formats: FormatsConfig
     features: FeaturesConfig
     rembg: RembgConfig
