@@ -55,6 +55,34 @@ _UNVERIFIED = sorted(
     set(supported_extensions) - set(ConfigurationService.get_verified_formats())
 )
 
+_EXPECTED_PILLOW_UNWRITABLE_FORMATS = frozenset(
+    {
+        ".bufr",
+        ".cur",
+        ".dcx",
+        ".emf",
+        ".fit",
+        ".fits",
+        ".flc",
+        ".fli",
+        ".ftc",
+        ".ftu",
+        ".gbr",
+        ".grib",
+        ".h5",
+        ".hdf",
+        ".iim",
+        ".mpeg",
+        ".mpg",
+        ".pcd",
+        ".pxr",
+        ".ras",
+        ".wmf",
+        ".xpm",
+    }
+)
+_MIN_SYNTHESIZABLE_FORMATS = 38
+
 
 def _make_distinctive_image() -> Image.Image:
     """Plain RGB 256x256 image with strong color variation. Used purely as
@@ -177,7 +205,7 @@ def app_is_ready() -> None:
 def synthesized_inputs(tmp_path_factory) -> Dict[str, Optional[Path]]:
     """Fabricate one input file per unverified extension. Returns a mapping
     of `.ext -> Path` for synthesizable formats, or `None` for read-only
-    formats Pillow cannot write (those tests will skip)."""
+    formats Pillow cannot write (only known gaps may skip)."""
     scratch = tmp_path_factory.mktemp("unverified-api-inputs")
     base = _make_distinctive_image()
 
@@ -186,6 +214,20 @@ def synthesized_inputs(tmp_path_factory) -> Dict[str, Optional[Path]]:
         target = scratch / f"unverified_{ext.lstrip('.')}{ext}"
         if _try_save_in_modes(base, target):
             out[ext] = target
+
+    unwritable = {ext for ext, path in out.items() if path is None}
+    unexpected_unwritable = unwritable - _EXPECTED_PILLOW_UNWRITABLE_FORMATS
+    assert not unexpected_unwritable, (
+        "Only known Pillow-unwritable formats may skip. "
+        f"Unexpected unwritable formats: {sorted(unexpected_unwritable)}"
+    )
+
+    synthesized_count = len(out) - len(unwritable)
+    assert synthesized_count >= _MIN_SYNTHESIZABLE_FORMATS, (
+        f"Expected at least {_MIN_SYNTHESIZABLE_FORMATS} unverified formats "
+        f"to be API-tested, got {synthesized_count}. "
+        f"Skipped formats: {sorted(unwritable)}"
+    )
     return out
 
 

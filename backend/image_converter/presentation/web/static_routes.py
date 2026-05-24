@@ -6,16 +6,19 @@ from backend.image_converter.config import settings
 static_blueprint = Blueprint("static_blueprint", __name__)
 
 
+def _flag(value: bool) -> str:
+    return str(value).lower()
+
+
 @static_blueprint.route("/config/runtime.json")
 def serve_runtime_config():
     features = settings.get().features
     return jsonify({
-        "DISABLE_LOGO": "false" if features.is_logo_enabled else "true",
-        "DISABLE_STORAGE_MANAGEMENT": (
-            "false" if features.is_storage_management_enabled else "true"
-        ),
-        "DEV_MODE": "true" if features.is_dev_mode_enabled else "false",
+        "DISABLE_LOGO": _flag(not features.is_logo_enabled),
+        "DISABLE_STORAGE_MANAGEMENT": _flag(not features.is_storage_management_enabled),
+        "DEV_MODE": _flag(features.is_dev_mode_enabled),
     })
+
 
 def serve_static_file(filename: str):
     """

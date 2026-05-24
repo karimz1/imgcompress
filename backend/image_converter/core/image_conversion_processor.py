@@ -230,10 +230,6 @@ class ImageConversionProcessor:
             )
 
             response_dict = {k: v for k, v in asdict(response).items() if v is not None}
-            # CLI `--json-output` payload: this is the program's machine-readable
-            # output (piped to `jq`), not a log line. Do NOT switch to Logger —
-            # ANSI colors and `[INFO]` prefixes would break the documented
-            # `--json-output | jq '...'` pipeline.
             print(json.dumps(response_dict, indent=4))
         else:
             message = f"Summary: {len(summary.processed_pages)} file(s) processed, {summary.errors_count} error(s)."

@@ -1,5 +1,7 @@
+import logging
 import os
 import subprocess
+import sys
 import traceback
 
 import pillow_heif
@@ -14,6 +16,19 @@ from backend.image_converter.infrastructure.logger import (
 )
 from backend.image_converter.presentation.cli.app import main as cli_main
 from backend.image_converter.presentation.web.server import start_scheduler
+
+
+def _granian_stdout_logger() -> logging.Logger:
+    logger = logging.getLogger("backend.image_converter.granian")
+    logger.handlers = []
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
+
+    return logger
 
 
 def launch_web_prod(web: WebConfig) -> None:
@@ -34,13 +49,11 @@ def launch_web_prod(web: WebConfig) -> None:
         bufsize=1,
     )
     assert web_server_process.stdout is not None
+    granian_logger = _granian_stdout_logger()
     for line in web_server_process.stdout:
-        # Verbatim relay: granian's child stdout is already formatted (its own
-        # timestamp, level, worker id). Forward unchanged so the parent's
-        # TeeStream captures one line per granian line in the log file. Do
-        # NOT wrap with Logger — that would prepend a second timestamp and
-        # ANSI colors, polluting both the log file and `docker logs`.
-        print(line, end="")
+        # Granian's child stdout is already formatted. Relay it through a
+        # message-only logger so TeeStream still captures one unchanged line.
+        granian_logger.info(line.rstrip("\n"))
     exit_code = web_server_process.wait()
     if exit_code != 0:
         raise subprocess.CalledProcessError(exit_code, web_server_process.args)
