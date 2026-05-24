@@ -126,7 +126,7 @@ ENV U2NET_HOME=/container/.u2net
 # from the internet, then copy it to the persistent U2NET_HOME inside the image.
 RUN --mount=type=cache,target=/cache/u2net,uid=65532,gid=65532 \
     U2NET_HOME=/cache/u2net python - <<'PY' && cp -a /cache/u2net/. /container/.u2net/
-import json
+from backend.image_converter.config import settings
 from rembg import new_session
 model_name = settings.get().rembg.model_name
 new_session(model_name)
