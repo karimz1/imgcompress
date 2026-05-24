@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 IMAGE_REF="${IMAGE_REF:-docker.io/karimz1/imgcompress:latest}"
@@ -10,16 +10,22 @@ if ! docker image inspect "$IMAGE_REF" >/dev/null 2>&1; then
   exit 1
 fi
 
+mkdir -p "$(dirname "$SCAN_OUTPUT")"
+mkdir -p .trivy-cache
+
 docker run --rm \
   -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$PWD:/work" \
   -v "$PWD/.trivy-cache:/root/.cache/trivy" \
+  -w /work \
   "$TRIVY_IMAGE" \
   image \
   --scanners vuln \
   --severity HIGH,CRITICAL \
-  --exit-code 0 \
+  --ignore-unfixed \
+  --exit-code 1 \
   --format table \
-  --output "$SCAN_OUTPUT" \
+  --output "/work/$SCAN_OUTPUT" \
   "$IMAGE_REF"
 
 echo "Trivy scan written to $SCAN_OUTPUT"

@@ -1,3 +1,4 @@
+.trivy-cache/
 /worktrees/
 .claude/
 /.docker-share/
