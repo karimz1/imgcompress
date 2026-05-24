@@ -561,9 +561,10 @@ jobs:
 
   auto-merge-dependabot:
     needs:
-      - scan-image
       - test-backend
       - test-e2e
+      - test-feature-flags-matrix
+      - test-unverified-formats-api
     runs-on: ubuntu-latest
     permissions:
       contents: read
