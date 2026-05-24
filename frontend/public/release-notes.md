@@ -1,14 +1,9 @@
-## v0.7.0 — 2026-05-07
-- Feature: Add Image Crop Editor for per-file cropping before conversion, including aspect ratio presets, manual width and height controls, zoom, pan, reset selection, save, discard, and remove saved crop flows. [#625](https://github.com/karimz1/imgcompress/issues/625)
-- Feature: Apply saved crops before the existing conversion pipeline so resize, output format conversion, target-size compression, and AI background removal all operate on the cropped pixels.
-- Feature: Add crop badges and crop actions to the upload list so users can see which files have saved crops, edit them, or clear them before converting.
-- Feature: Add backend crop bitmap APIs that render backend-supported formats such as PSD and EPS into crop-friendly PNG bitmaps, plus an endpoint for formats that the crop editor should disable.
-- Feature: Add crop loading and failure screens for server-rendered formats, including technical details and a report flow into the global error widget.
-- Feature: Add DEV_MODE runtime configuration and a frontend developer tools button for triggering API and runtime error states with short and long traces during UI testing.
-- Improvement: Redesign API and runtime error widgets so long stack traces stay readable with fixed header/footer actions, scrollable details, copy error, and open ticket controls.
-- Improvement: Add route-level and root-level runtime error screens so frontend crashes are surfaced consistently instead of breaking the page shell.
-- Internal: Add crop unit, integration, backend bitmap, concurrency, PSD round-trip, failure-path, and conversion-order test coverage.
-- Build: Pin Docker frontend builds to pnpm 10.33.2, approve required native dependency build scripts for sharp and unrs-resolver, and exclude generated frontend artifacts from the Docker build context.
+## v0.7.0 — 2026-05-24
+- Feature: Image Crop Editor for per-file cropping before conversion. [#625](https://github.com/karimz1/imgcompress/issues/625)
+- Improvement: Redesigned error widgets with route- and root-level error screens so frontend crashes surface cleanly.
+- Docker: Refactored image, healthcheck, entrypoint, and added a Makefile. Thanks to first-time contributor [@AlexanderSlokov](https://github.com/AlexanderSlokov) in [#626](https://github.com/karimz1/imgcompress/pull/626).
+- Internal: Expanded test coverage and added a DEV_MODE flag for triggering error states during UI testing.
+- CI: Added Python lint, a feature flag matrix, and a pre-publish image scan for auditability.
 
 ## v0.6.1 — 2026-04-18
 - Feature: Add GitHub Star Banner to Compressed Files Drawer [#599](https://github.com/karimz1/imgcompress/issues/599)
