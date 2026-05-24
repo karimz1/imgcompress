@@ -39,4 +39,9 @@ trivy:
 	$(REGISTRY)/$(IMAGE):$(TAG)
 
 local_build:
-	@bash runLocalDockerBuildTester.sh
+	@bash scripts/runLocalDockerBuildTester.sh
+
+# Simulate the full GitHub Actions CI locally: builds the devcontainer,
+# runs unit + integration tests inside it, builds the app image, runs E2E.
+simci:
+	@bash scripts/simulateCiTests.sh

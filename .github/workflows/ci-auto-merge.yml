@@ -88,7 +88,7 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
-            devcontainer:local-test /app/runUnitTests.sh
+            devcontainer:local-test /app/scripts/runUnitTests.sh
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
 
@@ -102,7 +102,7 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
-            devcontainer:local-test /app/runIntegrationTests.sh
+            devcontainer:local-test /app/scripts/runIntegrationTests.sh
         env:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
 
@@ -182,7 +182,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=devcontainer-${{ matrix.platform }}
 
       - name: Make E2E script executable
-        run: chmod +x ./run-e2e.sh
+        run: chmod +x ./scripts/run-e2e.sh
 
       - name: Run E2E Tests in Dev Container (Host Networking)
         run: |
@@ -196,7 +196,7 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
             --name devcontainer_e2e \
-            devcontainer:local-test -c "/app/run-e2e.sh"
+            devcontainer:local-test -c "/app/scripts/run-e2e.sh"
 
       - name: Get CPU Architecture
         run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
@@ -317,7 +317,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=devcontainer-linux/amd64
 
       - name: Make E2E script executable
-        run: chmod +x ./run-e2e.sh
+        run: chmod +x ./scripts/run-e2e.sh
 
       - name: Run feature-flags spec — ${{ matrix.scenario }}
         run: |
@@ -330,7 +330,7 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
             --name devcontainer_flags \
-            devcontainer:local-test -c "/app/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts"
+            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts"
 
       - name: Stop Application Container
         if: always()

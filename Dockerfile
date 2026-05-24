@@ -58,7 +58,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; \
 #
 # Strategy: Runtime Closure Extractor (ldd + dpkg-L hybrid)
 # Ref: extract_deps.sh
-COPY extract_deps.sh /tmp/extract_deps.sh
+COPY scripts/extract_deps.sh /tmp/extract_deps.sh
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \

@@ -106,7 +106,7 @@ jobs:
         if: steps.pr.outputs.is_fork != 'true'
         env:
           PNPM_INSTALL_ARGS: "--lockfile-only --ignore-scripts"
-        run: ./applyFrontendDependencyFix.sh
+        run: ./scripts/applyFrontendDependencyFix.sh
 
       - name: Push repaired branch
         if: steps.pr.outputs.is_fork != 'true'
@@ -131,7 +131,7 @@ jobs:
           If you'd like the repair anyway, please:
 
           1. Refresh your branch by merging `main` into it first
-          2. Run `./applyFrontendDependencyFix.sh` locally
+          2. Run `./scripts/applyFrontendDependencyFix.sh` locally
           3. Push the result up to your fork, ne~? 💛
           EOF
           )
