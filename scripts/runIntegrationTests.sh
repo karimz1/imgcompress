@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e  # Exit immediately if a command exits with a non-zero status
 
-. /venv/bin/activate
+if [ -f /venv/bin/activate ]; then
+  . /venv/bin/activate
+fi
 
 # `test_unverified_formats_api.py` exercises /api/compress against a
 # running app container, so it cannot run in this job (which has no app
@@ -11,4 +13,6 @@ pytest tests/integration \
   --ignore=tests/integration/test_unverified_formats_api.py \
   -s "$@"
 
-deactivate
+if [ -n "${VIRTUAL_ENV:-}" ]; then
+  deactivate
+fi

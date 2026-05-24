@@ -38,7 +38,84 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint-python:
+    name: lint Python
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install Ruff
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ruff==0.15.14
+
+      - name: Run Ruff
+        run: ruff check backend tests healthcheck.py update_dockerhub_description.py
+
+  scan-image:
+    name: scan local image
+    needs: lint-python
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Authenticate to dhi.io for DHI base images
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/login-action@v4
+        with:
+          registry: dhi.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build local application image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: karimz1/imgcompress:local-scan
+          cache-from: type=gha,scope=app-linux/amd64
+          cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Run Trivy image scan
+        env:
+          IMAGE_REF: karimz1/imgcompress:local-scan
+          SCAN_OUTPUT: scan-result.log
+        run: ./scripts/runTrivyImageScan.sh
+
+      - name: Upload Trivy scan result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-scan-result
+          path: scan-result.log
+          retention-days: 7
+
   test-backend:
+    needs: lint-python
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -107,6 +184,7 @@ jobs:
           IS_RUNNING_IN_GITHUB_ACTIONS: true
 
   test-e2e:
+    needs: lint-python
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -227,6 +305,7 @@ jobs:
     # Job display name reads as the actual user-facing UI state instead of
     # a confusing tuple of `disable_* = true/false` (double negative).
     name: feature-flags (${{ matrix.scenario }})
+    needs: lint-python
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -370,6 +449,7 @@ jobs:
     # are gated. Read-only formats (no Pillow writer) are skipped with a
     # documented reason; skips are not failures.
     name: unverified-formats API reader
+    needs: lint-python
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -454,6 +534,7 @@ jobs:
 
   deploy-nightly:
     needs:
+      - scan-image
       - test-backend
       - test-e2e
       - test-feature-flags-matrix
@@ -480,6 +561,7 @@ jobs:
 
   auto-merge-dependabot:
     needs:
+      - scan-image
       - test-backend
       - test-e2e
     runs-on: ubuntu-latest

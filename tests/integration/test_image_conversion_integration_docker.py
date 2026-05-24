@@ -9,7 +9,6 @@ from backend.image_converter.core.internals.utilities import is_file_supported
 from tests.test_utils import (
     validate_image_dimensions,
     create_sample_test_image,
-    is_github_actions,
 )
 
 import pillow_heif
@@ -57,7 +56,7 @@ class TestDockerIntegration:
             # Use the container we are currently running in
             container_name = os.environ.get("HOSTNAME")
             if container_name and self._container_exists(container_name):
-                print(f"Volume Strategy: within devcontainer")
+                print("Volume Strategy: within devcontainer")
                 return {
                     "volume_args": ["--volumes-from", container_name],
                     "input_path": self.SAMPLE_IMAGES_DIR,
@@ -67,7 +66,7 @@ class TestDockerIntegration:
                 "Running inside a container but could not determine container name for --volumes-from"
             )
 
-        print(f"Volume Strategy: no devcontainer")
+        print("Volume Strategy: no devcontainer")
         # Host execution (no container)
         return {
             "volume_args": [
@@ -266,7 +265,7 @@ class TestDockerIntegration:
         with Image.open(out_path) as out_img:
             print(f"Output image format: {out_img.format}, mode: {out_img.mode}")
                                                 
-            assert out_img.format.upper() == "PNG", f"Output image is not PNG."
+            assert out_img.format.upper() == "PNG", "Output image is not PNG."
                                                                           
             assert "A" in out_img.mode, "Output image does not have an alpha channel."
     

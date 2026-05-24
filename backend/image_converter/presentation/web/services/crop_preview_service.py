@@ -69,7 +69,7 @@ class CropPreviewService:
                 return Result.success(self._build_preview_png(filename, load_bytes()))
             except self._PERMANENT_ERROR_TYPES as exc:
                 self._log(rid, f"permanent failure for '{filename}': {exc}", "error")
-                break
+                return Result.failure("Could not decode this format for cropping.")
             except Exception as exc:
                 self._log(
                     rid,

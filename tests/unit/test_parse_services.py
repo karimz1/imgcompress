@@ -2,7 +2,6 @@
 
 import io
 
-import pytest
 from werkzeug.datastructures import FileStorage
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request

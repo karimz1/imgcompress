@@ -1,47 +1,53 @@
 REGISTRY ?= docker.io/karimz1
 IMAGE ?= imgcompress
 TAG ?= latest
-SCOUT_TAG ?= 1-debian13-dev
-CLOUD_BUILDER=
+IMAGE_REF ?= $(REGISTRY)/$(IMAGE):$(TAG)
+LOCAL_PLATFORM ?= linux/amd64
 
-# Build image with sbom and provenance, 
-# good for Docker Scout to indexing layers and attestation.
-build:
+.PHONY: build build-local scan trivy lint unit integration e2e feature-flags local simci
+
+# Multi-arch build used for release validation. The CI deployment workflow is
+# responsible for pushing published images.
+build: lint
 	docker buildx build \
-	--platform linux/amd64,linux/arm64 \
-	--sbom="generator=docker/buildkit-syft-scanner:latest" \
-	--provenance="mode=max" \
-	-t $(REGISTRY)/$(IMAGE):$(TAG) \
-	.
+		--platform linux/amd64,linux/arm64 \
+		--sbom="generator=docker/buildkit-syft-scanner:latest" \
+		--provenance="mode=max" \
+		-t $(IMAGE_REF) \
+		.
 
-# Use Docker Hub Cloudbuild for faster build. 
-# Need a Docker Hub account and must init a Cloud Builder first.
-cloud_build:
+# Single-platform build loaded into the local Docker daemon, used by scan/local testing.
+build-local: lint
 	docker buildx build \
-	--platform linux/amd64,linux/arm64 \
-	--builder $(CLOUD_BUILDER) \
-	--sbom="generator=docker/buildkit-syft-scanner:latest" \
-	--provenance="mode=max" \
-	-t $(REGISTRY)/$(IMAGE):$(TAG) \
-	--push \
-	.
+		--platform $(LOCAL_PLATFORM) \
+		--load \
+		-t $(IMAGE_REF) \
+		.
 
-# Call Trivy to scan image for vulnerabilites. 
-# It is a best practice to check the image after you build it.
-trivy:
-	docker run --rm -v \
-	/var/run/docker.sock:/var/run/docker.sock \
-	aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
-	image \
-	--severity HIGH,CRITICAL \
-	--format table \
-	--output scan-result.log \
-	$(REGISTRY)/$(IMAGE):$(TAG)
+scan: build-local
+	IMAGE_REF="$(IMAGE_REF)" ./scripts/runTrivyImageScan.sh
 
-local_build:
-	@bash scripts/runLocalDockerBuildTester.sh
+trivy: scan
+
+lint:
+	./scripts/runPythonLint.sh
+
+unit: lint
+	./scripts/runUnitTests.sh
+
+integration: lint
+	./scripts/runIntegrationTests.sh
+
+e2e: lint
+	./scripts/run-e2e.sh
+
+feature-flags: lint
+	./scripts/runFeatureFlagsDockerE2E.sh
+
+local: lint
+	./scripts/runLocalDockerBuildTester.sh
 
 # Simulate the full GitHub Actions CI locally: builds the devcontainer,
-# runs unit + integration tests inside it, builds the app image, runs E2E.
-simci:
-	@bash scripts/simulateCiTests.sh
+# runs lint + tests inside it, builds the app image, runs E2E.
+simci: lint
+	./scripts/simulateCiTests.sh

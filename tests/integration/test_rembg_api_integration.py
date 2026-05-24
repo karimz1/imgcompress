@@ -10,7 +10,6 @@ from backend.image_converter.presentation.web.server import app
 from backend.image_converter.presentation.web.services.configuration_service import (
     ConfigurationService,
 )
-import backend.image_converter.core.factory.rembg_png_converter as rembg_module
 
 
 @pytest.fixture
@@ -47,6 +46,7 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
         return {"model": model_name}
 
     def fake_remove(data, session, post_process_mask, alpha_matting):
+        _ = session
         assert data == image_data
         assert post_process_mask is True
         assert alpha_matting is False

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Any
+from typing import Iterable, Optional
 
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor

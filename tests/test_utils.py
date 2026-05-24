@@ -3,7 +3,6 @@ import sys
 import logging
 from io import StringIO
 from PIL import Image
-from backend.image_converter.core.enums.image_format import ImageFormat
 
 
                                                                      
@@ -39,6 +38,8 @@ def capture_logger_output(func, *args, **kwargs):
         func(*args, **kwargs)
     finally:
         logger.removeHandler(handler)
+        logger.handlers = old_handlers
+        logger.setLevel(old_level)
     return logger_output.getvalue()
 
 

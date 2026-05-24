@@ -14,7 +14,8 @@ HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
 SPEC_PATH="tests/e2e/featureFlagsRuntime_Test.spec.ts"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-FRONTEND_DIR="$SCRIPT_DIR/frontend"
+APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+FRONTEND_DIR="$APP_ROOT/frontend"
 
 cleanup_container() {
     docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -34,7 +35,7 @@ if ! command -v pnpm >/dev/null 2>&1; then
 fi
 
 echo "🚧 Building Docker image: $IMAGE_NAME"
-docker buildx build --pull -t "$IMAGE_NAME" "$SCRIPT_DIR"
+docker buildx build --pull -t "$IMAGE_NAME" "$APP_ROOT"
 
 # (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT) combinations
 COMBOS=(

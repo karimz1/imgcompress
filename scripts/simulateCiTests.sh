@@ -93,6 +93,10 @@ devcontainer_run() {
 run_stage "Build devcontainer" \
   docker buildx build -t devcontainer:local-test .devcontainer/
 
+run_stage "Run Python lint" \
+  devcontainer_run --name devcontainer_lint \
+    devcontainer:local-test /app/scripts/runPythonLint.sh
+
 run_stage "Run unit tests" \
   devcontainer_run --name devcontainer \
     devcontainer:local-test /app/scripts/runUnitTests.sh

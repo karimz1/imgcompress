@@ -2,7 +2,8 @@ import importlib
 import importlib.util
 import os
 import socket
-from typing import List, Set, Dict
+from typing import Generic, List, Optional, TypeVar
+
 from PIL import Image
 
 # Formats that are ingest via custom pipelines (e.g. PdfPageExtractor)
@@ -32,12 +33,14 @@ def load_supported_formats() -> List[str]:
 
 supported_extensions = load_supported_formats()
 
+
 def has_internet():
     try:
         socket.create_connection(("1.1.1.1", 53), 1)
         return True
-    except:
+    except OSError:
         return False
+
 
 def is_file_supported(file_path: str) -> bool:
     """
@@ -52,6 +55,7 @@ def is_file_supported(file_path: str) -> bool:
     """
     _, ext = os.path.splitext(file_path)
     return ext.lower() in supported_extensions
+
 
 class FileUrl:
     """
@@ -90,8 +94,6 @@ class FileUrl:
         """
         return self.path
 
-
-from typing import Generic, Optional, TypeVar
 
 T = TypeVar("T")
 

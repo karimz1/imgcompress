@@ -1,10 +1,7 @@
 from io import BytesIO
-import traceback
 
 from PIL import Image
 
-from backend.image_converter.application.dtos import ConversionDetails
-from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.interfaces.base_converter import BaseImageConverter
 

@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.core.internals.file_manager import FileManager
 from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.enums.image_format import ImageFormat
@@ -17,20 +16,13 @@ def mock_logger():
     return Logger(debug=True, json_output=False)
 
 @pytest.fixture
-def mock_file_manager():
-    """
-    Returns a MagicMock for the FileManager class to avoid filesystem operations.
-    """
-    return MagicMock(spec=FileManager)
-
-@pytest.fixture
 def mock_converter():
     """
     Returns a MagicMock for the FileManager class to avoid filesystem operations.
     """
     return MagicMock(spec=JpegConverter)
 
-def test_When_OutputResultsRunsInJsonMode_Expect_SummarySerialized(mock_converter, mock_file_manager):
+def test_When_OutputResultsRunsInJsonMode_Expect_SummarySerialized(mock_converter):
     """
     Test that output_results prints valid JSON when json_output=True,
     capturing the printed JSON via capture_stdout.
@@ -102,7 +94,7 @@ def test_When_OutputResultsRunsInJsonMode_Expect_SummarySerialized(mock_converte
     assert output_json == expected_json
 
 
-def test_When_OutputResultsRunsInTextModeWithErrors_Expect_FailuresLogged(mock_converter, mock_file_manager):
+def test_When_OutputResultsRunsInTextModeWithErrors_Expect_FailuresLogged(mock_converter):
     """
     Test that output_results logs plain text when json_output=False,
     capturing logger-based messages via capture_logger_output.

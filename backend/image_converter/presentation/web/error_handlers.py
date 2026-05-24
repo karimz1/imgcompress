@@ -1,5 +1,4 @@
 from flask import jsonify
-from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 
 
 def handle_request_entity_too_large(e):

@@ -1,7 +1,6 @@
 from io import BytesIO
 import traceback
-from typing import Any, List, Optional
-
+from typing import Any, Optional
 
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.utilities import Result

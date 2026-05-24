@@ -1,6 +1,4 @@
 from io import BytesIO
-from typing import Optional
-
 
 from backend.image_converter.core.internals.utilities import Result
 

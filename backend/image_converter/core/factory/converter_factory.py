@@ -1,4 +1,3 @@
-from typing import Optional, Dict, Type, Callable, Any
 from backend.image_converter.core.factory.ico_converter import IcoConverter
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.enums.image_format import ImageFormat

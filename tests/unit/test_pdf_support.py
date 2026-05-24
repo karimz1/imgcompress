@@ -1,7 +1,6 @@
 from io import BytesIO
 
 from PIL import Image
-import pytest
 
 from backend.image_converter.core.internals.utilities import (
     Result,
@@ -35,7 +34,7 @@ def test_When_PdfPageExtractorProcessesSample_Expect_PageRendered():
 
 
 def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
-    def boom(*args, **kwargs):
+    def boom(*_args, **_kwargs):
         raise RuntimeError("boom")
 
     import pypdfium2
