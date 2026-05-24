@@ -1,11 +1,29 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Minus, Moon, Plus, RotateCcw, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import {
   applyRatio,
@@ -36,13 +54,16 @@ import { useCropImageLoader } from "@/components/crop/useCropImageLoader";
 import { useFitPreviewBox } from "@/components/crop/useFitPreviewBox";
 import { useCropPanZoom } from "@/components/crop/useCropPanZoom";
 
+export interface CropWidgetHandle {
+  requestClose: () => void;
+}
+
 interface CropWidgetProps {
   file: File;
   initialCrop: CropConfig | null;
   onSave: (crop: CropConfig) => void;
-  onDiscard: () => void;
+  onClose: () => void;
   onClearCrop?: () => void;
-  onDirtyChange?: (dirty: boolean) => void;
   onReportError?: (payload: { message: string; details?: string }) => void;
   isDarkTheme: boolean;
   disableLogo?: boolean;
@@ -65,17 +86,19 @@ type DragMode =
       startY: number;
     };
 
-const CropWidget: React.FC<CropWidgetProps> = ({
-  file,
-  initialCrop,
-  onSave,
-  onDiscard,
-  onClearCrop,
-  onDirtyChange,
-  onReportError,
-  isDarkTheme,
-  disableLogo = false,
-}) => {
+const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWidget(
+  {
+    file,
+    initialCrop,
+    onSave,
+    onClose,
+    onClearCrop,
+    onReportError,
+    isDarkTheme,
+    disableLogo = false,
+  },
+  ref
+) {
   const { imgUrl, imgSize, loadError, loadErrorDetails, loadingVariant } =
     useCropImageLoader(file);
 
@@ -94,7 +117,12 @@ const CropWidget: React.FC<CropWidgetProps> = ({
         }
       : null
   );
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
   const initialStateRef = useRef<{ crop: Rect; preset: RatioPresetId } | null>(null);
+  const cropRef = useRef<Rect | null>(crop);
+  const presetRef = useRef<RatioPresetId>(preset);
+  cropRef.current = crop;
+  presetRef.current = preset;
 
   const previewWrapperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -124,20 +152,30 @@ const CropWidget: React.FC<CropWidgetProps> = ({
   useEffect(() => {
     if (!imgSize || !crop || initialStateRef.current) return;
     initialStateRef.current = { crop: { ...crop }, preset };
-    onDirtyChange?.(false);
-  }, [imgSize, crop, preset, onDirtyChange]);
+  }, [imgSize, crop, preset]);
 
-  useEffect(() => {
-    if (!crop || !initialStateRef.current) return;
-    const initial = initialStateRef.current;
-    const dirty =
-      preset !== initial.preset ||
-      crop.x !== initial.crop.x ||
-      crop.y !== initial.crop.y ||
-      crop.width !== initial.crop.width ||
-      crop.height !== initial.crop.height;
-    onDirtyChange?.(dirty);
-  }, [crop, preset, onDirtyChange]);
+  const isDirty = useCallback(() => {
+    const baseline = initialStateRef.current;
+    const current = cropRef.current;
+    if (!baseline || !current) return false;
+    return (
+      presetRef.current !== baseline.preset ||
+      current.x !== baseline.crop.x ||
+      current.y !== baseline.crop.y ||
+      current.width !== baseline.crop.width ||
+      current.height !== baseline.crop.height
+    );
+  }, []);
+
+  const requestClose = useCallback(() => {
+    if (isDirty()) {
+      setConfirmDiscardOpen(true);
+      return;
+    }
+    onClose();
+  }, [isDirty, onClose]);
+
+  useImperativeHandle(ref, () => ({ requestClose }), [requestClose]);
 
   const beginDrag = useCallback((e: React.PointerEvent, mode: DragMode) => {
     if (mode.kind === "none") return;
@@ -294,9 +332,7 @@ const CropWidget: React.FC<CropWidgetProps> = ({
 
   const textClass = isDarkTheme ? "text-gray-100" : "text-slate-900";
   const subtleBorder = isDarkTheme ? "border-white/10" : "border-slate-200/70";
-  const transparencySurfaceStyle: React.CSSProperties = {
-    backgroundColor: isDarkTheme ? "#0f172a" : "#f8fafc",
-  };
+  const transparencySurface = isDarkTheme ? "bg-slate-950" : "bg-slate-50";
   const controlPanelSurface = isDarkTheme
     ? "border-white/10 bg-white/[0.045] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
     : "border-white/70 bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]";
@@ -332,14 +368,13 @@ const CropWidget: React.FC<CropWidgetProps> = ({
           file={file}
           message={loadError}
           details={loadErrorDetails ?? undefined}
-          onDiscard={onDiscard}
+          onDiscard={onClose}
           onReport={onReportError}
         />
       ) : !imgUrl || !imgSize || !crop ? (
-        // Always render the loading panel during load — even for fast PNG /
-        // JPG decodes the upload + decode + first-paint gap is visible
-        // enough that a hard cut between "click Crop" and "editor ready"
-        // feels jumpy. We just pick a lighter `local` variant for those.
+        // Always render the loading panel; even fast decodes have a visible
+        // gap between click and first paint. The variant just gets lighter
+        // for local previews.
         <CropLoadingPanel
           file={file}
           isDarkTheme={isDarkTheme}
@@ -364,10 +399,10 @@ const CropWidget: React.FC<CropWidgetProps> = ({
                 className={cn(
                   "absolute inset-0 select-none touch-none overflow-hidden rounded-md border",
                   subtleBorder,
+                  transparencySurface,
                   canPan ? "cursor-grab" : "cursor-default",
                   dragRef.current.kind === "pan" && "cursor-grabbing"
                 )}
-                style={transparencySurfaceStyle}
                 onPointerDown={onContainerPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
@@ -637,7 +672,7 @@ const CropWidget: React.FC<CropWidgetProps> = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={onDiscard}
+                  onClick={requestClose}
                   data-testid="crop-discard-btn"
                 >
                   Discard
@@ -656,8 +691,33 @@ const CropWidget: React.FC<CropWidgetProps> = ({
           </div>
         </>
       )}
+      <AlertDialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
+        <AlertDialogContent data-testid="crop-discard-confirm-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard crop changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your unsaved crop adjustments will be lost. The previously saved crop, if any, will stay unchanged.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="crop-discard-cancel-btn">
+              Keep Editing
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmDiscardOpen(false);
+                onClose();
+              }}
+              className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+              data-testid="crop-discard-confirm-btn"
+            >
+              Discard Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
-};
+});
 
 export default CropWidget;

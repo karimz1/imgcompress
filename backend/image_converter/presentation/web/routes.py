@@ -28,7 +28,7 @@ EXPIRATION_TIME = _config.temporary_storage.max_age_seconds
 logger = Logger(debug=False, json_output=False)
 
 resizer = ImageResizer()
-storage = LocalStorage()
+storage = LocalStorage(logger=logger)
 payload_expander = create_payload_expander(logger)
 use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
 

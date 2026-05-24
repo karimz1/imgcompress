@@ -57,8 +57,6 @@ export function SplashScreen({
   disableLogo = false,
 }: SplashScreenProps) {
   const [messageIndex, setMessageIndex] = useState(0);
-
-  // Typewriter state for the current message
   const [displayText, setDisplayText] = useState("");
 
   const statusMessage = useMemo(() => waitMessages[messageIndex], [messageIndex]);
@@ -67,11 +65,10 @@ export function SplashScreen({
     [isVisible]
   );
 
-  // Rotate messages while visible
   useEffect(() => {
     if (!isVisible) return;
 
-    setMessageIndex(0); // reset when it re-opens
+    setMessageIndex(0);
 
     const interval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % waitMessages.length);
@@ -80,7 +77,6 @@ export function SplashScreen({
     return () => clearInterval(interval);
   }, [isVisible]);
 
-  // Typewriter effect whenever the message changes
   useEffect(() => {
     if (!isVisible) return;
 
@@ -274,7 +270,6 @@ export function SplashScreen({
               )}
 
               <div className="w-full flex flex-col items-center gap-5">
-                {/* Animated message area */}
                 <div className="min-h-[3.25rem] flex items-center justify-center">
                   <div
                     key={messageIndex}
@@ -286,7 +281,6 @@ export function SplashScreen({
                   </div>
                 </div>
 
-                {/* Progress steps */}
                 <div className="w-full max-w-2xl">
                   <div className="flex items-center justify-between gap-2">
                     {["Starting", "Compressing", "Packaging"].map((label, index) => (
@@ -312,12 +306,10 @@ export function SplashScreen({
                 </div>
               </div>
 
-              {/* Loader */}
               <div className="w-full max-w-2xl h-2.5 bg-white/5 rounded-full overflow-hidden relative backdrop-blur-md ring-1 ring-white/10">
                 <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 rounded-full animate-loading-bar shadow-[0_4px_18px_rgba(79,70,229,0.45)]" />
               </div>
 
-              {/* Tips & actions */}
               <div className="w-full max-w-3xl flex flex-col md:flex-row gap-4 items-start md:items-center">
                 <div className="flex-1 bg-white/5 rounded-2xl p-4 text-left text-sm text-gray-100 ring-1 ring-white/10 shadow-inner shadow-black/30 backdrop-blur-md">
                   <p className="text-[11px] uppercase tracking-[0.3em] text-blue-200 mb-1">

@@ -40,9 +40,9 @@ class CompressionService:
             zip_path = os.path.join(self.temp_folder_service.temp_dir, zip_name)
             shutil.make_archive(zip_path[:-4], "zip", root_dir=folder_path)
             return Result.success(zip_name)
-        except Exception as exc:
-            self.logger.log(f"ZIP creation error: {exc}", "error")
-            return Result.failure(f"Failed to create archive: {exc}")
+        except Exception:
+            self.logger.log(f"ZIP creation error: {traceback.format_exc()}", "error")
+            return Result.failure("Failed to create archive.")
 
     def compress(self, form_data: CompressionFormData) -> Result[CompressionResponse]:
         fmt = form_data.image_format
@@ -78,7 +78,7 @@ class CompressionService:
 
             save_res = self._save_uploaded_files(form_data.uploaded_files, src)
             if not save_res.is_successful:
-                return Result.failure(f"Failed to save uploaded files: {save_res.error}")
+                return Result.failure(save_res.error)
 
             target: Optional[TargetSize] = None
             if form_data.target_size_kb:
@@ -116,10 +116,12 @@ class CompressionService:
                 process_summary=result,
             ))
 
-        except Exception as exc:
-            tb = traceback.format_exc()
-            self.logger.log(f"Unexpected compression failure: {tb}", "error")
-            return Result.failure(str(exc) or "Unexpected compression failure.")
+        except Exception:
+            self.logger.log(
+                f"Unexpected compression failure: {traceback.format_exc()}",
+                "error",
+            )
+            return Result.failure("Unexpected compression failure.")
         finally:
             if src:
                 shutil.rmtree(src, ignore_errors=True)
@@ -143,6 +145,5 @@ class CompressionService:
                 self.logger.log(f"Saved file: {path}", "info")
             return Result.success(None)
         except Exception:
-            tb = traceback.format_exc()
-            self.logger.log(f"Failed saving upload: {tb}", "error")
-            return Result.failure(tb)
+            self.logger.log(f"Failed saving upload: {traceback.format_exc()}", "error")
+            return Result.failure("Failed to save uploaded files.")

@@ -66,7 +66,6 @@ interface FileConversionFormProps {
   setUseRembg: (val: boolean) => void;
   rembgModelName: string | null;
 
-  // From useDropzone
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
@@ -384,7 +383,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         />
       </div>
 
-      {/* Output Format */}
       <div className="space-y-1">
         <div className="flex items-center gap-1">
           <Label htmlFor="outputFormat" className="text-sm">
@@ -430,7 +428,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
-      {/* PDF Presets */}
       {outputFormat === "pdf" && (
         <div className="space-y-1">
           <div className="flex items-center gap-1">
@@ -608,7 +605,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* JPEG/AVIF controls mode */}
       {(outputFormat === "jpeg" || outputFormat === "avif") && (
         <div className="space-y-2">
           <Label className="text-sm">{outputFormat.toUpperCase()} settings mode</Label>
@@ -635,7 +631,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* PNG/AVIF background removal */}
       {(outputFormat === "png" || outputFormat === "avif") && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -669,7 +664,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* Quality for JPEG/AVIF */}
       {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -721,7 +715,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* Max file size (MB) - only for JPEG/AVIF in size mode */}
       {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -744,13 +737,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 </TooltipContent>
               </Tooltip>
             </Label>
-            {/* value next to label, like quality */}
             <span className={cn("text-sm", subtleText)}>
               {(targetSizeMB && targetSizeMB.trim() !== "" ? targetSizeMB : "0.50")} MB
             </span>
           </div>
 
-          {/* slider first */}
           <input
             id="targetSizeMBRange"
             type="range"
@@ -763,7 +754,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             className="w-full accent-blue-500"
           />
 
-          {/* optional number field */}
           <div className="relative">
             <Input
               data-testid="targetSizeMBInput"
@@ -789,7 +779,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {/* Resize Width */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <Label
@@ -843,18 +832,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
-      {/* Error Alert (if any) */}
       {renderError}
 
-      {/* Dropzone */}
       {renderDropZone}
 
-      {/* Files List */}
       {renderFilesList}
 
       {cropDialogNode}
 
-      {/* Action Buttons */}
       <div className="flex items-center justify-between gap-4">
         <Button
           type="submit"

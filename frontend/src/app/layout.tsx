@@ -44,7 +44,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <LogCaptureBootstrap />
-          {/* Top-RIGHT: Theme Toggle */}
           <div className="fixed right-4 top-4 z-50">
             <ThemeToggle />
           </div>

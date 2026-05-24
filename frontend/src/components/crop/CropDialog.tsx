@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { CropConfig } from "@/lib/crop";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import CropWidget from "@/components/CropWidget";
+import CropWidget, { CropWidgetHandle } from "@/components/CropWidget";
 
 interface CropDialogProps {
   files: File[];
@@ -48,37 +48,14 @@ export const CropDialog: React.FC<CropDialogProps> = ({
   isDarkTheme,
   disableLogo = false,
 }) => {
-  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
-  const [editorDirty, setEditorDirty] = useState(false);
-
-  useEffect(() => {
-    setEditorDirty(false);
-    setConfirmDiscardOpen(false);
-  }, [openFileName]);
+  const widgetRef = useRef<CropWidgetHandle | null>(null);
 
   const openFile = useMemo(
     () => (openFileName ? files.find((f) => f.name === openFileName) : null),
     [openFileName, files]
   );
 
-  const closeEditor = () => {
-    setConfirmDiscardOpen(false);
-    setEditorDirty(false);
-    setOpenFileName(null);
-  };
-
-  const requestClose = () => {
-    if (!openFile) return;
-    if (!editorDirty) {
-      closeEditor();
-      return;
-    }
-    setConfirmDiscardOpen(true);
-  };
-
-  const confirmDiscard = () => {
-    closeEditor();
-  };
+  const closeEditor = () => setOpenFileName(null);
 
   const confirmRemove = () => {
     if (!confirmRemoveFor) return;
@@ -99,7 +76,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
     <Dialog
       open={!!openFile}
       onOpenChange={(open) => {
-        if (!open) requestClose();
+        if (!open) widgetRef.current?.requestClose();
       }}
     >
       <DialogContent
@@ -140,6 +117,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
           </div>
         </DialogHeader>
         <CropWidget
+          ref={widgetRef}
           file={openFile}
           initialCrop={crops[openFile.name] ?? null}
           isDarkTheme={isDarkTheme}
@@ -147,9 +125,8 @@ export const CropDialog: React.FC<CropDialogProps> = ({
             setCropForFile(openFile.name, cfg);
             closeEditor();
           }}
-          onDiscard={requestClose}
+          onClose={closeEditor}
           onClearCrop={() => setConfirmRemoveFor(openFile.name)}
-          onDirtyChange={setEditorDirty}
           onReportError={onReportError}
           disableLogo={disableLogo}
         />
@@ -187,39 +164,10 @@ export const CropDialog: React.FC<CropDialogProps> = ({
     </AlertDialog>
   ) : null;
 
-  const discardConfirmDialog = openFile ? (
-    <AlertDialog
-      open={confirmDiscardOpen}
-      onOpenChange={setConfirmDiscardOpen}
-    >
-      <AlertDialogContent data-testid="crop-discard-confirm-dialog">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Discard crop changes?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Your unsaved crop adjustments will be lost. The previously saved crop, if any, will stay unchanged.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel data-testid="crop-discard-cancel-btn">
-            Keep Editing
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={confirmDiscard}
-            className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
-            data-testid="crop-discard-confirm-btn"
-          >
-            Discard Changes
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  ) : null;
-
   return (
     <>
       {cropDialog}
       {removeConfirmDialog}
-      {discardConfirmDialog}
     </>
   );
 };

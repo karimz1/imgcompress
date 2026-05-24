@@ -83,10 +83,11 @@ class CropPreviewService:
                 if attempt < self.max_attempts:
                     time.sleep(0.25 * attempt)
 
-        details = str(last_error) if last_error else "Unknown preview error."
+        if last_error is not None:
+            self._log(rid, f"giving up on '{filename}': {last_error!r}", "error")
         return Result.failure(
             "Could not decode this format for cropping "
-            f"after {self.max_attempts} attempts. {details}"
+            f"after {self.max_attempts} attempts."
         )
 
     def _build_preview_png(self, filename: str, raw_bytes: bytes) -> BytesIO:

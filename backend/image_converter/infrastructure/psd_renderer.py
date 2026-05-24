@@ -31,5 +31,5 @@ class PsdRenderer:
             flattened.save(buffer, format="PNG", optimize=False, compress_level=6)
             return Result.success(buffer.getvalue())
         except Exception as exc:
-            self.logger.log(f"Failed to render PSD '{source_name}': {exc}", "error")
-            return Result.failure(str(exc))
+            self.logger.log(f"Failed to render PSD '{source_name}': {exc!r}", "error")
+            return Result.failure("PSD could not be rendered.")
