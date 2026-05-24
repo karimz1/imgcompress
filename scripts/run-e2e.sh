@@ -3,7 +3,8 @@ set -e  # Exit immediately if a command exits with a non-zero status
 
 # Use PLAYWRIGHT_BASE_URL if provided; default to http://localhost:5000
 BASE_URL=${PLAYWRIGHT_BASE_URL:-http://localhost:5000}
-APP_ROOT="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 E2E_FRONTEND_DIR="${E2E_FRONTEND_DIR:-/tmp/imgcompress-e2e-frontend}"
 echo "Using base URL: ${BASE_URL}"
 
