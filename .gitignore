@@ -1,5 +1,6 @@
 /worktrees/
 .claude/
+/.docker-share/
 
 /.pnpm-store/
 

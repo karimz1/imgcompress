@@ -1,75 +1,81 @@
 #!/usr/bin/env sh
-# Mirrors the GitHub Actions CI: builds the devcontainer, runs unit +
+# Mirrors the GitHub Actions CI locally: builds the devcontainer, runs unit +
 # integration tests inside it, builds the app image, runs E2E. Shares the
-# host's Docker credentials with the devcontainer so dhi.io pulls work the
-# same way they do in CI.
+# host's Docker config with the devcontainer so registry pulls (incl. dhi.io)
+# work the same way they do in CI.
 set -eu
 
 cd "$(dirname "$0")/.."
 
 APP_CONTAINER="app"
-DHI_REGISTRY="dhi.io"
 HOST_DOCKER_CONFIG="${DOCKER_CONFIG:-$HOME/.docker}/config.json"
+# Docker Desktop on macOS refuses to share ~/.docker even when the parent
+# directory is in File Sharing. Stage a copy of the config inside the project
+# (which IS shared via the $(pwd):/app/ mount) and use that as the source.
+SHARED_DOCKER_CONFIG_DIR=".docker-share"
+SHARED_DOCKER_CONFIG="$SHARED_DOCKER_CONFIG_DIR/config.json"
 
 cleanup() {
-  echo ""
-  echo "Cleaning up..."
   docker rm -f "$APP_CONTAINER" >/dev/null 2>&1 || true
+  rm -rf "$SHARED_DOCKER_CONFIG_DIR"
 }
 trap cleanup EXIT INT TERM
 
-check_dhi_login() {
-  if [ ! -f "$HOST_DOCKER_CONFIG" ]; then
-    echo "❌ $HOST_DOCKER_CONFIG not found. Run: docker login $DHI_REGISTRY" >&2
-    exit 1
-  fi
+mkdir -p "$SHARED_DOCKER_CONFIG_DIR"
+# Stage an inline-auth copy of the host config. macOS Keychain / pass /
+# secretservice credential helpers don't exist in the Linux devcontainer, so
+# we resolve any credsStore entries on the host once and bake inline `auth`
+# tokens into the staged file. Linux hosts with already-inline auths just
+# round-trip unchanged.
+python3 - "$HOST_DOCKER_CONFIG" "$SHARED_DOCKER_CONFIG" <<'PY'
+import base64, json, subprocess, sys
+src, dst = sys.argv[1], sys.argv[2]
+cfg = json.load(open(src))
+helper = cfg.get("credsStore", "")
+helpers = cfg.get("credHelpers") or {}
+auths = {**(cfg.get("auths") or {})}
 
-  # The devcontainer is Linux and cannot execute macOS / pass / secretservice
-  # credential helpers. If creds for dhi.io live in a helper, the mounted
-  # config.json reads as empty inside the container and pulls 401. Force the
-  # user to either store creds inline or override DOCKER_CONFIG.
-  if python3 - "$HOST_DOCKER_CONFIG" "$DHI_REGISTRY" <<'PY'
-import json, sys
-cfg = json.load(open(sys.argv[1]))
-registry = sys.argv[2]
-inline = (cfg.get("auths") or {}).get(registry, {}).get("auth")
-helper = (cfg.get("credHelpers") or {}).get(registry) or cfg.get("credsStore")
-sys.exit(0 if (not inline and helper) else 1)
+def resolve(reg, helper_name):
+    bin_name = f"docker-credential-{helper_name}"
+    try:
+        out = subprocess.run(
+            [bin_name, "get"], input=reg, capture_output=True, text=True, check=True
+        ).stdout
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+    try:
+        cred = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    user, secret = cred.get("Username"), cred.get("Secret")
+    if not user or not secret:
+        return None
+    return base64.b64encode(f"{user}:{secret}".encode()).decode()
+
+for reg, entry in list(auths.items()):
+    if entry.get("auth"):
+        continue
+    per_reg_helper = helpers.get(reg) or helper
+    if not per_reg_helper:
+        continue
+    token = resolve(reg, per_reg_helper)
+    if token:
+        auths[reg] = {"auth": token}
+
+with open(dst, "w") as fh:
+    json.dump({"auths": auths}, fh)
 PY
-  then
-    cat >&2 <<EOF
-❌ Your $HOST_DOCKER_CONFIG stores $DHI_REGISTRY credentials in a credential
-helper (e.g. macOS Keychain via "credsStore": "desktop"). Linux containers
-can't run that helper, so the mounted config reads as empty and the build
-401s.
-
-One-time fix:
-  1. Edit ~/.docker/config.json, remove the "credsStore" key (or set it to "").
-  2. docker logout $DHI_REGISTRY
-  3. docker login $DHI_REGISTRY -u <docker-hub-username>
-     (paste your Docker Hub PAT as the password)
-  4. Re-run this script.
-EOF
-    exit 1
-  fi
-}
 
 run_stage() {
   stage_name="$1"
   shift
-
   echo ""
-  echo "========================================"
-  echo "Running stage: $stage_name"
-  echo "========================================"
-
+  echo "=== $stage_name ==="
   if "$@"; then
-    echo "✅ Stage passed: $stage_name"
+    echo "✅ $stage_name"
   else
     status=$?
-    echo ""
-    echo "❌ Stage failed: $stage_name (exit $status)"
-    printf '  %s\n' "$*"
+    echo "❌ $stage_name (exit $status)"
     exit "$status"
   fi
 }
@@ -78,13 +84,11 @@ devcontainer_run() {
   docker run --rm \
     --entrypoint /bin/sh \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -v "$HOST_DOCKER_CONFIG:/root/.docker/config.json:ro" \
+    -v "$(pwd)/$SHARED_DOCKER_CONFIG:/root/.docker/config.json:ro" \
     -v "$(pwd):/app/" \
     -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
     "$@"
 }
-
-run_stage "Verify $DHI_REGISTRY login" check_dhi_login
 
 run_stage "Build devcontainer" \
   docker buildx build -t devcontainer:local-test .devcontainer/
@@ -114,4 +118,4 @@ run_stage "Run e2e tests" \
     devcontainer:local-test -c "/app/scripts/run-e2e.sh"
 
 echo ""
-echo "✅ All stages passed successfully!"
+echo "✅ All stages passed"
