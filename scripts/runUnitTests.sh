@@ -1,15 +1,14 @@
 #!/bin/bash
 set -e  # Exit immediately if a command exits with a non-zero status
 
-. /venv/bin/activate
-
-mkdir -p reports
+if [ -f /venv/bin/activate ]; then
+  . /venv/bin/activate
+fi
 
 pytest tests/unit \
-  --junitxml=reports/unit-test-results.xml \
-  --cov=tests \
-  --cov-report=xml:reports/unit-test-coverage.xml \
-  -s \
-  "$@"
+  -s "$@"
 
-deactivate
+
+if [ -n "${VIRTUAL_ENV:-}" ]; then
+  deactivate
+fi
