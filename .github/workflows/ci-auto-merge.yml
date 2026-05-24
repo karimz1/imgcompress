@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - next_rc
       - feature/*
       - bugfix/*
       - enhancements/*
@@ -83,6 +84,7 @@ jobs:
             --platform=${{ matrix.platform }} \
             --entrypoint /bin/sh \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=$IS_RUNNING_IN_GITHUB_ACTIONS \
             --name devcontainer \
@@ -189,6 +191,7 @@ jobs:
             --entrypoint /bin/sh \
             --network host \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
