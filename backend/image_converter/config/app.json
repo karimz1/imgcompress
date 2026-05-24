@@ -1,0 +1,43 @@
+{
+  "temporary_storage": {
+    "directory": "/tmp",
+    "max_age_seconds": 3600
+  },
+  "uploads": {
+    "max_file_size_mebibytes": 40960
+  },
+  "web": {
+    "host": "0.0.0.0",
+    "port": 5000,
+    "workers": "auto"
+  },
+  "logging": {
+    "backend_log_file": "/tmp/imgcompress-backend.log"
+  },
+  "crop_preview": {
+    "max_retry_attempts": 3,
+    "unsupported_input_extensions": [
+      ".pdf",
+      ".svg",
+      ".raw",
+      ".cr2",
+      ".nef",
+      ".arw",
+      ".dng"
+    ]
+  },
+  "formats": {
+    "custom_pipeline_extensions": [
+      ".pdf",
+      ".psd"
+    ]
+  },
+  "features": {
+    "is_storage_management_enabled": true,
+    "is_logo_enabled": true,
+    "is_dev_mode_enabled": false
+  },
+  "rembg": {
+    "model_name": "u2net"
+  }
+}

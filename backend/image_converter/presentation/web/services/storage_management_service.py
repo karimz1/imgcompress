@@ -1,17 +1,27 @@
 import shutil
-import os
+
+from backend.image_converter.domain.storage import DiskUsage, StorageSummary
+from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
+
 
 class StorageManagementService:
-    @staticmethod
-    def is_storage_management_enabled() -> bool:
-        return os.environ.get("DISABLE_STORAGE_MANAGEMENT", "false").lower() != "true"
+    def __init__(self, is_enabled: bool):
+        self.is_enabled = is_enabled
 
-    @staticmethod
-    def get_disk_usage(path: str = "/"):
+    def is_storage_management_enabled(self) -> bool:
+        return self.is_enabled
+
+    def get_disk_usage(self, path: str = "/") -> DiskUsage:
         total, used, free = shutil.disk_usage(path)
-        mib = 1024 * 1024
-        return {
-            "total_storage_mb": round(total / mib, 2),
-            "used_storage_mb": round(used / mib, 2),
-            "available_storage_mb": round(free / mib, 2),
-        }
+        return DiskUsage(
+            total_storage_mb=round(total / BYTES_PER_MEBIBYTE, 2),
+            used_storage_mb=round(used / BYTES_PER_MEBIBYTE, 2),
+            available_storage_mb=round(free / BYTES_PER_MEBIBYTE, 2),
+        )
+
+    def get_storage_summary(self, path: str, used_mb: float) -> StorageSummary:
+        _, _, free = shutil.disk_usage(path)
+        return StorageSummary(
+            used_storage_mb=used_mb,
+            available_storage_mb=round(free / BYTES_PER_MEBIBYTE, 2),
+        )

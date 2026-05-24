@@ -62,6 +62,7 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 | **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
 | **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, image batches to paginated PDF, and more |
+| **Per-File Cropping** | Crop each upload before conversion with ratio presets (Free, 1:1, 16:9, 4:3) or custom pixel dimensions |
 | **Web UI + CLI** | Browser dashboard for day-to-day use; CLI for scripting pipelines |
 | **Single Container** | Every codec and library pre-bundled, zero host dependencies |
 | **Air-Gap Ready** | Once pulled, runs fully offline. No internet required, ever |
@@ -124,6 +125,26 @@ I chose Docker because it keeps your computer clean. Instead of you having to in
 | **No telemetry** | No analytics, no crash reporting, no feature flags phoning home. Completely silent on the network after startup. |
 | **Offline after pull** | Once the image is pulled, no internet connection is ever needed again. No license checks, no expiry. |
 | **Open source** | GPL-3.0. Audit the code, fork it, self-host it forever. |
+
+---
+
+## Security-Hardened Architecture
+
+ImgCompress is built with a **Security-Hardened, Minimal Image** architecture, bringing de facto container security standards to your homelab or production environment.
+
+| | |
+|---|---|
+| **Minimal Surface** | No shell (`bash`, `sh`), no network tools (`curl`, `wget`, etc.), no package manager. The attack surface is drastically reduced. |
+| **Minimal Components** | System dependencies are aggressively pruned to maintain a minimal runtime environment. |
+| **Non-root User** | Runs as a non-root user `nonroot` by default. |
+| **DHI Base Images** | Using Docker Hardened Images from the official [DHI](https://www.docker.com/products/hardened-images/) project for build phases and runtime Image. |
+| **SBOM and Provenance** | The Docker Image is built with a full Software Bill of Materials (SBOM) and build provenance attestation. |
+
+<div **align**="right">
+  <a href="https://github.com/AlexanderSlokov">
+    <img src="https://img.shields.io/badge/Contributions_by-Aleksandr_Slokov-0f172a?style=for-the-badge&logo=shield&logoColor=white" alt="Contributions by Aleksandr Slokov" />
+  </a>
+</div>
 
 ---
 

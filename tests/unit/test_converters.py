@@ -1,4 +1,3 @@
-from pathlib import Path
 import pytest
 from io import BytesIO
 
@@ -9,7 +8,6 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
 from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
-import backend.image_converter.core.factory.rembg_png_converter as rembg_module
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.infrastructure.logger import Logger
 

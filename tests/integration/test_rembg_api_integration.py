@@ -1,13 +1,15 @@
 import io
-import json
 import os
 import shutil
 
 import pytest
 from PIL import Image
 
+from backend.image_converter.presentation.web import routes
 from backend.image_converter.presentation.web.server import app
-import backend.image_converter.core.factory.rembg_png_converter as rembg_module
+from backend.image_converter.presentation.web.services.configuration_service import (
+    ConfigurationService,
+)
 
 
 @pytest.fixture
@@ -17,10 +19,12 @@ def client():
         yield client
 
 
-def test_rembg_model_endpoint_uses_config_value(client, monkeypatch, tmp_path):
-    cfg_path = tmp_path / "rembg.json"
-    cfg_path.write_text(json.dumps({"model_name": "custom-net"}), encoding="utf-8")
-    monkeypatch.setenv("REMBG_CONFIG_PATH", str(cfg_path))
+def test_rembg_model_endpoint_uses_config_value(client, monkeypatch):
+    monkeypatch.setattr(
+        routes,
+        "configuration_service",
+        ConfigurationService(rembg_model_name="custom-net"),
+    )
 
     response = client.get("/api/rembg_model")
     assert response.status_code == 200
@@ -42,6 +46,7 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
         return {"model": model_name}
 
     def fake_remove(data, session, post_process_mask, alpha_matting):
+        _ = session
         assert data == image_data
         assert post_process_mask is True
         assert alpha_matting is False

@@ -1,19 +1,23 @@
 import argparse
+from typing import List, Tuple
 
-def parse_arguments():
+from backend.image_converter.core.enums.runtime_mode import RuntimeMode
+
+
+def parse_arguments() -> Tuple[RuntimeMode, List[str]]:
     parser = argparse.ArgumentParser(
         description="imgcompress – image compression CLI & web app"
     )
 
     subparsers = parser.add_subparsers(
         dest="mode",
-        metavar="{cli,web}"
+        metavar="{cli,web}",
     )
 
-    # Disable subparser help so `cli --help` reaches the CLI parser instead.
-    subparsers.add_parser("cli", help="Run CLI mode", add_help=False)
-    subparsers.add_parser("web", help="Run web app", add_help=False)
+    subparsers.add_parser(RuntimeMode.CLI.value, help="Run CLI mode", add_help=False)
+    subparsers.add_parser(RuntimeMode.WEB.value, help="Run web app", add_help=False)
 
     args, remaining = parser.parse_known_args()
+    mode = RuntimeMode.from_arg(args.mode)
 
-    return args, remaining
+    return mode, remaining

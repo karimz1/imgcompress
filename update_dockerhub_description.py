@@ -4,7 +4,6 @@ import re
 import argparse
 import requests
 from datetime import datetime
-import requests
 from urllib.parse import urljoin
 
 # leave for debugging using .env file
@@ -205,7 +204,7 @@ def update_dockerhub_description(readme_content: str, username: str, token: str,
 def main():
     args = parse_args()
 
-    if args.mock == False:
+    if not args.mock:
         try:
             dockerhub_username = os.environ["DOCKERHUB_USERNAME"]
             dockerhub_password = os.environ["DOCKERHUB_PASSWORD"]

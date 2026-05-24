@@ -1,12 +1,11 @@
 from io import BytesIO
 
 from PIL import Image
-import pytest
 
+from backend.image_converter.config import settings
 from backend.image_converter.core.internals.utilities import (
     Result,
     supported_extensions,
-    EXTRA_SUPPORTED_EXTENSIONS,
 )
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.application.file_payload_expander import FilePayloadExpander
@@ -15,7 +14,7 @@ SAMPLE_PDF = "tests/sample-images/imgcompress_screenshot.pdf"
 
 
 def test_When_LoadingSupportedExtensions_Expect_AllExtraFormatsIncluded():
-    for extra in EXTRA_SUPPORTED_EXTENSIONS:
+    for extra in settings.get().formats.custom_pipeline_extensions:
         assert extra in supported_extensions
 
 
@@ -35,17 +34,29 @@ def test_When_PdfPageExtractorProcessesSample_Expect_PageRendered():
 
 
 def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
-    def boom(*args, **kwargs):
+    def boom(*_args, **_kwargs):
         raise RuntimeError("boom")
 
     import pypdfium2
     monkeypatch.setattr(pypdfium2, "PdfDocument", boom)
 
-    extractor = PdfPageExtractor()
+    class _RecordingLogger:
+        def __init__(self):
+            self.messages = []
+
+        def log(self, message, level):
+            self.messages.append((message, level))
+
+    logger = _RecordingLogger()
+    extractor = PdfPageExtractor(logger=logger)
     result = extractor.rasterize_pages(b"", "broken.pdf")
 
     assert result.is_successful is False
-    assert "boom" in result.error
+    assert "PDF could not be rendered." == result.error
+    assert any(
+        "boom" in message and "broken.pdf" in message
+        for message, _ in logger.messages
+    )
 
 
 class DummyRenderer:

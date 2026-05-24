@@ -1,15 +1,9 @@
 from io import BytesIO
-from typing import Optional
-
 
 from backend.image_converter.core.internals.utilities import Result
 
 
 class PsdRenderer:
-    """
-    Converts PSD byte payloads into flattened raster images.
-    """
-
     def __init__(self, logger):
         self.logger = logger
 
@@ -32,8 +26,8 @@ class PsdRenderer:
                     flattened = flattened.convert("RGB")
 
             buffer = BytesIO()
-            flattened.save(buffer, format="PNG")
+            flattened.save(buffer, format="PNG", optimize=False, compress_level=6)
             return Result.success(buffer.getvalue())
         except Exception as exc:
-            self.logger.log(f"Failed to render PSD '{source_name}': {exc}", "error")
-            return Result.failure(str(exc))
+            self.logger.log(f"Failed to render PSD '{source_name}': {exc!r}", "error")
+            return Result.failure("PSD could not be rendered.")

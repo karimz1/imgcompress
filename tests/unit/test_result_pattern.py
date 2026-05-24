@@ -1,4 +1,3 @@
-import os
 import unittest
 from io import StringIO
 from backend.image_converter.core.internals.utilities import Result
@@ -35,7 +34,7 @@ def dummy_function_failure():
     import traceback
     try:
         raise ValueError("Something went wrong, but on purpose!")
-    except Exception as e:
+    except Exception:
         tb = traceback.format_exc()
         return Result.failure(tb)
 

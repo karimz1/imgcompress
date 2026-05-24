@@ -32,7 +32,7 @@ test('should display detailed error modal when backend returns 500 with stacktra
     await clickConversionButtonAsync(page);
 
     // Assert Error Modal appears
-    const errorModal = page.locator('div[role="dialog"]');
+    const errorModal = page.locator('div[role="alertdialog"]');
     await expect(errorModal).toBeVisible();
 
     // Assert Error Title

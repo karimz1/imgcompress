@@ -10,3 +10,9 @@ services:
       - DISABLE_LOGO=false
       # Set to true to disable the storage management features (e.g., for your users to not see all the files)
       - DISABLE_STORAGE_MANAGEMENT=false
+    healthcheck:
+      test: ["CMD", "python", "/container/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
