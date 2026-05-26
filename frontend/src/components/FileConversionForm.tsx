@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
 import { Crop as CropIcon, Info, Loader2, Trash, X } from "lucide-react";
 import { useMountedTheme } from "@/hooks/useMountedTheme";
@@ -80,27 +81,6 @@ interface FileConversionFormProps {
   onReportCropError?: (payload: { message: string; details?: string }) => void
 }
 
-const tooltipContent = {
-  outputFormat:
-    "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
-  pdfPreset:
-    "A4/Letter presets scale the image to the page with a configurable print-safe margin. Auto presets rotate the page based on image orientation.",
-  pdfScale:
-    "Fit preserves the entire image with possible white bars. Fill crops to cover the page.",
-  pdfMargin:
-    "Set the print-safe border in millimeters. 10mm is recommended.",
-  pdfPaginate:
-    "Splits long images into multiple pages when a PDF preset is selected.",
-  quality:
-    "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG and AVIF.",
-  resizeWidth:
-    "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
-  targetSize:
-    "Set an optional maximum output size (in MB). Applies to JPEG and AVIF output.",
-  rembg:
-    "Local AI removes background (no internet required).\nSlower processing, may show small edge artifacts.",
-};
-
 const FileConversionForm: React.FC<FileConversionFormProps> = ({
   isLoading,
   error,
@@ -149,6 +129,19 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 }) => {
   const [confirmCropRemoveFor, setConfirmCropRemoveFor] = useState<string | null>(null);
   const { isDarkTheme } = useMountedTheme();
+  const { t } = useTranslation();
+
+  const tooltipContent = {
+    outputFormat: t("form.outputFormat.tooltip"),
+    pdfPreset: t("form.pdfPreset.tooltip"),
+    pdfScale: t("form.pdfScale.tooltip"),
+    pdfMargin: t("form.pdfMargin.tooltip"),
+    pdfPaginate: t("form.pdfPaginate.tooltip"),
+    quality: t("form.quality.tooltip"),
+    resizeWidth: t("form.resizeWidth.tooltip"),
+    targetSize: t("form.targetSize.tooltip"),
+    rembg: t("form.rembg.tooltip"),
+  };
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
     ? "bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
@@ -174,11 +167,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           className="p-2 bg-red-600 text-white rounded-md"
         >
           <p data-testid="error-message-holder">
-            <strong>Error:</strong> {error.message}
+            <strong>{t("form.error.label")}</strong> {error.message}
           </p>
           {error.details && (
             <p data-testid="error-details-holder">
-              <strong>Details:</strong> {error.details}
+              <strong>{t("form.error.detailsLabel")}</strong> {error.details}
             </p>
           )}
         </div>
@@ -190,7 +183,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     () =>
       files.length > 0 && (
         <div className="mt-2 space-y-1">
-          <Label>Files to convert:</Label>
+          <Label>{t("form.filesList.label")}</Label>
           {files.map((file) => {
             const cropUnsupported = isCropUnsupportedFile(file, cropUnsupportedExtensions);
             const cropable =
@@ -309,7 +302,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                     onClick={() => removeFile(file.name)}
                     data-testid="dropzone-remove-file-btn"
                   >
-                    Remove
+                    {t("form.filesList.removeButton")}
                   </Button>
                 </div>
               </div>
@@ -360,12 +353,12 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         <input {...getInputProps()} data-testid="dropzone-input" />
         {isDragActive ? (
           <p className={cn("font-semibold", isDarkTheme ? "text-blue-300" : "text-blue-600")}>
-            Drop images or PDFs here...
+            {t("form.dropzone.dragActive")}
           </p>
         ) : isLoading ? (
-          <p>Cannot drop files while processing...</p>
+          <p>{t("form.dropzone.processing")}</p>
         ) : (
-          <p>Drag & drop images or PDFs here, or click to select</p>
+          <p>{t("form.dropzone.idle")}</p>
         )}
       </div>
     ),
@@ -386,7 +379,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       <div className="space-y-1">
         <div className="flex items-center gap-1">
           <Label htmlFor="outputFormat" className="text-sm">
-            Output Format
+            {t("form.outputFormat.label")}
           </Label>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -411,19 +404,19 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               !outputFormat && "border-red-500 focus:border-red-500 focus:ring-red-500"
             )}
           >
-            <SelectValue placeholder="Select format" />
+            <SelectValue placeholder={t("form.outputFormat.placeholder")} />
           </SelectTrigger>
           <SelectContent className={selectSurface}>
-            <SelectItem value="jpeg">JPEG (smaller file size)</SelectItem>
-            <SelectItem value="png">PNG (preserves transparency)</SelectItem>
-            <SelectItem value="avif">AVIF (best compression & quality)</SelectItem>
-            <SelectItem value="pdf">PDF (single-page document)</SelectItem>
-            <SelectItem value="ico">ICO (preserves transparency)</SelectItem>
+            <SelectItem value="jpeg">{t("form.outputFormat.options.jpeg")}</SelectItem>
+            <SelectItem value="png">{t("form.outputFormat.options.png")}</SelectItem>
+            <SelectItem value="avif">{t("form.outputFormat.options.avif")}</SelectItem>
+            <SelectItem value="pdf">{t("form.outputFormat.options.pdf")}</SelectItem>
+            <SelectItem value="ico">{t("form.outputFormat.options.ico")}</SelectItem>
           </SelectContent>
         </Select>
         {!outputFormat && (
           <p className={cn("text-xs", formatRequired ? "text-red-500" : subtleText)}>
-            Select an output format to enable conversion.
+            {t("form.outputFormat.hint")}
           </p>
         )}
       </div>
@@ -432,7 +425,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <Label htmlFor="pdfPreset" className="text-sm">
-              PDF Page Preset
+              {t("form.pdfPreset.label")}
             </Label>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -456,20 +449,20 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <SelectValue placeholder="Original" />
             </SelectTrigger>
             <SelectContent className={selectSurface}>
-              <SelectItem value="original">Original (keep proportions)</SelectItem>
-              <SelectItem value="a4-auto">A4 Auto</SelectItem>
-              <SelectItem value="a4-portrait">A4 Portrait</SelectItem>
-              <SelectItem value="a4-landscape">A4 Landscape</SelectItem>
-              <SelectItem value="letter-auto">Letter Auto</SelectItem>
-              <SelectItem value="letter-portrait">Letter Portrait</SelectItem>
-              <SelectItem value="letter-landscape">Letter Landscape</SelectItem>
-              <SelectItem value="mobile-portrait">Mobile Portrait (1080x1920)</SelectItem>
-              <SelectItem value="mobile-landscape">Mobile Landscape (1920x1080)</SelectItem>
+              <SelectItem value="original">{t("form.pdfPreset.options.original")}</SelectItem>
+              <SelectItem value="a4-auto">{t("form.pdfPreset.options.a4Auto")}</SelectItem>
+              <SelectItem value="a4-portrait">{t("form.pdfPreset.options.a4Portrait")}</SelectItem>
+              <SelectItem value="a4-landscape">{t("form.pdfPreset.options.a4Landscape")}</SelectItem>
+              <SelectItem value="letter-auto">{t("form.pdfPreset.options.letterAuto")}</SelectItem>
+              <SelectItem value="letter-portrait">{t("form.pdfPreset.options.letterPortrait")}</SelectItem>
+              <SelectItem value="letter-landscape">{t("form.pdfPreset.options.letterLandscape")}</SelectItem>
+              <SelectItem value="mobile-portrait">{t("form.pdfPreset.options.mobilePortrait")}</SelectItem>
+              <SelectItem value="mobile-landscape">{t("form.pdfPreset.options.mobileLandscape")}</SelectItem>
             </SelectContent>
           </Select>
           {pdfPreset !== "original" && (
             <p className={cn("text-xs", subtleText)}>
-              Resize Width is disabled while a PDF preset is selected.
+              {t("form.pdfPreset.disabledHint")}
             </p>
           )}
         </div>
@@ -479,7 +472,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <Label htmlFor="pdfScale" className="text-sm">
-              PDF Scale Mode
+              {t("form.pdfScale.label")}
             </Label>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -504,13 +497,13 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <SelectValue placeholder="Fit" />
             </SelectTrigger>
             <SelectContent className={selectSurface}>
-              <SelectItem value="fit">Fit (preserve full image)</SelectItem>
-              <SelectItem value="fill">Fill (crop to page)</SelectItem>
+              <SelectItem value="fit">{t("form.pdfScale.options.fit")}</SelectItem>
+              <SelectItem value="fill">{t("form.pdfScale.options.fill")}</SelectItem>
             </SelectContent>
           </Select>
           {pdfPaginate && (
             <p className={cn("text-xs", subtleText)}>
-              Pagination uses Fit mode to preserve full width.
+              {t("form.pdfScale.paginationHint")}
             </p>
           )}
         </div>
@@ -520,7 +513,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         <div className="space-y-1">
           <div className="flex items-center gap-1">
             <Label htmlFor="pdfMargin" className="text-sm">
-              PDF Margin
+              {t("form.pdfMargin.label")}
             </Label>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -570,7 +563,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             </span>
           </div>
           <p className={cn("text-xs", subtleText)}>
-            10mm is recommended and the default.
+            {t("form.pdfMargin.hint")}
           </p>
         </div>
       )}
@@ -579,7 +572,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label htmlFor="pdfPaginateToggle" className="text-sm flex items-center gap-1">
-              Split long images into multiple pages
+              {t("form.pdfPaginate.label")}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -607,7 +600,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
       {(outputFormat === "jpeg" || outputFormat === "avif") && (
         <div className="space-y-2">
-          <Label className="text-sm">{outputFormat.toUpperCase()} settings mode</Label>
+          <Label className="text-sm">{t("form.compressionMode.label", { format: outputFormat.toUpperCase() })}</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -616,7 +609,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               onClick={() => setCompressionMode("quality")}
               data-testid="compression-mode-quality-btn"
             >
-              Set by Quality
+              {t("form.compressionMode.byQuality")}
             </Button>
             <Button
               type="button"
@@ -625,7 +618,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               onClick={() => setCompressionMode("size")}
               data-testid="compression-mode-size-btn"
             >
-              Set by File Size
+              {t("form.compressionMode.bySize")}
             </Button>
           </div>
         </div>
@@ -638,7 +631,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               htmlFor="rembgToggle"
               className="text-sm flex items-center gap-1"
             >
-              Remove background with local AI ({rembgLabel})
+              {t("form.rembg.label", { model: rembgLabel })}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -671,7 +664,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               htmlFor="quality"
               className="text-sm flex items-center gap-1"
             >
-              Quality
+              {t("form.quality.label")}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -700,16 +693,16 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           />
           <div className="flex gap-2 pt-2 flex-wrap">
             <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("60")}>
-              Smaller (60)
+              {t("form.quality.presets.smaller")}
             </Button>
             <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("75")}>
-              Balanced (75)
+              {t("form.quality.presets.balanced")}
             </Button>
             <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("85")}>
-              High (85)
+              {t("form.quality.presets.high")}
             </Button>
             <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => setQuality("100")}>
-              Max (100)
+              {t("form.quality.presets.max")}
             </Button>
           </div>
         </div>
@@ -722,7 +715,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               htmlFor="targetSizeMBRange"
               className="text-sm flex items-center gap-1"
             >
-              Max file size
+              {t("form.targetSize.label")}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -774,7 +767,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </div>
 
           <p className={cn("text-xs", subtleText)}>
-            It will try to keep each {outputFormat.toUpperCase()} at or below this size by automatically adjusting quality.
+            {t("form.targetSize.hint", { format: outputFormat.toUpperCase() })}
           </p>
         </div>
       )}
@@ -785,7 +778,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             htmlFor="resizeWidthToggle"
             className="text-sm flex items-center gap-1"
           >
-            Resize Width
+            {t("form.resizeWidth.label")}
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
@@ -850,10 +843,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           {isLoading ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Processing...
+              {t("form.buttons.processing")}
             </div>
           ) : (
-            "Start Converting"
+            t("form.buttons.convert")
           )}
         </Button>
         <Button
@@ -867,7 +860,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           )}
         >
           <Trash className="h-4 w-4" />
-          Clear
+          {t("form.buttons.clear")}
         </Button>
       </div>
     </form>

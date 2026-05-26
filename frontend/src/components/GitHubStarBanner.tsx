@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
 import { APP_CONFIG } from "@/lib/config";
 
@@ -13,6 +14,7 @@ interface GitHubStarBannerProps {
 }
 
 const GitHubStarBanner: React.FC<GitHubStarBannerProps> = ({ compressionId }) => {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -51,23 +53,23 @@ const GitHubStarBanner: React.FC<GitHubStarBannerProps> = ({ compressionId }) =>
         <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />
         <div className="min-w-0 flex-1">
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            Found ImgCompress useful?{" "}
+            {t("starBanner.message")}{" "}
             <a
               href={APP_CONFIG.GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-slate-800 underline underline-offset-2 transition-colors hover:text-slate-900 dark:text-slate-200 dark:hover:text-white"
             >
-              A star on GitHub
+              {t("starBanner.linkText")}
             </a>{" "}
-            helps others discover it.
+            {t("starBanner.suffix")}
           </p>
           <button
             data-testid="github-star-banner-dismiss-btn"
             onClick={dismiss}
             className="mt-1 text-xs text-slate-400 underline underline-offset-2 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-400"
           >
-            Don&apos;t show again
+            {t("starBanner.dismiss")}
           </button>
         </div>
       </div>

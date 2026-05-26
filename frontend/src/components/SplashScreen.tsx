@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -12,25 +13,6 @@ interface SplashScreenProps {
   disableLogo?: boolean;
 }
 
-const waitMessages = [
-  "Compressing your files…",
-  "Optimizing quality and size.",
-  "Re-encoding images, please hold on.",
-  "Large uploads can take a moment.",
-  "Still working—thanks for your patience.",
-  "Cleaning up and preparing your downloads.",
-  "Balancing speed with quality right now.",
-  "Finishing touches on the output files.",
-  "Crunching pixels into smaller packages.",
-  "Almost there—writing final bytes.",
-  "Checking file integrity.",
-  "Wrapping up conversion tasks.",
-  "Making sure everything looks good.",
-];
-
-const helpfulTips = [
-  "Keep working—leave this window open and I’ll drop your compressed files here when they’re ready.",
-];
 
 type ParticleConfig = {
   id: number;
@@ -56,14 +38,13 @@ export function SplashScreen({
   onAbort,
   disableLogo = false,
 }: SplashScreenProps) {
+  const { t } = useTranslation();
   const [messageIndex, setMessageIndex] = useState(0);
   const [displayText, setDisplayText] = useState("");
 
-  const statusMessage = useMemo(() => waitMessages[messageIndex], [messageIndex]);
-  const tipMessage = useMemo(
-    () => helpfulTips[Math.floor(Math.random() * helpfulTips.length)],
-    [isVisible]
-  );
+  const waitMessages = t("splash.messages", { returnObjects: true }) as string[];
+  const statusMessage = useMemo(() => waitMessages[messageIndex], [messageIndex, waitMessages]);
+  const tipMessage = t("splash.tip");
 
   useEffect(() => {
     if (!isVisible) return;
@@ -119,9 +100,9 @@ export function SplashScreen({
           className="fixed inset-0 z-[101] flex items-center justify-center outline-none bg-transparent p-0"
         >
           <VisuallyHidden>
-            <DialogPrimitive.Title>Compressing Files</DialogPrimitive.Title>
+            <DialogPrimitive.Title>{t("splash.dialogTitle")}</DialogPrimitive.Title>
             <DialogPrimitive.Description>
-              Please wait while your files are being compressed.
+              {t("splash.dialogDescription")}
             </DialogPrimitive.Description>
           </VisuallyHidden>
 
@@ -283,7 +264,7 @@ export function SplashScreen({
 
                 <div className="w-full max-w-2xl">
                   <div className="flex items-center justify-between gap-2">
-                    {["Starting", "Compressing", "Packaging"].map((label, index) => (
+                    {[t("splash.steps.starting"), t("splash.steps.compressing"), t("splash.steps.packaging")].map((label, index) => (
                       <div
                         key={label}
                         className="flex flex-col items-center text-xs uppercase tracking-[0.2em] text-gray-400"
@@ -313,7 +294,7 @@ export function SplashScreen({
               <div className="w-full max-w-3xl flex flex-col md:flex-row gap-4 items-start md:items-center">
                 <div className="flex-1 bg-white/5 rounded-2xl p-4 text-left text-sm text-gray-100 ring-1 ring-white/10 shadow-inner shadow-black/30 backdrop-blur-md">
                   <p className="text-[11px] uppercase tracking-[0.3em] text-blue-200 mb-1">
-                    Tip
+                    {t("splash.tipLabel")}
                   </p>
                   <p className="text-base font-medium text-white/90">{tipMessage}</p>
                 </div>
@@ -321,7 +302,7 @@ export function SplashScreen({
                   onClick={onAbort}
                   className="px-8 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-red-500/50 hover:text-red-200 text-gray-100 text-sm transition-all duration-200 backdrop-blur-md active:scale-95 outline-none focus:ring-2 focus:ring-white/20"
                 >
-                  Cancel
+                  {t("splash.cancelButton")}
                 </button>
               </div>
             </div>
