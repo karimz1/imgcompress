@@ -20,29 +20,34 @@ export const CropShortcutsList: React.FC<CropShortcutsListProps> = ({
   return (
     <div
       className={cn(
-        "text-xs rounded-md border p-2 space-y-1 opacity-90",
+        "text-xs rounded-md border p-2 opacity-90",
         surfaceClass
       )}
       data-testid="crop-shortcuts"
     >
-      <div className="font-medium uppercase tracking-wide opacity-70 mb-1">
+      <div className="font-medium uppercase tracking-wide opacity-70 mb-2">
         {t("crop.shortcuts.title")}
       </div>
-      {shortcuts.map(({ keys, desc }) => (
-        <div key={desc} className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1">
-            {keys.map((k, i) => (
-              <kbd
-                key={i}
-                className="rounded border border-current/40 px-1 py-0.5 text-[10px] font-mono opacity-90"
-              >
-                {k}
-              </kbd>
-            ))}
-          </span>
-          <span className="opacity-80">{desc}</span>
-        </div>
-      ))}
+      <div
+        className="grid gap-x-3 gap-y-1.5 items-center leading-relaxed"
+        style={{ gridTemplateColumns: "auto 1fr" }}
+      >
+        {shortcuts.map(({ keys, desc }) => (
+          <React.Fragment key={desc}>
+            <span className="flex items-center gap-1 flex-wrap">
+              {keys.map((k, i) => (
+                <kbd
+                  key={i}
+                  className="rounded border border-current/40 px-1 py-0.5 text-[10px] font-mono opacity-90"
+                >
+                  {k}
+                </kbd>
+              ))}
+            </span>
+            <span className="text-right opacity-80">{desc}</span>
+          </React.Fragment>
+        ))}
+      </div>
     </div>
   );
 };
