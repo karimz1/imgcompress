@@ -1,11 +1,13 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useInternetHealth } from "@/hooks/useInternetHealth";
 import { Network, X } from "lucide-react";
 import { useState } from "react";
 
 export function BackendStatusFloating() {
+  const { t } = useTranslation();
   const { isDown, status, backendLastUpdate } = useBackendHealth();
   const { hasInternet, lastUpdate, loading, checkInternet } = useInternetHealth();
   const [open, setOpen] = useState(false);
@@ -14,7 +16,7 @@ export function BackendStatusFloating() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          title="System Status"
+          title={t("statusFloating.systemStatusTitle")}
           className={`fixed bottom-4 right-4 z-[70] p-3 rounded-full shadow-lg transition 
           ${isDown ? "bg-red-600 hover:bg-red-500" : "bg-neutral-900 hover:bg-neutral-700"} 
           text-white active:scale-95`}
@@ -31,7 +33,7 @@ export function BackendStatusFloating() {
           <div className="flex justify-between items-center">
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Network size={18}/>
-              System & Connectivity Status
+              {t("statusFloating.title")}
             </h2>
 
             <button
@@ -44,20 +46,24 @@ export function BackendStatusFloating() {
 
           <div className="space-y-1">
             <p>
-              Container Backend:{" "}
+              {t("statusFloating.backend")}{" "}
               <b className={isDown ? "text-red-600" : "text-green-600"}>
-                {isDown ? "Is Down ❌" : "Is Working"}
+                {isDown ? t("statusFloating.backendDown") : t("statusFloating.backendUp")}
               </b>
             </p>
 
             <p>
-              Network Access:{" "}
+              {t("statusFloating.network")}{" "}
               <b className={hasInternet ? "text-green-600" : "text-red-600"}>
-                {hasInternet === null ? "Not Checked" : hasInternet ? "Has Internet Access" : "No Internet Detected 🚫"}
+                {hasInternet === null
+                  ? t("statusFloating.internetUnknown")
+                  : hasInternet
+                  ? t("statusFloating.internetYes")
+                  : t("statusFloating.internetNo")}
               </b>
             </p>
 
-            <p>Mode: <b>{status ?? "Unknown"}</b></p>
+            <p>{t("statusFloating.mode")} <b>{status === "running" ? t("statusFloating.modeRunning") : (status ?? t("statusFloating.internetUnknown"))}</b></p>
 
             <button
               onClick={checkInternet}
@@ -65,15 +71,15 @@ export function BackendStatusFloating() {
               className="mt-2 px-3 py-1.5 rounded bg-neutral-800 text-white hover:bg-neutral-700
                          disabled:opacity-50 disabled:cursor-not-allowed text-xs"
             >
-              {loading ? "Checking..." : "Check Internet Connection"}
+              {loading ? t("statusFloating.checking") : t("statusFloating.checkButton")}
             </button>
           </div>
 
           <div className="text-xs opacity-70 leading-snug border-t pt-2 space-y-2">
-            <p className="font-semibold">Why this exists?</p>
+            <p className="font-semibold">{t("statusFloating.whyTitle")}</p>
 
             <p>
-              Verifies container health and network isolation for security. No images or metadata ever leave your machine.
+              {t("statusFloating.whyDesc")}
             </p>
 
             <a
@@ -82,13 +88,13 @@ export function BackendStatusFloating() {
               rel="noopener noreferrer"
               className="underline opacity-80 hover:opacity-100 inline-block"
             >
-              Learn more about offline usage →
+              {t("statusFloating.learnMore")}
             </a>
           </div>
 
           <p className="text-xs opacity-40 pt-2">
-            Backend Last Check: {backendLastUpdate ?? "--"}<br/>
-            Internet Last Check: {lastUpdate ?? "--"}
+            {t("statusFloating.backendLastCheck")} {backendLastUpdate ?? "--"}<br/>
+            {t("statusFloating.internetLastCheck")} {lastUpdate ?? "--"}
           </p>
         </div>
       )}

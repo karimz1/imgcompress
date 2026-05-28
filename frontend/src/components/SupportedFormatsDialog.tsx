@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useMemo, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Info, ShieldCheck, FileType, Search, ArrowRight, Bug } from "lucide-react"
 import {
     Dialog,
@@ -29,6 +30,7 @@ export function SupportedFormatsDialog({
     verifiedExtensions,
     extensionsLoading,
 }: SupportedFormatsDialogProps) {
+    const { t } = useTranslation()
     const [searchQuery, setSearchQuery] = useState("")
     const scrollContainerRef = useRef<HTMLDivElement>(null)
     const formatTestId = (ext: string) =>
@@ -65,7 +67,7 @@ export function SupportedFormatsDialog({
                     data-testid="supported-formats-btn"
                 >
                     <Info className="h-4 w-4" />
-                    What can I open?
+                    {t("formatsDialog.triggerButton")}
                     {!extensionsLoading && (
                         <span
                             data-testid="supported-formats-count"
@@ -85,26 +87,26 @@ export function SupportedFormatsDialog({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
                             <FileType className="h-5 w-5 text-blue-500" />
-                            Supported files
+                            {t("formatsDialog.title")}
                         </DialogTitle>
                         <DialogDescription className="text-slate-600 dark:text-slate-400 text-sm mt-3 leading-relaxed max-w-[95%]">
-                            Here is a cheat sheet of what I can open for you. You can pick your result format using the <span className="font-bold text-slate-800 dark:text-slate-200 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-4">Output Format</span> menu on the main screen after you close this.
+                            {t("formatsDialog.descriptionStart")} <span className="font-bold text-slate-800 dark:text-slate-200 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-4">{t("formatsDialog.descriptionBold")}</span> {t("formatsDialog.descriptionEnd")}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="relative mt-8">
                         <div className="flex justify-between items-center mb-2 px-1">
                             <label className="text-[10px] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-bold">
-                                Search list
+                                {t("formatsDialog.searchLabel")}
                             </label>
                             <span className="text-[10px] text-slate-500 dark:text-slate-500 italic font-medium">
-                                Just type to find a format
+                                {t("formatsDialog.searchHint")}
                             </span>
                         </div>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
                             <Input
-                                placeholder="Search (e.g. psd, tiff)..."
+                                placeholder={t("formatsDialog.searchPlaceholder")}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10 h-11 bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 rounded-lg focus-visible:ring-1 focus-visible:ring-blue-500/30"
@@ -123,7 +125,7 @@ export function SupportedFormatsDialog({
                         <div className="flex items-center gap-2 mb-5">
                             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-500/80" />
                             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-500/80">
-                                Tested & Working
+                                {t("formatsDialog.verifiedTitle")}
                             </h3>
                         </div>
                         <div className="flex flex-wrap gap-2.5">
@@ -150,10 +152,10 @@ export function SupportedFormatsDialog({
 
                     <section>
                         <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-700 dark:text-slate-400 mb-2">
-                            Other possible formats
+                            {t("formatsDialog.unverifiedTitle")}
                         </h3>
                         <p className="text-[11px] text-slate-600 dark:text-slate-500 mb-4 italic font-medium leading-relaxed">
-                            These haven't been fully tested yet, but they might work!
+                            {t("formatsDialog.unverifiedHint")}
                         </p>
                         <div className="flex flex-wrap gap-2.5">
                             {unverified.map((ext) => {
@@ -180,16 +182,16 @@ export function SupportedFormatsDialog({
 
                 <div className="p-5 bg-slate-50 dark:bg-black/40 border-t border-slate-200 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors">
                     <p className="text-[11px] text-slate-700 dark:text-slate-400 font-medium">
-                        ImgCompress here to help you convert your images!
+                        {t("formatsDialog.footerText")}
                     </p>
-                    <a 
+                    <a
                         href={APP_CONFIG.GITHUB_ISSUES_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2"
                     >
                         <Bug className="h-3 w-3" />
-                        Report a bug <ArrowRight className="h-3 w-3 opacity-50" />
+                        {t("formatsDialog.reportBug")} <ArrowRight className="h-3 w-3 opacity-50" />
                     </a>
                 </div>
             </DialogContent>

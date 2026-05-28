@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { CropConfig } from "@/lib/crop";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -48,6 +49,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
   isDarkTheme,
   disableLogo = false,
 }) => {
+  const { t } = useTranslation();
   const widgetRef = useRef<CropWidgetHandle | null>(null);
 
   const openFile = useMemo(
@@ -106,12 +108,12 @@ export const CropDialog: React.FC<CropDialogProps> = ({
                     <span className="opacity-40 px-1.5">·</span>
                   </>
                 )}
-                <span>Crop Editor</span>
+                <span>{t("crop.editorTitle")}</span>
                 <span className="opacity-40 px-1.5">·</span>
                 <span className="opacity-90">{openFile.name}</span>
               </DialogTitle>
               <DialogDescription className="sr-only">
-                Adjust the crop region, ratio, and zoom for this image, then click Save Crop or Discard.
+                {t("crop.editorDescription")}
               </DialogDescription>
             </div>
           </div>
@@ -143,21 +145,21 @@ export const CropDialog: React.FC<CropDialogProps> = ({
     >
       <AlertDialogContent data-testid="crop-remove-confirm-dialog">
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove saved crop?</AlertDialogTitle>
+          <AlertDialogTitle>{t("crop.removeDialog.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            This clears the saved crop for this file. The original file will stay in your conversion list.
+            {t("crop.removeDialog.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel data-testid="crop-remove-cancel-btn">
-            Keep Crop
+            {t("crop.removeDialog.keepCrop")}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={confirmRemove}
             className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
             data-testid="crop-remove-confirm-btn"
           >
-            Remove Crop
+            {t("crop.removeDialog.removeCrop")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

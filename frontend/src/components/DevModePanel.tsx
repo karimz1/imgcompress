@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { AlertOctagon, Bug, FlaskConical, ListTree, Skull } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Popover,
   PopoverContent,
@@ -30,6 +31,7 @@ function buildLongTraceback(): string {
 type ThrowKind = null | "short" | "long";
 
 export const DevModePanel: React.FC = () => {
+  const { t } = useTranslation();
   const { setError } = useErrorStore();
   const [shouldThrow, setShouldThrow] = useState<ThrowKind>(null);
 
@@ -94,7 +96,7 @@ export const DevModePanel: React.FC = () => {
               "shadow-sm focus-visible:ring-2 focus-visible:ring-amber-400"
             )}
             data-testid="dev-mode-toggle-btn"
-            title="Dev mode tools (only shown when DEV_MODE=true)"
+            title={t("devMode.toggleTitle")}
           >
             <FlaskConical className="h-4 w-4" />
             <span className="text-xs font-medium uppercase tracking-wide">
@@ -117,11 +119,10 @@ export const DevModePanel: React.FC = () => {
               <AlertOctagon className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
               <div>
                 <h3 className="text-sm font-semibold leading-tight">
-                  Developer Tools
+                  {t("devMode.title")}
                 </h3>
                 <p className="text-xs opacity-70 mt-0.5">
-                  Trigger UI states to verify error surfaces. None of these
-                  call the real backend.
+                  {t("devMode.description")}
                 </p>
               </div>
             </div>
@@ -129,7 +130,7 @@ export const DevModePanel: React.FC = () => {
             <div className="space-y-3">
               <div className="space-y-2">
                 <div className="text-[11px] uppercase tracking-[0.16em] text-zinc-400">
-                  API error widget
+                  {t("devMode.apiSection")}
                 </div>
                 <Button
                   type="button"
@@ -139,7 +140,7 @@ export const DevModePanel: React.FC = () => {
                   data-testid="dev-mode-trigger-api-error-btn"
                 >
                   <Bug className="h-4 w-4" />
-                  Trigger API Error
+                  {t("devMode.triggerApiError")}
                 </Button>
                 <Button
                   type="button"
@@ -149,13 +150,13 @@ export const DevModePanel: React.FC = () => {
                   data-testid="dev-mode-trigger-api-error-long-btn"
                 >
                   <ListTree className="h-4 w-4" />
-                  Trigger API Error (long stack)
+                  {t("devMode.triggerApiErrorLong")}
                 </Button>
               </div>
 
               <div className="space-y-2 border-t border-zinc-800 pt-3">
                 <div className="text-[11px] uppercase tracking-[0.16em] text-zinc-400">
-                  Runtime boundary
+                  {t("devMode.runtimeSection")}
                 </div>
                 <Button
                   type="button"
@@ -165,7 +166,7 @@ export const DevModePanel: React.FC = () => {
                   data-testid="dev-mode-trigger-runtime-error-btn"
                 >
                   <Skull className="h-4 w-4" />
-                  Trigger Runtime Error
+                  {t("devMode.triggerRuntimeError")}
                 </Button>
                 <Button
                   type="button"
@@ -175,18 +176,19 @@ export const DevModePanel: React.FC = () => {
                   data-testid="dev-mode-trigger-runtime-error-long-btn"
                 >
                   <ListTree className="h-4 w-4" />
-                  Trigger Runtime Error (long stack)
+                  {t("devMode.triggerRuntimeErrorLong")}
                 </Button>
               </div>
             </div>
 
             <p className="text-[11px] opacity-60 mt-4 leading-relaxed">
-              Toggle this panel via{" "}
-              <code className="font-mono text-amber-300">DEV_MODE</code> in{" "}
+              {t("devMode.footerPrefix")}{" "}
+              <code className="font-mono text-amber-300">DEV_MODE</code>
+              {t("devMode.footerMiddle")}
               <code className="font-mono text-amber-300">
                 /config/runtime.json
               </code>
-              . It is never shown when the flag is off.
+              {t("devMode.footerSuffix")}
             </p>
           </div>
         </PopoverContent>

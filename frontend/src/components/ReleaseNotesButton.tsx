@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Megaphone } from "lucide-react"
@@ -188,34 +189,39 @@ const parseMarkdown = (markdown: string): ReleaseEntry[] => {
   return releases
 }
 
-const InfoBox = () => (
-  <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
-    <p className="text-xs text-muted-foreground leading-relaxed">
-      View{" "}
-      <a
-        href="https://imgcompress.karimzouine.com/release-notes/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline underline-offset-2 hover:text-foreground transition-colors"
-      >
-        complete release notes
-      </a>{" "}
-      for all versions and details.
-    </p>
-  </div>
-)
+const InfoBox = () => {
+  const { t } = useTranslation()
+  return (
+    <div className="mb-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        {t("releaseNotes.infoBoxText")}{" "}
+        <a
+          href="https://imgcompress.karimzouine.com/release-notes/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-2 hover:text-foreground transition-colors"
+        >
+          {t("releaseNotes.infoBoxLink")}
+        </a>{" "}
+        {t("releaseNotes.infoBoxSuffix")}
+      </p>
+    </div>
+  )
+}
 
-const LoadingState = () => (
-  <p className="text-sm text-muted-foreground">Loading…</p>
-)
+const LoadingState = () => {
+  const { t } = useTranslation()
+  return <p className="text-sm text-muted-foreground">{t("releaseNotes.loading")}</p>
+}
 
 const ErrorState = ({ message }: { message: string }) => (
   <p className="text-sm text-destructive">{message}</p>
 )
 
-const EmptyState = () => (
-  <p className="text-sm text-muted-foreground">No release notes available.</p>
-)
+const EmptyState = () => {
+  const { t } = useTranslation()
+  return <p className="text-sm text-muted-foreground">{t("releaseNotes.empty")}</p>
+}
 
 const ReleaseNote = ({ note }: { note: string }) => (
   <li className="text-sm leading-relaxed">
@@ -272,6 +278,7 @@ const useFetchReleaseNotes = () => {
 }
 
 export function ReleaseNotesButton() {
+  const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
   const [view, setView] = React.useState<"latest" | "archive">("latest")
   const { loading, error, data, loadNotes } = useFetchReleaseNotes()
@@ -296,12 +303,12 @@ export function ReleaseNotesButton() {
           className="h-9 rounded-full px-3 py-2 shadow-sm flex items-center gap-2 opacity-70 hover:opacity-100 transition-opacity border border-black/10 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 hover:bg-white/70 dark:hover:bg-zinc-800/70 backdrop-blur"
         >
           <Megaphone className="h-4 w-4" />
-          <span className="hidden sm:inline">Release Notes</span>
+          <span className="hidden sm:inline">{t("releaseNotes.buttonLabel")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Release Notes</DialogTitle>
+          <DialogTitle>{t("releaseNotes.title")}</DialogTitle>
         </DialogHeader>
         <InfoBox />
         {releases.length > 0 && (
@@ -312,7 +319,7 @@ export function ReleaseNotesButton() {
               variant={view === "latest" ? "default" : "outline"}
               onClick={() => setView("latest")}
             >
-              Latest
+              {t("releaseNotes.tabLatest")}
             </Button>
             <Button
               type="button"
@@ -321,7 +328,7 @@ export function ReleaseNotesButton() {
               onClick={() => setView("archive")}
               disabled={!archivedReleases.length}
             >
-              Archive
+              {t("releaseNotes.tabArchive")}
             </Button>
           </div>
         )}
@@ -336,7 +343,7 @@ export function ReleaseNotesButton() {
             archivedReleases.length > 0 ? (
               <ReleasesList releases={archivedReleases} />
             ) : (
-              <p className="text-sm text-muted-foreground">No archived releases yet.</p>
+              <p className="text-sm text-muted-foreground">{t("releaseNotes.noArchive")}</p>
             )
           )}
         </div>

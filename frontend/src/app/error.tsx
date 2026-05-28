@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
 import {
   RuntimeErrorScreen,
   makeRuntimeErrorScreenPropsFromError,
@@ -12,5 +13,16 @@ export default function RouteError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <RuntimeErrorScreen {...makeRuntimeErrorScreenPropsFromError(error, reset)} />;
+  const { t } = useTranslation();
+
+  return (
+    <RuntimeErrorScreen
+      {...makeRuntimeErrorScreenPropsFromError(error, reset, {
+        title: t("runtimeError.title"),
+        subtitle: t("runtimeError.subtitle"),
+        stackTrace: t("runtimeError.stackTrace"),
+        tryAgain: t("runtimeError.tryAgain"),
+      })}
+    />
+  );
 }

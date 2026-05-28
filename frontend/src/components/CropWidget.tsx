@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 import { Minus, Moon, Plus, RotateCcw, Sun } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,6 +100,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   },
   ref
 ) {
+  const { t } = useTranslation();
   const { imgUrl, imgSize, loadError, loadErrorDetails, loadingVariant } =
     useCropImageLoader(file);
 
@@ -494,7 +496,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2">
                 <Label className="text-xs uppercase tracking-wide opacity-70">
-                  Aspect ratio
+                  {t("crop.aspectRatio")}
                 </Label>
                 <Button
                   type="button"
@@ -511,10 +513,10 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   )}
                   onClick={() => setTheme(isDarkResolved ? "light" : "dark")}
                   aria-label={
-                    isDarkResolved ? "Switch to light theme" : "Switch to dark theme"
+                    isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
                   }
                   title={
-                    isDarkResolved ? "Switch to light theme" : "Switch to dark theme"
+                    isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
                   }
                   data-testid="crop-theme-toggle"
                 >
@@ -535,7 +537,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                     onClick={() => setPresetAndCrop(p.id)}
                     data-testid={`crop-preset-${p.id}`}
                   >
-                    {p.label}
+                    {p.id === "free" ? t("crop.freeRatio") : p.label}
                   </Button>
                 ))}
               </div>
@@ -543,7 +545,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label className="text-xs uppercase tracking-wide opacity-70">Zoom</Label>
+                <Label className="text-xs uppercase tracking-wide opacity-70">{t("crop.zoom")}</Label>
                 <span
                   className="text-xs opacity-70 tabular-nums"
                   data-testid="crop-zoom-label"
@@ -559,7 +561,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   disabled={zoom <= ZOOM_MIN}
                   onClick={() => setZoomTo(zoom - ZOOM_STEP)}
                   data-testid="crop-zoom-out-btn"
-                  aria-label="Zoom out"
+                  aria-label={t("crop.zoomOut")}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
@@ -572,7 +574,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   onChange={(e) => setZoomTo(parseFloat(e.target.value))}
                   className="flex-1 min-w-0 accent-blue-500"
                   data-testid="crop-zoom-slider"
-                  aria-label="Zoom"
+                  aria-label={t("crop.zoom")}
                 />
                 <Button
                   type="button"
@@ -581,7 +583,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   disabled={zoom >= ZOOM_MAX}
                   onClick={() => setZoomTo(zoom + ZOOM_STEP)}
                   data-testid="crop-zoom-in-btn"
-                  aria-label="Zoom in"
+                  aria-label={t("crop.zoomIn")}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -592,8 +594,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   onClick={resetView}
                   disabled={zoom === 1 && pan.x === 0 && pan.y === 0}
                   data-testid="crop-zoom-reset-btn"
-                  aria-label="Reset zoom"
-                  title="Reset zoom and pan"
+                  aria-label={t("crop.resetZoom")}
+                  title={t("crop.resetZoomFull")}
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
@@ -603,7 +605,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
             <div className="space-y-1">
               <div className="flex items-center justify-between gap-2">
                 <Label className="text-xs uppercase tracking-wide opacity-70">
-                  Dimensions
+                  {t("crop.dimensions")}
                 </Label>
                 <Button
                   type="button"
@@ -612,12 +614,12 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   onClick={resetCropSelection}
                   data-testid="crop-selection-reset-btn"
                 >
-                  Reset Selection
+                  {t("crop.resetSelection")}
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label htmlFor="crop-width" className="text-xs opacity-80">Width</Label>
+                  <Label htmlFor="crop-width" className="text-xs opacity-80">{t("crop.width")}</Label>
                   <Input
                     id="crop-width"
                     data-testid="crop-width-input"
@@ -630,7 +632,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="crop-height" className="text-xs opacity-80">Height</Label>
+                  <Label htmlFor="crop-height" className="text-xs opacity-80">{t("crop.height")}</Label>
                   <Input
                     id="crop-height"
                     data-testid="crop-height-input"
@@ -647,7 +649,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                 {dimsLabel}
               </p>
               <p className="text-xs opacity-50">
-                Original: {imgSize.width} × {imgSize.height} px
+                {t("crop.original", { w: imgSize.width, h: imgSize.height })}
               </p>
             </div>
 
@@ -662,7 +664,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                 className="w-full border-red-500/50 text-red-600 hover:bg-red-500/10 dark:text-red-300"
                 data-testid="crop-remove-saved-btn"
               >
-                Remove Saved Crop
+                {t("crop.removeSavedCrop")}
               </Button>
             )}
 
@@ -675,7 +677,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   onClick={requestClose}
                   data-testid="crop-discard-btn"
                 >
-                  Discard
+                  {t("crop.discard")}
                 </Button>
                 <Button
                   type="button"
@@ -684,7 +686,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   onClick={handleSave}
                   data-testid="crop-save-btn"
                 >
-                  Save Crop
+                  {t("crop.saveCrop")}
                 </Button>
               </div>
             </div>
@@ -694,14 +696,14 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       <AlertDialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
         <AlertDialogContent data-testid="crop-discard-confirm-dialog">
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard crop changes?</AlertDialogTitle>
+            <AlertDialogTitle>{t("crop.confirmDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Your unsaved crop adjustments will be lost. The previously saved crop, if any, will stay unchanged.
+              {t("crop.confirmDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel data-testid="crop-discard-cancel-btn">
-              Keep Editing
+              {t("crop.confirmDialog.keepEditing")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
@@ -711,7 +713,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
               className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
               data-testid="crop-discard-confirm-btn"
             >
-              Discard Changes
+              {t("crop.confirmDialog.discardChanges")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
