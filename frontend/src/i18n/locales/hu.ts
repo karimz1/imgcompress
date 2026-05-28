@@ -394,7 +394,7 @@ export const hu: TranslationSchema = {
       items: [
         { keys: ["Húzás"],                desc: "Kivágás mozgatása" },
         { keys: ["Sarok húzása"],         desc: "Átméretezés" },
-        { keys: ["Alt", "+ méretezőpont húzása"], desc: "Átméretezés középpontból" },
+        { keys: ["Alt", "+ méretezőpont"],       desc: "Átméretezés középpontból" },
         { keys: ["Görgő"],                desc: "Nagyítás kurzoron" },
         { keys: ["Szóköz", "+ Húzás"],    desc: "Pásztázás" },
         { keys: ["Esc"],                  desc: "Bezárás" },
