@@ -5,12 +5,29 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { i18n, LOCALE_STORAGE_KEY } from "@/i18n";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_STORAGE_KEY,
+  SUPPORTED_LOCALES,
+  i18n,
+  type Locale,
+} from "@/i18n";
 
-const LANGUAGES = [
-  { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "hu", label: "Magyar", flag: "🇭🇺" },
-];
+const LANGUAGE_META: Record<Locale, { label: string; flag: string }> = {
+  en: { label: "English", flag: "🇬🇧" },
+  hu: { label: "Magyar", flag: "🇭🇺" },
+};
+
+const LANGUAGES = SUPPORTED_LOCALES.map((code) => ({
+  code,
+  ...LANGUAGE_META[code],
+}));
+
+function toLocale(code: string): Locale {
+  return (SUPPORTED_LOCALES as readonly string[]).includes(code)
+    ? (code as Locale)
+    : DEFAULT_LOCALE;
+}
 
 export function LanguageSwitcher() {
   const { t, i18n: i18nInstance } = useTranslation();
@@ -19,12 +36,14 @@ export function LanguageSwitcher() {
   React.useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  const current = LANGUAGES.find((l) => l.code === i18nInstance.language) ?? LANGUAGES[0];
+  const currentCode = toLocale(i18nInstance.language);
+  const current = LANGUAGES.find((l) => l.code === currentCode) ?? LANGUAGES[0];
 
   const handleChange = (code: string) => {
-    i18n.changeLanguage(code);
+    const next = toLocale(code);
+    i18n.changeLanguage(next);
     try {
-      localStorage.setItem(LOCALE_STORAGE_KEY, code);
+      localStorage.setItem(LOCALE_STORAGE_KEY, next);
     } catch {
       // localStorage unavailable in some private browsing modes
     }
