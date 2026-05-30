@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, ChevronDown, ServerCrash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fileFormatLabel, isBrowserNativeFormat } from "@/lib/crop";
@@ -13,40 +14,6 @@ interface CropLoadFailureProps {
   onReport?: (payload: { message: string; details?: string }) => void;
 }
 
-function causesFor(file: File, message: string): string[] {
-  const causes: string[] = [];
-  const lower = message.toLowerCase();
-
-  if (lower.includes("/api/crop/bitmap is not available") || lower.includes("404")) {
-    causes.push(
-      "The backend service isn't reachable yet. If you just rebuilt the container, give it a few seconds to come up and try again."
-    );
-  }
-  if (lower.includes("network") || lower.includes("failed to fetch")) {
-    causes.push(
-      "The connection to the backend dropped mid-upload. Check that the container is still running and try again."
-    );
-  }
-  if (lower.includes("not compatible") || lower.includes("could not decode")) {
-    causes.push(
-      `This file may be a ${fileFormatLabel(file)} variant the decoder can't read (multi-layer, non-standard color mode, encrypted, etc.). Re-exporting from the source app as a flat ${fileFormatLabel(
-        file
-      )} or a regular PNG / JPG usually fixes this.`
-    );
-  }
-  if (!isBrowserNativeFormat(file)) {
-    causes.push(
-      `${fileFormatLabel(
-        file
-      )} files always go through the backend's decoder. If the decoder is missing native libraries (e.g. libheif for HEIC), the build may have skipped them — re-running the build with the optional codecs enabled usually resolves it.`
-    );
-  }
-  causes.push(
-    "If none of the above fits, copy the technical details below and open a ticket — the trace shows exactly which step failed."
-  );
-  return causes;
-}
-
 export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
   file,
   message,
@@ -54,8 +21,24 @@ export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
   onDiscard,
   onReport,
 }) => {
+  const { t } = useTranslation();
   const label = fileFormatLabel(file);
-  const causes = causesFor(file, message);
+  const lower = message.toLowerCase();
+
+  const causes: string[] = [];
+  if (lower.includes("/api/crop/bitmap is not available") || lower.includes("404")) {
+    causes.push(t("crop.failure.causes.backendNotReachable"));
+  }
+  if (lower.includes("network") || lower.includes("failed to fetch")) {
+    causes.push(t("crop.failure.causes.networkDropped"));
+  }
+  if (lower.includes("not compatible") || lower.includes("could not decode")) {
+    causes.push(t("crop.failure.causes.variantNotSupported", { label }));
+  }
+  if (!isBrowserNativeFormat(file)) {
+    causes.push(t("crop.failure.causes.missingLibraries", { label }));
+  }
+  causes.push(t("crop.failure.causes.reportIssue"));
 
   return (
     <div
@@ -65,7 +48,7 @@ export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
       <div className="flex items-center gap-2 text-red-500">
         <AlertTriangle className="h-5 w-5" aria-hidden="true" />
         <p className="text-sm font-medium">
-          Couldn&apos;t prepare this {label} for cropping.
+          {t("crop.failure.header", { label })}
         </p>
       </div>
 
@@ -83,7 +66,7 @@ export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
       >
         <summary className="cursor-pointer flex items-center gap-1.5 select-none">
           <ServerCrash className="h-3.5 w-3.5" aria-hidden="true" />
-          Why did this happen?
+          {t("crop.failure.whyTitle")}
           <ChevronDown className="h-3 w-3 ml-auto opacity-60" aria-hidden="true" />
         </summary>
         <ul className="mt-2 space-y-1.5 list-disc pl-4 leading-relaxed">
@@ -98,14 +81,13 @@ export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
           className="text-xs opacity-60 max-w-md text-left"
           data-testid="crop-load-failure-details"
         >
-          <summary className="cursor-pointer">Technical details</summary>
+          <summary className="cursor-pointer">{t("crop.failure.technicalDetails")}</summary>
           <pre className="mt-1 whitespace-pre-wrap break-all">{details}</pre>
         </details>
       )}
 
       <p className="text-xs opacity-60 max-w-md">
-        You can still convert this file as-is. It just won&apos;t have a crop
-        applied.
+        {t("crop.failure.stillConvert")}
       </p>
 
       <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
@@ -116,7 +98,7 @@ export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
           onClick={onDiscard}
           data-testid="crop-load-failure-close-btn"
         >
-          Close
+          {t("crop.failure.closeButton")}
         </Button>
         {onReport && (
           <Button
@@ -126,7 +108,7 @@ export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
             onClick={() => onReport({ message, details })}
             data-testid="crop-load-failure-report-btn"
           >
-            Report this issue
+            {t("crop.failure.reportButton")}
           </Button>
         )}
       </div>

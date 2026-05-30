@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ interface FileManagerProps {
 }
 
 export default function FileManager({ onForceClean }: FileManagerProps) {
+  const { t } = useTranslation();
   const [data, setData] = useState<ContainerData | null>(null);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,7 +57,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
       const json = await res.json();
       setData(json);
     } catch (error) {
-      toast.error("Failed to fetch container files.");
+      toast.error(t("storage.fetchError"));
       console.error(error);
     } finally {
       setLoading(false);
@@ -69,7 +71,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
       const json = await res.json();
       setStorage(json);
     } catch (error) {
-      toast.error("Failed to fetch storage info.");
+      toast.error(t("storage.storageError"));
       console.error(error);
     }
   }, []);
@@ -85,7 +87,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
         <CardTitle className="text-center">
           <div className="flex items-center justify-center gap-2">
             <HardDrive className="h-4 w-4" />
-            <span>Storage Management</span>
+            <span>{t("storage.title")}</span>
           </div>
         </CardTitle>
       </CardHeader>
@@ -95,7 +97,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
           <div className="mb-4">
             <div className="text-center text-sm text-gray-400">
               <p>
-                Used: <strong>{storage.used_storage_mb} MB</strong> • Available:{" "}
+                {t("storage.used")} <strong>{storage.used_storage_mb} MB</strong> • {t("storage.available")}{" "}
                 <strong>{storage.available_storage_mb} MB</strong>
               </p>
             </div>
@@ -105,25 +107,25 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
         <div className="w-full">
           {}
           <div className="relative">
-            <h2 className="text-lg font-bold text-center">Files</h2>
+            <h2 className="text-lg font-bold text-center">{t("storage.files")}</h2>
             <div className="absolute inset-y-0 right-0 flex items-center">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="p-2" title="Clear Processed Files" disabled={data?.files?.length === 0}>
-                    <Trash className="h-4 w-4" /> Clear Processed Files
+                  <Button variant="destructive" className="p-2" title={t("storage.clearButton")} disabled={data?.files?.length === 0}>
+                    <Trash className="h-4 w-4" /> {t("storage.clearButton")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm File Deletion</AlertDialogTitle>
+                    <AlertDialogTitle>{t("storage.confirmTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This action will permanently delete all processed files. Please ensure you have downloaded any necessary files before proceeding, as this action cannot be undone.
+                      {t("storage.confirmDescription")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t("storage.confirmCancel")}</AlertDialogCancel>
                     <AlertDialogAction onClick={onForceClean}>
-                      Yes, Delete Files
+                      {t("storage.confirmDelete")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -141,10 +143,10 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                 {}
                 <div className="mb-4 text-sm text-gray-400 text-center">
                   <p>
-                    Total Files: <strong>{data.total_count}</strong>
+                    {t("storage.totalFiles")} <strong>{data.total_count}</strong>
                   </p>
                   <p>
-                    Total Space Used: <strong>{data.total_size_mb} MB</strong>
+                    {t("storage.totalSpace")} <strong>{data.total_size_mb} MB</strong>
                   </p>
                 </div>
                 {}
@@ -171,7 +173,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                             ({file.size_mb} MB)
                           </span>
                           {file.folder === "zip" && (
-                            <span className="ml-2 text-xs text-blue-400">(ZIP)</span>
+                            <span className="ml-2 text-xs text-blue-400">{t("storage.zipLabel")}</span>
                           )}
                         </span>
                         <span className="text-xs text-gray-400">{file.folder}</span>
@@ -182,7 +184,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
               </div>
             ) : (
               <p className="text-center text-gray-400">
-                No converted files found.
+                {t("storage.noFiles")}
               </p>
             )}
           </div>

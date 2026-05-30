@@ -9,7 +9,9 @@ import {
   RefreshCcw,
   XCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { BrandLogo } from "@/components/BrandLogo";
+import { i18n } from "@/i18n";
 import { downloadDiagnosticsBundle } from "@/lib/logBuffer";
 
 const REPO_NEW_ISSUE_URL =
@@ -52,9 +54,15 @@ export interface RuntimeErrorScreenProps {
 
 export function makeRuntimeErrorScreenPropsFromError(
   error: Error & { digest?: string },
-  reset: () => void
+  reset: () => void,
+  labels?: {
+    title?: string;
+    subtitle?: string;
+    stackTrace?: string;
+    tryAgain?: string;
+  }
 ): RuntimeErrorScreenProps {
-  const summary = `${error.name || "Error"}: ${error.message || "Unknown error"}`;
+  const summary = `${error.name || i18n.t("runtimeError.errorFallback")}: ${error.message || i18n.t("runtimeError.unknownError")}`;
   const details = [
     error.digest ? `digest: ${error.digest}` : null,
     error.stack ?? null,
@@ -62,14 +70,15 @@ export function makeRuntimeErrorScreenPropsFromError(
     .filter(Boolean)
     .join("\n\n");
   return {
-    title: "Runtime Error",
+    title: labels?.title ?? i18n.t("runtimeError.title"),
     subtitle:
-      "Something broke while rendering. Copy the trace below and open a ticket so it can be fixed.",
-    detailsLabel: "Stack trace",
+      labels?.subtitle ??
+      i18n.t("runtimeError.subtitle"),
+    detailsLabel: labels?.stackTrace ?? i18n.t("runtimeError.stackTrace"),
     message: summary,
     details,
     primaryAction: {
-      label: "Try Again",
+      label: labels?.tryAgain ?? i18n.t("runtimeError.tryAgain"),
       icon: <RefreshCcw className="h-4 w-4" />,
       onClick: reset,
       className:
@@ -83,21 +92,24 @@ const NEUTRAL_BTN_CLASS =
   "bg-zinc-800 text-zinc-100 hover:bg-zinc-700 border border-zinc-700";
 
 export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
-  title = "Runtime Error",
-  subtitle =
-    "Something broke while rendering. Copy the trace below and open a ticket so it can be fixed.",
-  detailsLabel = "Technical details",
+  title,
+  subtitle,
+  detailsLabel,
   message,
   details,
   primaryAction,
   testIds,
 }) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const ids = { ...DEFAULT_TEST_IDS, ...testIds };
+  const renderedTitle = title ?? t("runtimeError.title");
+  const renderedSubtitle = subtitle ?? t("runtimeError.subtitle");
+  const renderedDetailsLabel = detailsLabel ?? t("errorModal.detailsLabel");
 
   useEffect(() => {
-    console.error("[runtime-error]", { title, message, details });
-  }, [title, message, details]);
+    console.error("[runtime-error]", { title: renderedTitle, message, details });
+  }, [renderedTitle, message, details]);
 
   const handleCopy = () => {
     const text = message + (details ? "\n\n" + details : "");
@@ -115,7 +127,7 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
   };
 
   const handleDownloadDiagnostics = () => {
-    void downloadDiagnosticsBundle({ title, message, details });
+    void downloadDiagnosticsBundle({ title: renderedTitle, message, details });
   };
 
   return (
@@ -145,9 +157,9 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
             id="runtime-error-title"
             className="text-xl sm:text-2xl font-semibold leading-tight"
           >
-            {title}
+            {renderedTitle}
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">{subtitle}</p>
+          <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">{renderedSubtitle}</p>
         </div>
         <button
           type="button"
@@ -184,12 +196,10 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="font-semibold text-amber-50 mb-1">
-                  Include this in the ticket
+                  {t("runtimeError.includeTitle")}
                 </p>
                 <p className="text-xs sm:text-sm leading-relaxed text-amber-100/90">
-                  Attach the diagnostics file to the ticket. It includes the
-                  error trace, browser context, frontend logs, and backend logs
-                  when the running backend exposes them.
+                  {t("runtimeError.includeDescription")}
                 </p>
               </div>
               <button
@@ -198,7 +208,7 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
                 className="shrink-0 rounded-md border border-amber-300/30 bg-amber-400 px-4 py-2 text-sm font-semibold text-zinc-950 shadow-sm hover:bg-amber-300"
                 data-testid="runtime-error-download-diagnostics-btn"
               >
-                Download Diagnostics
+                {t("runtimeError.downloadDiagnostics")}
               </button>
             </div>
           </div>
@@ -206,7 +216,7 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
           {details && (
             <div className="rounded-md border border-zinc-800 bg-zinc-900/80">
               <div className="border-b border-zinc-800 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-zinc-400">
-                {detailsLabel}
+                {renderedDetailsLabel}
               </div>
               <pre
                 className="px-3 py-3 text-xs sm:text-[13px] leading-relaxed font-mono text-zinc-200 whitespace-pre-wrap break-all overflow-x-hidden"
@@ -230,12 +240,12 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
             {copied ? (
               <>
                 <Check className="h-4 w-4" />
-                Copied!
+                {t("runtimeError.copied")}
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" />
-                Copy Error
+                {t("runtimeError.copyError")}
               </>
             )}
           </button>
@@ -246,7 +256,7 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
             data-testid={ids.openTicketBtn}
           >
             <LifeBuoy className="h-4 w-4" />
-            Open Ticket
+            {t("runtimeError.openTicket")}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -12,7 +13,6 @@ import {
   DrawerDescription,
   DrawerFooter,
 } from "@/components/ui/drawer";
-import { pluralize } from "@/lib/helpers";
 import { toast, ToastContainer } from "react-toastify";
 import { FileDown } from "lucide-react";
 import GitHubStarBanner from "@/components/GitHubStarBanner";
@@ -26,14 +26,17 @@ interface CompressedFilesDrawerProps {
 }
 
 
-const DownloadFileToast: React.FC<DownloadFileToastProps> = ({ fileName }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-    <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {}
-    <span style={{ fontSize: "16px", fontWeight: "bold", wordBreak: "break-word" }}>
-      Downloading <strong>{fileName}</strong>...
-    </span>
-  </div>
-);
+const DownloadFileToast: React.FC<DownloadFileToastProps> = ({ fileName }) => {
+  const { t } = useTranslation();
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {}
+      <span style={{ fontSize: "16px", fontWeight: "bold", wordBreak: "break-word" }}>
+        {t("drawer.downloadingFile", { fileName })}
+      </span>
+    </div>
+  );
+};
 
 interface DownloadFileToastProps {
   fileName: string
@@ -52,21 +55,23 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
   onOpenChange,
   onDownloadAll,
 }) => {
+  const { t } = useTranslation();
+  const count = converted.length;
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerTrigger asChild>
         <Button variant="secondary" className="mt-8">
-          🗃️ Show Compressed {pluralize(converted.length, "Image", "Images")}
+          {t("drawer.trigger", { count })}
         </Button>
       </DrawerTrigger>
       <DrawerContent className="border-0">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
             <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-center">
-              Compressed {pluralize(converted.length, "Image", "Images")}
+              {t("drawer.title", { count })}
             </DrawerTitle>
             <DrawerDescription className="text-center">
-              Download your compressed {pluralize(converted.length, "Image", "Images")} individually or all at once.
+              {t("drawer.description", { count })}
             </DrawerDescription>
           </DrawerHeader>
           <GitHubStarBanner compressionId={converted.join(",")} />
@@ -74,7 +79,7 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
             {converted.length > 1 && (
               <div className="text-center p-5">
                 <Button variant="default" onClick={onDownloadAll} data-testid="drawer-download-all-as-zip-btn">
-                  Download All as Zip
+                  {t("drawer.downloadAll")}
                 </Button>
               </div>
             )}
@@ -105,7 +110,7 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
                   variant="destructive"
                   data-testid="compressed-files-drawer-close-btn"
                 >
-                  Close
+                  {t("drawer.close")}
                 </Button>
               </DrawerClose>
             </DrawerFooter>
