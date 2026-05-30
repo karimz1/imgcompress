@@ -1,0 +1,85 @@
+name: Hand off Dependabot CI
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: handoff-dependabot-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  handoff:
+    name: hand off to imgcompress-chan
+    if: >
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint imgcompress-chan token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: read
+
+      - name: Push empty handoff commit
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          commit_json="$(gh api "repos/${REPOSITORY}/commits/${HEAD_SHA}")"
+          commit_message="$(jq -r '.commit.message' <<< "$commit_json")"
+          committer_login="$(jq -r '.committer.login // ""' <<< "$commit_json")"
+          bot_login="${APP_SLUG}[bot]"
+
+          if [[ "$committer_login" == "$bot_login" ]] || [[ "$commit_message" == ci:\ hand\ off\ Dependabot\ PR* ]]; then
+            echo "Latest PR commit is already owned by ${bot_login}; nothing to hand off."
+            exit 0
+          fi
+
+          tree_sha="$(jq -r '.commit.tree.sha' <<< "$commit_json")"
+          bot_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq '.id')"
+          bot_email="${bot_id}+${bot_login}@users.noreply.github.com"
+          message="ci: hand off Dependabot PR #${PR_NUMBER} to ${bot_login}"
+
+          new_commit_sha="$(
+            jq -n \
+              --arg message "$message" \
+              --arg tree "$tree_sha" \
+              --arg parent "$HEAD_SHA" \
+              --arg name "$bot_login" \
+              --arg email "$bot_email" \
+              '{
+                message: $message,
+                tree: $tree,
+                parents: [$parent],
+                author: {name: $name, email: $email},
+                committer: {name: $name, email: $email}
+              }' |
+            gh api \
+              --method POST \
+              "repos/${REPOSITORY}/git/commits" \
+              --input - \
+              --jq '.sha'
+          )"
+
+          gh api \
+            --method PATCH \
+            "repos/${REPOSITORY}/git/refs/heads/${HEAD_REF}" \
+            -f "sha=${new_commit_sha}" \
+            -F force=false
+
+          echo "Pushed ${new_commit_sha} to ${HEAD_REF}."
