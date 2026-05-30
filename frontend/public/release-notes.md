@@ -1,3 +1,35 @@
+## v0.8.1 — 2026-05-30
+
+This patch release addresses a dependency oversight from [v0.8.0](https://github.com/karimz1/imgcompress/releases/tag/release_0.8.0), forgot to update the ``release-notes.md`` which triggers ``Update available`` even on the latest version.
+
+### 🐛 Bug Fixes
+- Fixed incorrect version display causing false "Update Available" notification — see [#668](https://github.com/karimz1/imgcompress/issues/668)
+
+## v0.8.0 — 2026-05-30
+
+- Feature: Added multi-language support to the imgcompress web UI.
+  Special thanks to [nagyonmarci](https://github.com/nagyonmarci) for contributing the initial [i18n support](https://github.com/karimz1/imgcompress/issues/653) and the Hungarian translation.
+
+- Added additional language files [@karimz1](https://github.com/karimz1).
+  Some translations were created with the help of online translation tools, so they may not be perfect. If you notice anything incorrect or unnatural, contributions are welcome.
+
+- Internals: Updated Frontend Dependencies to latest security patch.
+
+| Locale | Language | Credit | Status |
+| --- | --- | --- | --- |
+| `en` | English | [karimz1](https://github.com/karimz1) | Source language |
+| `hu` | Hungarian | [nagyonmarci](https://github.com/nagyonmarci) | Community translation |
+| `de` | German | Online tools | Not validated |
+| `ar` | Arabic | Online tools | Not validated |
+| `es` | Spanish | Online tools | Not validated |
+| `es-MX` | Spanish (Mexico) | Online tools | Not validated |
+| `fr` | French | Online tools | Not validated |
+| `hi` | Hindi | Online tools | Not validated |
+| `ja` | Japanese | Online tools | Not validated |
+| `pt-BR` | Portuguese (Brazil) | Online tools | Not validated |
+| `ru` | Russian | Online tools | Not validated |
+| `zh-CN` | Chinese (Simplified) | Online tools | Not validated |
+
 ## v0.7.0 — 2026-05-24
 - Feature: Image Crop Editor for per-file cropping before conversion. [#625](https://github.com/karimz1/imgcompress/issues/625)
 - Docker Improvements: First-time contributor [@AlexanderSlokov](https://github.com/AlexanderSlokov) hardened the image (non-root, reduced OS attack surface) across AMD64 and ARM64, and refactored the healthcheck, entrypoint, and Makefile in [#626](https://github.com/karimz1/imgcompress/pull/626).
