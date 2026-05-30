@@ -1,6 +1,4 @@
 import sys
-import os
-import pytest
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.enums.image_format import ImageFormat
 from unittest.mock import MagicMock

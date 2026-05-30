@@ -1,7 +1,5 @@
-from typing import Dict
 from io import BytesIO
-from PIL import Image, ImageFile, ImageOps
-import traceback
+from PIL import Image, ImageOps
 
 from backend.image_converter.application.dtos import ConversionDetails
 from backend.image_converter.core.internals.utilities import Result

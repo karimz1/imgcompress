@@ -41,6 +41,11 @@ test.describe('GitHub Star Banner', () => {
   test('is shown on the second session with the same file', async ({ page }) => {
     await page.goto('/');
     await compressFileAsync(page, fileA);
+    // Wait for the drawer to actually open before reloading — otherwise the
+    // page.goto('/') below can abort the in-flight compression, the banner
+    // component never mounts, the conversion counter never increments, and
+    // the second-session check on the next pass fails.
+    await expect(page.getByTestId('compressed-files-drawer-close-btn')).toBeVisible();
     await expect(page.getByTestId('github-star-banner')).not.toBeVisible();
 
     // Simulate a new session by clearing sessionStorage (same as closing and reopening the tab)

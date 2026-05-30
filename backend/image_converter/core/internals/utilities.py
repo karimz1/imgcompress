@@ -1,140 +1,105 @@
-import importlib
+from __future__ import annotations
+
+from functools import cache
 import importlib.util
-import os
 import socket
-from typing import List, Set, Dict
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Generic, TypeVar
+
 from PIL import Image
 
-# Formats that are ingest via custom pipelines (e.g. PdfPageExtractor)
-EXTRA_SUPPORTED_EXTENSIONS = {".pdf"}
+from backend.image_converter.config import settings
 
 
-def load_supported_formats() -> List[str]:
-    """
-    Dynamically returns a sorted list of file extensions for which Pillow has a registered
-    decoder (i.e. that Pillow can actually open). Adds optional HEIF support and curated
-    formats handled via custom pipelines.
-    """
-    pillow_formats = [
+@cache
+def load_supported_formats() -> tuple[str, ...]:
+    pillow_formats = {
         ext.lower()
         for ext, fmt in Image.registered_extensions().items()
         if fmt.upper() in Image.OPEN
-    ]
+    }
 
-    supported: List[str] = list(pillow_formats)
+    supported = set(pillow_formats)
+    supported.update(settings.get().formats.custom_pipeline_extensions)
 
     if importlib.util.find_spec("pillow_heif") is not None:
-        supported.extend([".heic", ".heif"])
+        supported.update({".heic", ".heif"})
 
-    supported.extend(EXTRA_SUPPORTED_EXTENSIONS)
-    return sorted(set(supported))
+    return tuple(sorted(supported))
+
+
+def is_file_supported(file_path: str | Path) -> bool:
+    return Path(file_path).suffix.lower() in load_supported_formats()
 
 
 supported_extensions = load_supported_formats()
 
-def has_internet():
+
+def has_internet() -> bool:
     try:
-        socket.create_connection(("1.1.1.1", 53), 1)
+        socket.create_connection(("1.1.1.1", 53), timeout=1).close()
         return True
-    except:
+    except OSError:
         return False
 
-def is_file_supported(file_path: str) -> bool:
-    """
-    Determines if the given file_path points to a supported image file.
-    This function checks the file extension against the loaded supported formats.
-
-    Args:
-        file_path (str): The path to the file.
-
-    Returns:
-        bool: True if the file's extension is in the supported list; otherwise False.
-    """
-    _, ext = os.path.splitext(file_path)
-    return ext.lower() in supported_extensions
 
 class FileUrl:
-    """
-    Encapsulates a file path and provides helper methods for checking file existence,
-    retrieving file properties, and determining if the file type is supported.
-    """
+    """Small path wrapper used by legacy converter code."""
+
     def __init__(self, path: str):
         self.path = path
 
     def exists(self) -> bool:
-        """Returns True if the file exists and is a file."""
-        return os.path.isfile(self.path)
+        return Path(self.path).is_file()
 
     def is_supported(self) -> bool:
-        """Returns True if the file has a supported extension."""
         return is_file_supported(self.path)
 
     def get_extension(self) -> str:
-        """Returns the file extension in lowercase."""
-        return os.path.splitext(self.path)[1].lower()
+        return Path(self.path).suffix.lower()
 
     def get_filename(self) -> str:
-        """Returns the basename of the file."""
-        return os.path.basename(self.path)
+        return Path(self.path).name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.path
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"FileUrl({self.path!r})"
 
-    def __fspath__(self):
-        """
-        Allows FileUrl objects to be used as os.PathLike objects.
-        This method returns the underlying file system path as a string.
-        """
+    def __fspath__(self) -> str:
         return self.path
 
-
-from typing import Generic, TypeVar, Any, Optional
 
 T = TypeVar("T")
 
 
+@dataclass(frozen=True)
 class Result(Generic[T]):
-    """A result type that can either be successful with a value or failed with an error."""
+    """Success-or-failure result value."""
 
-    def __init__(self, success: bool, value: Optional[T] = None, error: Optional[str] = None):
-        self._success = success
-        self._value = value
-        self._error = error
+    _value: T | None = None
+    _error: str | None = None
 
     @property
     def is_successful(self) -> bool:
-        """Use this property to check if the operation succeeded."""
-        return self._success
+        return self._error is None
 
     @property
-    def value(self) -> T:
+    def value(self) -> T | None:
         return self._value
 
     @property
-    def error(self) -> str:
+    def error(self) -> str | None:
         return self._error
 
-    @staticmethod
-    def success(value: T) -> 'Result[T]':
-        """Static factory method to create a successful result."""
-        safe_value = Result._clone_with_flags(value, True)
-        return Result(True, value=safe_value)
+    @classmethod
+    def success(cls, value: T) -> Result[T]:
+        return cls(_value=value)
 
-    @staticmethod
-    def failure(error: Any) -> 'Result[T]':
-        """Static factory method to create a failed result."""
-        safe_error = Result._clone_with_flags(error, False)
-        return Result(False, error=str(safe_error))
-
-    @staticmethod
-    def _clone_with_flags(payload: Any, is_successful: bool) -> Any:
-        if isinstance(payload, dict):
-            cloned = payload.copy()
-            cloned["is_successful"] = is_successful
-            if is_successful:
-                cloned["error"] = None
-            return cloned
-        return payload
+    @classmethod
+    def failure(cls, error: str) -> Result[T]:
+        if not error:
+            raise ValueError("Result.failure requires a non-empty error message")
+        return cls(_error=error)

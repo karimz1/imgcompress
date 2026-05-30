@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      issues: write
       pull-requests: read
     steps:
       - name: Mint imgcompress-chan token
@@ -42,6 +43,9 @@ jobs:
         with:
           app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
           private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: read
 
       - name: Resolve and validate PR
         id: pr
@@ -106,13 +110,13 @@ jobs:
         if: steps.pr.outputs.is_fork != 'true'
         env:
           PNPM_INSTALL_ARGS: "--lockfile-only --ignore-scripts"
-        run: ./applyFrontendDependencyFix.sh
+        run: ./scripts/applyFrontendDependencyFix.sh
 
       - name: Push repaired branch
         if: steps.pr.outputs.is_fork != 'true'
         run: git push origin "HEAD:${{ steps.pr.outputs.head_ref }}"
 
-      - name: Comment outcome on PR
+      - name: Comment outcome on PR as imgcompress-chan
         if: always() && steps.pr.outputs.number != ''
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
@@ -131,7 +135,7 @@ jobs:
           If you'd like the repair anyway, please:
 
           1. Refresh your branch by merging `main` into it first
-          2. Run `./applyFrontendDependencyFix.sh` locally
+          2. Run `./scripts/applyFrontendDependencyFix.sh` locally
           3. Push the result up to your fork, ne~? 💛
           EOF
           )
@@ -154,5 +158,4 @@ jobs:
           EOF
           )
           fi
-          gh pr comment --repo "$REPOSITORY" "$PR_NUMBER" --body "$body" \
-            || echo "::warning::Could not comment on PR #${PR_NUMBER}."
+          gh pr comment --repo "$REPOSITORY" "$PR_NUMBER" --body "$body"
