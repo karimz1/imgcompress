@@ -585,6 +585,8 @@ jobs:
         with:
           app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
           private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Squash-merge Dependabot PR
         env:
