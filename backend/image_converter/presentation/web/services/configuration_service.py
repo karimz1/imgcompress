@@ -1,13 +1,16 @@
 from backend.image_converter.core.internals.utilities import supported_extensions
-from backend.image_converter.core.internals.rembg_config import load_rembg_model_name
+
 
 class ConfigurationService:
+    def __init__(self, rembg_model_name: str):
+        self._rembg_model_name = rembg_model_name
+
     @staticmethod
-    def get_supported_formats():
+    def get_supported_formats() -> list[str]:
         return supported_extensions
 
     @staticmethod
-    def get_verified_formats():
+    def get_verified_formats() -> list[str]:
         return [
             ".heic",
             ".heif",
@@ -18,13 +21,8 @@ class ConfigurationService:
             ".eps",
             ".psd",
             ".pdf",
-            ".avif"
+            ".avif",
         ]
 
-    @staticmethod
-    def get_rembg_model_name():
-        """
-        Returns the configured rembg model name, falling back to the default when the
-        config file or env var is missing or invalid.
-        """
-        return load_rembg_model_name()
+    def get_rembg_model_name(self) -> str:
+        return self._rembg_model_name

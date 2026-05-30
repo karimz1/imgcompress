@@ -1,3 +1,10 @@
+## v0.7.0 — 2026-05-24
+- Feature: Image Crop Editor for per-file cropping before conversion. [#625](https://github.com/karimz1/imgcompress/issues/625)
+- Docker Improvements: First-time contributor [@AlexanderSlokov](https://github.com/AlexanderSlokov) hardened the image (non-root, reduced OS attack surface) across AMD64 and ARM64, and refactored the healthcheck, entrypoint, and Makefile in [#626](https://github.com/karimz1/imgcompress/pull/626).
+- Internal: Refactored the backend toward cleaner architecture using domain DTOs for a better developer experience.
+- CI: Added Python lint, a feature flag matrix, and a pre-publish image scan for auditability.
+- Internal: Expanded test coverage and added a DEV_MODE flag for triggering error states during UI testing.
+
 ## v0.6.1 — 2026-04-18
 - Feature: Add GitHub Star Banner to Compressed Files Drawer [#599](https://github.com/karimz1/imgcompress/issues/599)
 - Update Dependencies: This update brings all dependencies to the latest release candidates available at the time, improving security, stability, and overall reliability for imgcompress.

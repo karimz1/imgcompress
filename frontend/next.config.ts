@@ -1,24 +1,22 @@
 const getNextConfig = () => {
-  const proxyClientMaxBodySizeValue = '4000mb';
-
   const lifecycle = process.env.npm_lifecycle_event;
   const explicitMode = process.env.NEXT_BUILD_MODE;
+  const proxyClientMaxBodySize = process.env.NEXT_PROXY_CLIENT_MAX_BODY_SIZE;
+  const proxyBodySizeConfig = proxyClientMaxBodySize
+    ? {
+        experimental: {
+          proxyClientMaxBodySize,
+        },
+      }
+    : {};
 
-  // ------------------------------
-  // Decide build mode
-  // ------------------------------
   const buildMode =
     explicitMode ??
     (lifecycle === 'dev' ? 'dev' : 'export');
 
-  // ------------------------------
-  // DEV MODE
-  // ------------------------------
   if (buildMode === 'dev') {
     return {
-      experimental: {
-        proxyClientMaxBodySize: proxyClientMaxBodySizeValue,
-      },
+      ...proxyBodySizeConfig,
       async rewrites() {
         return [
           {
@@ -30,13 +28,8 @@ const getNextConfig = () => {
     };
   }
 
-  // ------------------------------
-  // EXPORT MODE (build / CI / prod)
-  // ------------------------------
   return {
-    experimental: {
-      proxyClientMaxBodySize: proxyClientMaxBodySizeValue,
-    },
+    ...proxyBodySizeConfig,
     output: 'export',
     images: {
       unoptimized: true,

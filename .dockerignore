@@ -8,6 +8,15 @@ __pycache__/
 .DS_Store
 *.log
 *.txt
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# These folders will be picked up by copy all /frontend,
+# need to exclude them
+frontend/e2e-test-results
+frontend/node_modules
 
 # Explicitly include requirements files (override *.txt above)
 !requirements.txt

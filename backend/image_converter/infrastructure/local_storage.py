@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.infrastructure.logger import Logger
 
 @dataclass
 class FileItem:
@@ -12,6 +13,9 @@ class FileItem:
     stem: str
 
 class LocalStorage:
+    def __init__(self, logger: Logger | None = None):
+        self.logger = logger
+
     def iter_files(self, folder: str) -> Iterable[FileItem]:
         for name in self._list_directory(folder):
             p = os.path.join(folder, name)
@@ -24,7 +28,8 @@ class LocalStorage:
             with open(path, "rb") as f:
                 return Result.success(f.read())
         except Exception:
-            return Result.failure(self._format_error("read", path))
+            self._log_failure("read", path)
+            return Result.failure("Failed to read file.")
 
     def write_bytes(self, path: str, data: bytes) -> Result[None]:
         try:
@@ -35,7 +40,8 @@ class LocalStorage:
                 f.write(data)
             return Result.success(None)
         except Exception:
-            return Result.failure(self._format_error("write", path))
+            self._log_failure("write", path)
+            return Result.failure("Failed to write file.")
 
     def build_dest_path(self, folder: str, name: str) -> str:
         return os.path.join(folder, name)
@@ -46,6 +52,10 @@ class LocalStorage:
         except FileNotFoundError:
             return []
 
-    def _format_error(self, action: str, path: str) -> str:
-        tb = traceback.format_exc()
-        return f"Failed to {action} '{path}': {tb}"
+    def _log_failure(self, action: str, path: str) -> None:
+        if self.logger is None:
+            return
+        self.logger.log(
+            f"Failed to {action} '{path}': {traceback.format_exc()}",
+            "error",
+        )

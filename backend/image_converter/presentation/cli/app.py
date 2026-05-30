@@ -46,7 +46,7 @@ def main(argv=None):
         )
 
         processor.run()
-    except Exception as e:
+    except Exception:
         tb = traceback.format_exc()
         logger.log(f"A fatal error occurred during processing:\n{tb}", "error")
         sys.exit(1)

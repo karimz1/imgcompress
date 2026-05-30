@@ -3,13 +3,14 @@ import sys
 import pytest
 
 from backend.image_converter import argument_parser
+from backend.image_converter.core.enums.runtime_mode import RuntimeMode
 from backend.image_converter.presentation.cli.argument_parser import parse_arguments as parse_cli_arguments
 
 
 def test_cli_help_is_forwarded_to_cli_parser(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["bootstraper.py", "cli", "--help"])
-    args, remaining = argument_parser.parse_arguments()
-    assert args.mode == "cli"
+    mode, remaining = argument_parser.parse_arguments()
+    assert mode is RuntimeMode.CLI
     assert remaining == ["--help"]
 
     with pytest.raises(SystemExit) as exc:

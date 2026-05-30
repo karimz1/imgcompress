@@ -1,7 +1,6 @@
 from io import BytesIO
 import traceback
-from typing import Any, List, Optional
-
+from typing import Any, Optional
 
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.utilities import Result
@@ -36,9 +35,8 @@ class PdfPageExtractor:
             
             return Result.success(page_generator())
         except Exception:
-            tb = traceback.format_exc()
-            self._log_failure(tb, source_hint)
-            return Result.failure(tb)
+            self._log_failure(traceback.format_exc(), source_hint)
+            return Result.failure("PDF could not be rendered.")
 
     def _open_document(self, pdf_bytes: bytes) -> Any:
         import pypdfium2 as pdfium

@@ -18,6 +18,6 @@ class ImageLoader:
             with open(path, "rb") as f:
                 data = f.read()
             return Result.success(data)
-        except Exception as e:
+        except Exception:
             tb = traceback.format_exc()
             return Result.failure(tb)

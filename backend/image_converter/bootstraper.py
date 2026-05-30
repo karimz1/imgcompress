@@ -1,50 +1,77 @@
+import logging
 import os
 import subprocess
+import sys
 import traceback
+
 import pillow_heif
+
 from backend.image_converter.argument_parser import parse_arguments
-from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.config import settings
+from backend.image_converter.config.app_config import WebConfig
+from backend.image_converter.core.enums.runtime_mode import RuntimeMode
+from backend.image_converter.infrastructure.logger import (
+    Logger,
+    enable_error_capture_in_docker_env,
+)
 from backend.image_converter.presentation.cli.app import main as cli_main
 from backend.image_converter.presentation.web.server import start_scheduler
 
-def launch_web_prod():
+
+def _granian_stdout_logger() -> logging.Logger:
+    logger = logging.getLogger("backend.image_converter.granian")
+    logger.handlers = []
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
+
+    return logger
+
+
+def launch_web_prod(web: WebConfig) -> None:
     start_scheduler()
-    workers_setting = os.environ.get("GRANIAN_WORKERS", "auto").strip().lower()
-    if workers_setting == "auto":
-        workers = os.cpu_count() or 1
-    else:
-        try:
-            workers = max(int(workers_setting), 1)
-        except ValueError:
-            workers = os.cpu_count() or 1
-    subprocess.run([
-        "granian",
-        "--interface", "wsgi",
-        "--workers", str(workers),
-        "--host", "0.0.0.0",
-        "--port", "5000",
-        "backend.image_converter.presentation.web.server:app"
-    ], check=True)
+    workers = web.workers.resolve(fallback_when_auto=os.cpu_count() or 1)
+    web_server_process = subprocess.Popen(
+        [
+            "granian",
+            "--interface", "wsgi",
+            "--workers", str(workers),
+            "--host", web.host,
+            "--port", str(web.port),
+            "backend.image_converter.presentation.web.server:app",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    assert web_server_process.stdout is not None
+    granian_logger = _granian_stdout_logger()
+    for line in web_server_process.stdout:
+        # Granian's child stdout is already formatted. Relay it through a
+        # message-only logger so TeeStream still captures one unchanged line.
+        granian_logger.info(line.rstrip("\n"))
+    exit_code = web_server_process.wait()
+    if exit_code != 0:
+        raise subprocess.CalledProcessError(exit_code, web_server_process.args)
 
 
-def main():
-    app_logger = Logger(debug=False, json_output=False)
+def main() -> None:
+    config = settings.get()
+    enable_error_capture_in_docker_env()
     pillow_heif.register_heif_opener()
-    args, remaining = parse_arguments()
+    mode, remaining = parse_arguments()
 
-    # fallback so defaults to web if no args are given...
-    if args.mode is None:
-        args.mode = "web"
-
-    app_logger.log(f"started using mode: {args.mode}")
-
-    if args.mode == "cli":
+    if mode is RuntimeMode.CLI:
         cli_main(remaining)
-    elif args.mode == "web":
-        launch_web_prod()
+    elif mode is RuntimeMode.WEB:
+        Logger(debug=False, json_output=False).log("started using mode: web")
+        launch_web_prod(config.web)
     else:
-        raise ValueError(f"no argument that match was found for args.mode value: {args.mode}")
-
+        raise ValueError(f"unhandled runtime mode: {mode!r}")
 
 
 if __name__ == "__main__":
@@ -52,8 +79,14 @@ if __name__ == "__main__":
         main()
     except SystemExit:
         raise
-    except Exception as e:
-        tb_list = traceback.extract_tb(e.__traceback__)
+    except Exception as exc:
+        tb_list = traceback.extract_tb(exc.__traceback__)
         last_frame = tb_list[-1]
-        print(f"Exception occurred in file {last_frame.filename} at line {last_frame.lineno}")
-        print(traceback.format_exc())
+        message = (
+            f"Exception occurred in file {last_frame.filename} "
+            f"at line {last_frame.lineno}"
+        )
+        trace = traceback.format_exc()
+        fatal_logger = Logger(debug=False, json_output=False)
+        fatal_logger.log(message, "error")
+        fatal_logger.log(trace, "error")

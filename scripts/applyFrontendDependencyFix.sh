@@ -5,7 +5,8 @@ DOCS_URL="https://imgcompress.karimzouine.com/docs/developers#root-cause"
 COMMIT_MESSAGE="chore: regenerate pnpm lockfile after dependabot merge"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-FRONTEND_DIR="$SCRIPT_DIR/frontend"
+PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+FRONTEND_DIR="$PROJECT_ROOT/frontend"
 
 if [[ ! -f "$FRONTEND_DIR/package.json" ]]; then
   echo "Could not find frontend/package.json from $SCRIPT_DIR" >&2
@@ -50,12 +51,12 @@ if [[ -n "${PNPM_INSTALL_ARGS:-}" ]]; then
 fi
 corepack pnpm install "${PNPM_INSTALL_ARGS_ARRAY[@]}"
 
-git -C "$SCRIPT_DIR" add frontend/pnpm-lock.yaml
+git -C "$PROJECT_ROOT" add frontend/pnpm-lock.yaml
 
-if git -C "$SCRIPT_DIR" diff --cached --quiet -- frontend/pnpm-lock.yaml; then
+if git -C "$PROJECT_ROOT" diff --cached --quiet -- frontend/pnpm-lock.yaml; then
   echo "No lockfile changes to commit."
 else
-  git -C "$SCRIPT_DIR" commit \
+  git -C "$PROJECT_ROOT" commit \
     -m "$COMMIT_MESSAGE" \
     -m "Root cause and recovery docs: $DOCS_URL"
 fi

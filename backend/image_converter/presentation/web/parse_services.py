@@ -1,20 +1,15 @@
+from typing import Optional
+
 from flask import Request
-from typing import Any, Dict, Optional
-from backend.image_converter.infrastructure.logger import Logger
+
+from backend.image_converter.application.dtos import CompressionFormData
+from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result, is_file_supported
+from backend.image_converter.infrastructure.logger import Logger
 
-def extract_form_data(request: Request, logger: Logger) -> Result[Dict[str, Any]]:
+
+def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFormData]:
     uploaded_files = request.files.getlist("files[]")
-    output_format = request.form.get("format", "jpeg").lower()
-    quality = _parse_quality(request.form.get("quality", "85"), logger)
-    width = _parse_width(request.form.get("width", ""), logger)
-    target_size_kb = _parse_target_size_kb(request.form.get("target_size_kb", ""), logger)
-    use_rembg = _parse_bool(request.form.get("use_rembg"))
-    pdf_preset = request.form.get("pdf_preset", "").strip()
-    pdf_scale = request.form.get("pdf_scale", "").strip()
-    pdf_margin_mm = _parse_margin_mm(request.form.get("pdf_margin_mm", ""), logger)
-    pdf_paginate = _parse_bool(request.form.get("pdf_paginate"))
-
     allowed_files = [f for f in uploaded_files if is_file_supported(f.filename)]
     unsupported_files = [f for f in uploaded_files if not is_file_supported(f.filename)]
 
@@ -22,18 +17,24 @@ def extract_form_data(request: Request, logger: Logger) -> Result[Dict[str, Any]
         unsupported_names = ", ".join(f.filename for f in unsupported_files)
         return Result.failure(f"Unsupported file types: {unsupported_names}")
 
-    return Result.success({
-        "uploaded_files": allowed_files,
-        "quality": quality,
-        "width": width,
-        "format": output_format,
-        "target_size_kb": target_size_kb,
-        "use_rembg": use_rembg,
-        "pdf_preset": pdf_preset,
-        "pdf_scale": pdf_scale,
-        "pdf_margin_mm": pdf_margin_mm,
-        "pdf_paginate": pdf_paginate,
-    })
+    raw_format = request.form.get("format", ImageFormat.JPEG.value).lower()
+    format_result = ImageFormat.from_string_result(raw_format)
+    if not format_result.is_successful:
+        return Result.failure(format_result.error or "Unsupported image format")
+
+    form_data = CompressionFormData(
+        uploaded_files=tuple(allowed_files),
+        quality=_parse_quality(request.form.get("quality", "85"), logger),
+        width=_parse_width(request.form.get("width", ""), logger),
+        image_format=format_result.value,
+        target_size_kb=_parse_target_size_kb(request.form.get("target_size_kb", ""), logger),
+        use_rembg=_parse_bool(request.form.get("use_rembg")),
+        pdf_preset=request.form.get("pdf_preset", "").strip(),
+        pdf_scale=request.form.get("pdf_scale", "").strip(),
+        pdf_margin_mm=_parse_margin_mm(request.form.get("pdf_margin_mm", ""), logger),
+        pdf_paginate=_parse_bool(request.form.get("pdf_paginate")),
+    )
+    return Result.success(form_data)
 
 
 def _parse_quality(value: str, logger: Logger) -> int:
@@ -45,6 +46,7 @@ def _parse_quality(value: str, logger: Logger) -> int:
     except ValueError:
         logger.log(f"Invalid quality '{value}'. Using default 85.", "warning")
         return 85
+
 
 def _parse_width(value: str, logger: Logger) -> Optional[int]:
     if not value.strip():
@@ -60,7 +62,6 @@ def _parse_width(value: str, logger: Logger) -> Optional[int]:
 
 
 def _parse_target_size_kb(value: str, logger: Logger) -> Optional[int]:
-    """Parses an optional target size (in KB). Returns None if empty or invalid."""
     if value is None:
         return None
     value = value.strip()
