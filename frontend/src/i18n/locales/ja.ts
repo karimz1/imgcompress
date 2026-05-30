@@ -1,0 +1,403 @@
+import type { TranslationSchema } from "../types";
+
+export const ja: TranslationSchema = {
+  page: {
+    subtitle: "画像圧縮ツール",
+    adminTools: "管理ツール",
+    toast: {
+      unsupportedFormat: "未対応のファイル形式: {{fileName}}",
+      filesRejected: "未対応のファイル形式のため、{{count}} 件のファイルが拒否されました。",
+      noFilesError: "先にファイルをドロップするか選択してください。",
+      noFormatError: "先に出力形式を選択してください。",
+      qualityRangeError: "品質は 1 から 100 の数値で指定してください。",
+      widthPositiveError: "幅は正の数値で指定してください。",
+      icoWidthClamped:
+        "ICO 形式の最大幅は 256px です。入力値は 256 に制限されました。",
+      targetSizeError: "正の最大ファイルサイズ (MB) を設定してください。",
+      compressedSuccess_one: "{{count}} 件の画像を正常に圧縮しました!",
+      compressedSuccess_other: "{{count}} 件の画像を正常に圧縮しました!",
+      cleanupSuccess:
+        "削除が完了しました。処理済みファイルは完全に削除されました。🧹🧹🧹",
+      cleanupFailed: "強制クリーンアップに失敗しました。",
+      cleanupError: "🚨 クリーンアップに失敗しました。",
+      compressionCancelled: "圧縮をキャンセルしました。",
+      unexpectedError: "問題が発生しました。もう一度お試しください。",
+      selectionCleared_one: "{{count}} 件の画像選択をクリアしました! 🧹",
+      selectionCleared_other: "{{count}} 件の画像選択をクリアしました! 🧹",
+    },
+  },
+
+  splash: {
+    dialogTitle: "ファイルを圧縮中",
+    dialogDescription: "ファイルの圧縮が完了するまでお待ちください。",
+    tipLabel: "ヒント",
+    cancelButton: "キャンセル",
+    steps: {
+      starting: "開始中",
+      compressing: "圧縮中",
+      packaging: "パッケージ作成中",
+    },
+    tip: "作業を続けて大丈夫です。このウィンドウを開いたままにしておけば、準備ができ次第ここに圧縮ファイルを置きます。",
+    messages: [
+      "ファイルを圧縮しています…",
+      "品質とサイズを最適化しています。",
+      "画像を再エンコードしています。しばらくお待ちください。",
+      "大きなアップロードには少し時間がかかることがあります。",
+      "まだ処理中です。お待ちいただきありがとうございます。",
+      "クリーンアップしてダウンロードを準備しています。",
+      "速度と品質のバランスを調整しています。",
+      "出力ファイルの仕上げをしています。",
+      "ピクセルをより小さなパッケージに圧縮しています。",
+      "もう少しです。最後のバイトを書き込んでいます。",
+      "ファイルの整合性を確認しています。",
+      "変換タスクを完了しています。",
+      "すべて問題ないか確認しています。",
+    ],
+  },
+
+  form: {
+    outputFormat: {
+      label: "出力形式",
+      placeholder: "形式を選択",
+      hint: "変換を有効にするには出力形式を選択してください。",
+      options: {
+        jpeg: "JPEG (ファイルサイズ小)",
+        png: "PNG (透明度を保持)",
+        avif: "AVIF (最高の圧縮率と品質)",
+        pdf: "PDF (1 ページ文書)",
+        ico: "ICO (透明度を保持)",
+      },
+      tooltip:
+        "PNG: 透明度 (アルファ) を保持し、透明背景の画像に最適です。\nJPEG: 透明度のない画像に適しており、ファイルサイズを小さくできます。\nAVIF: 優れた圧縮率と品質を持つ最新形式で、透明度にも対応します。\nPDF: ページプリセット、余白、複数ページ分割を指定して画像を PDF に書き出します。\nICO: ファビコンやアプリアイコンによく使われ、透明度 (アルファ) に対応します。ICO に変換する場合は PNG を元画像にすることをおすすめします。",
+    },
+    pdfPreset: {
+      label: "PDF ページプリセット",
+      disabledHint: "PDF プリセットの選択中は幅のリサイズが無効になります。",
+      tooltip:
+        "A4/Letter プリセットは、印刷安全余白を指定して画像をページに合わせます。自動プリセットは画像の向きに基づいてページを回転します。",
+      options: {
+        original: "元のサイズ (比率を保持)",
+        a4Auto: "A4 自動",
+        a4Portrait: "A4 縦",
+        a4Landscape: "A4 横",
+        letterAuto: "Letter 自動",
+        letterPortrait: "Letter 縦",
+        letterLandscape: "Letter 横",
+        mobilePortrait: "モバイル縦 (1080x1920)",
+        mobileLandscape: "モバイル横 (1920x1080)",
+      },
+    },
+    pdfScale: {
+      label: "PDF スケールモード",
+      paginationHint: "ページ分割では全幅を保つためにフィットモードを使用します。",
+      tooltip:
+        "フィットは画像全体を保持しますが、白い余白が出る場合があります。フィルはページ全体を覆うように画像を切り抜きます。",
+      options: {
+        fit: "フィット (画像全体を保持)",
+        fill: "フィル (ページに合わせて切り抜き)",
+      },
+    },
+    pdfMargin: {
+      label: "PDF 余白",
+      hint: "10mm が推奨値で、デフォルトです。",
+      tooltip: "印刷安全余白をミリメートル単位で設定します。10mm をおすすめします。",
+    },
+    pdfPaginate: {
+      label: "長い画像を複数ページに分割",
+      tooltip: "PDF プリセットが選択されているとき、長い画像を複数ページに分割します。",
+    },
+    compressionMode: {
+      label: "{{format}} 設定モード",
+      byQuality: "品質で設定",
+      bySize: "ファイルサイズで設定",
+    },
+    rembg: {
+      label: "ローカル AI で背景を削除 ({{model}})",
+      tooltip:
+        "ローカル AI が背景を削除します (インターネット不要)。\n処理は遅めで、輪郭に小さなアーティファクトが出る場合があります。",
+    },
+    quality: {
+      label: "品質",
+      tooltip:
+        "品質を調整します (100 が最高品質、低い値ほどファイルサイズが小さくなります)。JPEG と AVIF に適用されます。",
+      presets: {
+        smaller: "小さめ (60)",
+        balanced: "バランス (75)",
+        high: "高品質 (85)",
+        max: "最大 (100)",
+      },
+    },
+    targetSize: {
+      label: "最大ファイルサイズ",
+      placeholder: "例: 0.50",
+      hint: "品質を自動調整して、各 {{format}} をこのサイズ以下に収めようとします。",
+      tooltip:
+        "任意の最大出力サイズ (MB) を設定します。JPEG と AVIF の出力に適用されます。",
+    },
+    resizeWidth: {
+      label: "幅をリサイズ",
+      tooltip:
+        "元のアスペクト比を保ったまま、画像を指定した幅にリサイズします。",
+    },
+    dropzone: {
+      dragActive: "画像または PDF をここにドロップ...",
+      processing: "処理中はファイルをドロップできません...",
+      idle: "画像または PDF をドラッグ&ドロップするか、クリックして選択",
+    },
+    filesList: {
+      label: "変換するファイル:",
+      removeButton: "削除",
+      removeSavedCropAria: "保存済み切り抜きを削除",
+      croppedBadge: "切り抜き済み {{w}} × {{h}}",
+      cropTooltip: "このファイルには保存済みの切り抜きがあります。x をクリックすると削除できます。",
+      editCropTooltip: "このファイルの保存済み切り抜きを編集します。",
+      addCropTooltip: "このファイルを変換する前に表示領域を選択します。",
+      cropNotSupportedPdf: "PDF の切り抜きはまだ対応していません。PDF は複数ページを含む場合があるため、先にページ選択専用のワークフローが必要です。",
+      cropNotSupported: "この形式の切り抜きは現在対応していません。",
+      cropButton: "切り抜き",
+      editButton: "編集",
+    },
+    error: {
+      label: "エラー:",
+      detailsLabel: "詳細:",
+    },
+    buttons: {
+      convert: "変換を開始",
+      processing: "処理中...",
+      clear: "クリア",
+    },
+  },
+
+  drawer: {
+    trigger_one: "🗃️ 圧縮画像を表示",
+    trigger_other: "🗃️ 圧縮画像を表示",
+    title_one: "圧縮画像",
+    title_other: "圧縮画像",
+    description_one: "圧縮した画像を個別に、またはまとめてダウンロードできます。",
+    description_other: "圧縮した画像を個別に、またはまとめてダウンロードできます。",
+    downloadAll: "すべて ZIP でダウンロード",
+    close: "閉じる",
+    downloadingFile: "ダウンロード中: {{fileName}}...",
+    downloadingZip: "フォルダーをダウンロード中...",
+  },
+
+  storage: {
+    title: "ストレージ管理",
+    used: "使用中:",
+    available: "利用可能:",
+    files: "ファイル",
+    clearButton: "処理済みファイルを削除",
+    totalFiles: "合計ファイル数:",
+    totalSpace: "使用済み容量合計:",
+    noFiles: "変換済みファイルが見つかりません。",
+    confirmTitle: "ファイル削除の確認",
+    confirmDescription:
+      "この操作により、すべての処理済みファイルが完全に削除されます。元に戻せないため、必要なファイルをダウンロード済みであることを確認してから続行してください。",
+    confirmCancel: "キャンセル",
+    confirmDelete: "はい、ファイルを削除",
+    fetchError: "コンテナ内のファイルを取得できませんでした。",
+    storageError: "ストレージ情報を取得できませんでした。",
+    zipLabel: "(ZIP)",
+  },
+
+  statusBanner: {
+    warning: "警告: バックエンドは現在利用できません。",
+  },
+
+  statusFloating: {
+    systemStatusTitle: "システム状態",
+    title: "システムと接続の状態",
+    backend: "コンテナバックエンド:",
+    network: "ネットワークアクセス:",
+    mode: "モード:",
+    modeRunning: "実行中",
+    backendDown: "停止中 ❌",
+    backendUp: "動作中",
+    internetYes: "インターネット接続あり",
+    internetNo: "インターネット未検出 🚫",
+    internetUnknown: "未確認",
+    checkButton: "インターネット接続を確認",
+    checking: "確認中...",
+    whyTitle: "なぜこれがあるの?",
+    whyDesc:
+      "安全のため、コンテナの状態とネットワーク分離を確認します。画像やメタデータがあなたのマシンから外へ出ることはありません。",
+    learnMore: "オフライン利用について詳しく →",
+    backendLastCheck: "バックエンド最終確認:",
+    internetLastCheck: "インターネット最終確認:",
+  },
+
+  errorModal: {
+    title: "エラーが発生しました",
+    subtitle: "操作を完了できませんでした。下のトレースをコピーしてチケットを開き、修正できるようにしてください。",
+    detailsLabel: "技術的な詳細",
+    notifyDeveloper:
+      "できるだけ早く修正できるよう、チケットを開いて開発者に知らせてください。",
+    copyError: "エラーをコピー",
+    copied: "コピーしました!",
+    openTicket: "チケットを開く",
+    close: "閉じる",
+  },
+
+  formatsDialog: {
+    triggerButton: "何を開けますか?",
+    title: "対応ファイル",
+    descriptionStart: "開ける形式の早見表です。結果の形式は、これを閉じたあとメイン画面の",
+    descriptionBold: "出力形式",
+    descriptionEnd: "メニューから選べます。",
+    searchLabel: "リストを検索",
+    searchHint: "形式を探すには入力してください",
+    searchPlaceholder: "検索 (例: psd, tiff)...",
+    verifiedTitle: "テスト済み・動作確認済み",
+    unverifiedTitle: "その他の可能な形式",
+    unverifiedHint: "これらはまだ完全にはテストされていませんが、動作する可能性があります。",
+    footerText: "ImgCompress は画像変換をサポートします!",
+    reportBug: "バグを報告",
+  },
+
+  starBanner: {
+    message: "ImgCompress が役に立ちましたか?",
+    linkText: "GitHub でスター",
+    suffix: "を付けると、ほかの人が見つけやすくなります。",
+    dismiss: "今後表示しない",
+  },
+
+  help: {
+    label: "使い方",
+  },
+
+  footer: {
+    updateAvailable: "更新があります: {{version}}",
+    whatsNew: "新着情報",
+    version: "バージョン {{version}}",
+    releaseNotes: "リリースノート",
+    links: {
+      docs: "ドキュメント",
+      github: "GitHub",
+      reportBug: "バグを報告",
+      author: "作者",
+      sponsor: "スポンサー",
+    },
+  },
+
+  releaseNotes: {
+    buttonLabel: "リリースノート",
+    title: "リリースノート",
+    infoBoxText: "すべてのバージョンと詳細は",
+    infoBoxLink: "完全なリリースノート",
+    infoBoxSuffix: "をご覧ください。",
+    loading: "読み込み中…",
+    loadError: "リリースノートを読み込めませんでした",
+    empty: "利用可能なリリースノートはありません。",
+    tabLatest: "最新",
+    tabArchive: "アーカイブ",
+    noArchive: "アーカイブ済みリリースはまだありません。",
+  },
+
+  langSwitcher: {
+    ariaLabel: "言語を切り替え",
+  },
+
+  theme: {
+    switchToLight: "ライトテーマに切り替え",
+    switchToDark: "ダークテーマに切り替え",
+    lightTitle: "ライト",
+    darkTitle: "ダーク",
+    toggle: "テーマを切り替え",
+  },
+
+  runtimeError: {
+    title: "実行時エラー",
+    errorFallback: "エラー",
+    unknownError: "不明なエラー",
+    subtitle: "レンダリング中に問題が発生しました。下のトレースをコピーしてチケットを開き、修正できるようにしてください。",
+    stackTrace: "スタックトレース",
+    tryAgain: "再試行",
+    includeTitle: "チケットに含める内容",
+    includeDescription: "診断ファイルをチケットに添付してください。エラートレース、ブラウザーコンテキスト、フロントエンドログ、実行中のバックエンドが公開している場合はバックエンドログも含まれます。",
+    downloadDiagnostics: "診断をダウンロード",
+    copied: "コピーしました!",
+    copyError: "エラーをコピー",
+    openTicket: "チケットを開く",
+  },
+
+  devMode: {
+    toggleTitle: "開発モードツール (DEV_MODE=true の場合のみ表示)",
+    title: "開発者ツール",
+    description: "エラー表示を確認するために UI 状態を発生させます。実際のバックエンドは呼び出しません。",
+    apiSection: "API エラーウィジェット",
+    triggerApiError: "API エラーを発生",
+    triggerApiErrorLong: "API エラーを発生 (長いスタック)",
+    runtimeSection: "実行時エラーバウンダリ",
+    triggerRuntimeError: "実行時エラーを発生",
+    triggerRuntimeErrorLong: "実行時エラーを発生 (長いスタック)",
+    footerPrefix: "このパネルは",
+    footerMiddle: " の ",
+    footerSuffix: "で切り替えます。フラグがオフの場合は表示されません。",
+  },
+
+  crop: {
+    aspectRatio: "アスペクト比",
+    zoom: "ズーム",
+    zoomOut: "ズームアウト",
+    zoomIn: "ズームイン",
+    resetZoom: "ズームをリセット",
+    resetZoomFull: "ズームとパンをリセット",
+    dimensions: "寸法",
+    resetSelection: "選択をリセット",
+    width: "幅",
+    height: "高さ",
+    original: "元画像: {{w}} × {{h}} px",
+    removeSavedCrop: "保存済み切り抜きを削除",
+    discard: "破棄",
+    saveCrop: "切り抜きを保存",
+    switchToLight: "ライトテーマに切り替え",
+    switchToDark: "ダークテーマに切り替え",
+    confirmDialog: {
+      title: "切り抜きの変更を破棄しますか?",
+      description: "保存していない切り抜き調整は失われます。以前に保存した切り抜きがある場合、それは変更されません。",
+      keepEditing: "編集を続ける",
+      discardChanges: "変更を破棄",
+    },
+    loading: {
+      serverWords: ["少し", "お待ち", "ください", "もう", "すぐ", "準備", "完了"],
+      localWords: ["切り抜き", "エディター", "起動中"],
+      serverMessage: "{{label}} を切り抜く前に、サーバーでレンダリングしたビットマップが必要です。現在準備しています。",
+      localMessage: "{{label}} を切り抜きエディターで開いています。",
+    },
+    failure: {
+      header: "この {{label}} を切り抜き用に準備できませんでした。",
+      whyTitle: "なぜ発生しましたか?",
+      technicalDetails: "技術的な詳細",
+      stillConvert: "このファイルはそのまま変換できます。ただし、切り抜きは適用されません。",
+      closeButton: "閉じる",
+      reportButton: "この問題を報告",
+      causes: {
+        backendNotReachable: "バックエンドサービスにまだ接続できません。コンテナを再ビルドした直後なら、数秒待ってからもう一度お試しください。",
+        networkDropped: "アップロード中にバックエンドとの接続が切れました。コンテナがまだ実行中か確認して、もう一度お試しください。",
+        variantNotSupported: "このファイルはデコーダーが読めない {{label}} の変種である可能性があります (複数レイヤー、非標準のカラーモード、暗号化など)。元のアプリからフラットな {{label}} または通常の PNG/JPG として再書き出しすると、多くの場合解決します。",
+        missingLibraries: "{{label}} ファイルは常にバックエンドのデコーダーを通ります。デコーダーにネイティブライブラリ (例: HEIC 用の libheif) が不足している場合、任意コーデックを有効にして再ビルドすると多くの場合解決します。",
+        reportIssue: "どれにも当てはまらない場合は、下の技術的な詳細をコピーしてチケットを開いてください。トレースには失敗した手順が正確に示されています。",
+      },
+    },
+    freeRatio: "自由",
+    editorTitle: "切り抜きエディター",
+    editorDescription: "この画像の切り抜き範囲、比率、ズームを調整し、切り抜きを保存または破棄をクリックしてください。",
+    removeDialog: {
+      title: "保存済み切り抜きを削除しますか?",
+      description: "このファイルの保存済み切り抜きを削除します。元のファイルは変換リストに残ります。",
+      keepCrop: "切り抜きを保持",
+      removeCrop: "切り抜きを削除",
+    },
+    shortcuts: {
+      title: "ショートカット",
+      items: [
+        { keys: ["ドラッグ"],             desc: "切り抜きを移動" },
+        { keys: ["角をドラッグ"],         desc: "サイズ変更" },
+        { keys: ["Alt", "+ ハンドルをドラッグ"], desc: "中心からサイズ変更" },
+        { keys: ["ホイール"],             desc: "カーソル位置でズーム" },
+        { keys: ["スペース", "+ ドラッグ"], desc: "パン" },
+        { keys: ["Esc"],                  desc: "閉じる" },
+      ],
+    },
+  },
+};

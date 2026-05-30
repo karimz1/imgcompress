@@ -2,6 +2,10 @@
 
 imgcompress uses [react-i18next](https://react.i18next.com/) for internationalization. All translation files live in `frontend/src/i18n/locales/`. Adding a new language requires changes to exactly three files.
 
+Some translations are online-tool assisted and may be imperfect. If a translation does not look right, community improvements are highly appreciated. Please improve the relevant locale file in `frontend/src/i18n/locales/`
+
+Together we can make ImgCompress better for everyone. Thanks to all the great people who have translated and improved the project in the past.
+
 ## How to add a new language
 
 ### 1. Create the locale file
@@ -47,14 +51,14 @@ Open `frontend/src/i18n/index.ts` and add your import and resource entry:
 
 ### 3. Add the language to the switcher
 
-Open `frontend/src/components/LanguageSwitcher.tsx` and add an entry to the `LANGUAGES` array:
+Open `frontend/src/components/LanguageSwitcher.tsx` and add an entry to `LANGUAGE_META`:
 
 ```diff
- const LANGUAGES = [
-   { code: "en", label: "English", flag: "🇬🇧" },
-   { code: "hu", label: "Magyar",  flag: "🇭🇺" },
-+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
- ];
+ const LANGUAGE_META: Record<Locale, { label: string; flag: string }> = {
+   en: { label: "English", flag: "🇬🇧" },
+   hu: { label: "Magyar",  flag: "🇭🇺" },
++  de: { label: "Deutsch", flag: "🇩🇪" },
+ };
 ```
 
 That is all — no changes to any component or page are needed.

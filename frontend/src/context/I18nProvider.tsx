@@ -8,6 +8,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const syncLang = (lng: string) => {
       document.documentElement.lang = lng;
+      document.documentElement.dir = lng.startsWith("ar") ? "rtl" : "ltr";
     };
 
     syncLang(i18n.language);

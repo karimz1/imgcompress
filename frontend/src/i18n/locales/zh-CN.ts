@@ -1,0 +1,403 @@
+import type { TranslationSchema } from "../types";
+
+export const zhCN: TranslationSchema = {
+  page: {
+    subtitle: "图像压缩工具",
+    adminTools: "管理工具",
+    toast: {
+      unsupportedFormat: "不支持的文件格式：{{fileName}}",
+      filesRejected: "由于文件类型不受支持，已拒绝 {{count}} 个文件。",
+      noFilesError: "请先拖入或选择一些文件。",
+      noFormatError: "请先选择输出格式。",
+      qualityRangeError: "质量必须是 1 到 100 之间的数字。",
+      widthPositiveError: "宽度必须是正数。",
+      icoWidthClamped:
+        "ICO 格式的最大宽度限制为 256px。你的输入已被限制为 256。",
+      targetSizeError: "请设置一个正的最大文件大小（MB）。",
+      compressedSuccess_one: "已成功压缩 {{count}} 张图片！",
+      compressedSuccess_other: "已成功压缩 {{count}} 张图片！",
+      cleanupSuccess:
+        "删除完成。你的已处理文件已被永久移除。🧹🧹🧹",
+      cleanupFailed: "强制清理失败。",
+      cleanupError: "🚨 清理失败。",
+      compressionCancelled: "压缩已取消。",
+      unexpectedError: "出了点问题。请重试。",
+      selectionCleared_one: "已清除 {{count}} 张图片的选择！🧹",
+      selectionCleared_other: "已清除 {{count}} 张图片的选择！🧹",
+    },
+  },
+
+  splash: {
+    dialogTitle: "正在压缩文件",
+    dialogDescription: "请稍候，正在压缩你的文件。",
+    tipLabel: "提示",
+    cancelButton: "取消",
+    steps: {
+      starting: "开始",
+      compressing: "压缩中",
+      packaging: "打包中",
+    },
+    tip: "你可以继续工作。保持此窗口打开，压缩文件准备好后我会把它们放在这里。",
+    messages: [
+      "正在压缩你的文件…",
+      "正在优化质量和大小。",
+      "正在重新编码图片，请稍候。",
+      "大文件上传可能需要一点时间。",
+      "仍在处理，感谢你的耐心。",
+      "正在清理并准备下载。",
+      "正在平衡速度和质量。",
+      "正在对输出文件做最后处理。",
+      "正在把像素压缩成更小的包。",
+      "快完成了，正在写入最后的字节。",
+      "正在检查文件完整性。",
+      "正在收尾转换任务。",
+      "正在确认一切正常。",
+    ],
+  },
+
+  form: {
+    outputFormat: {
+      label: "输出格式",
+      placeholder: "选择格式",
+      hint: "选择输出格式以启用转换。",
+      options: {
+        jpeg: "JPEG（文件更小）",
+        png: "PNG（保留透明度）",
+        avif: "AVIF（最佳压缩和质量）",
+        pdf: "PDF（单页文档）",
+        ico: "ICO（保留透明度）",
+      },
+      tooltip:
+        "PNG：保留透明度（Alpha），最适合透明背景图片。\nJPEG：适合没有透明度的图片，可生成更小的文件。\nAVIF：现代格式，压缩率和质量更好，并支持透明度。\nPDF：将图片导出为 PDF，可选择页面预设、边距和多页拆分。\nICO：常用于收藏夹图标和应用图标，支持透明度（Alpha）。转换为 ICO 时建议使用 PNG 作为源文件。",
+    },
+    pdfPreset: {
+      label: "PDF 页面预设",
+      disabledHint: "选择 PDF 预设时，调整宽度会被禁用。",
+      tooltip:
+        "A4/Letter 预设会按可配置的打印安全边距将图片缩放到页面。自动预设会根据图片方向旋转页面。",
+      options: {
+        original: "原始（保持比例）",
+        a4Auto: "A4 自动",
+        a4Portrait: "A4 纵向",
+        a4Landscape: "A4 横向",
+        letterAuto: "Letter 自动",
+        letterPortrait: "Letter 纵向",
+        letterLandscape: "Letter 横向",
+        mobilePortrait: "手机纵向（1080x1920）",
+        mobileLandscape: "手机横向（1920x1080）",
+      },
+    },
+    pdfScale: {
+      label: "PDF 缩放模式",
+      paginationHint: "分页使用适应模式以保留完整宽度。",
+      tooltip:
+        "适应会保留整张图片，可能出现白边。填充会裁剪图片以覆盖页面。",
+      options: {
+        fit: "适应（保留完整图片）",
+        fill: "填充（裁剪到页面）",
+      },
+    },
+    pdfMargin: {
+      label: "PDF 边距",
+      hint: "推荐并默认使用 10mm。",
+      tooltip: "以毫米设置打印安全边距。推荐 10mm。",
+    },
+    pdfPaginate: {
+      label: "将长图拆分为多页",
+      tooltip: "选择 PDF 预设时，将长图拆分为多页。",
+    },
+    compressionMode: {
+      label: "{{format}} 设置模式",
+      byQuality: "按质量设置",
+      bySize: "按文件大小设置",
+    },
+    rembg: {
+      label: "使用本地 AI 移除背景（{{model}}）",
+      tooltip:
+        "本地 AI 会移除背景（无需互联网）。\n处理较慢，边缘可能出现少量瑕疵。",
+    },
+    quality: {
+      label: "质量",
+      tooltip:
+        "调整质量（100 表示最佳质量，较低值会减小文件大小）。适用于 JPEG 和 AVIF。",
+      presets: {
+        smaller: "更小 (60)",
+        balanced: "均衡 (75)",
+        high: "高 (85)",
+        max: "最高 (100)",
+      },
+    },
+    targetSize: {
+      label: "最大文件大小",
+      placeholder: "例如 0.50",
+      hint: "它会通过自动调整质量，尝试让每个 {{format}} 文件不超过此大小。",
+      tooltip:
+        "设置可选的最大输出大小（MB）。适用于 JPEG 和 AVIF 输出。",
+    },
+    resizeWidth: {
+      label: "调整宽度",
+      tooltip:
+        "将图片调整到所需宽度，同时保留原始宽高比。",
+    },
+    dropzone: {
+      dragActive: "将图片或 PDF 拖到这里...",
+      processing: "处理过程中不能拖入文件...",
+      idle: "将图片或 PDF 拖放到这里，或点击选择",
+    },
+    filesList: {
+      label: "要转换的文件：",
+      removeButton: "移除",
+      removeSavedCropAria: "移除已保存裁剪",
+      croppedBadge: "已裁剪 {{w}} × {{h}}",
+      cropTooltip: "此文件有已保存的裁剪。点击 x 可移除该裁剪。",
+      editCropTooltip: "编辑此文件已保存的裁剪。",
+      addCropTooltip: "在转换此文件前选择可见区域。",
+      cropNotSupportedPdf: "暂不支持 PDF 裁剪。PDF 可能包含多页，因此裁剪前需要专门的页面选择流程。",
+      cropNotSupported: "当前暂不支持此格式的裁剪。",
+      cropButton: "裁剪",
+      editButton: "编辑",
+    },
+    error: {
+      label: "错误：",
+      detailsLabel: "详情：",
+    },
+    buttons: {
+      convert: "开始转换",
+      processing: "处理中...",
+      clear: "清除",
+    },
+  },
+
+  drawer: {
+    trigger_one: "🗃️ 显示压缩后的图片",
+    trigger_other: "🗃️ 显示压缩后的图片",
+    title_one: "压缩后的图片",
+    title_other: "压缩后的图片",
+    description_one: "单独下载你的压缩图片，或一次性全部下载。",
+    description_other: "单独下载你的压缩图片，或一次性全部下载。",
+    downloadAll: "全部下载为 ZIP",
+    close: "关闭",
+    downloadingFile: "正在下载：{{fileName}}...",
+    downloadingZip: "正在下载文件夹...",
+  },
+
+  storage: {
+    title: "存储管理",
+    used: "已用：",
+    available: "可用：",
+    files: "文件",
+    clearButton: "清除已处理文件",
+    totalFiles: "文件总数：",
+    totalSpace: "已用空间总计：",
+    noFiles: "未找到已转换文件。",
+    confirmTitle: "确认删除文件",
+    confirmDescription:
+      "此操作将永久删除所有已处理文件。继续之前请确保已下载任何需要的文件，因为此操作无法撤销。",
+    confirmCancel: "取消",
+    confirmDelete: "是，删除文件",
+    fetchError: "无法获取容器文件。",
+    storageError: "无法获取存储信息。",
+    zipLabel: "(ZIP)",
+  },
+
+  statusBanner: {
+    warning: "警告：后端当前不可用。",
+  },
+
+  statusFloating: {
+    systemStatusTitle: "系统状态",
+    title: "系统和连接状态",
+    backend: "容器后端：",
+    network: "网络访问：",
+    mode: "模式：",
+    modeRunning: "运行中",
+    backendDown: "已停止 ❌",
+    backendUp: "正常工作",
+    internetYes: "有互联网访问",
+    internetNo: "未检测到互联网 🚫",
+    internetUnknown: "未检查",
+    checkButton: "检查互联网连接",
+    checking: "检查中...",
+    whyTitle: "为什么会有这个？",
+    whyDesc:
+      "出于安全考虑，验证容器健康状态和网络隔离。任何图片或元数据都不会离开你的机器。",
+    learnMore: "了解更多离线使用 →",
+    backendLastCheck: "后端上次检查：",
+    internetLastCheck: "互联网上次检查：",
+  },
+
+  errorModal: {
+    title: "发生错误",
+    subtitle: "操作无法完成。复制下面的跟踪信息并创建工单，以便修复。",
+    detailsLabel: "技术详情",
+    notifyDeveloper:
+      "请创建工单并通知开发者，以便尽快修复。",
+    copyError: "复制错误",
+    copied: "已复制！",
+    openTicket: "创建工单",
+    close: "关闭",
+  },
+
+  formatsDialog: {
+    triggerButton: "我可以打开什么？",
+    title: "支持的文件",
+    descriptionStart: "这里是我可以为你打开的格式速查表。关闭此窗口后，你可以在主屏幕的",
+    descriptionBold: "输出格式",
+    descriptionEnd: "菜单中选择结果格式。",
+    searchLabel: "搜索列表",
+    searchHint: "输入即可查找格式",
+    searchPlaceholder: "搜索（例如 psd, tiff）...",
+    verifiedTitle: "已测试并可用",
+    unverifiedTitle: "其他可能的格式",
+    unverifiedHint: "这些尚未经过完整测试，但可能可以使用！",
+    footerText: "ImgCompress 可以帮你转换图片！",
+    reportBug: "报告错误",
+  },
+
+  starBanner: {
+    message: "觉得 ImgCompress 有用吗？",
+    linkText: "在 GitHub 上点星",
+    suffix: "可以帮助其他人发现它。",
+    dismiss: "不再显示",
+  },
+
+  help: {
+    label: "使用方法",
+  },
+
+  footer: {
+    updateAvailable: "有可用更新：{{version}}",
+    whatsNew: "新增内容",
+    version: "版本 {{version}}",
+    releaseNotes: "发布说明",
+    links: {
+      docs: "文档",
+      github: "GitHub",
+      reportBug: "报告错误",
+      author: "作者",
+      sponsor: "赞助",
+    },
+  },
+
+  releaseNotes: {
+    buttonLabel: "发布说明",
+    title: "发布说明",
+    infoBoxText: "查看",
+    infoBoxLink: "完整发布说明",
+    infoBoxSuffix: "以了解所有版本和详情。",
+    loading: "加载中…",
+    loadError: "无法加载发布说明",
+    empty: "没有可用的发布说明。",
+    tabLatest: "最新",
+    tabArchive: "归档",
+    noArchive: "尚无归档版本。",
+  },
+
+  langSwitcher: {
+    ariaLabel: "切换语言",
+  },
+
+  theme: {
+    switchToLight: "切换到浅色主题",
+    switchToDark: "切换到深色主题",
+    lightTitle: "浅色",
+    darkTitle: "深色",
+    toggle: "切换主题",
+  },
+
+  runtimeError: {
+    title: "运行时错误",
+    errorFallback: "错误",
+    unknownError: "未知错误",
+    subtitle: "渲染时出现问题。复制下面的跟踪信息并创建工单，以便修复。",
+    stackTrace: "堆栈跟踪",
+    tryAgain: "重试",
+    includeTitle: "在工单中包含此内容",
+    includeDescription: "将诊断文件附加到工单。它包含错误跟踪、浏览器上下文、前端日志，以及运行中的后端公开时的后端日志。",
+    downloadDiagnostics: "下载诊断",
+    copied: "已复制！",
+    copyError: "复制错误",
+    openTicket: "创建工单",
+  },
+
+  devMode: {
+    toggleTitle: "开发模式工具（仅在 DEV_MODE=true 时显示）",
+    title: "开发者工具",
+    description: "触发 UI 状态以验证错误界面。这些都不会调用真实后端。",
+    apiSection: "API 错误组件",
+    triggerApiError: "触发 API 错误",
+    triggerApiErrorLong: "触发 API 错误（长堆栈）",
+    runtimeSection: "运行时边界",
+    triggerRuntimeError: "触发运行时错误",
+    triggerRuntimeErrorLong: "触发运行时错误（长堆栈）",
+    footerPrefix: "可通过",
+    footerMiddle: " 中的 ",
+    footerSuffix: "切换此面板。标志关闭时永远不会显示。",
+  },
+
+  crop: {
+    aspectRatio: "宽高比",
+    zoom: "缩放",
+    zoomOut: "缩小",
+    zoomIn: "放大",
+    resetZoom: "重置缩放",
+    resetZoomFull: "重置缩放和平移",
+    dimensions: "尺寸",
+    resetSelection: "重置选择",
+    width: "宽度",
+    height: "高度",
+    original: "原始：{{w}} × {{h}} px",
+    removeSavedCrop: "移除已保存裁剪",
+    discard: "放弃",
+    saveCrop: "保存裁剪",
+    switchToLight: "切换到浅色主题",
+    switchToDark: "切换到深色主题",
+    confirmDialog: {
+      title: "放弃裁剪更改？",
+      description: "未保存的裁剪调整将会丢失。之前保存的裁剪（如果有）将保持不变。",
+      keepEditing: "继续编辑",
+      discardChanges: "放弃更改",
+    },
+    loading: {
+      serverWords: ["请", "稍等", "一下，", "我", "快", "准备", "好了"],
+      localWords: ["正在", "打开", "裁剪编辑器"],
+      serverMessage: "{{label}} 在裁剪前需要服务器渲染的位图。正在准备。",
+      localMessage: "正在裁剪编辑器中打开 {{label}}。",
+    },
+    failure: {
+      header: "无法准备此 {{label}} 进行裁剪。",
+      whyTitle: "为什么会发生？",
+      technicalDetails: "技术详情",
+      stillConvert: "你仍然可以按原样转换此文件。只是不会应用裁剪。",
+      closeButton: "关闭",
+      reportButton: "报告此问题",
+      causes: {
+        backendNotReachable: "后端服务尚不可访问。如果你刚刚重建了容器，请等待几秒钟让它启动，然后重试。",
+        networkDropped: "上传过程中与后端的连接中断。检查容器是否仍在运行，然后重试。",
+        variantNotSupported: "此文件可能是解码器无法读取的 {{label}} 变体（多图层、非标准颜色模式、加密等）。通常从源应用重新导出为扁平的 {{label}} 或普通 PNG/JPG 可以解决此问题。",
+        missingLibraries: "{{label}} 文件始终会经过后端解码器。如果解码器缺少原生库（例如 HEIC 所需的 libheif），使用可选编解码器重新构建通常可以解决。",
+        reportIssue: "如果以上都不符合，请复制下面的技术详情并创建工单。跟踪信息会准确显示哪一步失败。",
+      },
+    },
+    freeRatio: "自由",
+    editorTitle: "裁剪编辑器",
+    editorDescription: "调整此图片的裁剪区域、比例和缩放，然后点击保存裁剪或放弃。",
+    removeDialog: {
+      title: "移除已保存裁剪？",
+      description: "这会清除此文件的已保存裁剪。原始文件仍会保留在转换列表中。",
+      keepCrop: "保留裁剪",
+      removeCrop: "移除裁剪",
+    },
+    shortcuts: {
+      title: "快捷键",
+      items: [
+        { keys: ["拖动"],                 desc: "移动裁剪" },
+        { keys: ["拖动角点"],             desc: "调整大小" },
+        { keys: ["Alt", "+ 拖动控制点"],  desc: "从中心调整大小" },
+        { keys: ["滚轮"],                 desc: "在光标处缩放" },
+        { keys: ["空格", "+ 拖动"],       desc: "平移" },
+        { keys: ["Esc"],                  desc: "关闭" },
+      ],
+    },
+  },
+};

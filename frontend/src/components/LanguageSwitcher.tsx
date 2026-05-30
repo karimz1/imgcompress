@@ -10,12 +10,23 @@ import {
   LOCALE_STORAGE_KEY,
   SUPPORTED_LOCALES,
   i18n,
+  resolveSupportedLocale,
   type Locale,
 } from "@/i18n";
 
 const LANGUAGE_META: Record<Locale, { label: string; flag: string }> = {
+  ar: { label: "العربية", flag: "🇸🇦" },
+  de: { label: "Deutsch", flag: "🇩🇪" },
   en: { label: "English", flag: "🇬🇧" },
+  es: { label: "Español", flag: "🇪🇸" },
+  "es-MX": { label: "Español (México)", flag: "🇲🇽" },
+  fr: { label: "Français", flag: "🇫🇷" },
+  hi: { label: "हिन्दी", flag: "🇮🇳" },
   hu: { label: "Magyar", flag: "🇭🇺" },
+  ja: { label: "日本語", flag: "🇯🇵" },
+  "pt-BR": { label: "Português (Brasil)", flag: "🇧🇷" },
+  ru: { label: "Русский", flag: "🇷🇺" },
+  "zh-CN": { label: "中文（普通话）", flag: "🇨🇳" },
 };
 
 const LANGUAGES = SUPPORTED_LOCALES.map((code) => ({
@@ -23,10 +34,11 @@ const LANGUAGES = SUPPORTED_LOCALES.map((code) => ({
   ...LANGUAGE_META[code],
 }));
 
+const TRANSLATION_CONTRIBUTION_URL =
+  "https://github.com/karimz1/imgcompress/tree/main/frontend/src/i18n/locales";
+
 function toLocale(code: string): Locale {
-  return (SUPPORTED_LOCALES as readonly string[]).includes(code)
-    ? (code as Locale)
-    : DEFAULT_LOCALE;
+  return resolveSupportedLocale(code) ?? DEFAULT_LOCALE;
 }
 
 export function LanguageSwitcher() {
@@ -73,7 +85,7 @@ export function LanguageSwitcher() {
           sideOffset={6}
           align="end"
           className={cn(
-            "z-[200] min-w-[120px] overflow-hidden rounded-lg border shadow-lg",
+            "z-[200] min-w-[260px] max-w-[280px] overflow-hidden rounded-lg border shadow-lg",
             "bg-zinc-900 border-zinc-700 text-zinc-100",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -102,6 +114,23 @@ export function LanguageSwitcher() {
               </SelectPrimitive.Item>
             ))}
           </SelectPrimitive.Viewport>
+          <div
+            dir="ltr"
+            className="border-t border-zinc-700/70 px-3 py-2 text-left text-[11px] leading-snug text-zinc-400"
+          >
+            Some translations are online-tool assisted and may be imperfect. If a text
+            looks off, please{" "}
+            <a
+              href={TRANSLATION_CONTRIBUTION_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-zinc-100 underline underline-offset-2 hover:text-white"
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              improve it on GitHub
+            </a>
+            .
+          </div>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>
     </SelectPrimitive.Root>
