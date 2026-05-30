@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      issues: write
       pull-requests: read
     steps:
       - name: Mint imgcompress-chan token
@@ -43,6 +44,7 @@ jobs:
           app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
           private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
           permission-contents: write
+          permission-issues: write
           permission-pull-requests: read
 
       - name: Resolve and validate PR
