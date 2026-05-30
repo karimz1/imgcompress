@@ -8,9 +8,17 @@ https://github.com/karimz1/imgcompress/tree/main/frontend/src/i18n/locales
 
 Together we can make ImgCompress better for everyone.
 
+
+
 ## Translation Credits
 
-For transparency, everyone who contributes meaningful improvements to a language file can be credited here.
+<div **align**="right">
+  <a href="https://github.com/karimz1/imgcompress/issues/653">
+    <img src="https://img.shields.io/badge/i18 Featrue Contribution_by-nagyonmarci-0f172a?style=for-the-badge&logo=shield&logoColor=white" alt="Contributions by nagyonmarci" />
+  </a>
+</div>
+
+For transparency, everyone who contributes meaningful improvements to a language file will be credited here.
 
 | Locale | Language | Credit | Status |
 | --- | --- | --- | --- |
