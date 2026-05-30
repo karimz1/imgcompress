@@ -29,6 +29,9 @@
     <a href="https://coolify.io/docs/services/imgcompress?utm_source=github.com">
       <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as official Coolify service" />
     </a>
+    <a href="./TRANSLATIONS.md">
+      <img src="https://img.shields.io/badge/Multi--language-12%20locales-16a34a?style=flat-square&logo=googletranslate&logoColor=white" alt="Multi-language support: 12 locales" />
+    </a>
   </p>
 
   <p>
@@ -66,6 +69,33 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 | **Web UI + CLI** | Browser dashboard for day-to-day use; CLI for scripting pipelines |
 | **Single Container** | Every codec and library pre-bundled, zero host dependencies |
 | **Air-Gap Ready** | Once pulled, runs fully offline. No internet required, ever |
+
+---
+
+## Multilingual Support
+
+ImgCompress supports multiple frontend languages and welcomes community improvements to every locale. See the **[translation guide](TRANSLATIONS.md)** to add a new language, improve an existing translation, or get credited for meaningful language updates.
+
+Supported languages:
+
+- English
+- Spanish
+- Spanish (Mexico)
+- Chinese (Simplified)
+- Hindi
+- Arabic
+- French
+- Portuguese (Brazil)
+- Russian
+- Japanese
+- German
+- Hungarian
+
+<div **align**="right">
+  <a href="https://github.com/karimz1/imgcompress/issues/653">
+    <img src="https://img.shields.io/badge/i18 Featrue Contribution_by-nagyonmarci-0f172a?style=for-the-badge&logo=shield&logoColor=white" alt="Contributions by nagyonmarci" />
+  </a>
+</div>
 
 ---
 

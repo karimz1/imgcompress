@@ -1,0 +1,402 @@
+export const en = {
+  page: {
+    subtitle: "An Image Compression Tool",
+    adminTools: "Admin Tools",
+    toast: {
+      unsupportedFormat: "Unsupported File Format: {{fileName}}",
+      filesRejected: "{{count}} file(s) were rejected due to unsupported file types.",
+      noFilesError: "Please drop or select some files first.",
+      noFormatError: "Please select an output format first.",
+      qualityRangeError: "Quality must be a number between 1 and 100.",
+      widthPositiveError: "Width must be a positive number.",
+      icoWidthClamped:
+        "ICO format is limited to a max width of 256px. Your input has been clamped to 256.",
+      targetSizeError: "Please set a positive Max file size (in MB).",
+      compressedSuccess_one: "{{count}} Image compressed successfully!",
+      compressedSuccess_other: "{{count}} Images compressed successfully!",
+      cleanupSuccess:
+        "Deletion Complete. Your processed files have been permanently removed. 🧹🧹🧹",
+      cleanupFailed: "Force cleanup failed.",
+      cleanupError: "🚨 Cleanup failed.",
+      compressionCancelled: "Compression cancelled.",
+      unexpectedError: "Something went wrong. Please try again.",
+      selectionCleared_one: "{{count}} Image selection cleared! 🧹",
+      selectionCleared_other: "{{count}} Images selection cleared! 🧹",
+    },
+  },
+
+  splash: {
+    dialogTitle: "Compressing Files",
+    dialogDescription: "Please wait while your files are being compressed.",
+    tipLabel: "Tip",
+    cancelButton: "Cancel",
+    steps: {
+      starting: "Starting",
+      compressing: "Compressing",
+      packaging: "Packaging",
+    },
+    tip: "Keep working—leave this window open and I'll drop your compressed files here when they're ready.",
+    messages: [
+      "Compressing your files…",
+      "Optimizing quality and size.",
+      "Re-encoding images, please hold on.",
+      "Large uploads can take a moment.",
+      "Still working—thanks for your patience.",
+      "Cleaning up and preparing your downloads.",
+      "Balancing speed with quality right now.",
+      "Finishing touches on the output files.",
+      "Crunching pixels into smaller packages.",
+      "Almost there—writing final bytes.",
+      "Checking file integrity.",
+      "Wrapping up conversion tasks.",
+      "Making sure everything looks good.",
+    ],
+  },
+
+  form: {
+    outputFormat: {
+      label: "Output Format",
+      placeholder: "Select format",
+      hint: "Select an output format to enable conversion.",
+      options: {
+        jpeg: "JPEG (smaller file size)",
+        png: "PNG (preserves transparency)",
+        avif: "AVIF (best compression & quality)",
+        pdf: "PDF (single-page document)",
+        ico: "ICO (preserves transparency)",
+      },
+      tooltip:
+        "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+    },
+    pdfPreset: {
+      label: "PDF Page Preset",
+      disabledHint: "Resize Width is disabled while a PDF preset is selected.",
+      tooltip:
+        "A4/Letter presets scale the image to the page with a configurable print-safe margin. Auto presets rotate the page based on image orientation.",
+      options: {
+        original: "Original (keep proportions)",
+        a4Auto: "A4 Auto",
+        a4Portrait: "A4 Portrait",
+        a4Landscape: "A4 Landscape",
+        letterAuto: "Letter Auto",
+        letterPortrait: "Letter Portrait",
+        letterLandscape: "Letter Landscape",
+        mobilePortrait: "Mobile Portrait (1080x1920)",
+        mobileLandscape: "Mobile Landscape (1920x1080)",
+      },
+    },
+    pdfScale: {
+      label: "PDF Scale Mode",
+      paginationHint: "Pagination uses Fit mode to preserve full width.",
+      tooltip: "Fit preserves the entire image with possible white bars. Fill crops to cover the page.",
+      options: {
+        fit: "Fit (preserve full image)",
+        fill: "Fill (crop to page)",
+      },
+    },
+    pdfMargin: {
+      label: "PDF Margin",
+      hint: "10mm is recommended and the default.",
+      tooltip: "Set the print-safe border in millimeters. 10mm is recommended.",
+    },
+    pdfPaginate: {
+      label: "Split long images into multiple pages",
+      tooltip: "Splits long images into multiple pages when a PDF preset is selected.",
+    },
+    compressionMode: {
+      label: "{{format}} settings mode",
+      byQuality: "Set by Quality",
+      bySize: "Set by File Size",
+    },
+    rembg: {
+      label: "Remove background with local AI ({{model}})",
+      tooltip:
+        "Local AI removes background (no internet required).\nSlower processing, may show small edge artifacts.",
+    },
+    quality: {
+      label: "Quality",
+      tooltip:
+        "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG and AVIF.",
+      presets: {
+        smaller: "Smaller (60)",
+        balanced: "Balanced (75)",
+        high: "High (85)",
+        max: "Max (100)",
+      },
+    },
+    targetSize: {
+      label: "Max file size",
+      placeholder: "e.g., 0.50",
+      hint: "It will try to keep each {{format}} at or below this size by automatically adjusting quality.",
+      tooltip:
+        "Set an optional maximum output size (in MB). Applies to JPEG and AVIF output.",
+    },
+    resizeWidth: {
+      label: "Resize Width",
+      tooltip:
+        "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
+    },
+    dropzone: {
+      dragActive: "Drop images or PDFs here...",
+      processing: "Cannot drop files while processing...",
+      idle: "Drag & drop images or PDFs here, or click to select",
+    },
+    filesList: {
+      label: "Files to convert:",
+      removeButton: "Remove",
+      removeSavedCropAria: "Remove saved crop",
+      croppedBadge: "cropped {{w}} × {{h}}",
+      cropTooltip: "This file has a saved crop. Click the x to remove that crop.",
+      editCropTooltip: "Edit the saved crop for this file.",
+      addCropTooltip: "Choose the visible area before converting this file.",
+      cropNotSupportedPdf: "PDF crop is not supported yet. PDFs can contain multiple pages, so crop needs a dedicated page-selection workflow first.",
+      cropNotSupported: "Crop is not supported for this format at the moment.",
+      cropButton: "Crop",
+      editButton: "Edit",
+    },
+    error: {
+      label: "Error:",
+      detailsLabel: "Details:",
+    },
+    buttons: {
+      convert: "Start Converting",
+      processing: "Processing...",
+      clear: "Clear",
+    },
+  },
+
+  drawer: {
+    trigger_one: "🗃️ Show Compressed Image",
+    trigger_other: "🗃️ Show Compressed Images",
+    title_one: "Compressed Image",
+    title_other: "Compressed Images",
+    description_one: "Download your compressed Image individually or all at once.",
+    description_other: "Download your compressed Images individually or all at once.",
+    downloadAll: "Download All as Zip",
+    close: "Close",
+    downloadingFile: "Downloading: {{fileName}}...",
+    downloadingZip: "Downloading: Folder...",
+  },
+
+  storage: {
+    title: "Storage Management",
+    used: "Used:",
+    available: "Available:",
+    files: "Files",
+    clearButton: "Clear Processed Files",
+    totalFiles: "Total Files:",
+    totalSpace: "Total Space Used:",
+    noFiles: "No converted files found.",
+    confirmTitle: "Confirm File Deletion",
+    confirmDescription:
+      "This action will permanently delete all processed files. Please ensure you have downloaded any necessary files before proceeding, as this action cannot be undone.",
+    confirmCancel: "Cancel",
+    confirmDelete: "Yes, Delete Files",
+    fetchError: "Failed to fetch container files.",
+    storageError: "Failed to fetch storage info.",
+    zipLabel: "(ZIP)",
+  },
+
+  statusBanner: {
+    warning: "Warning: Backend is currently unavailable.",
+  },
+
+  statusFloating: {
+    systemStatusTitle: "System Status",
+    title: "System & Connectivity Status",
+    backend: "Container Backend:",
+    network: "Network Access:",
+    mode: "Mode:",
+    modeRunning: "running",
+    backendDown: "Is Down ❌",
+    backendUp: "Is Working",
+    internetYes: "Has Internet Access",
+    internetNo: "No Internet Detected 🚫",
+    internetUnknown: "Not Checked",
+    checkButton: "Check Internet Connection",
+    checking: "Checking...",
+    whyTitle: "Why this exists?",
+    whyDesc:
+      "Verifies container health and network isolation for security. No images or metadata ever leave your machine.",
+    learnMore: "Learn more about offline usage →",
+    backendLastCheck: "Backend Last Check:",
+    internetLastCheck: "Internet Last Check:",
+  },
+
+  errorModal: {
+    title: "Error Occurred",
+    subtitle: "The action couldn't complete. Copy the trace below and open a ticket so it can be fixed.",
+    detailsLabel: "Technical details",
+    notifyDeveloper:
+      "Please open a ticket and notify the developer so this can be fixed ASAP.",
+    copyError: "Copy Error",
+    copied: "Copied!",
+    openTicket: "Open Ticket",
+    close: "Close",
+  },
+
+  formatsDialog: {
+    triggerButton: "What can I open?",
+    title: "Supported files",
+    descriptionStart: "Here is a cheat sheet of what I can open for you. You can pick your result format using the",
+    descriptionBold: "Output Format",
+    descriptionEnd: "menu on the main screen after you close this.",
+    searchLabel: "Search list",
+    searchHint: "Just type to find a format",
+    searchPlaceholder: "Search (e.g. psd, tiff)...",
+    verifiedTitle: "Tested & Working",
+    unverifiedTitle: "Other possible formats",
+    unverifiedHint: "These haven't been fully tested yet, but they might work!",
+    footerText: "ImgCompress here to help you convert your images!",
+    reportBug: "Report a bug",
+  },
+
+  starBanner: {
+    message: "Found ImgCompress useful?",
+    linkText: "A star on GitHub",
+    suffix: "helps others discover it.",
+    dismiss: "Don't show again",
+  },
+
+  help: {
+    label: "How to Use",
+  },
+
+  footer: {
+    updateAvailable: "Update available: {{version}}",
+    whatsNew: "What's new",
+    version: "Version {{version}}",
+    releaseNotes: "Release Notes",
+    links: {
+      docs: "Docs",
+      github: "GitHub",
+      reportBug: "Report a Bug",
+      author: "Author",
+      sponsor: "Sponsor",
+    },
+  },
+
+  releaseNotes: {
+    buttonLabel: "Release Notes",
+    title: "Release Notes",
+    infoBoxText: "View",
+    infoBoxLink: "complete release notes",
+    infoBoxSuffix: "for all versions and details.",
+    loading: "Loading…",
+    loadError: "Failed to load release notes",
+    empty: "No release notes available.",
+    tabLatest: "Latest",
+    tabArchive: "Archive",
+    noArchive: "No archived releases yet.",
+  },
+
+  langSwitcher: {
+    ariaLabel: "Switch language",
+  },
+
+  theme: {
+    switchToLight: "Switch to light theme",
+    switchToDark: "Switch to dark theme",
+    lightTitle: "Light",
+    darkTitle: "Dark",
+    toggle: "Toggle theme",
+  },
+
+  runtimeError: {
+    title: "Runtime Error",
+    errorFallback: "Error",
+    unknownError: "Unknown error",
+    subtitle: "Something broke while rendering. Copy the trace below and open a ticket so it can be fixed.",
+    stackTrace: "Stack trace",
+    tryAgain: "Try Again",
+    includeTitle: "Include this in the ticket",
+    includeDescription: "Attach the diagnostics file to the ticket. It includes the error trace, browser context, frontend logs, and backend logs when the running backend exposes them.",
+    downloadDiagnostics: "Download Diagnostics",
+    copied: "Copied!",
+    copyError: "Copy Error",
+    openTicket: "Open Ticket",
+  },
+
+  devMode: {
+    toggleTitle: "Dev mode tools (only shown when DEV_MODE=true)",
+    title: "Developer Tools",
+    description: "Trigger UI states to verify error surfaces. None of these call the real backend.",
+    apiSection: "API error widget",
+    triggerApiError: "Trigger API Error",
+    triggerApiErrorLong: "Trigger API Error (long stack)",
+    runtimeSection: "Runtime boundary",
+    triggerRuntimeError: "Trigger Runtime Error",
+    triggerRuntimeErrorLong: "Trigger Runtime Error (long stack)",
+    footerPrefix: "Toggle this panel via",
+    footerMiddle: " in ",
+    footerSuffix: ". It is never shown when the flag is off.",
+  },
+
+  crop: {
+    aspectRatio: "Aspect ratio",
+    zoom: "Zoom",
+    zoomOut: "Zoom out",
+    zoomIn: "Zoom in",
+    resetZoom: "Reset zoom",
+    resetZoomFull: "Reset zoom and pan",
+    dimensions: "Dimensions",
+    resetSelection: "Reset Selection",
+    width: "Width",
+    height: "Height",
+    original: "Original: {{w}} × {{h}} px",
+    removeSavedCrop: "Remove Saved Crop",
+    discard: "Discard",
+    saveCrop: "Save Crop",
+    switchToLight: "Switch to light theme",
+    switchToDark: "Switch to dark theme",
+    confirmDialog: {
+      title: "Discard crop changes?",
+      description: "Your unsaved crop adjustments will be lost. The previously saved crop, if any, will stay unchanged.",
+      keepEditing: "Keep Editing",
+      discardChanges: "Discard Changes",
+    },
+    loading: {
+      serverWords: ["Please", "wait", "a", "bit,", "I'm", "almost", "ready"],
+      localWords: ["Opening", "crop", "editor"],
+      serverMessage: "{{label}} needs a server-rendered bitmap before cropping. Preparing it now.",
+      localMessage: "Opening {{label}} in the crop editor.",
+    },
+    failure: {
+      header: "Couldn't prepare this {{label}} for cropping.",
+      whyTitle: "Why did this happen?",
+      technicalDetails: "Technical details",
+      stillConvert: "You can still convert this file as-is. It just won't have a crop applied.",
+      closeButton: "Close",
+      reportButton: "Report this issue",
+      causes: {
+        backendNotReachable: "The backend service isn't reachable yet. If you just rebuilt the container, give it a few seconds to come up and try again.",
+        networkDropped: "The connection to the backend dropped mid-upload. Check that the container is still running and try again.",
+        variantNotSupported: "This file may be a {{label}} variant the decoder can't read (multi-layer, non-standard color mode, encrypted, etc.). Re-exporting from the source app as a flat {{label}} or a regular PNG / JPG usually fixes this.",
+        missingLibraries: "{{label}} files always go through the backend's decoder. If the decoder is missing native libraries (e.g. libheif for HEIC), the build may have skipped them — re-running the build with the optional codecs enabled usually resolves it.",
+        reportIssue: "If none of the above fits, copy the technical details below and open a ticket — the trace shows exactly which step failed.",
+      },
+    },
+    freeRatio: "Free",
+    editorTitle: "Crop Editor",
+    editorDescription: "Adjust the crop region, ratio, and zoom for this image, then click Save Crop or Discard.",
+    removeDialog: {
+      title: "Remove saved crop?",
+      description: "This clears the saved crop for this file. The original file will stay in your conversion list.",
+      keepCrop: "Keep Crop",
+      removeCrop: "Remove Crop",
+    },
+    shortcuts: {
+      title: "Shortcuts",
+      items: [
+        { keys: ["Drag"],                 desc: "Move crop" },
+        { keys: ["Drag corner"],          desc: "Resize" },
+        { keys: ["Alt", "+ Drag handle"], desc: "Resize from center" },
+        { keys: ["Wheel"],                desc: "Zoom at cursor" },
+        { keys: ["Space", "+ Drag"],      desc: "Pan" },
+        { keys: ["Esc"],                  desc: "Close" },
+      ],
+    },
+  },
+} as const;
+
+export type Translations = typeof en;

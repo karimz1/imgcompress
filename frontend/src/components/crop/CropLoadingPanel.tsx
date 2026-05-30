@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { BrandLogo } from "@/components/BrandLogo";
 import { fileFormatLabel } from "@/lib/crop";
 import { cn } from "@/lib/utils";
@@ -13,21 +14,23 @@ interface CropLoadingPanelProps {
   variant?: "local" | "server";
 }
 
-const SERVER_LOADING_WORDS = ["Please", "wait", "a", "bit,", "I'm", "almost", "ready"];
-const LOCAL_LOADING_WORDS = ["Opening", "crop", "editor"];
-
 export const CropLoadingPanel: React.FC<CropLoadingPanelProps> = ({
   file,
   isDarkTheme,
   disableLogo,
   variant = "server",
 }) => {
+  const { t } = useTranslation();
   const label = fileFormatLabel(file);
   const isServer = variant === "server";
-  const loadingWords = isServer ? SERVER_LOADING_WORDS : LOCAL_LOADING_WORDS;
+  const rawWords = t(
+    isServer ? "crop.loading.serverWords" : "crop.loading.localWords",
+    { returnObjects: true }
+  );
+  const loadingWords = Array.isArray(rawWords) ? (rawWords as string[]) : [];
   const loadingCopy = isServer
-    ? `${label} needs a server-rendered bitmap before cropping. Preparing it now.`
-    : `Opening ${label} in the crop editor.`;
+    ? t("crop.loading.serverMessage", { label })
+    : t("crop.loading.localMessage", { label });
 
   return (
     <div
@@ -71,7 +74,7 @@ export const CropLoadingPanel: React.FC<CropLoadingPanelProps> = ({
               className={cn(styles.animatedWord, "inline-block")}
             >
               {word}
-              {index < loadingWords.length - 1 ? " " : ""}
+              {index < loadingWords.length - 1 ? " " : ""}
             </span>
           ))}
           <span className={cn(styles.cursorBlink, "inline-block w-[0.6ch]")}>▍</span>

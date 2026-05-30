@@ -1,17 +1,21 @@
+"use client";
+
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ExternalLink, Heart, ArrowUpCircle } from "lucide-react";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { APP_CONFIG } from "@/lib/config";
 
 const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
+  const { t } = useTranslation();
   const { currentVersion, latestVersion, updateAvailable } = useVersionCheck();
 
   const links = [
-    { href: APP_CONFIG.DOCS_URL, label: "Docs" },
-    { href: APP_CONFIG.GITHUB_REPO_URL, label: "GitHub" },
-    { href: APP_CONFIG.GITHUB_ISSUES_URL, label: "Report a Bug" },
-    { href: APP_CONFIG.AUTHOR_URL, label: "Author" },
-    { href: APP_CONFIG.SPONSOR_URL, label: "Sponsor", icon: Heart },
+    { href: APP_CONFIG.DOCS_URL, label: t("footer.links.docs") },
+    { href: APP_CONFIG.GITHUB_REPO_URL, label: t("footer.links.github") },
+    { href: APP_CONFIG.GITHUB_ISSUES_URL, label: t("footer.links.reportBug") },
+    { href: APP_CONFIG.AUTHOR_URL, label: t("footer.links.author") },
+    { href: APP_CONFIG.SPONSOR_URL, label: t("footer.links.sponsor"), icon: Heart },
   ];
 
   return (
@@ -22,14 +26,14 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
             <div className="flex items-center justify-center gap-2 text-xs font-medium">
               <ArrowUpCircle className="h-4 w-4" />
               <span>
-                Update available: {latestVersion} •{" "}
+                {t("footer.updateAvailable", { version: latestVersion })} •{" "}
                 <a
                   href={APP_CONFIG.DOCS_RELEASE_NOTES_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline underline-offset-2 hover:text-amber-600 dark:hover:text-amber-300"
                 >
-                  What's new
+                  {t("footer.whatsNew")}
                 </a>
               </span>
             </div>
@@ -58,7 +62,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
         </div>
         {currentVersion && (
           <div className="text-xs text-muted-foreground/50 space-x-2">
-            <span>Version {currentVersion}</span>
+            <span>{t("footer.version", { version: currentVersion })}</span>
             <span className="text-muted-foreground/30">•</span>
             <a
               href={APP_CONFIG.DOCS_RELEASE_NOTES_URL}
@@ -66,7 +70,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
             >
-              Release Notes
+              {t("footer.releaseNotes")}
             </a>
           </div>
         )}
