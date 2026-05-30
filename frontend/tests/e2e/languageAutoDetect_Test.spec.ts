@@ -3,7 +3,7 @@ test.describe("Browser-language auto-detection", () => {
 test("falls back to English when no preferred locale matches", async ({
 browser,
 }) => {
-const context = await browser.newContext({ locale: "fr-FR" });
+const context = await browser.newContext({ locale: "it-IT" });
 const page = await context.newPage();
 await page.addInitScript(() => {
 window.localStorage.removeItem("imgcompress_locale");
