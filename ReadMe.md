@@ -234,12 +234,7 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 - Every change is verified by a Playwright E2E suite that covers all supported formats
 
 > [!NOTE]
-> **Meet [imgcompress-chan](https://imgcompress.karimzouine.com/docs/imgcompress-chan)**, the repo's custom helper bot. She auto-merges Dependabot PRs once CI passes, and if a frontend dependency update leaves a broken `pnpm-lock.yaml` you can also ask her to fix it on the spot:
->
-> > Hey chan, can you `/chan-fix` it please? 💛
->
-> She'll refresh the branch from `main`, regenerate the lockfile, and push the repair commit so CI re-runs. More tricks coming as she learns.
-
+> **Meet [imgcompress-chan](https://imgcompress.karimzouine.com/docs/imgcompress-chan)**, the repo's custom helper bot. She auto-merges Dependabot PRs once CI passes, and if a frontend dependency update leaves a broken `pnpm-lock.yaml`.
 ---
 
 ## License & Author
