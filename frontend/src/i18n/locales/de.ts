@@ -169,12 +169,12 @@ export const de: TranslationSchema = {
   },
 
   drawer: {
-    trigger_one: "🗃️ Komprimiertes Bild anzeigen",
-    trigger_other: "🗃️ Komprimierte Bilder anzeigen",
-    title_one: "Komprimiertes Bild",
-    title_other: "Komprimierte Bilder",
-    description_one: "Lade dein komprimiertes Bild einzeln oder zusammen mit allen Dateien herunter.",
-    description_other: "Lade deine komprimierten Bilder einzeln oder alle auf einmal herunter.",
+    trigger_one: "🗃️ Konvertiertes Bild anzeigen",
+    trigger_other: "🗃️ Konvertierte Bilder anzeigen",
+    title_one: "Konvertiertes Bild",
+    title_other: "Konvertierte Bilder",
+    description_one: "Lade dein konvertiertes Bild einzeln oder zusammen mit allen Dateien herunter.",
+    description_other: "Lade deine konvertierten Bilder einzeln oder alle auf einmal herunter.",
     downloadAll: "Alle als ZIP herunterladen",
     close: "Schließen",
     downloadingFile: "Wird heruntergeladen: {{fileName}}...",
