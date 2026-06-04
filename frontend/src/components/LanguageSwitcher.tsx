@@ -14,19 +14,34 @@ import {
   type Locale,
 } from "@/i18n";
 
-const LANGUAGE_META: Record<Locale, { label: string; flag: string }> = {
-  ar: { label: "العربية", flag: "🇸🇦" },
-  de: { label: "Deutsch", flag: "🇩🇪" },
-  en: { label: "English", flag: "🇬🇧" },
-  es: { label: "Español", flag: "🇪🇸" },
-  "es-MX": { label: "Español (México)", flag: "🇲🇽" },
-  fr: { label: "Français", flag: "🇫🇷" },
-  hi: { label: "हिन्दी", flag: "🇮🇳" },
-  hu: { label: "Magyar", flag: "🇭🇺" },
-  ja: { label: "日本語", flag: "🇯🇵" },
-  "pt-BR": { label: "Português (Brasil)", flag: "🇧🇷" },
-  ru: { label: "Русский", flag: "🇷🇺" },
-  "zh-CN": { label: "中文（普通话）", flag: "🇨🇳" },
+const LANGUAGE_META: Record<Locale, { label: string }> = {
+  ar: { label: "العربية" },
+  de: { label: "Deutsch" },
+  en: { label: "English" },
+  es: { label: "Español" },
+  "es-MX": { label: "Español (México)" },
+  fr: { label: "Français" },
+  hi: { label: "हिन्दी" },
+  hu: { label: "Magyar" },
+  ja: { label: "日本語" },
+  "pt-BR": { label: "Português (Brasil)" },
+  ru: { label: "Русский" },
+  "zh-CN": { label: "中文（普通话）" },
+};
+
+const LANGUAGE_FLAG_CODES: Record<Locale, string> = {
+  ar: "arab",
+  de: "de",
+  en: "gb",
+  es: "es",
+  "es-MX": "mx",
+  fr: "fr",
+  hi: "in",
+  hu: "hu",
+  ja: "jp",
+  "pt-BR": "br",
+  ru: "ru",
+  "zh-CN": "cn",
 };
 
 const LANGUAGES = SUPPORTED_LOCALES.map((code) => ({
@@ -39,6 +54,23 @@ const TRANSLATION_CONTRIBUTION_URL =
 
 function toLocale(code: string): Locale {
   return resolveSupportedLocale(code) ?? DEFAULT_LOCALE;
+}
+
+function FlagMark({ locale }: { locale: Locale }) {
+  const flagCode = LANGUAGE_FLAG_CODES[locale];
+
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "fi shrink-0 overflow-hidden rounded-[3px] text-base leading-none shadow-sm ring-1 ring-black/15 dark:ring-white/20",
+        `fi-${flagCode}`
+      )}
+      style={{
+        backgroundSize: "100% 100%",
+      }}
+    />
+  );
 }
 
 export function LanguageSwitcher() {
@@ -65,28 +97,30 @@ export function LanguageSwitcher() {
     <SelectPrimitive.Root value={current.code} onValueChange={handleChange}>
       <SelectPrimitive.Trigger
         className={cn(
-          "flex items-center gap-1.5 rounded-full px-3 h-9",
-          "bg-zinc-800 text-zinc-100 border border-zinc-700/40 shadow-sm",
-          "hover:bg-zinc-700 transition-colors text-xs font-medium",
-          "focus:outline-none focus:ring-2 focus:ring-zinc-500/40"
+          "group flex h-9 items-center gap-2 rounded-full px-3 text-xs font-semibold",
+          "border border-black/10 bg-white/70 text-slate-800 shadow-[0_8px_24px_rgba(15,23,42,0.12),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl",
+          "transition-all duration-200 hover:-translate-y-px hover:bg-white/90 hover:shadow-[0_12px_30px_rgba(15,23,42,0.16),inset_0_1px_0_rgba(255,255,255,0.75)]",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40",
+          "dark:border-white/10 dark:bg-zinc-950/55 dark:text-zinc-100 dark:shadow-[0_10px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.12)] dark:hover:bg-zinc-900/75"
         )}
         aria-label={t("langSwitcher.ariaLabel")}
       >
-        <span>{current.flag}</span>
+        <FlagMark locale={current.code} />
         <SelectPrimitive.Value>
-          <span>{current.code.toUpperCase()}</span>
+          <span className="tracking-[0.02em]">{current.code.toUpperCase()}</span>
         </SelectPrimitive.Value>
-        <ChevronDown className="h-3 w-3 opacity-60" />
+        <ChevronDown className="h-3 w-3 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
       </SelectPrimitive.Trigger>
 
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
           position="popper"
-          sideOffset={6}
+          sideOffset={8}
           align="end"
+          collisionPadding={16}
           className={cn(
-            "z-[200] min-w-[260px] max-w-[280px] overflow-hidden rounded-lg border shadow-lg",
-            "bg-zinc-900 border-zinc-700 text-zinc-100",
+            "z-[200] w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border shadow-[0_24px_70px_rgba(15,23,42,0.22),inset_0_1px_0_rgba(255,255,255,0.65)] backdrop-blur-2xl",
+            "border-white/50 bg-white/80 text-slate-800 dark:border-white/10 dark:bg-zinc-950/80 dark:text-zinc-100 dark:shadow-[0_28px_80px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.1)]",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -99,16 +133,17 @@ export function LanguageSwitcher() {
                 key={lang.code}
                 value={lang.code}
                 className={cn(
-                  "relative flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
+                  "relative flex items-center gap-2.5 rounded-xl py-1.5 pl-2 pr-8 text-xs",
                   "cursor-default select-none outline-none",
-                  "focus:bg-zinc-700 data-[state=checked]:font-semibold"
+                  "text-slate-700 transition-colors focus:bg-slate-900/10 data-[state=checked]:font-semibold data-[state=checked]:text-slate-950",
+                  "dark:text-zinc-200 dark:focus:bg-white/10 dark:data-[state=checked]:text-white"
                 )}
               >
-                <span>{lang.flag}</span>
+                <FlagMark locale={lang.code} />
                 <SelectPrimitive.ItemText>{lang.label}</SelectPrimitive.ItemText>
                 <span className="absolute right-2 flex items-center">
                   <SelectPrimitive.ItemIndicator>
-                    <Check className="h-3 w-3 text-zinc-400" />
+                    <Check className="h-3.5 w-3.5 text-sky-500 dark:text-sky-300" />
                   </SelectPrimitive.ItemIndicator>
                 </span>
               </SelectPrimitive.Item>
@@ -116,7 +151,7 @@ export function LanguageSwitcher() {
           </SelectPrimitive.Viewport>
           <div
             dir="ltr"
-            className="border-t border-zinc-700/70 px-3 py-2 text-left text-[11px] leading-snug text-zinc-400"
+            className="border-t border-slate-900/10 px-3.5 py-2.5 text-left text-[11px] leading-snug text-slate-500 dark:border-white/10 dark:text-zinc-400"
           >
             Some translations are online-tool assisted and may be imperfect. If a text
             looks off, please{" "}
@@ -124,7 +159,7 @@ export function LanguageSwitcher() {
               href={TRANSLATION_CONTRIBUTION_URL}
               target="_blank"
               rel="noreferrer"
-              className="font-medium text-zinc-100 underline underline-offset-2 hover:text-white"
+              className="font-medium text-slate-800 underline underline-offset-2 hover:text-slate-950 dark:text-zinc-100 dark:hover:text-white"
               onPointerDown={(event) => event.stopPropagation()}
             >
               improve it on GitHub

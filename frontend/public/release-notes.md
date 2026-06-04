@@ -1,3 +1,10 @@
+## v0.8.2 — 2026-06-04
+
+- UI: Replaced emoji language flags with cross-platform [`flag-icons`](https://github.com/lipis/flag-icons) so flag rendering is consistent across Windows, Linux, and macOS. Reported via email by Armin. [#669](https://github.com/karimz1/imgcompress/issues/669)
+- Docker: Bootstrapped a local `docker-container` buildx builder via `scripts/ensureBuildxBuilder.sh` and threaded `--builder` through the Makefile and dev scripts, so builds no longer require Docker Cloud or hit Cloud Build quotas. [#670](https://github.com/karimz1/imgcompress/issues/670)
+- Security: Bumped DHI base image digests (Debian 13.4 → 13.5), `uv` 0.11.11 → 0.11.18, and 6 runtime Python packages (`pycparser`, `pillow_heif`, `psd-tools`, `rembg`, `onnxruntime`, `fpdf2`). Trivy now reports 0 vulnerabilities, down from 1 HIGH (libcap2 CVE-2026-4878). [#671](https://github.com/karimz1/imgcompress/issues/671)
+- Docs: Added a dedicated Per-File Cropping section to the README with walkthrough, screenshot, and YouTube demo link.
+
 ## v0.8.1 — 2026-05-30
 
 This patch release addresses a dependency oversight from [v0.8.0](https://github.com/karimz1/imgcompress/releases/tag/release_0.8.0), forgot to update the ``release-notes.md`` which triggers ``Update available`` even on the latest version.

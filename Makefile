@@ -3,13 +3,18 @@ IMAGE ?= imgcompress
 TAG ?= local-dev
 IMAGE_REF ?= $(REGISTRY)/$(IMAGE):$(TAG)
 LOCAL_PLATFORM ?= linux/amd64
+BUILDX_BUILDER ?= imgcompress-builder
 
-.PHONY: build build-local scan trivy lint unit integration e2e feature-flags local simci
+.PHONY: build build-local scan trivy lint unit integration e2e feature-flags local simci ensure-builder
+
+ensure-builder:
+	@./scripts/ensureBuildxBuilder.sh $(BUILDX_BUILDER)
 
 # Multi-arch build used for release validation. The CI deployment workflow is
 # responsible for pushing published images.
-build: lint
+build: lint ensure-builder
 	docker buildx build \
+		--builder $(BUILDX_BUILDER) \
 		--platform linux/amd64,linux/arm64 \
 		--sbom="generator=docker/buildkit-syft-scanner:latest" \
 		--provenance="mode=max" \
@@ -17,8 +22,9 @@ build: lint
 		.
 
 # Single-platform build loaded into the local Docker daemon, used by scan/local testing.
-build-local: lint
+build-local: lint ensure-builder
 	docker buildx build \
+		--builder $(BUILDX_BUILDER) \
 		--platform $(LOCAL_PLATFORM) \
 		--load \
 		-t $(IMAGE_REF) \
