@@ -1,0 +1,206 @@
+name: Refresh Dockerfile base image digests
+
+# Daily sweep over the Dockerfile to keep DHI base image SHA digests current.
+# Dependabot doesn't cover this (dhi.io isn't in its supported registry list,
+# and digest-only updates to the same tag aren't a "version change"), and
+# Debian-level CVEs like libcap2 CVE-2026-4878 don't appear in GitHub's
+# Advisory Database either — so without this, the only way base-image patches
+# land is the manual flow we ran for v0.8.2.
+#
+# What this does
+#   1. Login to dhi.io
+#   2. Walk every `dhi.io/.../tag@sha256:...` reference in the Dockerfile
+#      (covers both `FROM` and `COPY --from=` lines)
+#   3. Look up the latest digest each tag currently points at
+#   4. If any digest moved, sed it into the Dockerfile
+#   5. Open (or refresh) a single PR via the imgcompress-chan App
+#   6. PR is labelled `automated-digest-refresh` so the auto-merge job in
+#      ci-auto-merge.yml will squash-merge it once every CI gate passes
+#
+# Opt out per image by adding `# digest-refresh: skip` on the line above the
+# FROM / COPY directive. Useful when a newer digest is known-broken (e.g. the
+# DHI Node 24 image lost pnpm in a recent rebuild — see Dockerfile line ~7).
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # daily at 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    name: Inspect digests and refresh PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint imgcompress-chan token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          # Need full history so the PR branch can be force-pushed cleanly
+          # when a prior run's PR is still open.
+          fetch-depth: 0
+
+      - name: Configure git as the chan App
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          user_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq '.id')"
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+
+      - name: Login to dhi.io
+        uses: docker/login-action@v4
+        with:
+          registry: dhi.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Scan Dockerfile and refresh digests
+        id: refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DOCKERFILE="Dockerfile"
+          updates_file="$(mktemp)"
+          : > "$updates_file"   # truncate
+
+          # Build a list of (line_number, ref) for every dhi.io@sha256 reference
+          # in the Dockerfile. grep -n gives us "lineno:match" pairs; we keep
+          # all matches even when there are several on one line.
+          while IFS= read -r match_line; do
+            lineno="${match_line%%:*}"
+            ref="${match_line#*:}"
+
+            # Skip if the line above carries the opt-out marker.
+            prev=$((lineno - 1))
+            if [ "$prev" -ge 1 ] && sed -n "${prev}p" "$DOCKERFILE" | grep -qE '#[[:space:]]*digest-refresh:[[:space:]]*skip'; then
+              echo "::notice::Skipping $ref (digest-refresh: skip marker on line $prev)"
+              continue
+            fi
+
+            image_with_tag="${ref%@*}"
+            current_digest="${ref#*@}"
+
+            latest_digest="$(docker buildx imagetools inspect "$image_with_tag" 2>/dev/null \
+              | awk '/^Digest:/ { print $2; exit }')" || true
+
+            if [ -z "${latest_digest:-}" ]; then
+              echo "::warning::Could not resolve latest digest for ${image_with_tag} (registry lookup failed). Skipping."
+              continue
+            fi
+
+            if [ "$latest_digest" = "$current_digest" ]; then
+              echo "✅ Up to date: ${image_with_tag} (${current_digest})"
+              continue
+            fi
+
+            echo "⬆️  Update available: ${image_with_tag}"
+            echo "       from: ${current_digest}"
+            echo "         to: ${latest_digest}"
+
+            # Replace this exact digest everywhere it appears (same digest may
+            # be referenced from multiple stages; sed handles both safely).
+            sed -i "s|@${current_digest}|@${latest_digest}|g" "$DOCKERFILE"
+
+            printf '%s\t%s\t%s\n' "$image_with_tag" "$current_digest" "$latest_digest" >> "$updates_file"
+          done < <(grep -noE 'dhi\.io/[^[:space:]"]+@sha256:[a-f0-9]+' "$DOCKERFILE" || true)
+
+          count="$(wc -l < "$updates_file" | tr -d ' ')"
+          if [ "$count" -eq 0 ]; then
+            echo "no_updates=true" >> "$GITHUB_OUTPUT"
+            echo "All DHI base image digests are up to date — nothing to do."
+            exit 0
+          fi
+
+          # Build the PR body table.
+          {
+            echo "Automated refresh of pinned DHI base image digests."
+            echo
+            echo "| Image | From | To |"
+            echo "| --- | --- | --- |"
+            while IFS=$'\t' read -r img from to; do
+              printf '| `%s` | `%s` | `%s` |\n' "$img" "$from" "$to"
+            done < "$updates_file"
+            echo
+            echo "---"
+            echo
+            echo "This PR was opened by the \`refresh-dockerfile-digests\` workflow. CI runs all the usual gates (lint, backend tests on amd64+arm64, E2E, feature-flags matrix). If everything is green, the auto-merge job in \`ci-auto-merge.yml\` will squash-merge and trigger the \`:nightly\` deploy."
+            echo
+            echo "To opt an image out, add \`# digest-refresh: skip\` on the line immediately above its \`FROM\` / \`COPY --from=\` directive in the Dockerfile."
+          } > /tmp/pr-body.md
+
+          if [ "$count" -eq 1 ]; then
+            summary="refresh 1 DHI base image digest"
+          else
+            summary="refresh ${count} DHI base image digests"
+          fi
+
+          {
+            echo "no_updates=false"
+            echo "summary=${summary}"
+            echo "count=${count}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit, push, and open or refresh PR
+        if: steps.refresh.outputs.no_updates == 'false'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+          SUMMARY: ${{ steps.refresh.outputs.summary }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BRANCH="chan/refresh-dockerfile-digests"
+
+          git checkout -b "$BRANCH"
+          git add Dockerfile
+          git commit -m "chore(docker): ${SUMMARY}
+
+          Automated digest refresh for DHI base images. Full diff in the PR body."
+
+          # Force-push so a re-run with newer digests cleanly updates the
+          # existing PR (avoids two stale PRs pointing at the same branch).
+          git push --force-with-lease origin "$BRANCH"
+
+          # Reuse an open PR for the same branch if there is one; otherwise create it.
+          existing_pr_url="$(gh pr list \
+            --repo "$REPOSITORY" \
+            --head "$BRANCH" \
+            --state open \
+            --json url \
+            --jq '.[0].url // empty')"
+
+          if [ -n "$existing_pr_url" ]; then
+            echo "Refreshing existing PR: $existing_pr_url"
+            gh pr edit "$existing_pr_url" \
+              --title "chore(docker): ${SUMMARY}" \
+              --body-file /tmp/pr-body.md
+          else
+            gh pr create \
+              --repo "$REPOSITORY" \
+              --base main \
+              --head "$BRANCH" \
+              --title "chore(docker): ${SUMMARY}" \
+              --body-file /tmp/pr-body.md \
+              --label "dependencies" \
+              --label "docker-dependencies-update" \
+              --label "automated-digest-refresh"
+          fi

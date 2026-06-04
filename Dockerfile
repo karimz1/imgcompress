@@ -4,6 +4,10 @@
 # to protect build environment from malicious dependencies.
 # Ref: https://hub.docker.com/hardened-images/catalog/dhi/node
 # Constraint: Node 26 is not yet available in DHI, fallback to LTS Node 24 (supported until 2027).
+# Note: newer DHI Node 24 digests have dropped pre-installed pnpm (verified by
+# failed build during v0.8.2). Stay pinned to this digest until DHI restores
+# pnpm in the image, or until we add an explicit corepack/pnpm install step.
+# digest-refresh: skip
 FROM dhi.io/node:24-debian13-sfw-dev@sha256:d33e9108a3a7ef728ee61f90a951dce680433a768a9a09134fd721b10f8b110b AS frontend-build-stage
 
 ENV NODE_ENV=production

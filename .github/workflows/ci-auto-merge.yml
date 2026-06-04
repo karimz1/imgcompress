@@ -574,10 +574,21 @@ jobs:
     # `imgcompress-chan[bot]` is the actor of the most recent push after
     # `/chan-fix` has repaired the branch. Also restricted to same-repo PRs
     # so fork PRs can't trigger an auto-merge with the chan App token.
+    #
+    # Also auto-merges PRs opened by the chan App itself when they carry the
+    # `automated-digest-refresh` label — that label is only applied by the
+    # refresh-dockerfile-digests workflow, so chan can't sneak arbitrary
+    # PRs through this gate.
     if: >
       github.event_name == 'pull_request' &&
-      github.event.pull_request.user.login == 'dependabot[bot]' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        github.event.pull_request.user.login == 'dependabot[bot]' ||
+        (
+          github.event.pull_request.user.login == 'imgcompress-chan[bot]' &&
+          contains(github.event.pull_request.labels.*.name, 'automated-digest-refresh')
+        )
+      )
     steps:
       - name: Mint imgcompress-chan token
         id: app-token
