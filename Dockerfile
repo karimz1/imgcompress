@@ -70,7 +70,17 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     printf '#!/bin/sh\nexit 0\n'   > /usr/sbin/invoke-rc.d && chmod +x /usr/sbin/invoke-rc.d; \
     printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d && chmod +x /usr/sbin/policy-rc.d; \
     \
-    apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30 && \
+    # The DHI apt mirror occasionally serves a Packages.gz whose size doesn't
+    # match the hash in the still-cached Release file ("File has unexpected
+    # size ... Mirror sync in progress?"). It self-heals within minutes, so
+    # retry apt-get update with backoff instead of failing the whole build.
+    i=0; \
+    until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
+        i=$((i+1)); \
+        if [ "$i" -ge 5 ]; then echo "apt-get update failed after 5 attempts" >&2; exit 1; fi; \
+        echo "apt-get update transient failure (attempt $i/5), retrying in 15s..."; \
+        sleep 15; \
+    done && \
     apt-get install -y --no-install-recommends \
         ghostscript \
         libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
