@@ -7,6 +7,7 @@ set -euo pipefail
 # DISABLE_STORAGE_MANAGEMENT propagate end-to-end (env -> runtime.json -> UI).
 
 IMAGE_NAME="${IMAGE_NAME:-karimz1/imgcompress:local-test-flags}"
+BUILDX_BUILDER="${BUILDX_BUILDER:-imgcompress-builder}"
 CONTAINER_NAME="${CONTAINER_NAME:-imgcompress-flags-tester}"
 PORT_HOST="${PORT_HOST:-8080}"
 PORT_CONTAINER=5000
@@ -34,8 +35,15 @@ if ! command -v pnpm >/dev/null 2>&1; then
     exit 1
 fi
 
+"$SCRIPT_DIR/ensureBuildxBuilder.sh" "$BUILDX_BUILDER"
+
 echo "🚧 Building Docker image: $IMAGE_NAME"
-docker buildx build --pull -t "$IMAGE_NAME" "$APP_ROOT"
+docker buildx build \
+    --builder "$BUILDX_BUILDER" \
+    --load \
+    --pull \
+    -t "$IMAGE_NAME" \
+    "$APP_ROOT"
 
 # (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT) combinations
 COMBOS=(

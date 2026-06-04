@@ -8,6 +8,7 @@ set -eu
 cd "$(dirname "$0")/.."
 
 APP_CONTAINER="app"
+BUILDX_BUILDER="${BUILDX_BUILDER:-imgcompress-builder}"
 HOST_DOCKER_CONFIG="${DOCKER_CONFIG:-$HOME/.docker}/config.json"
 # Docker Desktop on macOS refuses to share ~/.docker even when the parent
 # directory is in File Sharing. Stage a copy of the config inside the project
@@ -90,8 +91,11 @@ devcontainer_run() {
     "$@"
 }
 
+run_stage "Ensure buildx builder" \
+  ./scripts/ensureBuildxBuilder.sh "$BUILDX_BUILDER"
+
 run_stage "Build devcontainer" \
-  docker buildx build -t devcontainer:local-test .devcontainer/
+  docker buildx build --builder "$BUILDX_BUILDER" --load -t devcontainer:local-test .devcontainer/
 
 run_stage "Run Python lint" \
   devcontainer_run --name devcontainer_lint \
@@ -106,7 +110,7 @@ run_stage "Run integration tests" \
     devcontainer:local-test /app/scripts/runIntegrationTests.sh
 
 run_stage "Build app image" \
-  docker buildx build -t karimz1/imgcompress:local-test .
+  docker buildx build --builder "$BUILDX_BUILDER" --load -t karimz1/imgcompress:local-test .
 
 run_stage "Start app container" \
   docker run --rm -d \
