@@ -100,7 +100,7 @@ Every upload gets its own crop overlay before conversion. Pick a ratio preset (F
 > [!NOTE]
 > **Server-rendered formats:** Some formats (e.g. PSD, EPS) are rendered server-side into a crop-friendly bitmap so you can still crop them in the browser.
 
-**[Click here to see the demo video on YouTube](https://www.youtube.com/watch?is=BqZdzKeFy3c2z1tR&v=WAzrZgcVa6s&feature=youtu.be)** · Full walkthrough in the **[Image Crop Editor docs](https://imgcompress.karimzouine.com/docs/web-ui#image-crop-editor)**.
+Full walkthrough and demo video: **[Image Crop Editor docs](https://imgcompress.karimzouine.com/docs/web-ui#image-crop-editor)**.
 
 ---
 
