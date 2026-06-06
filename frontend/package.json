@@ -54,7 +54,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/semver": "^7.7.1",
     "pdf-lib": "^1.17.1",
-    "pnpm": "^11.5.0",
+    "pnpm": "^11.5.2",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3"
   }
