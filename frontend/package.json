@@ -40,7 +40,7 @@
     "react-i18next": "^17.0.8",
     "react-toastify": "^11.1.0",
     "semver": "^7.8.2",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.1",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2"
