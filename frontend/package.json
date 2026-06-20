@@ -39,7 +39,7 @@
     "react-dropzone": "^15.0.0",
     "react-i18next": "^17.0.8",
     "react-toastify": "^11.1.0",
-    "semver": "^7.8.4",
+    "semver": "^7.8.5",
     "sharp": "^0.34.5",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
