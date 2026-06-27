@@ -8,7 +8,8 @@ os.makedirs(config_dir, exist_ok=True)
 
 runtime_config = {
     "DISABLE_LOGO": os.environ.get("DISABLE_LOGO", "false"),
-    "DISABLE_STORAGE_MANAGEMENT": os.environ.get("DISABLE_STORAGE_MANAGEMENT", "false")
+    "DISABLE_STORAGE_MANAGEMENT": os.environ.get("DISABLE_STORAGE_MANAGEMENT", "false"),
+    "DEV_MODE": os.environ.get("DEV_MODE", "false"),
 }
 
 with open(os.path.join(config_dir, "runtime.json"), "w", encoding="utf-8") as f:

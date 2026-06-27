@@ -37,7 +37,7 @@ deploy-local: lint
 	./scripts/runLocalDockerBuildTester.sh
 
 deploy-local-dev-mode: lint
-	./scripts/runLocalDockerBuildTester.sh
+	DEV_MODE=true ./scripts/runLocalDockerBuildTester.sh
 
 trivy: scan
 
