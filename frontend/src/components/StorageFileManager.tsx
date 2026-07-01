@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash, HardDrive } from "lucide-react";
 import { BackendStatusFloating } from "@/components/BackendStatusFloating";
+import { DownloadFileToast } from "@/components/CustomToast";
+import { useDownload } from "@/hooks/useDownload";
+import { fileDownloadUrl } from "@/lib/download";
 
 
 import {
@@ -45,6 +48,7 @@ interface FileManagerProps {
 
 export default function FileManager({ onForceClean }: FileManagerProps) {
   const { t } = useTranslation();
+  const download = useDownload();
   const [data, setData] = useState<ContainerData | null>(null);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,6 +84,21 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
     fetchContainerFiles();
     fetchStorageInfo();
   }, [fetchContainerFiles, fetchStorageInfo]);
+
+  // On failure, refresh the listing so the stale row disappears.
+  const handleDownload = useCallback(
+    (file: ContainerFile) =>
+      download({
+        url: fileDownloadUrl(file.folder_path, file.filename),
+        fileName: file.filename,
+        successToast: <DownloadFileToast fileName={file.filename} />,
+        onUnavailable: () => {
+          fetchContainerFiles();
+          fetchStorageInfo();
+        },
+      }),
+    [download, fetchContainerFiles, fetchStorageInfo]
+  );
 
   return (
     <Card className="w-full max-w-2xl mx-auto mt-4">
@@ -124,23 +143,21 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                 {}
                 <div className="overflow-y-auto max-h-40 space-y-2">
                   {data.files.map((file, index) => {
-                    const downloadUrl = `/api/download?folder=${encodeURIComponent(
-                      file.folder_path
-                    )}&file=${encodeURIComponent(file.filename)}`;
                     return (
                       <div
                         key={index}
                         className="flex justify-between bg-gray-800 rounded-md p-2"
                       >
                         <span>
-                          <a
-                            href={downloadUrl}
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(file)}
                             data-testid="storage-management-file-download-link"
                             className="text-blue-400 underline text-xs"
                             title={`Download ${file.filename}`}
                           >
                             <strong className="text-xs">{file.filename}</strong>
-                          </a>{" "}
+                          </button>{" "}
                           <span className="text-xs text-gray-400">
                             ({file.size_mb} MB)
                           </span>

@@ -181,6 +181,13 @@ export const de: TranslationSchema = {
     downloadingZip: "Ordner wird heruntergeladen...",
   },
 
+  downloadError: {
+    title: "Diese Datei ist nicht mehr da",
+    description:
+      "Sie wurde möglicherweise gelöscht oder ist abgelaufen. Komprimiere sie einfach erneut.",
+    close: "Verstanden",
+  },
+
   storage: {
     title: "Speicherverwaltung",
     used: "Verwendet:",

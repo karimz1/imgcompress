@@ -181,6 +181,13 @@ export const ru: TranslationSchema = {
     downloadingZip: "Скачивание папки...",
   },
 
+  downloadError: {
+    title: "Этого файла больше нет",
+    description:
+      "Возможно, он был удалён или срок его хранения истёк. Попробуйте сжать его снова.",
+    close: "Понятно",
+  },
+
   storage: {
     title: "Управление хранилищем",
     used: "Использовано:",

@@ -181,6 +181,12 @@ export const ar: TranslationSchema = {
     downloadingZip: "جارٍ تنزيل المجلد...",
   },
 
+  downloadError: {
+    title: "لم يعد هذا الملف موجودًا",
+    description: "ربما تم حذفه أو انتهت صلاحيته. حاول ضغطه من جديد.",
+    close: "حسنًا",
+  },
+
   storage: {
     title: "إدارة التخزين",
     used: "المستخدم:",
