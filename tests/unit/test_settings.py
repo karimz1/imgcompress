@@ -29,7 +29,11 @@ VALID_CONFIG = {
     "temporary_storage": {"directory": "/tmp", "max_age_seconds": 3600},
     "uploads": {"max_file_size_mebibytes": 40960},
     "web": {"host": "0.0.0.0", "port": 5000, "workers": "auto"},
-    "logging": {"backend_log_file": "/tmp/imgcompress-backend.log"},
+    "logging": {
+        "backend_log_file": "/tmp/imgcompress-backend.log",
+        "max_size_mebibytes": 25,
+        "backup_count": 1,
+    },
     "crop_preview": {
         "max_retry_attempts": 3,
         "unsupported_input_extensions": [".pdf", ".svg", ".raw"],
@@ -80,6 +84,9 @@ def test_valid_config_loads_into_typed_app_config(config_file):
     assert isinstance(config.web.workers, WebWorkerCount)
     assert config.web.workers.is_auto is True
     assert config.logging.backend_log_file == "/tmp/imgcompress-backend.log"
+    assert config.logging.max_size_mebibytes == 25
+    assert config.logging.backup_count == 1
+    assert config.logging.max_size_bytes == 25 * BYTES_PER_MEBIBYTE
     assert config.crop_preview.max_retry_attempts == 3
     assert config.crop_preview.unsupported_input_extensions == (".pdf", ".svg", ".raw")
     assert config.features.is_storage_management_enabled is True
@@ -138,6 +145,19 @@ def test_required_keys_must_exist(config_file, remove_key, expected_path):
         settings.get()
 
 
+def test_logging_size_and_backups_default_when_omitted(config_file):
+    cfg = _copy_config()
+    del cfg["logging"]["max_size_mebibytes"]
+    del cfg["logging"]["backup_count"]
+    config_file(cfg)
+
+    logging_cfg = settings.get().logging
+
+    assert logging_cfg.max_size_mebibytes == 25
+    assert logging_cfg.backup_count == 1
+    assert logging_cfg.max_size_bytes == 25 * BYTES_PER_MEBIBYTE
+
+
 @pytest.mark.parametrize(
     ("path", "bad_value", "message"),
     [
@@ -148,6 +168,8 @@ def test_required_keys_must_exist(config_file, remove_key, expected_path):
         (("web", "workers"), True, 'integer or "auto"'),
         (("web", "workers"), "many", 'integer or "auto"'),
         (("crop_preview", "unsupported_input_extensions"), ".pdf", "must be a list"),
+        (("logging", "max_size_mebibytes"), "25", "integer"),
+        (("logging", "backup_count"), True, "integer"),
     ],
 )
 def test_invalid_value_types_are_rejected(config_file, path, bad_value, message):
@@ -166,6 +188,8 @@ def test_invalid_value_types_are_rejected(config_file, path, bad_value, message)
         (("uploads", "max_file_size_mebibytes"), 0, ">= 1"),
         (("web", "port"), 70000, "<= 65535"),
         (("crop_preview", "max_retry_attempts"), 0, ">= 1"),
+        (("logging", "max_size_mebibytes"), 0, ">= 1"),
+        (("logging", "backup_count"), -1, ">= 0"),
     ],
 )
 def test_out_of_range_values_are_rejected(config_file, path, bad_value, message):

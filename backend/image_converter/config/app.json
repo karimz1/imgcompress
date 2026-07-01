@@ -12,7 +12,9 @@
     "workers": "auto"
   },
   "logging": {
-    "backend_log_file": "/tmp/imgcompress-backend.log"
+    "backend_log_file": "/tmp/imgcompress-backend.log",
+    "max_size_mebibytes": 25,
+    "backup_count": 1
   },
   "crop_preview": {
     "max_retry_attempts": 3,
