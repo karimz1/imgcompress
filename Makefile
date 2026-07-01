@@ -34,10 +34,12 @@ scan: build-local
 	IMAGE_REF="$(IMAGE_REF)" ./scripts/runTrivyImageScan.sh
 
 deploy-local: lint
-	./scripts/runLocalDockerBuildTester.sh
+	PORT_HOST=8080 ./scripts/runLocalDockerBuildTester.sh
 
-deploy-local-dev-mode: lint
-	DEV_MODE=true ./scripts/runLocalDockerBuildTester.sh
+deploy-local-dev-mode: lint 
+	PORT_HOST=8080 \
+	DEV_MODE=true \
+	./scripts/runLocalDockerBuildTester.sh
 
 trivy: scan
 

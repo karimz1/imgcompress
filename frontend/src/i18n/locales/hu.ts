@@ -338,6 +338,7 @@ export const hu: TranslationSchema = {
 
   crop: {
     aspectRatio: "Képarány",
+    adjust: "Beállítás",
     zoom: "Nagyítás",
     zoomOut: "Kicsinyítés",
     zoomIn: "Nagyítás",

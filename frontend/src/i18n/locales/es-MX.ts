@@ -337,6 +337,7 @@ export const esMX: TranslationSchema = {
 
   crop: {
     aspectRatio: "Relación de aspecto",
+    adjust: "Ajustar",
     zoom: "Acercamiento",
     zoomOut: "Alejar",
     zoomIn: "Acercar",
