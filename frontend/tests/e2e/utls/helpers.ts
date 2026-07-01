@@ -240,12 +240,17 @@ export async function clickConversionButtonAsync(page: Page): Promise<void> {
 }
 
 
-export async function assertDownloadLinksAsync(page: Page, expectedFileNames: ImageFileDto[]): Promise<Locator> {
+export async function assertDownloadLinksAsync(
+  page: Page,
+  expectedFileNames: ImageFileDto[],
+  expectedSuffix = ''
+): Promise<Locator> {
   const downloadLinks = page.locator(selectors.downloadLink);
   await expect(downloadLinks).toHaveCount(expectedFileNames.length);
   const downloadLinksText = await downloadLinks.allTextContents();
   for (const expectedFile of expectedFileNames) {
-    const expectedBaseName = path.basename(expectedFile.fileName, path.extname(expectedFile.fileName));
+    const expectedBaseName =
+      path.basename(expectedFile.fileName, path.extname(expectedFile.fileName)) + expectedSuffix;
     const found = downloadLinksText.some(text => {
       const linkBaseName = path.basename(text, path.extname(text));
       return linkBaseName === expectedBaseName;

@@ -25,7 +25,7 @@ test('should convert to PNG with AI background removal enabled', async ({ page }
   await clickConversionButtonAsync(page);
   await assertZipButtonNotRenderedAsync(page);
 
-  const fileItemLocator = await assertDownloadLinksAsync(page, fileNames);
+  const fileItemLocator = await assertDownloadLinksAsync(page, fileNames, '_ai-bg-removed');
   const downloads = await downloadFilesAndGetMetadataAsync(page, fileItemLocator);
   for (const { metadata, newFilePath } of downloads) {
     expect(metadata.format).toBe('png');
