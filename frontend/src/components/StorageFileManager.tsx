@@ -106,12 +106,12 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
 
         <div className="w-full">
           {}
-          <div className="relative">
-            <h2 className="text-lg font-bold text-center">{t("storage.files")}</h2>
-            <div className="absolute inset-y-0 right-0 flex items-center">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold">{t("storage.files")}</h2>
+            {data?.files?.length ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="p-2" title={t("storage.clearButton")} disabled={data?.files?.length === 0}>
+                  <Button variant="destructive" className="p-2 shrink-0" title={t("storage.clearButton")}>
                     <Trash className="h-4 w-4" /> {t("storage.clearButton")}
                   </Button>
                 </AlertDialogTrigger>
@@ -130,7 +130,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </div>
+            ) : null}
           </div>
 
           <div className="mt-4">

@@ -31,6 +31,12 @@ class WebConfig:
 @dataclass(frozen=True)
 class LoggingConfig:
     backend_log_file: str
+    max_size_mebibytes: int
+    backup_count: int
+
+    @property
+    def max_size_bytes(self) -> int:
+        return self.max_size_mebibytes * BYTES_PER_MEBIBYTE
 
 
 @dataclass(frozen=True)

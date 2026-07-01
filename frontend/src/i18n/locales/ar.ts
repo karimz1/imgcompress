@@ -337,6 +337,7 @@ export const ar: TranslationSchema = {
 
   crop: {
     aspectRatio: "نسبة الأبعاد",
+    adjust: "ضبط",
     zoom: "تكبير",
     zoomOut: "تصغير",
     zoomIn: "تكبير",

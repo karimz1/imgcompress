@@ -337,6 +337,7 @@ export const ja: TranslationSchema = {
 
   crop: {
     aspectRatio: "アスペクト比",
+    adjust: "調整",
     zoom: "ズーム",
     zoomOut: "ズームアウト",
     zoomIn: "ズームイン",

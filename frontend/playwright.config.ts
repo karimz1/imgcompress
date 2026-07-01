@@ -18,8 +18,13 @@ export default defineConfig({
   // Run tests sequentially so storage cleanup calls do not race with other specs.
   workers: 1,
   use: {
-    actionTimeout: 60000 *2, 
+    actionTimeout: 60000 *2,
     headless: true,
+    // Exercise the desktop crop layout: the crop side panel only appears at the
+    // Tailwind 2xl breakpoint (>=1536px); below it the controls live in a mobile
+    // drawer. 2xl is used solely by the crop widget, so a wider viewport does not
+    // change any other screen's behavior.
+    viewport: { width: 1600, height: 720 },
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     launchOptions: {
       slowMo: process.env.CI ? 0 : 2000,

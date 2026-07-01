@@ -337,6 +337,7 @@ export const ptBR: TranslationSchema = {
 
   crop: {
     aspectRatio: "Proporção",
+    adjust: "Ajustar",
     zoom: "Ampliação",
     zoomOut: "Diminuir zoom",
     zoomIn: "Aumentar zoom",

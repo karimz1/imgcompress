@@ -337,6 +337,7 @@ export const ru: TranslationSchema = {
 
   crop: {
     aspectRatio: "Соотношение сторон",
+    adjust: "Настроить",
     zoom: "Масштаб",
     zoomOut: "Уменьшить масштаб",
     zoomIn: "Увеличить масштаб",

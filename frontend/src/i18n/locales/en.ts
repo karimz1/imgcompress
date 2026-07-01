@@ -334,6 +334,7 @@ export const en = {
 
   crop: {
     aspectRatio: "Aspect ratio",
+    adjust: "Adjust",
     zoom: "Zoom",
     zoomOut: "Zoom out",
     zoomIn: "Zoom in",

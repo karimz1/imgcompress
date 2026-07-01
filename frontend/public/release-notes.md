@@ -1,3 +1,9 @@
+## v0.8.3 — 2026-07-01
+
+- UI Crop editor: mobile redesign [#737](https://github.com/karimz1/imgcompress/issues/737)
+- Internals: Set Max Log size in Backend for Runtime Error Screen [#740](https://github.com/karimz1/imgcompress/issues/740)
+- Update Security Patches
+
 ## v0.8.2 — 2026-06-04
 
 - UI: Replaced emoji language flags with cross-platform [`flag-icons`](https://github.com/lipis/flag-icons) so flag rendering is consistent across Windows, Linux, and macOS. Reported via email by Armin. [#669](https://github.com/karimz1/imgcompress/issues/669)

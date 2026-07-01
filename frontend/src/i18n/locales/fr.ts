@@ -337,6 +337,7 @@ export const fr: TranslationSchema = {
 
   crop: {
     aspectRatio: "Rapport d'aspect",
+    adjust: "Ajuster",
     zoom: "Agrandissement",
     zoomOut: "Réduire",
     zoomIn: "Agrandir",

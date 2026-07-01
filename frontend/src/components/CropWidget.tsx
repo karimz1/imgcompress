@@ -9,7 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Minus, Moon, Plus, RotateCcw, Sun } from "lucide-react";
+import { Moon, SlidersHorizontal, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,14 @@ import {
   RATIO_PRESETS,
   RatioPresetId,
 } from "@/lib/crop";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { CropLoadingPanel } from "@/components/crop/CropLoadingPanel";
 import { CropLoadFailure } from "@/components/crop/CropLoadFailure";
 import { CropShortcutsList } from "@/components/crop/CropShortcutsList";
@@ -42,13 +50,11 @@ import {
   Handle,
   HANDLE_DEFS,
   Rect,
-  ZOOM_MAX,
-  ZOOM_MIN,
-  ZOOM_STEP,
 } from "@/components/crop/cropConstants";
 import {
   buildPercentClip,
   clampPan,
+  clampZoom,
   resizeWithHandle,
 } from "@/components/crop/cropMath";
 import { useCropImageLoader } from "@/components/crop/useCropImageLoader";
@@ -129,6 +135,11 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   const previewWrapperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragMode>({ kind: "none" });
+  // Multi-touch state: one finger moves/resizes the crop, two fingers pan + pinch-zoom.
+  const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<
+    { startDist: number; startZoom: number; p0x: number; p0y: number } | null
+  >(null);
 
   const ready = !!imgUrl && !!imgSize && !!crop;
   const previewBox = useFitPreviewBox(previewWrapperRef, { enabled: ready, imgSize });
@@ -234,7 +245,66 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     }
   }, []);
 
+  // --- Multi-touch pinch/pan (capture phase so it wins over the crop-drag
+  // handlers on descendant elements). Two active pointers => pan + pinch-zoom
+  // the image; a single pointer keeps moving/resizing the crop as before.
+  const containerPoint = (clientX: number, clientY: number) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    return rect
+      ? { x: clientX - rect.left, y: clientY - rect.top }
+      : { x: clientX, y: clientY };
+  };
+
+  const onPointerDownCapture = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") return;
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointers.current.size === 2 && imgSize && scale > 0) {
+      // A second finger arrived: cancel any in-progress crop drag and start a
+      // pinch gesture anchored on the point under the two-finger midpoint.
+      dragRef.current = { kind: "none" };
+      const [a, b] = Array.from(activePointers.current.values());
+      const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      const mid = containerPoint((a.x + b.x) / 2, (a.y + b.y) / 2);
+      pinchRef.current = {
+        startDist: dist,
+        startZoom: zoom,
+        p0x: (mid.x - pan.x) / zoom,
+        p0y: (mid.y - pan.y) / zoom,
+      };
+    }
+  };
+
+  const onPointerMoveCapture = (e: React.PointerEvent) => {
+    if (!activePointers.current.has(e.pointerId)) return;
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pinch = pinchRef.current;
+    if (!pinch || activePointers.current.size < 2 || !imgSize || scale <= 0) return;
+    e.preventDefault();
+    const [a, b] = Array.from(activePointers.current.values());
+    const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+    const nextZoom = clampZoom(pinch.startZoom * (dist / pinch.startDist));
+    const mid = containerPoint((a.x + b.x) / 2, (a.y + b.y) / 2);
+    const nextPan = clampPan(
+      { x: mid.x - pinch.p0x * nextZoom, y: mid.y - pinch.p0y * nextZoom },
+      scale,
+      imgSize,
+      nextZoom
+    );
+    setZoom(nextZoom);
+    setPan(nextPan);
+  };
+
+  const onPointerEndCapture = (e: React.PointerEvent) => {
+    if (activePointers.current.delete(e.pointerId) && activePointers.current.size < 2) {
+      pinchRef.current = null;
+    }
+  };
+
+  const isGesturing = () =>
+    activePointers.current.size >= 2 || pinchRef.current !== null;
+
   const onContainerPointerDown = (e: React.PointerEvent) => {
+    if (isGesturing()) return;
     const canPan = spaceDown || zoom > 1;
     if (!canPan) return;
     beginDrag(e, {
@@ -246,7 +316,11 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   };
 
   const startMove = (e: React.PointerEvent) => {
-    if (!crop) return;
+    if (!crop || isGesturing()) return;
+    // On touch, don't drag the whole selection from its interior — that caused
+    // accidental moves. Touch users resize via the handles and pan/zoom with two
+    // fingers; letting this fall through also enables one-finger pan when zoomed.
+    if (e.pointerType !== "mouse") return;
     if (spaceDown) {
       onContainerPointerDown(e);
       return;
@@ -260,7 +334,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   };
 
   const startResize = (handle: Handle) => (e: React.PointerEvent) => {
-    if (!crop || spaceDown) return;
+    if (!crop || spaceDown || isGesturing()) return;
     beginDrag(e, {
       kind: "resize",
       handle,
@@ -313,7 +387,6 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     });
   };
 
-  const setZoomTo = (next: number) => setZoom(next);
   const resetCropSelection = () => {
     if (!imgSize) return;
     const ratio = getPresetRatio(preset);
@@ -342,10 +415,161 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     ? "border-white/10 bg-white/[0.05]"
     : "border-white/70 bg-white/55";
 
+  // Rendered in two places (desktop side panel + mobile drawer/bar). Both trees
+  // stay mounted for responsive `hidden`/`lg:hidden` toggling, so the mobile copy
+  // takes a `suffix` to keep test ids and DOM ids unique. Desktop keeps the
+  // canonical ids (suffix === "") that the e2e suite targets.
+  const renderAdjustControls = (suffix = "") => (
+    <>
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="text-xs uppercase tracking-wide opacity-70">
+            {t("crop.aspectRatio")}
+          </Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "h-8 w-8 p-0 rounded-full shrink-0",
+              "border shadow-sm transition-all",
+              "hover:scale-105 hover:shadow-md active:scale-95",
+              "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+              isDarkResolved
+                ? "border-white/15 bg-white/10 text-slate-100 hover:bg-white/15 focus-visible:ring-offset-slate-950"
+                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:ring-offset-white"
+            )}
+            onClick={() => setTheme(isDarkResolved ? "light" : "dark")}
+            aria-label={
+              isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
+            }
+            title={
+              isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
+            }
+            data-testid={`crop-theme-toggle${suffix}`}
+          >
+            {isDarkResolved ? (
+              <Moon className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Sun className="h-4 w-4" aria-hidden="true" />
+            )}
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {RATIO_PRESETS.map((p) => (
+            <Button
+              key={p.id}
+              type="button"
+              size="sm"
+              variant={preset === p.id ? "default" : "outline"}
+              onClick={() => setPresetAndCrop(p.id)}
+              data-testid={`crop-preset-${p.id}${suffix}`}
+            >
+              {p.id === "free" ? t("crop.freeRatio") : p.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="text-xs uppercase tracking-wide opacity-70">
+            {t("crop.dimensions")}
+          </Label>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={resetCropSelection}
+            data-testid={`crop-selection-reset-btn${suffix}`}
+          >
+            {t("crop.resetSelection")}
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <Label htmlFor={`crop-width${suffix}`} className="text-xs opacity-80">{t("crop.width")}</Label>
+            <Input
+              id={`crop-width${suffix}`}
+              data-testid={`crop-width-input${suffix}`}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={imgSize?.width}
+              value={crop?.width ?? ""}
+              onChange={(e) => updateDimension("width", e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`crop-height${suffix}`} className="text-xs opacity-80">{t("crop.height")}</Label>
+            <Input
+              id={`crop-height${suffix}`}
+              data-testid={`crop-height-input${suffix}`}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={imgSize?.height}
+              value={crop?.height ?? ""}
+              onChange={(e) => updateDimension("height", e.target.value)}
+            />
+          </div>
+        </div>
+        <p className="text-xs opacity-70" data-testid={`crop-dims-label${suffix}`}>
+          {dimsLabel}
+        </p>
+        {imgSize && (
+          <p className="text-xs opacity-50">
+            {t("crop.original", { w: imgSize.width, h: imgSize.height })}
+          </p>
+        )}
+      </div>
+
+      <CropShortcutsList surfaceClass={shortcutsSurface} />
+
+      {initialCrop && onClearCrop && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onClearCrop}
+          className="w-full border-red-500/50 text-red-600 hover:bg-red-500/10 dark:text-red-300"
+          data-testid={`crop-remove-saved-btn${suffix}`}
+        >
+          {t("crop.removeSavedCrop")}
+        </Button>
+      )}
+    </>
+  );
+
+  const renderActionButtons = (suffix = "", btnClass = "") => (
+    <div className="grid grid-cols-2 gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={requestClose}
+        data-testid={`crop-discard-btn${suffix}`}
+        className={btnClass}
+      >
+        {t("crop.discard")}
+      </Button>
+      <Button
+        type="button"
+        variant="default"
+        size="sm"
+        onClick={handleSave}
+        data-testid={`crop-save-btn${suffix}`}
+        className={btnClass}
+      >
+        {t("crop.saveCrop")}
+      </Button>
+    </div>
+  );
+
   return (
     <div
       className={cn(
-        "transition-colors flex-1 min-h-0 flex flex-col lg:flex-row gap-3",
+        "transition-colors flex-1 min-h-0 flex flex-col 2xl:flex-row gap-3",
         textClass
       )}
       data-testid="crop-widget"
@@ -405,6 +629,10 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   canPan ? "cursor-grab" : "cursor-default",
                   dragRef.current.kind === "pan" && "cursor-grabbing"
                 )}
+                onPointerDownCapture={onPointerDownCapture}
+                onPointerMoveCapture={onPointerMoveCapture}
+                onPointerUpCapture={onPointerEndCapture}
+                onPointerCancelCapture={onPointerEndCapture}
                 onPointerDown={onContainerPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
@@ -486,209 +714,58 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
             </div>
           </div>
 
+          {/* Desktop: fixed right-hand control panel */}
           <div
             className={cn(
-              "crop-editor-fade-in lg:w-72 shrink-0 flex flex-col gap-3 rounded-md border p-3 backdrop-blur-md",
+              "crop-editor-fade-in hidden 2xl:flex 2xl:w-72 shrink-0 flex-col gap-3 rounded-md border p-3 backdrop-blur-md",
               controlPanelSurface
             )}
             data-testid="crop-side-panel"
           >
-            <div className="space-y-1">
-              <div className="flex items-center justify-between gap-2">
-                <Label className="text-xs uppercase tracking-wide opacity-70">
-                  {t("crop.aspectRatio")}
-                </Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "h-8 w-8 p-0 rounded-full shrink-0",
-                    "border shadow-sm transition-all",
-                    "hover:scale-105 hover:shadow-md active:scale-95",
-                    "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-                    isDarkResolved
-                      ? "border-white/15 bg-white/10 text-slate-100 hover:bg-white/15 focus-visible:ring-offset-slate-950"
-                      : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:ring-offset-white"
-                  )}
-                  onClick={() => setTheme(isDarkResolved ? "light" : "dark")}
-                  aria-label={
-                    isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
-                  }
-                  title={
-                    isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
-                  }
-                  data-testid="crop-theme-toggle"
-                >
-                  {isDarkResolved ? (
-                    <Moon className="h-4 w-4" aria-hidden="true" />
-                  ) : (
-                    <Sun className="h-4 w-4" aria-hidden="true" />
-                  )}
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {RATIO_PRESETS.map((p) => (
-                  <Button
-                    key={p.id}
-                    type="button"
-                    size="sm"
-                    variant={preset === p.id ? "default" : "outline"}
-                    onClick={() => setPresetAndCrop(p.id)}
-                    data-testid={`crop-preset-${p.id}`}
-                  >
-                    {p.id === "free" ? t("crop.freeRatio") : p.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
+            {renderAdjustControls()}
+            <div className="mt-auto pt-2">{renderActionButtons()}</div>
+          </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs uppercase tracking-wide opacity-70">{t("crop.zoom")}</Label>
-                <span
-                  className="text-xs opacity-70 tabular-nums"
-                  data-testid="crop-zoom-label"
-                >
-                  {Math.round(zoom * 100)}%
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={zoom <= ZOOM_MIN}
-                  onClick={() => setZoomTo(zoom - ZOOM_STEP)}
-                  data-testid="crop-zoom-out-btn"
-                  aria-label={t("crop.zoomOut")}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <input
-                  type="range"
-                  min={ZOOM_MIN}
-                  max={ZOOM_MAX}
-                  step={ZOOM_STEP}
-                  value={zoom}
-                  onChange={(e) => setZoomTo(parseFloat(e.target.value))}
-                  className="flex-1 min-w-0 accent-blue-500"
-                  data-testid="crop-zoom-slider"
-                  aria-label={t("crop.zoom")}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={zoom >= ZOOM_MAX}
-                  onClick={() => setZoomTo(zoom + ZOOM_STEP)}
-                  data-testid="crop-zoom-in-btn"
-                  aria-label={t("crop.zoomIn")}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetView}
-                  disabled={zoom === 1 && pan.x === 0 && pan.y === 0}
-                  data-testid="crop-zoom-reset-btn"
-                  aria-label={t("crop.resetZoom")}
-                  title={t("crop.resetZoomFull")}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center justify-between gap-2">
-                <Label className="text-xs uppercase tracking-wide opacity-70">
-                  {t("crop.dimensions")}
-                </Label>
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  onClick={resetCropSelection}
-                  data-testid="crop-selection-reset-btn"
-                >
-                  {t("crop.resetSelection")}
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="crop-width" className="text-xs opacity-80">{t("crop.width")}</Label>
-                  <Input
-                    id="crop-width"
-                    data-testid="crop-width-input"
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={imgSize.width}
-                    value={crop.width}
-                    onChange={(e) => updateDimension("width", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="crop-height" className="text-xs opacity-80">{t("crop.height")}</Label>
-                  <Input
-                    id="crop-height"
-                    data-testid="crop-height-input"
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={imgSize.height}
-                    value={crop.height}
-                    onChange={(e) => updateDimension("height", e.target.value)}
-                  />
-                </div>
-              </div>
-              <p className="text-xs opacity-70" data-testid="crop-dims-label">
-                {dimsLabel}
-              </p>
-              <p className="text-xs opacity-50">
-                {t("crop.original", { w: imgSize.width, h: imgSize.height })}
-              </p>
-            </div>
-
-            <CropShortcutsList surfaceClass={shortcutsSurface} />
-
-            {initialCrop && onClearCrop && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onClearCrop}
-                className="w-full border-red-500/50 text-red-600 hover:bg-red-500/10 dark:text-red-300"
-                data-testid="crop-remove-saved-btn"
-              >
-                {t("crop.removeSavedCrop")}
-              </Button>
+          {/* Mobile: slim always-visible action bar; settings live in a bottom drawer */}
+          <div
+            className={cn(
+              "crop-editor-fade-in 2xl:hidden shrink-0 flex items-stretch gap-2 rounded-md border p-2 backdrop-blur-md",
+              controlPanelSurface
             )}
-
-            <div className="mt-auto pt-2">
-              <div className="grid grid-cols-2 gap-2">
+            data-testid="crop-mobile-bar"
+          >
+            <Drawer>
+              <DrawerTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={requestClose}
-                  data-testid="crop-discard-btn"
+                  className="shrink-0 gap-1.5 px-3"
+                  data-testid="crop-adjust-trigger"
+                  aria-label={t("crop.adjust")}
+                  title={t("crop.adjust")}
                 >
-                  {t("crop.discard")}
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t("crop.adjust")}</span>
                 </Button>
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  onClick={handleSave}
-                  data-testid="crop-save-btn"
-                >
-                  {t("crop.saveCrop")}
-                </Button>
-              </div>
+              </DrawerTrigger>
+              <DrawerContent data-testid="crop-adjust-drawer">
+                <DrawerHeader className="pb-2">
+                  <DrawerTitle className="text-base">{t("crop.adjust")}</DrawerTitle>
+                  <DrawerDescription className="sr-only">
+                    {t("crop.aspectRatio")}
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="flex flex-col gap-3 overflow-y-auto px-4 pb-6 max-h-[70vh]">
+                  {renderAdjustControls("-mobile")}
+                </div>
+              </DrawerContent>
+            </Drawer>
+            <div className="flex-1 min-w-0">
+              {renderActionButtons(
+                "-mobile",
+                "h-auto min-h-9 whitespace-normal leading-tight px-3 py-1.5 text-center"
+              )}
             </div>
           </div>
         </>
