@@ -337,6 +337,7 @@ export const zhCN: TranslationSchema = {
 
   crop: {
     aspectRatio: "宽高比",
+    adjust: "调整",
     zoom: "缩放",
     zoomOut: "缩小",
     zoomIn: "放大",

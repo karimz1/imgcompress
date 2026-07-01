@@ -337,6 +337,7 @@ export const hi: TranslationSchema = {
 
   crop: {
     aspectRatio: "आस्पेक्ट रेशियो",
+    adjust: "समायोजित करें",
     zoom: "ज़ूम स्तर",
     zoomOut: "ज़ूम आउट",
     zoomIn: "ज़ूम इन",
