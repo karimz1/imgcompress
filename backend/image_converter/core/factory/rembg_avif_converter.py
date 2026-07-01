@@ -9,6 +9,8 @@ class RembgAvifConverter(BaseImageConverter):
     Converts raw image bytes to an AVIF with background removed using rembg.
     """
 
+    removes_background = True
+
     def __init__(self, quality: int, logger: Logger, model_name: Optional[str] = None):
         super().__init__(logger)
         self.quality = quality

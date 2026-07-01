@@ -105,34 +105,6 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
         )}
 
         <div className="w-full">
-          {}
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-bold">{t("storage.files")}</h2>
-            {data?.files?.length ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="p-2 shrink-0" title={t("storage.clearButton")}>
-                    <Trash className="h-4 w-4" /> {t("storage.clearButton")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t("storage.confirmTitle")}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t("storage.confirmDescription")}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("storage.confirmCancel")}</AlertDialogCancel>
-                    <AlertDialogAction onClick={onForceClean}>
-                      {t("storage.confirmDelete")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : null}
-          </div>
-
           <div className="mt-4">
             {loading ? (
               <div className="flex items-center justify-center">
@@ -181,6 +153,35 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                     );
                   })}
                 </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="mt-4 w-full border-destructive/50 text-destructive hover:border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      title={t("storage.clearButton")}
+                    >
+                      <Trash className="h-4 w-4" />
+                      {t("storage.clearButton")}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t("storage.confirmTitle")}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t("storage.confirmDescription")}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t("storage.confirmCancel")}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={onForceClean}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {t("storage.confirmDelete")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ) : (
               <p className="text-center text-gray-400">
