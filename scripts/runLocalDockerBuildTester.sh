@@ -22,26 +22,26 @@ NO_CACHE=${NO_CACHE:-true}
 
 BUILD_FLAGS=(--builder "$BUILDX_BUILDER" --load)
 if [ "$NO_CACHE" = "true" ]; then
-  echo "🧼 NO_CACHE=true → clean build (no layer cache, re-pulling base images)"
+  echo "NO_CACHE=true: clean build (no layer cache, re-pulling base images)"
   BUILD_FLAGS+=(--no-cache --pull)
 else
-  echo "⚡ Incremental build (reusing BuildKit cache). Set NO_CACHE=true for a clean build."
+  echo "Incremental build (reusing BuildKit cache). Set NO_CACHE=true for a clean build."
 fi
 
 if [ "$VARIANT" = "slim" ]; then
-  echo "🪶 VARIANT=slim → baking only the u2net model"
+  echo "VARIANT=slim: baking only the u2net model"
   BUILD_FLAGS+=(--build-arg "REMBG_MODELS=u2net")
 else
-  echo "📦 VARIANT=full → baking all rembg models"
+  echo "VARIANT=full: baking all rembg models"
 fi
 
-echo "🚧 Building Docker image: $IMAGE_NAME"
+echo "Building Docker image: $IMAGE_NAME"
 docker buildx build \
   "${BUILD_FLAGS[@]}" \
   -t "$IMAGE_NAME" \
   .
 
-echo "🚀 Running container on http://localhost:$PORT_HOST with DISABLE_LOGO=$DISABLE_LOGO DEV_MODE=$DEV_MODE"
+echo "Running container on http://localhost:$PORT_HOST with DISABLE_LOGO=$DISABLE_LOGO DEV_MODE=$DEV_MODE"
 docker run --rm \
   --name imgcompress-local-tester \
   -p "$PORT_HOST:$PORT_CONTAINER" \
