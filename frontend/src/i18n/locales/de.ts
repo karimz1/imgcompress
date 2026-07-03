@@ -112,9 +112,29 @@ export const de: TranslationSchema = {
       bySize: "Nach Dateigröße festlegen",
     },
     rembg: {
-      label: "Hintergrund mit lokaler KI entfernen ({{model}})",
+      label: "Hintergrund mit lokaler KI entfernen",
       tooltip:
         "Lokale KI entfernt den Hintergrund (kein Internet erforderlich).\nLangsamere Verarbeitung, kleine Kantenartefakte können auftreten.",
+    },
+    rembgModel: {
+      label: "KI-Modell",
+      placeholder: "Modell auswählen",
+      tooltip:
+        "Wähle, welches lokale KI-Modell den Hintergrund entfernt.\nAllgemein passt für die meisten Bilder, Anime ist auf Zeichnungen abgestimmt, Fotos für reale Fotografie.",
+      options: {
+        "u2net": "Allgemein",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotos",
+        "u2net_human_seg": "Porträts",
+        "birefnet-general-lite": "Hohe Qualität",
+      },
+      descriptions: {
+        "u2net": "Für die meisten Bilder",
+        "isnet-anime": "Zeichnungen & Illustrationen",
+        "isnet-general-use": "Reale Fotografie",
+        "u2net_human_seg": "Personen & Freistellungen",
+        "birefnet-general-lite": "Schärfste Kanten, langsamer",
+      },
     },
     quality: {
       label: "Qualität",

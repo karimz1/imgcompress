@@ -44,7 +44,16 @@ VALID_CONFIG = {
         "is_logo_enabled": True,
         "is_dev_mode_enabled": False,
     },
-    "rembg": {"model_name": "u2net"},
+    "rembg": {
+        "model_name": "u2net",
+        "available_models": [
+            "u2net",
+            "isnet-anime",
+            "isnet-general-use",
+            "u2net_human_seg",
+            "birefnet-general-lite",
+        ],
+    },
 }
 
 _FEATURE_ENV_VARS = ("DISABLE_LOGO", "DISABLE_STORAGE_MANAGEMENT", "DEV_MODE")
@@ -52,7 +61,7 @@ _FEATURE_ENV_VARS = ("DISABLE_LOGO", "DISABLE_STORAGE_MANAGEMENT", "DEV_MODE")
 
 @pytest.fixture
 def config_file(tmp_path, monkeypatch):
-    for name in _FEATURE_ENV_VARS:
+    for name in (*_FEATURE_ENV_VARS, "IMGCOMPRESS_REMBG_MODELS"):
         monkeypatch.delenv(name, raising=False)
 
     def _write(data) -> Path:
@@ -93,6 +102,13 @@ def test_valid_config_loads_into_typed_app_config(config_file):
     assert config.features.is_logo_enabled is True
     assert config.features.is_dev_mode_enabled is False
     assert config.rembg.model_name == "u2net"
+    assert config.rembg.available_models == (
+        "u2net",
+        "isnet-anime",
+        "isnet-general-use",
+        "u2net_human_seg",
+        "birefnet-general-lite",
+    )
 
 
 def test_app_config_is_immutable(config_file):
@@ -133,6 +149,7 @@ def test_web_workers_auto_resolves_via_fallback(config_file):
         ),
         (("features", "is_dev_mode_enabled"), "features.is_dev_mode_enabled"),
         (("rembg", "model_name"), "rembg.model_name"),
+        (("rembg", "available_models"), "rembg.available_models"),
     ],
 )
 def test_required_keys_must_exist(config_file, remove_key, expected_path):
@@ -208,6 +225,54 @@ def test_crop_preview_extensions_must_be_non_empty_dot_extensions(config_file):
     config_file(cfg)
     with pytest.raises(ConfigError, match="non-empty strings"):
         settings.get()
+
+
+def test_rembg_available_models_must_be_non_empty_list(config_file):
+    cfg = _copy_config()
+    cfg["rembg"]["available_models"] = []
+    config_file(cfg)
+    with pytest.raises(ConfigError, match="non-empty list"):
+        settings.get()
+
+
+def test_rembg_default_model_must_be_in_available_models(config_file):
+    cfg = _copy_config()
+    cfg["rembg"]["model_name"] = "not-in-list"
+    config_file(cfg)
+    with pytest.raises(ConfigError, match="must be one of rembg.available_models"):
+        settings.get()
+
+
+def test_rembg_available_models_env_override_limits_set(config_file, monkeypatch):
+    # The slim image sets IMGCOMPRESS_REMBG_MODELS=u2net to offer only the default.
+    monkeypatch.setenv("IMGCOMPRESS_REMBG_MODELS", "u2net")
+    config_file(VALID_CONFIG)
+    assert settings.get().rembg.available_models == ("u2net",)
+
+
+def test_rembg_available_models_env_override_accepts_comma_and_space(config_file, monkeypatch):
+    monkeypatch.setenv("IMGCOMPRESS_REMBG_MODELS", "u2net, isnet-anime  isnet-general-use")
+    config_file(VALID_CONFIG)
+    assert settings.get().rembg.available_models == (
+        "u2net",
+        "isnet-anime",
+        "isnet-general-use",
+    )
+
+
+def test_rembg_env_override_still_validates_default_membership(config_file, monkeypatch):
+    # Default is u2net but the env limits models to a set without it -> config error.
+    monkeypatch.setenv("IMGCOMPRESS_REMBG_MODELS", "isnet-anime")
+    config_file(VALID_CONFIG)
+    with pytest.raises(ConfigError, match="must be one of rembg.available_models"):
+        settings.get()
+
+
+def test_rembg_blank_env_override_falls_back_to_config(config_file, monkeypatch):
+    monkeypatch.setenv("IMGCOMPRESS_REMBG_MODELS", "   ")
+    config_file(VALID_CONFIG)
+    assert settings.get().rembg.available_models[0] == "u2net"
+    assert len(settings.get().rembg.available_models) == 5
 
     cfg = _copy_config()
     cfg["crop_preview"]["unsupported_input_extensions"] = ["pdf"]

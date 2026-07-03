@@ -4,6 +4,7 @@ from flask import Request
 
 from backend.image_converter.application.dtos import CompressionFormData
 from backend.image_converter.core.enums.image_format import ImageFormat
+from backend.image_converter.core.internals.rembg_config import resolve_rembg_model
 from backend.image_converter.core.internals.utilities import Result, is_file_supported
 from backend.image_converter.infrastructure.logger import Logger
 
@@ -29,6 +30,7 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         image_format=format_result.value,
         target_size_kb=_parse_target_size_kb(request.form.get("target_size_kb", ""), logger),
         use_rembg=_parse_bool(request.form.get("use_rembg")),
+        rembg_model=resolve_rembg_model(request.form.get("rembg_model", "").strip() or None),
         pdf_preset=request.form.get("pdf_preset", "").strip(),
         pdf_scale=request.form.get("pdf_scale", "").strip(),
         pdf_margin_mm=_parse_margin_mm(request.form.get("pdf_margin_mm", ""), logger),

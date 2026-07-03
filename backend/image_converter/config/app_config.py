@@ -60,6 +60,7 @@ class FeaturesConfig:
 @dataclass(frozen=True)
 class RembgConfig:
     model_name: str
+    available_models: tuple[str, ...]
 
 
 @dataclass(frozen=True)

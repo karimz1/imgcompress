@@ -74,11 +74,47 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 
 ## AI Background Removal: Local & Private
 
-Stop uploading personal or client photos to cloud-based removers. ImgCompress ships a bundled AI model that runs background removal **on your own hardware**. No API call, no subscription, no file ever leaves your server.
+Stop uploading personal or client photos to cloud-based removers. ImgCompress ships bundled AI models that run background removal **on your own hardware**. No API call, no subscription, no file ever leaves your server.
 
 | Original | Background Removed |
 |:---:|:---:|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="380" alt="Original sunset landscape photo"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="380" alt="Same photo with background removed by local AI"/> |
+
+### Pick the right model
+
+When background removal is on (PNG or AVIF output), a model dropdown lets you match the model to the image:
+
+- **General (`u2net`)** is the default and works for most images.
+- **Anime & illustrations (`isnet-anime`)** is tuned for drawings and anime art.
+- **Photos (`isnet-general-use`)** targets real-world photography.
+- **People & portraits (`u2net_human_seg`)** is trained specifically for cutting out people.
+- **High quality (`birefnet-general-lite`)** gives the sharpest edges and finest detail, at the cost of being a bit slower.
+
+Each option in the picker shows a short note on what it is best at. All models are pre-baked into the image, so switching between them needs no download and works fully offline.
+
+### Image tags: `latest` vs `slim`
+
+- **`latest`** bundles every model above for the best out-of-the-box experience (a few extra MB per model).
+- **`slim`** ships only the default `u2net` model for the smallest possible image. The model picker is hidden, and background removal still works exactly as before.
+
+Both are privacy-first and fully local. Pick `slim` if you want the leanest image and only need the default model; pick `latest` if you want to match the right model to each image.
+
+### GPU acceleration (NVIDIA)
+
+The default image runs on CPU and works everywhere (Mac, Intel, NVIDIA). The app auto-detects the fastest available onnxruntime execution provider, so a **CUDA-enabled image variant** run on an NVIDIA host uses the GPU and falls back to CPU otherwise.
+
+Build and run the GPU variant:
+
+```bash
+docker build \
+  --build-arg PY_REQUIREMENTS=requirements-cuda.txt \
+  --build-arg CUDA_LD_LIBRARY_PATH=/container/venv/lib/python3.11/site-packages/nvidia/cuda_runtime/lib:/container/venv/lib/python3.11/site-packages/nvidia/cudnn/lib:/container/venv/lib/python3.11/site-packages/nvidia/cublas/lib:/container/venv/lib/python3.11/site-packages/nvidia/cufft/lib:/container/venv/lib/python3.11/site-packages/nvidia/curand/lib \
+  -t imgcompress:cuda .
+
+docker run -d --name imgcompress --gpus all -p 3001:5000 imgcompress:cuda
+```
+
+Requires the NVIDIA driver and [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) on the host. Note: Docker on macOS cannot reach the Mac GPU (Metal/CoreML), so containers there always run on CPU.
 
 ---
 

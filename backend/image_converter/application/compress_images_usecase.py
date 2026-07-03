@@ -101,6 +101,7 @@ class CompressImagesUseCase:
                             pdf_scale=pdf_scale,
                             pdf_margin_mm=pdf_margin_mm,
                             pdf_paginate=pdf_paginate,
+                            rembg_model=req.rembg_model,
                         )
                         # Tag the filename when the converter itself removed the
                         # background, so the suffix follows the actual behaviour

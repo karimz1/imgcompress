@@ -65,7 +65,9 @@ interface FileConversionFormProps {
 
   useRembg: boolean;
   setUseRembg: (val: boolean) => void;
-  rembgModelName: string | null;
+  rembgModel: string;
+  setRembgModel: (val: string) => void;
+  rembgAvailableModels: string[];
 
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
@@ -115,7 +117,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setCompressionMode,
   useRembg,
   setUseRembg,
-  rembgModelName,
+  rembgModel,
+  setRembgModel,
+  rembgAvailableModels,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -141,6 +145,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     resizeWidth: t("form.resizeWidth.tooltip"),
     targetSize: t("form.targetSize.tooltip"),
     rembg: t("form.rembg.tooltip"),
+    rembgModel: t("form.rembgModel.tooltip"),
   };
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
@@ -158,7 +163,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const parsedPdfMargin = parseFloat(pdfMarginMm);
   const pdfMarginValue =
     pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
-  const rembgLabel = rembgModelName?.trim() || "rembg";
   const renderError = useMemo(
     () =>
       error && (
@@ -632,7 +636,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               htmlFor="rembgToggle"
               className="text-sm flex items-center gap-1"
             >
-              {t("form.rembg.label", { model: rembgLabel })}
+              {t("form.rembg.label")}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
@@ -655,6 +659,59 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               disabled={isLoading}
             />
           </div>
+
+          {useRembg && rembgAvailableModels.length > 1 && (
+            <div className="space-y-1 pt-1 pb-2">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="rembgModel" className="text-sm">
+                  {t("form.rembgModel.label")}
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+                  >
+                    <p className="text-sm">{tooltipContent.rembgModel}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Select value={rembgModel} onValueChange={setRembgModel} disabled={isLoading}>
+                <SelectTrigger
+                  id="rembgModel"
+                  data-testid="rembg-model-select"
+                  className={cn(
+                    selectSurface,
+                    "focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  )}
+                >
+                  <SelectValue placeholder={t("form.rembgModel.placeholder")} />
+                </SelectTrigger>
+                <SelectContent className={cn(selectSurface, "pb-1.5")}>
+                  {rembgAvailableModels.map((model) => (
+                    <SelectItem
+                      key={model}
+                      value={model}
+                      description={t(`form.rembgModel.descriptions.${model}`, "")}
+                    >
+                      {t(`form.rembgModel.options.${model}`, model)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {rembgModel && (
+                <p className={cn("text-xs", subtleText)}>
+                  <span className="font-mono">{rembgModel}</span>
+                  {" · "}
+                  {t(`form.rembgModel.descriptions.${rembgModel}`, "")}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

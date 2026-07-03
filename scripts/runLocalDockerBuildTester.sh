@@ -4,6 +4,9 @@ set -euo pipefail
 
 IMAGE_NAME="karimz1/imgcompress:local-test"
 BUILDX_BUILDER="${BUILDX_BUILDER:-imgcompress-builder}"
+# VARIANT=full bakes every rembg model (default, matches the `latest` tag).
+# VARIANT=slim bakes only the default u2net model (matches the `slim` tag).
+VARIANT="${VARIANT:-full}"
 PORT_CONTAINER=5000
 PORT_HOST=${PORT_HOST:-80}
 DISABLE_LOGO=${DISABLE_LOGO:-false}
@@ -23,6 +26,13 @@ if [ "$NO_CACHE" = "true" ]; then
   BUILD_FLAGS+=(--no-cache --pull)
 else
   echo "⚡ Incremental build (reusing BuildKit cache). Set NO_CACHE=true for a clean build."
+fi
+
+if [ "$VARIANT" = "slim" ]; then
+  echo "🪶 VARIANT=slim → baking only the u2net model"
+  BUILD_FLAGS+=(--build-arg "REMBG_MODELS=u2net")
+else
+  echo "📦 VARIANT=full → baking all rembg models"
 fi
 
 echo "🚧 Building Docker image: $IMAGE_NAME"

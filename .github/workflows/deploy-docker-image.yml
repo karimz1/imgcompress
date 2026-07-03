@@ -66,6 +66,7 @@ jobs:
           IMAGE_GH="ghcr.io/${GITHUB_OWNER}/imgcompress"
 
           TAGS=()
+          SLIM_TAGS=()
           VERSION=""
 
           # If this is a release tag like refs/tags/release_1.0.3
@@ -75,17 +76,27 @@ jobs:
             # For releases: versioned tag + latest (both registries)
             TAGS+=("$IMAGE_DH:${VERSION}")
             TAGS+=("$IMAGE_DH:latest")
-            
+
             TAGS+=("$IMAGE_GH:${VERSION}")
             TAGS+=("$IMAGE_GH:latest")
+
+            # Slim variant (only the default u2net model)
+            SLIM_TAGS+=("$IMAGE_DH:${VERSION}-slim")
+            SLIM_TAGS+=("$IMAGE_DH:slim")
+            SLIM_TAGS+=("$IMAGE_GH:${VERSION}-slim")
+            SLIM_TAGS+=("$IMAGE_GH:slim")
           else
             # Main (or other branches): nightly (both registries)
             TAGS+=("$IMAGE_DH:nightly")
             TAGS+=("$IMAGE_GH:nightly")
+
+            SLIM_TAGS+=("$IMAGE_DH:slim-nightly")
+            SLIM_TAGS+=("$IMAGE_GH:slim-nightly")
           fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
+          printf 'slim_tags=%s\n' "$(IFS=,; echo "${SLIM_TAGS[*]}")" >> "$GITHUB_OUTPUT"
 
       - name: Debug - Display Computed Tags
         shell: bash
@@ -101,9 +112,15 @@ jobs:
           for tag in "${TAG_ARRAY[@]}"; do
             echo "  • $tag"
           done
+          echo ""
+          echo "Slim tags that will be pushed:"
+          IFS=',' read -ra SLIM_TAG_ARRAY <<< "${{ steps.tags.outputs.slim_tags }}"
+          for tag in "${SLIM_TAG_ARRAY[@]}"; do
+            echo "  • $tag"
+          done
           echo "::endgroup::"
 
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image (full - all models)
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -112,6 +129,18 @@ jobs:
           tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha,scope=app-deploy
           cache-to: type=gha,mode=max,scope=app-deploy
+
+      - name: Build and Push Docker Image (slim - u2net only)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.slim_tags }}
+          build-args: |
+            REMBG_MODELS=u2net
+          cache-from: type=gha,scope=app-deploy
+          cache-to: type=gha,mode=max,scope=app-deploy-slim
 
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub

@@ -112,9 +112,29 @@ export const ja: TranslationSchema = {
       bySize: "ファイルサイズで設定",
     },
     rembg: {
-      label: "ローカル AI で背景を削除 ({{model}})",
+      label: "ローカル AI で背景を削除",
       tooltip:
         "ローカル AI が背景を削除します (インターネット不要)。\n処理は遅めで、輪郭に小さなアーティファクトが出る場合があります。",
+    },
+    rembgModel: {
+      label: "AI モデル",
+      placeholder: "モデルを選択",
+      tooltip:
+        "背景を削除するローカル AI モデルを選択します。\n汎用はほとんどの画像に適し、アニメはイラスト向けに調整、写真は実写向けです。",
+      options: {
+        "u2net": "汎用",
+        "isnet-anime": "アニメ",
+        "isnet-general-use": "写真",
+        "u2net_human_seg": "ポートレート",
+        "birefnet-general-lite": "高品質",
+      },
+      descriptions: {
+        "u2net": "ほとんどの画像向け",
+        "isnet-anime": "絵・イラスト",
+        "isnet-general-use": "実写向け",
+        "u2net_human_seg": "人物・切り抜き",
+        "birefnet-general-lite": "最も鋭いエッジ、やや低速",
+      },
     },
     quality: {
       label: "品質",

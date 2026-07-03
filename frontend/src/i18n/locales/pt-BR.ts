@@ -112,9 +112,29 @@ export const ptBR: TranslationSchema = {
       bySize: "Definir por tamanho de arquivo",
     },
     rembg: {
-      label: "Remover fundo com IA local ({{model}})",
+      label: "Remover fundo com IA local",
       tooltip:
         "A IA local remove o fundo (sem necessidade de internet).\nProcessamento mais lento, pode mostrar pequenos artefatos nas bordas.",
+    },
+    rembgModel: {
+      label: "Modelo de IA",
+      placeholder: "Selecione um modelo",
+      tooltip:
+        "Escolha qual modelo de IA local remove o fundo.\nGeral serve para a maioria das imagens, Anime é ajustado para desenhos, Fotos para fotografia real.",
+      options: {
+        "u2net": "Geral",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotos",
+        "u2net_human_seg": "Retratos",
+        "birefnet-general-lite": "Alta qualidade",
+      },
+      descriptions: {
+        "u2net": "Para a maioria das imagens",
+        "isnet-anime": "Desenhos e ilustrações",
+        "isnet-general-use": "Fotografia real",
+        "u2net_human_seg": "Pessoas e recortes",
+        "birefnet-general-lite": "Bordas mais nítidas, mais lento",
+      },
     },
     quality: {
       label: "Qualidade",

@@ -110,7 +110,27 @@ def load_from_file(path: Path) -> AppConfig:
             ("features", "is_dev_mode_enabled"),
         ),
     )
-    rembg = RembgConfig(model_name=reader.require_str(("rembg", "model_name")))
+    rembg_default_model = reader.require_str(("rembg", "model_name"))
+    rembg_available_models = reader.require_str_list(("rembg", "available_models"))
+    # The Docker image controls which models are baked in (e.g. the `slim` tag
+    # ships only u2net). It exports IMGCOMPRESS_REMBG_MODELS so the app offers
+    # exactly the baked set instead of the full app.json list.
+    env_models = _read_env_model_list("IMGCOMPRESS_REMBG_MODELS")
+    if env_models is not None:
+        rembg_available_models = env_models
+    if (
+        rembg_default_model
+        and rembg_available_models
+        and rembg_default_model not in rembg_available_models
+    ):
+        errors.append(
+            "config key 'rembg.model_name' must be one of rembg.available_models "
+            f"({', '.join(rembg_available_models)})"
+        )
+    rembg = RembgConfig(
+        model_name=rembg_default_model,
+        available_models=rembg_available_models,
+    )
 
     if errors:
         raise ConfigError("invalid backend config:\n  - " + "\n  - ".join(errors))
@@ -264,6 +284,23 @@ class _Reader:
             normalized.append(cleaned)
         return tuple(normalized)
 
+    def require_str_list(self, path: Tuple[str, ...]) -> Tuple[str, ...]:
+        raw = self._lookup(path)
+        if raw is _SENTINEL:
+            return ()
+        if not isinstance(raw, list) or not raw:
+            self._errors.append(f"config key '{_render(path)}' must be a non-empty list")
+            return ()
+        normalized: list[str] = []
+        for entry in raw:
+            if not isinstance(entry, str) or not entry.strip():
+                self._errors.append(
+                    f"config key '{_render(path)}' must contain only non-empty strings"
+                )
+                return ()
+            normalized.append(entry.strip())
+        return tuple(normalized)
+
     def require_feature_flag(self, path: Tuple[str, ...]) -> bool:
         override = self._matching_override(path)
         if override is not None:
@@ -316,6 +353,21 @@ class _Reader:
 
 def _render(path: Tuple[str, ...]) -> str:
     return ".".join(path)
+
+
+def _read_env_model_list(name: str) -> Optional[Tuple[str, ...]]:
+    """Parse a comma/whitespace-separated model list from an env var.
+
+    Returns ``None`` when the variable is unset or effectively empty, so the
+    caller falls back to the ``app.json`` value.
+    """
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    tokens = raw.replace(",", " ").split()
+    if not tokens:
+        return None
+    return tuple(tokens)
 
 
 def _read_env_bool(name: str, errors: list[str]) -> Optional[bool]:

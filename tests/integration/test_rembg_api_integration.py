@@ -23,13 +23,18 @@ def test_rembg_model_endpoint_uses_config_value(client, monkeypatch):
     monkeypatch.setattr(
         routes,
         "configuration_service",
-        ConfigurationService(rembg_model_name="custom-net"),
+        ConfigurationService(
+            rembg_model_name="custom-net",
+            rembg_available_models=["custom-net", "isnet-anime"],
+        ),
     )
 
     response = client.get("/api/rembg_model")
     assert response.status_code == 200
     payload = response.get_json()
     assert payload["model_name"] == "custom-net"
+    assert payload["default_model"] == "custom-net"
+    assert payload["available_models"] == ["custom-net", "isnet-anime"]
 
 
 def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
@@ -42,8 +47,8 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
     with open(sample_path, "rb") as f:
         image_data = f.read()
 
-    def fake_new_session(model_name: str):
-        return {"model": model_name}
+    def fake_new_session(model_name, providers=None):
+        return {"model": model_name, "providers": providers}
 
     def fake_remove(data, session, post_process_mask, alpha_matting):
         _ = session
@@ -86,5 +91,52 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
             assert out_img.format.upper() == "PNG"
             assert "A" in out_img.mode
             assert out_img.getpixel((0, 0))[3] == 0
+    finally:
+        shutil.rmtree(dest_folder, ignore_errors=True)
+
+
+def test_rembg_api_selected_model_reaches_session(client, monkeypatch):
+    sample_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "sample-images",
+        "pexels-pealdesign-28594392.jpg",
+    )
+    with open(sample_path, "rb") as f:
+        image_data = f.read()
+
+    captured = {}
+
+    def fake_new_session(model_name, providers=None):
+        captured["model_name"] = model_name
+        captured["providers"] = providers
+        return {"model": model_name}
+
+    def fake_remove(data, session, post_process_mask, alpha_matting):
+        buffer = io.BytesIO()
+        Image.new("RGBA", (12, 12), (0, 0, 0, 0)).save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    import sys
+    from unittest.mock import MagicMock
+    mock_rembg = MagicMock()
+    mock_rembg.new_session = fake_new_session
+    mock_rembg.remove = fake_remove
+    monkeypatch.setitem(sys.modules, "rembg", mock_rembg)
+
+    data = {
+        "files[]": (io.BytesIO(image_data), "input.jpg"),
+        "format": "png",
+        "use_rembg": "true",
+        "rembg_model": "isnet-anime",
+    }
+
+    response = client.post("/api/compress", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200
+    payload = response.get_json()
+    dest_folder = payload["dest_folder"]
+    try:
+        assert captured["model_name"] == "isnet-anime"
+        assert "CPUExecutionProvider" in captured["providers"]
     finally:
         shutil.rmtree(dest_folder, ignore_errors=True)

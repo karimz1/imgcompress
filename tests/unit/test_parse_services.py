@@ -43,6 +43,30 @@ def test_extract_form_data_returns_typed_dto():
     assert form_data.quality == 80
     assert form_data.width == 1024
     assert form_data.use_rembg is True
+    # No explicit model -> resolves to the configured default.
+    assert form_data.rembg_model == "u2net"
+
+
+def test_extract_form_data_accepts_allowlisted_rembg_model():
+    request = _build_request(
+        {"format": "png", "use_rembg": "true", "rembg_model": "isnet-anime"},
+        {"files[]": (b"x", "image.png")},
+    )
+
+    form_data = extract_form_data(request, _Logger()).value
+
+    assert form_data.rembg_model == "isnet-anime"
+
+
+def test_extract_form_data_falls_back_when_rembg_model_unknown():
+    request = _build_request(
+        {"format": "png", "use_rembg": "true", "rembg_model": "totally-made-up"},
+        {"files[]": (b"x", "image.png")},
+    )
+
+    form_data = extract_form_data(request, _Logger()).value
+
+    assert form_data.rembg_model == "u2net"
 
 
 def test_extract_form_data_rejects_unsupported_extensions():

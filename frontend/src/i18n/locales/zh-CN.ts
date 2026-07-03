@@ -112,9 +112,29 @@ export const zhCN: TranslationSchema = {
       bySize: "按文件大小设置",
     },
     rembg: {
-      label: "使用本地 AI 移除背景（{{model}}）",
+      label: "使用本地 AI 移除背景",
       tooltip:
         "本地 AI 会移除背景（无需互联网）。\n处理较慢，边缘可能出现少量瑕疵。",
+    },
+    rembgModel: {
+      label: "AI 模型",
+      placeholder: "选择模型",
+      tooltip:
+        "选择由哪个本地 AI 模型移除背景。\n通用适用于大多数图片，动漫针对插画进行了优化，照片适用于真实摄影。",
+      options: {
+        "u2net": "通用",
+        "isnet-anime": "动漫",
+        "isnet-general-use": "照片",
+        "u2net_human_seg": "肖像",
+        "birefnet-general-lite": "高质量",
+      },
+      descriptions: {
+        "u2net": "适用于大多数图片",
+        "isnet-anime": "绘画与插画",
+        "isnet-general-use": "真实摄影",
+        "u2net_human_seg": "人物与抠图",
+        "birefnet-general-lite": "边缘最锐利，较慢",
+      },
     },
     quality: {
       label: "质量",

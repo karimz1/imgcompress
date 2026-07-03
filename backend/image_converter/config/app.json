@@ -40,6 +40,13 @@
     "is_dev_mode_enabled": false
   },
   "rembg": {
-    "model_name": "u2net"
+    "model_name": "u2net",
+    "available_models": [
+      "u2net",
+      "isnet-anime",
+      "isnet-general-use",
+      "u2net_human_seg",
+      "birefnet-general-lite"
+    ]
   }
 }

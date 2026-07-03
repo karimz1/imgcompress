@@ -19,6 +19,7 @@ class CompressRequest:
     width: Optional[int]
     target_size: Optional[TargetSize]
     use_rembg: bool = False
+    rembg_model: Optional[str] = None
     pdf_preset: Optional[str] = None
     pdf_scale: str = "fit"
     pdf_margin_mm: Optional[float] = None
@@ -88,6 +89,7 @@ class CompressionFormData:
     image_format: ImageFormat
     target_size_kb: Optional[int]
     use_rembg: bool
+    rembg_model: Optional[str]
     pdf_preset: str
     pdf_scale: str
     pdf_margin_mm: float

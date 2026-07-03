@@ -20,25 +20,26 @@ class ImageConverterFactory:
         pdf_scale: str = "fit",
         pdf_margin_mm: float | None = None,
         pdf_paginate: bool = False,
+        rembg_model: str | None = None,
     ) -> IImageConverter:
-        
+
         match (image_format, use_rembg):
             case (ImageFormat.JPEG, _):
                 return JpegConverter(quality=quality, logger=logger)
-            
+
             case (ImageFormat.PNG, True):
                 from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
-                return RembgPngConverter(logger=logger)
-            
+                return RembgPngConverter(logger=logger, model_name=rembg_model)
+
             case (ImageFormat.PNG, False):
                 return PngConverter(logger=logger)
-            
+
             case (ImageFormat.ICO, _):
                 return IcoConverter(logger=logger)
-            
+
             case (ImageFormat.AVIF, True):
                 from backend.image_converter.core.factory.rembg_avif_converter import RembgAvifConverter
-                return RembgAvifConverter(quality=quality, logger=logger)
+                return RembgAvifConverter(quality=quality, logger=logger, model_name=rembg_model)
             
             case (ImageFormat.AVIF, False):
                 from backend.image_converter.core.factory.avif_converter import AvifConverter

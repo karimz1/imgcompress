@@ -109,9 +109,29 @@ export const en = {
       bySize: "Set by File Size",
     },
     rembg: {
-      label: "Remove background with local AI ({{model}})",
+      label: "Remove background with local AI",
       tooltip:
         "Local AI removes background (no internet required).\nSlower processing, may show small edge artifacts.",
+    },
+    rembgModel: {
+      label: "AI model",
+      placeholder: "Select a model",
+      tooltip:
+        "Choose which local AI model removes the background.\nGeneral suits most images, Anime is tuned for drawings, Photos for real-world photography.",
+      options: {
+        "u2net": "General",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Photos",
+        "u2net_human_seg": "Portraits",
+        "birefnet-general-lite": "High quality",
+      },
+      descriptions: {
+        "u2net": "For most images",
+        "isnet-anime": "Drawings & illustrations",
+        "isnet-general-use": "Real-world photography",
+        "u2net_human_seg": "People & cutouts",
+        "birefnet-general-lite": "Sharpest edges, slower",
+      },
     },
     quality: {
       label: "Quality",

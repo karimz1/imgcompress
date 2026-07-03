@@ -112,9 +112,29 @@ export const hu: TranslationSchema = {
       bySize: "Fájlméret alapján",
     },
     rembg: {
-      label: "Háttér eltávolítása helyi AI-val ({{model}})",
+      label: "Háttér eltávolítása helyi AI-val",
       tooltip:
         "A helyi AI eltávolítja a hátteret (internet nem szükséges).\nLassabb feldolgozás, és kisebb élhibák előfordulhatnak.",
+    },
+    rembgModel: {
+      label: "MI-modell",
+      placeholder: "Válasszon modellt",
+      tooltip:
+        "Válassza ki, melyik helyi MI-modell távolítsa el a hátteret.\nAz Általános a legtöbb képhez megfelelő, az Anime rajzokhoz van hangolva, a Fotók valós fényképekhez.",
+      options: {
+        "u2net": "Általános",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotók",
+        "u2net_human_seg": "Portrék",
+        "birefnet-general-lite": "Kiváló minőség",
+      },
+      descriptions: {
+        "u2net": "A legtöbb képhez",
+        "isnet-anime": "Rajzok és illusztrációk",
+        "isnet-general-use": "Valós fényképek",
+        "u2net_human_seg": "Emberek és kivágások",
+        "birefnet-general-lite": "Legélesebb élek, lassabb",
+      },
     },
     quality: {
       label: "Minőség",

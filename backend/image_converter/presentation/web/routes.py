@@ -37,7 +37,10 @@ compression_service = CompressionService(logger, use_case, temp_folder_service)
 storage_management_service = StorageManagementService(
     is_enabled=_config.features.is_storage_management_enabled,
 )
-configuration_service = ConfigurationService(rembg_model_name=_config.rembg.model_name)
+configuration_service = ConfigurationService(
+    rembg_model_name=_config.rembg.model_name,
+    rembg_available_models=list(_config.rembg.available_models),
+)
 crop_preview_service = CropPreviewService(
     logger,
     payload_expander,
@@ -158,7 +161,12 @@ def verified_image_formats():
 
 @api_blueprint.route("/rembg_model", methods=["GET"])
 def rembg_model():
-    return jsonify({"model_name": configuration_service.get_rembg_model_name()}), 200
+    default_model = configuration_service.get_rembg_model_name()
+    return jsonify({
+        "model_name": default_model,
+        "default_model": default_model,
+        "available_models": configuration_service.get_rembg_available_models(),
+    }), 200
 
 
 @api_blueprint.route("/crop_unsupported_formats", methods=["GET"])

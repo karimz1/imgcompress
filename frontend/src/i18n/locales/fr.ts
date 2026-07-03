@@ -112,9 +112,29 @@ export const fr: TranslationSchema = {
       bySize: "Régler par taille de fichier",
     },
     rembg: {
-      label: "Supprimer l'arrière-plan avec l'IA locale ({{model}})",
+      label: "Supprimer l'arrière-plan avec l'IA locale",
       tooltip:
         "L'IA locale supprime l'arrière-plan (aucun internet requis).\nTraitement plus lent, de petits artefacts de bord peuvent apparaître.",
+    },
+    rembgModel: {
+      label: "Modèle d'IA",
+      placeholder: "Sélectionner un modèle",
+      tooltip:
+        "Choisissez quel modèle d'IA local supprime l'arrière-plan.\nGénéral convient à la plupart des images, Anime est optimisé pour les dessins, Photos pour la photographie réelle.",
+      options: {
+        "u2net": "Général",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Photos",
+        "u2net_human_seg": "Portraits",
+        "birefnet-general-lite": "Haute qualité",
+      },
+      descriptions: {
+        "u2net": "Pour la plupart des images",
+        "isnet-anime": "Dessins et illustrations",
+        "isnet-general-use": "Photographie réelle",
+        "u2net_human_seg": "Personnes et détourages",
+        "birefnet-general-lite": "Contours nets, plus lent",
+      },
     },
     quality: {
       label: "Qualité",

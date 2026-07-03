@@ -112,9 +112,29 @@ export const esMX: TranslationSchema = {
       bySize: "Definir por tamaño de archivo",
     },
     rembg: {
-      label: "Eliminar fondo con IA local ({{model}})",
+      label: "Eliminar fondo con IA local",
       tooltip:
         "La IA local elimina el fondo (no requiere internet).\nProcesamiento más lento; puede mostrar pequeños artefactos en los bordes.",
+    },
+    rembgModel: {
+      label: "Modelo de IA",
+      placeholder: "Selecciona un modelo",
+      tooltip:
+        "Elige qué modelo de IA local elimina el fondo.\nGeneral funciona para la mayoría de las imágenes, Anime está ajustado para dibujos, Fotos para fotografía real.",
+      options: {
+        "u2net": "General",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotos",
+        "u2net_human_seg": "Retratos",
+        "birefnet-general-lite": "Alta calidad",
+      },
+      descriptions: {
+        "u2net": "Para la mayoría de las imágenes",
+        "isnet-anime": "Dibujos e ilustraciones",
+        "isnet-general-use": "Fotografía real",
+        "u2net_human_seg": "Personas y recortes",
+        "birefnet-general-lite": "Bordes más nítidos, más lento",
+      },
     },
     quality: {
       label: "Calidad",

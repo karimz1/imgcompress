@@ -159,6 +159,7 @@ def test_compression_form_data_is_immutable_value_object():
         image_format=ImageFormat.JPEG,
         target_size_kb=None,
         use_rembg=False,
+        rembg_model=None,
         pdf_preset="",
         pdf_scale="",
         pdf_margin_mm=10.0,

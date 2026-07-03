@@ -81,7 +81,10 @@ function HomePageContent() {
   const {
     unsupportedExtensions: cropUnsupportedExtensions,
   } = useCropUnsupportedExtensions();
-  const { modelName: rembgModelName } = useRembgModel();
+  const {
+    availableModels: rembgAvailableModels,
+    defaultModel: rembgDefaultModel,
+  } = useRembgModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -109,6 +112,7 @@ function HomePageContent() {
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
+  const [rembgModel, setRembgModel] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [crops, setCrops] = useState<Record<string, CropConfig>>({});
@@ -151,6 +155,14 @@ function HomePageContent() {
       setFormatRequired(false);
     }
   }, [outputFormat]);
+
+  useEffect(() => {
+    // Default the model selection to the backend-provided default once it loads,
+    // without clobbering an explicit user choice.
+    if (!rembgModel && rembgDefaultModel) {
+      setRembgModel(rembgDefaultModel);
+    }
+  }, [rembgDefaultModel, rembgModel]);
 
   useEffect(() => {
     if (outputFormat === "pdf" && pdfPreset !== "original") {
@@ -317,6 +329,9 @@ function HomePageContent() {
       }
       if ((outputFormat === "png" || outputFormat === "avif") && useRembg) {
         formData.append("use_rembg", "true");
+        if (rembgModel) {
+          formData.append("rembg_model", rembgModel);
+        }
       }
 
       try {
@@ -393,6 +408,7 @@ function HomePageContent() {
       compressionMode,
       targetSizeMB,
       useRembg,
+      rembgModel,
       pdfPreset,
       pdfScale,
       pdfMarginMm,
@@ -568,7 +584,9 @@ function HomePageContent() {
               setCompressionMode={setCompressionMode}
               useRembg={useRembg}
               setUseRembg={setUseRembg}
-              rembgModelName={rembgModelName}
+              rembgModel={rembgModel}
+              setRembgModel={setRembgModel}
+              rembgAvailableModels={rembgAvailableModels}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

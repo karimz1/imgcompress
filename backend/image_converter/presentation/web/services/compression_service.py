@@ -94,6 +94,7 @@ class CompressionService:
                 width=form_data.width,
                 target_size=target,
                 use_rembg=form_data.use_rembg,
+                rembg_model=form_data.rembg_model,
                 pdf_preset=pdf_preset,
                 pdf_scale=pdf_scale,
                 pdf_margin_mm=pdf_margin_mm,
