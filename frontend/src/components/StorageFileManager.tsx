@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trash, HardDrive } from "lucide-react";
 import { BackendStatusFloating } from "@/components/BackendStatusFloating";
+import { DownloadFileToast } from "@/components/CustomToast";
+import { useDownload } from "@/hooks/useDownload";
+import { fileDownloadUrl } from "@/lib/download";
 
 
 import {
@@ -45,6 +48,7 @@ interface FileManagerProps {
 
 export default function FileManager({ onForceClean }: FileManagerProps) {
   const { t } = useTranslation();
+  const download = useDownload();
   const [data, setData] = useState<ContainerData | null>(null);
   const [storage, setStorage] = useState<StorageInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -81,6 +85,21 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
     fetchStorageInfo();
   }, [fetchContainerFiles, fetchStorageInfo]);
 
+  // On failure, refresh the listing so the stale row disappears.
+  const handleDownload = useCallback(
+    (file: ContainerFile) =>
+      download({
+        url: fileDownloadUrl(file.folder_path, file.filename),
+        fileName: file.filename,
+        successToast: <DownloadFileToast fileName={file.filename} />,
+        onUnavailable: () => {
+          fetchContainerFiles();
+          fetchStorageInfo();
+        },
+      }),
+    [download, fetchContainerFiles, fetchStorageInfo]
+  );
+
   return (
     <Card className="w-full max-w-2xl mx-auto mt-4">
       <CardHeader className="flex flex-col">
@@ -105,34 +124,6 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
         )}
 
         <div className="w-full">
-          {}
-          <div className="relative">
-            <h2 className="text-lg font-bold text-center">{t("storage.files")}</h2>
-            <div className="absolute inset-y-0 right-0 flex items-center">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="p-2" title={t("storage.clearButton")} disabled={data?.files?.length === 0}>
-                    <Trash className="h-4 w-4" /> {t("storage.clearButton")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t("storage.confirmTitle")}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t("storage.confirmDescription")}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("storage.confirmCancel")}</AlertDialogCancel>
-                    <AlertDialogAction onClick={onForceClean}>
-                      {t("storage.confirmDelete")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </div>
-
           <div className="mt-4">
             {loading ? (
               <div className="flex items-center justify-center">
@@ -152,23 +143,21 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                 {}
                 <div className="overflow-y-auto max-h-40 space-y-2">
                   {data.files.map((file, index) => {
-                    const downloadUrl = `/api/download?folder=${encodeURIComponent(
-                      file.folder_path
-                    )}&file=${encodeURIComponent(file.filename)}`;
                     return (
                       <div
                         key={index}
                         className="flex justify-between bg-gray-800 rounded-md p-2"
                       >
                         <span>
-                          <a
-                            href={downloadUrl}
+                          <button
+                            type="button"
+                            onClick={() => handleDownload(file)}
                             data-testid="storage-management-file-download-link"
                             className="text-blue-400 underline text-xs"
                             title={`Download ${file.filename}`}
                           >
                             <strong className="text-xs">{file.filename}</strong>
-                          </a>{" "}
+                          </button>{" "}
                           <span className="text-xs text-gray-400">
                             ({file.size_mb} MB)
                           </span>
@@ -181,6 +170,35 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
                     );
                   })}
                 </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="mt-4 w-full border-destructive/50 text-destructive hover:border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      title={t("storage.clearButton")}
+                    >
+                      <Trash className="h-4 w-4" />
+                      {t("storage.clearButton")}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t("storage.confirmTitle")}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t("storage.confirmDescription")}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t("storage.confirmCancel")}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={onForceClean}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {t("storage.confirmDelete")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             ) : (
               <p className="text-center text-gray-400">

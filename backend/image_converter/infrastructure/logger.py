@@ -1,4 +1,5 @@
 import logging
+import logging.handlers
 import os
 import sys
 from collections import deque
@@ -11,10 +12,39 @@ from backend.image_converter.config import settings
 
 _LOG_FILE_LOCK = Lock()
 _stdio_capture_installed = False
+_file_logger: logging.Logger | None = None
 
 
 def get_backend_log_file_path() -> str:
     return settings.get().logging.backend_log_file
+
+
+def _ensure_file_logger() -> logging.Logger:
+    """Return the process-wide rotating file logger, building it on first use.
+
+    The backend log is capped by size and rolled over so it can never grow
+    without bound: once the active file reaches ``max_size_mebibytes`` it is
+    rotated and up to ``backup_count`` previous files are kept (both come from
+    the ``logging`` block of the app config). Caller must hold ``_LOG_FILE_LOCK``
+    because that lock is not reentrant and this touches the module-level cache.
+    """
+    global _file_logger
+    if _file_logger is None:
+        cfg = settings.get().logging
+        handler = logging.handlers.RotatingFileHandler(
+            cfg.backend_log_file,
+            maxBytes=cfg.max_size_bytes,
+            backupCount=cfg.backup_count,
+            encoding="utf-8",
+            delay=True,
+        )
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        file_logger = logging.getLogger("imgcompress.backend_file")
+        file_logger.setLevel(logging.INFO)
+        file_logger.propagate = False
+        file_logger.handlers = [handler]
+        _file_logger = file_logger
+    return _file_logger
 
 
 def append_backend_log_line(line: str):
@@ -22,8 +52,7 @@ def append_backend_log_line(line: str):
         return
     ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
     with _LOG_FILE_LOCK:
-        with open(get_backend_log_file_path(), "a", encoding="utf-8") as f:
-            f.write(f"[{ts}] {line.rstrip()}\n")
+        _ensure_file_logger().info(f"[{ts}] {line.rstrip()}")
 
 
 class TeeStream:

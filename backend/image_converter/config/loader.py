@@ -81,6 +81,12 @@ def load_from_file(path: Path) -> AppConfig:
     )
     logging_cfg = LoggingConfig(
         backend_log_file=reader.require_str(("logging", "backend_log_file")),
+        max_size_mebibytes=reader.optional_int(
+            ("logging", "max_size_mebibytes"), default=25, minimum=1
+        ),
+        backup_count=reader.optional_int(
+            ("logging", "backup_count"), default=1, minimum=0
+        ),
     )
     crop_preview = CropPreviewConfig(
         max_retry_attempts=reader.require_int(("crop_preview", "max_retry_attempts"), minimum=1),
@@ -179,6 +185,33 @@ class _Reader:
             return 0
         return raw  # type: ignore[return-value]
 
+    def optional_int(
+        self,
+        path: Tuple[str, ...],
+        *,
+        default: int,
+        minimum: int,
+        maximum: Optional[int] = None,
+    ) -> int:
+        """Like ``require_int`` but returns ``default`` when the key is absent.
+
+        A present-but-invalid value is still reported as an error (so a typo is
+        never silently ignored); only a missing key falls back to the default.
+        """
+        raw = self._peek(path)
+        if raw is _SENTINEL:
+            return default
+        if isinstance(raw, bool) or not isinstance(raw, int):
+            self._errors.append(f"config key '{_render(path)}' must be an integer")
+            return default
+        if raw < minimum:
+            self._errors.append(f"config key '{_render(path)}' must be >= {minimum}")
+            return default
+        if maximum is not None and raw > maximum:
+            self._errors.append(f"config key '{_render(path)}' must be <= {maximum}")
+            return default
+        return raw
+
     def require_bool(self, path: Tuple[str, ...]) -> bool:
         return self._read(
             path,
@@ -251,6 +284,15 @@ class _Reader:
         for part in path:
             if not isinstance(node, dict) or part not in node:
                 self._errors.append(f"missing required config key: {_render(path)}")
+                return _SENTINEL
+            node = node[part]
+        return node
+
+    def _peek(self, path: Tuple[str, ...]) -> object:
+        """Look up a value without recording an error when it is missing."""
+        node: object = self._root
+        for part in path:
+            if not isinstance(node, dict) or part not in node:
                 return _SENTINEL
             node = node[part]
         return node

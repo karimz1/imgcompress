@@ -181,6 +181,13 @@ export const ptBR: TranslationSchema = {
     downloadingZip: "Baixando pasta...",
   },
 
+  downloadError: {
+    title: "Este arquivo não está mais aqui",
+    description:
+      "Ele pode ter sido excluído ou expirado. Tente compactá-lo novamente.",
+    close: "Entendi",
+  },
+
   storage: {
     title: "Gerenciamento de armazenamento",
     used: "Usado:",
@@ -337,6 +344,7 @@ export const ptBR: TranslationSchema = {
 
   crop: {
     aspectRatio: "Proporção",
+    adjust: "Ajustar",
     zoom: "Ampliação",
     zoomOut: "Diminuir zoom",
     zoomIn: "Aumentar zoom",

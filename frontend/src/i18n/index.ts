@@ -81,7 +81,7 @@ function detectBrowserLocale(): Locale {
   return DEFAULT_LOCALE;
 }
 
-function resolveInitialLocale(): Locale {
+export function resolveInitialLocale(): Locale {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
   try {
     const saved = window.localStorage.getItem(LOCALE_STORAGE_KEY);
@@ -97,7 +97,10 @@ const isDev = process.env.NODE_ENV === "development";
 
 i18n.use(initReactI18next).init({
   resources: resources as unknown as Resource,
-  lng: resolveInitialLocale(),
+  // Always start on the default locale so the server-rendered HTML and the first
+  // client render match. The stored/detected locale is applied after hydration
+  // in I18nProvider to avoid a hydration mismatch.
+  lng: DEFAULT_LOCALE,
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: [...SUPPORTED_LOCALES],
   interpolation: {

@@ -181,6 +181,13 @@ export const hu: TranslationSchema = {
     downloadingZip: "Mappa letöltése...",
   },
 
+  downloadError: {
+    title: "Ez a fájl már nincs itt",
+    description:
+      "Lehet, hogy törölték vagy lejárt. Próbáld meg újra tömöríteni.",
+    close: "Értem",
+  },
+
   storage: {
     title: "Tárhely-kezelés",
     used: "Használt:",
@@ -338,6 +345,7 @@ export const hu: TranslationSchema = {
 
   crop: {
     aspectRatio: "Képarány",
+    adjust: "Beállítás",
     zoom: "Nagyítás",
     zoomOut: "Kicsinyítés",
     zoomIn: "Nagyítás",

@@ -25,7 +25,10 @@ import FileManager from "@/components/StorageFileManager";
 import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
 import PageFooter from "@/components/PageFooter";
 import FileConversionForm from "@/components/FileConversionForm";
-import { DownloadZipToast } from "@/components/CustomToast";
+import { DownloadFileToast, DownloadZipToast } from "@/components/CustomToast";
+import { DownloadErrorProvider } from "@/context/DownloadErrorStore";
+import { useDownload } from "@/hooks/useDownload";
+import { fileDownloadUrl, zipDownloadUrl } from "@/lib/download";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DevModePanel } from "@/components/DevModePanel";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -115,6 +118,7 @@ function HomePageContent() {
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
   const { error, setError, clearError } = useErrorStore();
+  const download = useDownload();
   const { isDown } = useBackendHealth();
   const { isDarkTheme } = useMountedTheme();
   const backgroundClass = isDarkTheme
@@ -429,12 +433,37 @@ function HomePageContent() {
     });
   }, []);
 
-  const handleDownloadAll = useCallback(() => {
-    window.location.href = `/api/download_all?folder=${encodeURIComponent(
-      destFolder
-    )}`;
-    toast(<DownloadZipToast />);
-  }, [destFolder]);
+  // A failed download means the temp folder was cleaned up, so every drawer link
+  // is stale. Dropping the list also closes the drawer and hides its trigger, so
+  // there is nothing left to click again.
+  const clearCompressedFiles = useCallback(() => {
+    setDrawerOpen(false);
+    setConverted([]);
+    setDestFolder("");
+    setFileManagerRefresh((prev) => prev + 1);
+  }, []);
+
+  const handleDownloadFile = useCallback(
+    (fileName: string) =>
+      download({
+        url: fileDownloadUrl(destFolder, fileName),
+        fileName,
+        successToast: <DownloadFileToast fileName={fileName} />,
+        onUnavailable: clearCompressedFiles,
+      }),
+    [download, destFolder, clearCompressedFiles]
+  );
+
+  const handleDownloadAll = useCallback(
+    () =>
+      download({
+        url: zipDownloadUrl(destFolder),
+        fileName: "compressed_images.zip",
+        successToast: <DownloadZipToast />,
+        onUnavailable: clearCompressedFiles,
+      }),
+    [download, destFolder, clearCompressedFiles]
+  );
 
   const onForceCleanCallback = useCallback(async () => {
     try {
@@ -601,10 +630,10 @@ function HomePageContent() {
         {converted.length > 0 && (
           <CompressedFilesDrawer
             converted={converted}
-            destFolder={destFolder}
             isOpen={drawerOpen}
             onOpenChange={setDrawerOpen}
             onDownloadAll={handleDownloadAll}
+            onDownloadFile={handleDownloadFile}
           />
         )}
 
@@ -619,9 +648,11 @@ function HomePageContent() {
 export default function HomePage() {
   return (
     <ErrorStoreProvider>
-      <TooltipProvider delayDuration={0}>
-        <HomePageContent />
-      </TooltipProvider>
+      <DownloadErrorProvider>
+        <TooltipProvider delayDuration={0}>
+          <HomePageContent />
+        </TooltipProvider>
+      </DownloadErrorProvider>
     </ErrorStoreProvider>
   );
 }

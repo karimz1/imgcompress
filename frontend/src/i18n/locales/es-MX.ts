@@ -181,6 +181,13 @@ export const esMX: TranslationSchema = {
     downloadingZip: "Descargando carpeta...",
   },
 
+  downloadError: {
+    title: "Este archivo ya no está aquí",
+    description:
+      "Es posible que se haya eliminado o que haya expirado. Intenta comprimirlo de nuevo.",
+    close: "Entendido",
+  },
+
   storage: {
     title: "Administración de almacenamiento",
     used: "Usado:",
@@ -337,6 +344,7 @@ export const esMX: TranslationSchema = {
 
   crop: {
     aspectRatio: "Relación de aspecto",
+    adjust: "Ajustar",
     zoom: "Acercamiento",
     zoomOut: "Alejar",
     zoomIn: "Acercar",

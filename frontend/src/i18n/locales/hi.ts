@@ -181,6 +181,13 @@ export const hi: TranslationSchema = {
     downloadingZip: "फ़ोल्डर डाउनलोड हो रहा है...",
   },
 
+  downloadError: {
+    title: "यह फ़ाइल अब यहाँ नहीं है",
+    description:
+      "हो सकता है इसे हटा दिया गया हो या इसकी अवधि समाप्त हो गई हो। इसे दोबारा कंप्रेस करके देखें।",
+    close: "समझ गया",
+  },
+
   storage: {
     title: "स्टोरेज प्रबंधन",
     used: "उपयोग किया गया:",
@@ -337,6 +344,7 @@ export const hi: TranslationSchema = {
 
   crop: {
     aspectRatio: "आस्पेक्ट रेशियो",
+    adjust: "समायोजित करें",
     zoom: "ज़ूम स्तर",
     zoomOut: "ज़ूम आउट",
     zoomIn: "ज़ूम इन",

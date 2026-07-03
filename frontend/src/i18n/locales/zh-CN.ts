@@ -181,6 +181,12 @@ export const zhCN: TranslationSchema = {
     downloadingZip: "正在下载文件夹...",
   },
 
+  downloadError: {
+    title: "该文件已不存在",
+    description: "它可能已被删除或已过期。请重新压缩后再试。",
+    close: "知道了",
+  },
+
   storage: {
     title: "存储管理",
     used: "已用：",
@@ -337,6 +343,7 @@ export const zhCN: TranslationSchema = {
 
   crop: {
     aspectRatio: "宽高比",
+    adjust: "调整",
     zoom: "缩放",
     zoomOut: "缩小",
     zoomIn: "放大",

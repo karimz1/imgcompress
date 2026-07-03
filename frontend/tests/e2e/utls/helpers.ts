@@ -14,6 +14,8 @@ const selectors = {
   dropzoneAddedFile: '[data-testid="dropzone-added-file"]',
   conversionButton: '[data-testid="convert-btn"]',
   downloadLink: '[data-testid="drawer-uploaded-file-item-link"]',
+  downloadUnavailableDialog: '[data-testid="download-unavailable-dialog"]',
+  downloadUnavailableDialogCloseBtn: '[data-testid="download-unavailable-dialog-close-btn"]',
   removeItemFromDropzoneBtn: '[data-testid="dropzone-remove-file-btn"]',
   targetSizeMBInput: '[data-testid="targetSizeMBInput"]',
   dropzoneAddedFileWrapper: '[data-testid="dropzone-added-file-wrapper"]',
@@ -240,12 +242,17 @@ export async function clickConversionButtonAsync(page: Page): Promise<void> {
 }
 
 
-export async function assertDownloadLinksAsync(page: Page, expectedFileNames: ImageFileDto[]): Promise<Locator> {
+export async function assertDownloadLinksAsync(
+  page: Page,
+  expectedFileNames: ImageFileDto[],
+  expectedSuffix = ''
+): Promise<Locator> {
   const downloadLinks = page.locator(selectors.downloadLink);
   await expect(downloadLinks).toHaveCount(expectedFileNames.length);
   const downloadLinksText = await downloadLinks.allTextContents();
   for (const expectedFile of expectedFileNames) {
-    const expectedBaseName = path.basename(expectedFile.fileName, path.extname(expectedFile.fileName));
+    const expectedBaseName =
+      path.basename(expectedFile.fileName, path.extname(expectedFile.fileName)) + expectedSuffix;
     const found = downloadLinksText.some(text => {
       const linkBaseName = path.basename(text, path.extname(text));
       return linkBaseName === expectedBaseName;
@@ -347,4 +354,16 @@ export async function AssertImageHasTransparentPixels(filePath: string): Promise
   expect(stats.channels.length).toBeGreaterThanOrEqual(4);
   const alpha = stats.channels[3];
   expect(alpha.min).toBeLessThan(255);
+}
+
+// Shared across download entry points (compressed-files drawer, storage manager)
+// so every "file is gone" path is verified to surface the exact same dialog.
+export async function assertDownloadUnavailableDialogAsync(page: Page): Promise<void> {
+  const dialog = page.locator(selectors.downloadUnavailableDialog);
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('This file is no longer here');
+  // Staying in the app, not navigating to the raw JSON error body.
+  await expect(page).toHaveURL(/\/$|\/#/);
+  await page.locator(selectors.downloadUnavailableDialogCloseBtn).click();
+  await expect(dialog).toBeHidden();
 }

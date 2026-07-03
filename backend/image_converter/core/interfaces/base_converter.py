@@ -12,6 +12,10 @@ class BaseImageConverter(IImageConverter):
     Provides common functionality for saving converted images and stripping metadata.
     """
 
+    # Converters that strip the background (e.g. rembg-based) set this to True so
+    # the pipeline can tag their output filenames.
+    removes_background: bool = False
+
     def __init__(self, logger: Logger):
         self.logger = logger
 

@@ -163,23 +163,6 @@ test('crop modal: canceling remove saved crop keeps the crop editor open', async
   await expect(page.getByTestId('dropzone-crop-badge')).toBeVisible();
 });
 
-test('zoom controls update label and reset works', async ({ page }) => {
-  await page.goto('/');
-  await setOutputFormatAsync(page, 'JPEG');
-  await uploadFilesToDropzoneAsync(page, [SAMPLE]);
-
-  await page.getByTestId('dropzone-crop-file-btn').first().click();
-  const zoomLabel = page.getByTestId('crop-zoom-label');
-  await expect(zoomLabel).toHaveText('100%');
-
-  await page.getByTestId('crop-zoom-in-btn').click();
-  await page.getByTestId('crop-zoom-in-btn').click();
-  await expect(zoomLabel).toHaveText('150%');
-
-  await page.getByTestId('crop-zoom-reset-btn').click();
-  await expect(zoomLabel).toHaveText('100%');
-});
-
 test('crop modal: reset selection restores the default crop for the active preset', async ({ page }) => {
   await page.goto('/');
   await setOutputFormatAsync(page, 'JPEG');
@@ -205,8 +188,16 @@ test('zoom does not affect saved crop dimensions', async ({ page }) => {
   await page.getByTestId('dropzone-crop-file-btn').first().click();
   await page.getByTestId('crop-width-input').fill('500');
   await page.getByTestId('crop-height-input').fill('400');
-  await page.getByTestId('crop-zoom-in-btn').click();
-  await page.getByTestId('crop-zoom-in-btn').click();
+
+  // Zoom with the mouse wheel over the preview (zoom is view-only; there are
+  // no zoom buttons anymore — desktop zooms via wheel, touch via pinch).
+  const box = await page.getByTestId('crop-selection').boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, -150);
+    await page.mouse.wheel(0, -150);
+  }
+
   await page.getByTestId('crop-save-btn').click();
 
   const badge = page.getByTestId('dropzone-crop-badge');

@@ -13,47 +13,22 @@ import {
   DrawerDescription,
   DrawerFooter,
 } from "@/components/ui/drawer";
-import { toast, ToastContainer } from "react-toastify";
-import { FileDown } from "lucide-react";
 import GitHubStarBanner from "@/components/GitHubStarBanner";
 
 interface CompressedFilesDrawerProps {
   converted: string[];
-  destFolder: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onDownloadAll: () => void;
+  onDownloadFile: (fileName: string) => void;
 }
-
-
-const DownloadFileToast: React.FC<DownloadFileToastProps> = ({ fileName }) => {
-  const { t } = useTranslation();
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <FileDown style={{ fontSize: "24px", flexShrink: 0 }} /> {}
-      <span style={{ fontSize: "16px", fontWeight: "bold", wordBreak: "break-word" }}>
-        {t("drawer.downloadingFile", { fileName })}
-      </span>
-    </div>
-  );
-};
-
-interface DownloadFileToastProps {
-  fileName: string
-}
-
-const handleDownloadItemClickeEvent = (fileName: string) =>{
-<ToastContainer/>
-toast(<DownloadFileToast fileName={fileName} />);
-}
-
 
 const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
   converted,
-  destFolder,
   isOpen,
   onOpenChange,
   onDownloadAll,
+  onDownloadFile,
 }) => {
   const { t } = useTranslation();
   const count = converted.length;
@@ -89,15 +64,14 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
               <ul className="space-y-2">
                 {converted.map((fname) => (
                   <li key={fname} className="text-center" data-testid="drawer-uploaded-file-item">
-                    <a data-testid="drawer-uploaded-file-item-link"
-                      href={`/api/download?folder=${encodeURIComponent(
-                        destFolder
-                      )}&file=${encodeURIComponent(fname)}`}
-                      onClick={() => handleDownloadItemClickeEvent(fname)}
+                    <button
+                      type="button"
+                      data-testid="drawer-uploaded-file-item-link"
+                      onClick={() => onDownloadFile(fname)}
                       className="text-blue-400 underline"
                     >
                       {fname}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>

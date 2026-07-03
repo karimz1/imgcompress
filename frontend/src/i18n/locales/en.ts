@@ -178,6 +178,13 @@ export const en = {
     downloadingZip: "Downloading: Folder...",
   },
 
+  downloadError: {
+    title: "This file is no longer here",
+    description:
+      "It may have been deleted or expired. Try compressing it again.",
+    close: "Got it",
+  },
+
   storage: {
     title: "Storage Management",
     used: "Used:",
@@ -334,6 +341,7 @@ export const en = {
 
   crop: {
     aspectRatio: "Aspect ratio",
+    adjust: "Adjust",
     zoom: "Zoom",
     zoomOut: "Zoom out",
     zoomIn: "Zoom in",

@@ -60,8 +60,6 @@ class CompressImagesUseCase:
 
             # page_payloads is now an iterable (generator for PDFs) to save memory
             for payload in page_payloads:
-                dest_name = self._build_dest_name(item.stem, new_ext, payload.page_index)
-                dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                 page_label = payload.label
                 try:
                     if pdf_preset and req.image_format == ImageFormat.PDF:
@@ -85,6 +83,9 @@ class CompressImagesUseCase:
                                 "warn"
                             )
 
+                        # The target-size path never removes the background.
+                        dest_name = self._build_dest_name(item.stem, new_ext, payload.page_index)
+                        dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         write_result = self.storage.write_bytes(dest_path, out)
                         if not write_result.is_successful:
                             errors.append(f"{page_label}: {write_result.error}")
@@ -101,6 +102,13 @@ class CompressImagesUseCase:
                             pdf_margin_mm=pdf_margin_mm,
                             pdf_paginate=pdf_paginate,
                         )
+                        # Tag the filename when the converter itself removed the
+                        # background, so the suffix follows the actual behaviour
+                        # regardless of which formats support rembg.
+                        dest_name = self._build_dest_name(
+                            item.stem, new_ext, payload.page_index, converter.removes_background
+                        )
+                        dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         result = converter.convert(
                             image_data=data,
                             source_path=item.path,
@@ -121,8 +129,14 @@ class CompressImagesUseCase:
         return data
 
 
-    @staticmethod
-    def _build_dest_name(stem: str, extension: str, page_index: Optional[int]) -> str:
+    _BG_REMOVED_SUFFIX = "_ai-bg-removed"
+
+    @classmethod
+    def _build_dest_name(
+        cls, stem: str, extension: str, page_index: Optional[int], background_removed: bool = False
+    ) -> str:
+        if background_removed and not stem.endswith(cls._BG_REMOVED_SUFFIX):
+            stem = f"{stem}{cls._BG_REMOVED_SUFFIX}"
         if page_index is None:
             return stem + extension
         return f"{stem}_page-{page_index}{extension}"

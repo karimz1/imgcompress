@@ -181,6 +181,13 @@ export const fr: TranslationSchema = {
     downloadingZip: "Téléchargement du dossier...",
   },
 
+  downloadError: {
+    title: "Ce fichier n'est plus disponible",
+    description:
+      "Il a peut-être été supprimé ou a expiré. Essayez de le compresser à nouveau.",
+    close: "Compris",
+  },
+
   storage: {
     title: "Gestion du stockage",
     used: "Utilisé :",
@@ -337,6 +344,7 @@ export const fr: TranslationSchema = {
 
   crop: {
     aspectRatio: "Rapport d'aspect",
+    adjust: "Ajuster",
     zoom: "Agrandissement",
     zoomOut: "Réduire",
     zoomIn: "Agrandir",

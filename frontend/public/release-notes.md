@@ -1,3 +1,13 @@
+## v0.8.3 — 2026-07-01
+
+- UI: Redesigned the per-file crop editor for mobile. [#737](https://github.com/karimz1/imgcompress/issues/737)
+- AI background removal: Files whose background was removed now get an `_ai-bg-removed` suffix in their name, so they are easy to tell apart from regular compressions. The tag follows the converter that actually ran, so it stays correct across output formats, and the target-size compression path (which never removes the background) no longer gets the suffix by mistake.
+- UI: Moved the "Clear Processed Files" action in the storage manager below the file list and restyled it as a full-width button, so it reads more clearly and is harder to trigger by accident.
+- UX: Downloading a file that was already deleted or has expired now shows a friendly "This file is no longer here" dialog instead of a raw JSON error page. The same dialog appears from both the compressed-files drawer and the storage manager, and the stale entries are cleared so there is nothing left to click again.
+- i18n: Fixed a hydration issue where the page could briefly render in the wrong language. The app now renders the default locale first, then switches to your saved or browser-detected language right after loading, without a hydration mismatch.
+- Internals: Added a max log size in the backend for the Runtime Error Screen so diagnostics stay bounded. [#740](https://github.com/karimz1/imgcompress/issues/740)
+- Dependencies: Updated frontend packages and applied security patches. Dropped the temporary `postcss` override now that Next ships a patched transitive dependency.
+
 ## v0.8.2 — 2026-06-04
 
 - UI: Replaced emoji language flags with cross-platform [`flag-icons`](https://github.com/lipis/flag-icons) so flag rendering is consistent across Windows, Linux, and macOS. Reported via email by Armin. [#669](https://github.com/karimz1/imgcompress/issues/669)

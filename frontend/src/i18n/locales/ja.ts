@@ -181,6 +181,13 @@ export const ja: TranslationSchema = {
     downloadingZip: "フォルダーをダウンロード中...",
   },
 
+  downloadError: {
+    title: "このファイルはもうありません",
+    description:
+      "削除されたか、期限が切れた可能性があります。もう一度圧縮してみてください。",
+    close: "OK",
+  },
+
   storage: {
     title: "ストレージ管理",
     used: "使用中:",
@@ -337,6 +344,7 @@ export const ja: TranslationSchema = {
 
   crop: {
     aspectRatio: "アスペクト比",
+    adjust: "調整",
     zoom: "ズーム",
     zoomOut: "ズームアウト",
     zoomIn: "ズームイン",

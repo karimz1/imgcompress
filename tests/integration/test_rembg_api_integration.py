@@ -74,6 +74,9 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
     payload = response.get_json()
     assert payload["status"] == "ok"
     assert len(payload["converted_files"]) == 1
+    # Background-removed outputs are tagged with an _ai-bg-removed suffix so
+    # downloads are identifiable, mirroring the frontend's _cropped suffix.
+    assert payload["converted_files"][0] == "input_ai-bg-removed.png"
 
     dest_folder = payload["dest_folder"]
     out_path = os.path.join(dest_folder, payload["converted_files"][0])

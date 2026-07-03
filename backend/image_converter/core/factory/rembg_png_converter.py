@@ -9,6 +9,8 @@ class RembgPngConverter(BaseImageConverter):
     Converts raw image bytes to a PNG with background removed using rembg.
     """
 
+    removes_background = True
+
     def __init__(self, logger: Logger, model_name: Optional[str] = None):
         super().__init__(logger)
         self.model_name = model_name or load_rembg_model_name()
