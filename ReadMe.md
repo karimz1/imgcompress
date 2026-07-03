@@ -153,9 +153,9 @@ I chose Docker because it keeps your computer clean. Instead of you having to in
 
 ---
 
-## Security-Hardened Architecture
+## Security-Hardened Docker Image
 
-ImgCompress is built with a **Security-Hardened, Minimal Image** architecture, bringing de facto container security standards to your homelab or production environment.
+ImgCompress is built with a security-hardened, minimal image, aligned with common container security standards out of the box.
 
 | | |
 |---|---|
