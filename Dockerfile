@@ -122,11 +122,7 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
 
 WORKDIR /container
 
-# Select the Python dependency set. Default (CPU) uses requirements.txt; the GPU
-# image is built with `--build-arg PY_REQUIREMENTS=requirements-cuda.txt`, which
-# swaps onnxruntime for onnxruntime-gpu and bundles the CUDA/cuDNN pip wheels.
-ARG PY_REQUIREMENTS=requirements.txt
-COPY --chown=nonroot:nonroot ${PY_REQUIREMENTS} ./requirements.txt
+COPY --chown=nonroot:nonroot requirements.txt .
 COPY --chown=nonroot:nonroot setup.py .
 
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
@@ -186,13 +182,6 @@ ENV U2NET_HOME=/container/.u2net
 # Must match the build stage so the running app offers exactly the baked models.
 ARG REMBG_MODELS="u2net isnet-anime isnet-general-use u2net_human_seg birefnet-general-lite"
 ENV IMGCOMPRESS_REMBG_MODELS=$REMBG_MODELS
-
-# GPU builds set this so onnxruntime-gpu can dlopen the CUDA/cuDNN .so files that
-# ship as pip wheels inside the venv. Empty (and harmless) for the CPU image.
-# CUDA build value:
-#   --build-arg CUDA_LD_LIBRARY_PATH=/container/venv/lib/python3.11/site-packages/nvidia/cuda_runtime/lib:/container/venv/lib/python3.11/site-packages/nvidia/cudnn/lib:/container/venv/lib/python3.11/site-packages/nvidia/cublas/lib:/container/venv/lib/python3.11/site-packages/nvidia/cufft/lib:/container/venv/lib/python3.11/site-packages/nvidia/curand/lib
-ARG CUDA_LD_LIBRARY_PATH=""
-ENV LD_LIBRARY_PATH="${CUDA_LD_LIBRARY_PATH}"
 
 WORKDIR /container
 

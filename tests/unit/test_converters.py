@@ -82,8 +82,8 @@ def test_When_RembgConverts_Expect_PngWithAlpha(sample_rgba_png, tmp_path, mock_
     sample_path.write_bytes(sample_rgba_png)
     image_data = sample_path.read_bytes()
 
-    def fake_new_session(model_name, providers=None):
-        return {"model": model_name, "providers": providers}
+    def fake_new_session(model_name: str):
+        return {"model": model_name}
 
     def fake_remove(data, session, post_process_mask, alpha_matting):
         assert data == image_data
@@ -124,9 +124,8 @@ def test_When_ModelSelected_Expect_SessionUsesThatModelAndProviders(
 
     captured = {}
 
-    def fake_new_session(model_name, providers=None):
+    def fake_new_session(model_name: str):
         captured["model_name"] = model_name
-        captured["providers"] = providers
         return {"model": model_name}
 
     def fake_remove(data, session, post_process_mask, alpha_matting):
@@ -147,4 +146,3 @@ def test_When_ModelSelected_Expect_SessionUsesThatModelAndProviders(
     converter.convert(image_data, str(sample_path), str(tmp_path / "out.png"))
 
     assert captured["model_name"] == "isnet-anime"
-    assert "CPUExecutionProvider" in captured["providers"]

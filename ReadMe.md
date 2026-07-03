@@ -99,23 +99,6 @@ Each option in the picker shows a short note on what it is best at. All models a
 
 Both are privacy-first and fully local. Pick `slim` if you want the leanest image and only need the default model; pick `latest` if you want to match the right model to each image.
 
-### GPU acceleration (NVIDIA)
-
-The default image runs on CPU and works everywhere (Mac, Intel, NVIDIA). The app auto-detects the fastest available onnxruntime execution provider, so a **CUDA-enabled image variant** run on an NVIDIA host uses the GPU and falls back to CPU otherwise.
-
-Build and run the GPU variant:
-
-```bash
-docker build \
-  --build-arg PY_REQUIREMENTS=requirements-cuda.txt \
-  --build-arg CUDA_LD_LIBRARY_PATH=/container/venv/lib/python3.11/site-packages/nvidia/cuda_runtime/lib:/container/venv/lib/python3.11/site-packages/nvidia/cudnn/lib:/container/venv/lib/python3.11/site-packages/nvidia/cublas/lib:/container/venv/lib/python3.11/site-packages/nvidia/cufft/lib:/container/venv/lib/python3.11/site-packages/nvidia/curand/lib \
-  -t imgcompress:cuda .
-
-docker run -d --name imgcompress --gpus all -p 3001:5000 imgcompress:cuda
-```
-
-Requires the NVIDIA driver and [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) on the host. Note: Docker on macOS cannot reach the Mac GPU (Metal/CoreML), so containers there always run on CPU.
-
 ---
 
 ## Per-File Cropping (since v0.7.0)

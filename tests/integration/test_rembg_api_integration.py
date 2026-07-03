@@ -47,8 +47,8 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
     with open(sample_path, "rb") as f:
         image_data = f.read()
 
-    def fake_new_session(model_name, providers=None):
-        return {"model": model_name, "providers": providers}
+    def fake_new_session(model_name: str):
+        return {"model": model_name}
 
     def fake_remove(data, session, post_process_mask, alpha_matting):
         _ = session
@@ -107,9 +107,8 @@ def test_rembg_api_selected_model_reaches_session(client, monkeypatch):
 
     captured = {}
 
-    def fake_new_session(model_name, providers=None):
+    def fake_new_session(model_name: str):
         captured["model_name"] = model_name
-        captured["providers"] = providers
         return {"model": model_name}
 
     def fake_remove(data, session, post_process_mask, alpha_matting):
@@ -137,6 +136,5 @@ def test_rembg_api_selected_model_reaches_session(client, monkeypatch):
     dest_folder = payload["dest_folder"]
     try:
         assert captured["model_name"] == "isnet-anime"
-        assert "CPUExecutionProvider" in captured["providers"]
     finally:
         shutil.rmtree(dest_folder, ignore_errors=True)

@@ -29,6 +29,13 @@ const ALLOWED_IDENTICAL_VALUES = new Set<string>([
   "Cmd",
   "Tab",
   "Enter",
+  // Background-removal model category labels that are genuinely the same word
+  // in some languages (loanwords / identical spelling), not pending translations:
+  // "Anime" (de/fr/es/pt/hu), "General" (es), "Photos" & "Portraits" (fr).
+  "General",
+  "Anime",
+  "Photos",
+  "Portraits",
 ]);
 
 type Tree = { [key: string]: unknown };
