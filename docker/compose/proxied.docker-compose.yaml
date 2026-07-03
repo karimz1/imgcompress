@@ -1,0 +1,131 @@
+# This is an example of advanced Docker Compose deployment for Imgcompress
+# with more settings & some best practices in common for deploying containers.
+
+# Placing anchors for default options
+# so we can reuse them in multiple Docker services
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "50m"
+    max-file: "10"
+    compress: "true"
+x-healthcheck: &default-healthcheck
+  interval: 3s
+  retries: 10
+  timeout: 3s
+  start_period: 10s
+
+# Isolated network to prevent other services on Docker host seeing it.
+# By default, Docker attachs 50 bytes header to routing network packets into container.
+# Lower MTU to 1450, so 1450 + 50 from Docker = 1500 (which is the standard MTU)
+networks:
+  imgcompress-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450
+
+services:
+  traefik:
+    image: traefik:v3.6
+    restart: unless-stopped
+    stop_grace_period: 35s
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - "--log.level=ERROR"
+      - "--log.format=common"
+      - "--ping=false"
+      - "--api=true"
+      - "--accesslog=true"
+      - "--accesslog.format=common"
+      - "--metrics.prometheus=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=imgcompress-network"
+      - "--entryPoints.traefik.address=:8190"
+      - "--entryPoints.app.address=:80"
+      - "--entryPoints.app.http.redirections.entryPoint.to=app-secure"
+      - "--entryPoints.app.http.redirections.entryPoint.scheme=https"
+      - "--entryPoints.app-secure.address=:443"
+      - "--entryPoints.app-secure.http3=true"
+      - "--entryPoints.app-secure.transport.lifeCycle.graceTimeOut=30s"
+    ports:
+      - "127.0.0.1:8190:8190" # Traefik
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+      - "443:443/udp" # HTTP/3
+    networks:
+      - stack
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    logging: *default-logging
+    labels:
+      traefik.enable: true
+      traefik.http.routers.traefik.rule: Host(`localhost`)
+      traefik.http.routers.traefik.service: api@internal
+      traefik.http.routers.traefik.entryPoints: traefik
+      traefik.http.routers.traefik.middlewares: traefik-auth
+      traefik.http.middlewares.traefik-auth.basicauth.removeheader: true
+      traefik.http.middlewares.traefik-auth.basicauth.users: "${TRAEFIK_AUTH_USERS:-user:$$2y$$05$$8zbpsdxg9wDiiKdqxiB0zeAlxZtG68P1SDBOvCN4IooLFewLx70Gm}"
+
+  imgcompress:
+    image: ${IMGCOMPRESS_REGISTRY:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
+    container_name: imgcompress
+    restart: always
+    ports:
+      # Only expose to localhost by default to prevent unintented public access.
+      # If you want to access from another machine, set IMGCOMPRESS_HOST=0.0.0.0 in `.env` file.
+      - "${IMGCOMPRESS_HOST:-127.0.0.1}:${IMGCOMPRESS_PORT:-3001}:5000"
+    environment:
+      # Set to true to remove the mascot and enable a minimal, mascot-free UI
+      - DISABLE_LOGO=${IMGCOMPRESS_DISABLE_LOGO:-false}
+      # Set to true to disable the storage management features (e.g., for your users to not see all the files)
+      - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-false}
+    healthcheck:
+      test: ["CMD", "python", "/container/healthcheck.py"]
+      <<: *default-healthcheck
+    # Prevent container from causing Docker host run out of file descriptors
+    # (default limit of Linux is 65535)
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    # Allow cotainer to shut down gracefully, instead of let Docker calls SIGTERM killing it.
+    stop_grace_period: 15s
+    # Prevent container from gaining new privileges (container breakout)
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      <<: *default-logging
+    labels:
+      traefik.enable: true
+      traefik.http.routers.app-secure.rule: Host(`localhost`) || Host(`app.docker.localhost`)
+      traefik.http.routers.app-secure.entryPoints: app-secure
+      traefik.http.routers.app-secure.priority: 10
+      traefik.http.routers.app-secure.service: app-service
+      traefik.http.routers.app-secure.tls: true
+      traefik.http.routers.app-secure.middlewares: security-headers
+      traefik.http.services.app-service.loadbalancer.server.port: 8000 # Because container exposes multiple ports
+      traefik.http.services.app-service.loadbalancer.healthCheck.path: "/up"
+      traefik.http.services.app-service.loadbalancer.healthCheck.hostname: "localhost"
+      traefik.http.services.app-service.loadbalancer.healthCheck.port: 5000
+      traefik.http.services.app-service.loadbalancer.healthCheck.interval: 2s
+      traefik.http.services.app-service.loadbalancer.healthCheck.timeout: 5s
+      traefik.http.middlewares.limit.buffering.maxRequestBodyBytes: 560000000 # 560mb
+      traefik.http.middlewares.security-headers.headers.accesscontrolmaxage: 100
+      traefik.http.middlewares.security-headers.headers.addvaryheader: true # Vary: Origin
+      traefik.http.middlewares.security-headers.headers.hostsproxyheaders: X-Forwarded-Host
+      traefik.http.middlewares.security-headers.headers.stsseconds: 63072000 # Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+      traefik.http.middlewares.security-headers.headers.stsincludesubdomains: true
+      traefik.http.middlewares.security-headers.headers.stspreload: true
+      traefik.http.middlewares.security-headers.headers.forcestsheader: true
+      traefik.http.middlewares.security-headers.headers.customFrameOptionsValue: SAMEORIGIN # X-Frame-Options: same-origin
+      traefik.http.middlewares.security-headers.headers.contenttypenosniff: true # X-Content-Type-Options: nosniff
+      traefik.http.middlewares.security-headers.headers.browserxssfilter: true # X-XSS-Protection: 1; mode=block
+      traefik.http.middlewares.security-headers.headers.referrerpolicy: strict-origin-when-cross-origin
+      traefik.http.middlewares.security-headers.headers.permissionspolicy: "camera=(), geolocation=(), microphone=(), payment=(), usb=(), interest-cohort=(), gyroscope=()"
+      traefik.http.middlewares.security-headers.headers.customresponseheaders.X-Robots-Tag: "noindex, nofollow"
