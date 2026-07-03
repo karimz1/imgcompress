@@ -110,7 +110,7 @@ def load_from_file(path: Path) -> AppConfig:
             ("features", "is_dev_mode_enabled"),
         ),
     )
-    rembg_default_model = reader.require_str(("rembg", "model_name"))
+    rembg_default_model = reader.require_str(("rembg", "default_model"))
     rembg_available_models = reader.require_str_list(("rembg", "available_models"))
     # The Docker image controls which models are baked in (e.g. the `slim` tag
     # ships only u2net). It exports IMGCOMPRESS_REMBG_MODELS so the app offers
@@ -124,11 +124,11 @@ def load_from_file(path: Path) -> AppConfig:
         and rembg_default_model not in rembg_available_models
     ):
         errors.append(
-            "config key 'rembg.model_name' must be one of rembg.available_models "
+            "config key 'rembg.default_model' must be one of rembg.available_models "
             f"({', '.join(rembg_available_models)})"
         )
     rembg = RembgConfig(
-        model_name=rembg_default_model,
+        default_model=rembg_default_model,
         available_models=rembg_available_models,
     )
 

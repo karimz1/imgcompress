@@ -3,9 +3,9 @@ from typing import Optional
 from backend.image_converter.config import settings
 
 
-def load_rembg_model_name() -> str:
+def load_default_rembg_model() -> str:
     """Return the configured default rembg model name."""
-    return settings.get().rembg.model_name
+    return settings.get().rembg.default_model
 
 
 def load_rembg_available_models() -> list[str]:
@@ -20,7 +20,7 @@ def resolve_rembg_model(requested: Optional[str]) -> str:
     otherwise falls back to the configured default model. This is the single
     place that enforces the allowlist for incoming requests.
     """
-    default = load_rembg_model_name()
+    default = load_default_rembg_model()
     if not requested:
         return default
     requested = requested.strip()

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.core.internals.rembg_config import load_rembg_model_name
+from backend.image_converter.core.internals.rembg_config import load_default_rembg_model
 from backend.image_converter.core.interfaces.base_converter import BaseImageConverter
 
 class RembgAvifConverter(BaseImageConverter):
@@ -14,7 +14,7 @@ class RembgAvifConverter(BaseImageConverter):
     def __init__(self, quality: int, logger: Logger, model_name: Optional[str] = None):
         super().__init__(logger)
         self.quality = quality
-        self.model_name = model_name or load_rembg_model_name()
+        self.model_name = model_name or load_default_rembg_model()
         self._session: Optional[object] = None
 
     def _get_background_removal_session(self):

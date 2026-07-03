@@ -45,7 +45,7 @@ VALID_CONFIG = {
         "is_dev_mode_enabled": False,
     },
     "rembg": {
-        "model_name": "u2net",
+        "default_model": "u2net",
         "available_models": [
             "u2net",
             "isnet-anime",
@@ -101,7 +101,7 @@ def test_valid_config_loads_into_typed_app_config(config_file):
     assert config.features.is_storage_management_enabled is True
     assert config.features.is_logo_enabled is True
     assert config.features.is_dev_mode_enabled is False
-    assert config.rembg.model_name == "u2net"
+    assert config.rembg.default_model == "u2net"
     assert config.rembg.available_models == (
         "u2net",
         "isnet-anime",
@@ -148,7 +148,7 @@ def test_web_workers_auto_resolves_via_fallback(config_file):
             "crop_preview.unsupported_input_extensions",
         ),
         (("features", "is_dev_mode_enabled"), "features.is_dev_mode_enabled"),
-        (("rembg", "model_name"), "rembg.model_name"),
+        (("rembg", "default_model"), "rembg.default_model"),
         (("rembg", "available_models"), "rembg.available_models"),
     ],
 )
@@ -237,7 +237,7 @@ def test_rembg_available_models_must_be_non_empty_list(config_file):
 
 def test_rembg_default_model_must_be_in_available_models(config_file):
     cfg = _copy_config()
-    cfg["rembg"]["model_name"] = "not-in-list"
+    cfg["rembg"]["default_model"] = "not-in-list"
     config_file(cfg)
     with pytest.raises(ConfigError, match="must be one of rembg.available_models"):
         settings.get()
@@ -389,4 +389,4 @@ def test_load_from_file_is_directly_usable(tmp_path):
     config = load_from_file(path)
 
     assert isinstance(config, AppConfig)
-    assert config.rembg.model_name == "u2net"
+    assert config.rembg.default_model == "u2net"

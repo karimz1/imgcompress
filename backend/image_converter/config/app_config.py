@@ -59,7 +59,7 @@ class FeaturesConfig:
 
 @dataclass(frozen=True)
 class RembgConfig:
-    model_name: str
+    default_model: str
     available_models: tuple[str, ...]
 
 

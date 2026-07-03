@@ -38,7 +38,7 @@ storage_management_service = StorageManagementService(
     is_enabled=_config.features.is_storage_management_enabled,
 )
 configuration_service = ConfigurationService(
-    rembg_model_name=_config.rembg.model_name,
+    rembg_model_name=_config.rembg.default_model,
     rembg_available_models=list(_config.rembg.available_models),
 )
 crop_preview_service = CropPreviewService(
