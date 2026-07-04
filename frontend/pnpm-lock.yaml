@@ -42,8 +42,8 @@ importers:
         specifier: ^0.0.2
         version: 0.0.2(@types/react@19.2.15)(react@19.2.6)
       adm-zip:
-        specifier: ^0.5.17
-        version: 0.5.17
+        specifier: ^0.5.18
+        version: 0.5.18
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1206,8 +1206,8 @@ packages:
   '@types/semver@7.7.1':
     resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
 
-  adm-zip@0.5.17:
-    resolution: {integrity: sha512-+Ut8d9LLqwEvHHJl1+PIHqoyDxFgVN847JTVM3Izi3xHDWPE4UtzzXysMZQs64DMcrJfBeS/uoEP4AD3HQHnQQ==}
+  adm-zip@0.5.18:
+    resolution: {integrity: sha512-ufJnssQGbxzLNS1Ho9bCtX4rQKCCvoVuDLHoJyc3F9dOGDB4BkWs2Ci0kv53lqocAEQ/Cbi+I2XCsNYGqVYqng==}
     engines: {node: '>=12.0'}
 
   aria-hidden@1.2.6:
@@ -2517,7 +2517,7 @@ snapshots:
 
   '@types/semver@7.7.1': {}
 
-  adm-zip@0.5.17: {}
+  adm-zip@0.5.18: {}
 
   aria-hidden@1.2.6:
     dependencies:
