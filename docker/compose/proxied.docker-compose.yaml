@@ -68,9 +68,9 @@ services:
       - "--entryPoints.app-secure.transport.lifeCycle.graceTimeOut=30s"
     ports:
       - "${TRAEFIK_INTERNAL_PORT:-127.0.0.1:8190}:8190" # Traefik
-      - "${TRAEFIK_HTTPS_PORT:-80}:80" # HTTP
-      - "${TRAEFIK_INTERNAL_PORT:-443}:443" # HTTPS
-      - "${TRAEFIK_INTERNAL_PORT:-443}:443/udp" # HTTP/3
+      - "${TRAEFIK_HTTP_PORT:-80}:80" # HTTP
+      - "${TRAEFIK_HTTPS_PORT:-443}:443" # HTTPS
+      - "${TRAEFIK_QUIC_PORT:-443}:443/udp" # HTTP/3
     networks:
       - traefik-network
       - imgcompress-network
