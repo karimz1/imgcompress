@@ -10,4 +10,4 @@ Futhermore, these comprehensive files will give all future maintainers a common 
 
 For detailed approach on deploying ImgCompress container, `docker/compose/advanced.docker-compose.yaml` is a good example. You may find some settings that you can reuse for your own docker compose setup.
 
-If you deploy ImgCompress exposing on a untrusted network(the public Internet), use `docker/compose/proxied.docker-compose.yaml`. It will offer you a `Traefik` proxy and a `Cloudflared` (just in case you are proficient with Cloudflare and want to use Cloudflare Tunnel) with all configurations you need to secure and use ImgCompress safely.
+If you deploy ImgCompress exposing on a untrusted network(the public Internet), use `docker/compose/proxied.docker-compose.yaml`. It will offer you a `Traefik` proxy with all configurations you need to secure and use ImgCompress safely.
