@@ -10,7 +10,10 @@ from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.presentation.web.parse_services import extract_form_data
+from backend.image_converter.presentation.web.parse_services import (
+    extract_form_data,
+    extract_rembg_compare_form_data,
+)
 from backend.image_converter.presentation.web.services.backend_diagnostics_service import BackendDiagnosticsService
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
@@ -33,7 +36,12 @@ payload_expander = create_payload_expander(logger)
 use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
 
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
-compression_service = CompressionService(logger, use_case, temp_folder_service)
+compression_service = CompressionService(
+    logger,
+    use_case,
+    temp_folder_service,
+    rembg_available_models=list(_config.rembg.available_models),
+)
 storage_management_service = StorageManagementService(
     is_enabled=_config.features.is_storage_management_enabled,
 )
@@ -72,6 +80,33 @@ def compress_images():
         return jsonify({"error": "Compression failed", "message": result.error}), 500
 
     return jsonify({"status": "ok", **result.value.to_json_dict()}), 200
+
+
+@api_blueprint.route("/rembg/compare", methods=["POST"])
+def compare_rembg_models():
+    temp_folder_service.cleanup()
+
+    data_result = extract_rembg_compare_form_data(request, logger)
+    if not data_result.is_successful:
+        return jsonify({"error": str(data_result.error)}), 400
+
+    requested_model = request.form.get("model", "").strip()
+    requested_models = None
+    if requested_model:
+        available_models = configuration_service.get_rembg_available_models()
+        if requested_model not in available_models:
+            return jsonify({"error": f"Unsupported AI model: {requested_model}"}), 400
+        requested_models = [requested_model]
+
+    result = compression_service.compare_rembg_models(
+        data_result.value,
+        requested_models=requested_models,
+        dest_folder=request.form.get("dest_folder", "").strip() or None,
+    )
+    if not result.is_successful:
+        return jsonify({"error": "AI comparison failed", "message": result.error}), 500
+
+    return jsonify({"status": "ok", **result.value}), 200
 
 
 @api_blueprint.route("/download", methods=["GET"])

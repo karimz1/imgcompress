@@ -190,6 +190,22 @@ export const hi: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI एडिटर",
+    editorDescription: "इस छवि के लिए स्थानीय AI मॉडल की तुलना करें।",
+    openButton: "AI तुलना",
+    editButton: "AI संपादित करें",
+    selectedBadge: "एआई: {{model}}",
+    loadingTitle: "AI मॉडल की तुलना हो रही है",
+    loadingDescription: "सभी AI मॉडल की तुलना में थोड़ा समय लग सकता है।",
+    useModel: "यह मॉडल उपयोग करें",
+    downloadSelected: "चयनित डाउनलोड करें",
+    downloadAll: "सब ZIP के रूप में डाउनलोड करें",
+    close: "बंद करें",
+    errorTitle: "AI तुलना विफल रही",
+    empty: "कोई पूर्वावलोकन उपलब्ध नहीं है।",
+    previewAlt: "{{model}} से बैकग्राउंड हटाने का पूर्वावलोकन",
+  },
   drawer: {
     trigger_one: "🗃️ कंप्रेस की गई इमेज दिखाएं",
     trigger_other: "🗃️ कंप्रेस की गई इमेज दिखाएं",

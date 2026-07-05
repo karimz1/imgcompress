@@ -190,6 +190,22 @@ export const ru: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "ИИ-редактор",
+    editorDescription: "Сравните локальные модели ИИ для этого изображения.",
+    openButton: "Сравнить ИИ",
+    editButton: "Изменить ИИ",
+    selectedBadge: "ИИ: {{model}}",
+    loadingTitle: "Сравнение моделей ИИ",
+    loadingDescription: "Сравнение всех моделей ИИ может занять некоторое время.",
+    useModel: "Использовать эту модель",
+    downloadSelected: "Скачать выбранное",
+    downloadAll: "Скачать всё ZIP-архивом",
+    close: "Закрыть",
+    errorTitle: "Сравнение ИИ не удалось",
+    empty: "Предпросмотр недоступен.",
+    previewAlt: "Предпросмотр удаления фона с {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Показать сжатое изображение",
     trigger_other: "🗃️ Показать сжатые изображения",

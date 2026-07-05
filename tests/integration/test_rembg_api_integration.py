@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import shutil
 
@@ -136,5 +137,105 @@ def test_rembg_api_selected_model_reaches_session(client, monkeypatch):
     dest_folder = payload["dest_folder"]
     try:
         assert captured["model_name"] == "isnet-anime"
+    finally:
+        shutil.rmtree(dest_folder, ignore_errors=True)
+
+
+def test_rembg_api_per_file_model_reaches_session_and_filename(client, monkeypatch):
+    sample_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "sample-images",
+        "pexels-pealdesign-28594392.jpg",
+    )
+    with open(sample_path, "rb") as f:
+        image_data = f.read()
+
+    captured = {}
+
+    def fake_new_session(model_name: str):
+        captured["model_name"] = model_name
+        return {"model": model_name}
+
+    def fake_remove(data, session, post_process_mask, alpha_matting):
+        buffer = io.BytesIO()
+        Image.new("RGBA", (12, 12), (0, 0, 0, 0)).save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    import sys
+    from unittest.mock import MagicMock
+    mock_rembg = MagicMock()
+    mock_rembg.new_session = fake_new_session
+    mock_rembg.remove = fake_remove
+    monkeypatch.setitem(sys.modules, "rembg", mock_rembg)
+
+    data = {
+        "files[]": (io.BytesIO(image_data), "input.jpg"),
+        "format": "png",
+        "use_rembg": "true",
+        "rembg_model": "u2net",
+        "rembg_model_by_file": json.dumps({"input.jpg": "birefnet-general"}),
+    }
+
+    response = client.post("/api/compress", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200
+    payload = response.get_json()
+    dest_folder = payload["dest_folder"]
+    try:
+        assert captured["model_name"] == "birefnet-general"
+        assert payload["converted_files"] == [
+            "input_ai-bg-removed_birefnet-general.png"
+        ]
+    finally:
+        shutil.rmtree(dest_folder, ignore_errors=True)
+
+
+def test_rembg_compare_endpoint_returns_each_model_with_model_suffix(client, monkeypatch):
+    sample_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "sample-images",
+        "pexels-pealdesign-28594392.jpg",
+    )
+    with open(sample_path, "rb") as f:
+        image_data = f.read()
+
+    seen_models = []
+
+    def fake_new_session(model_name: str):
+        seen_models.append(model_name)
+        return {"model": model_name}
+
+    def fake_remove(data, session, post_process_mask, alpha_matting):
+        buffer = io.BytesIO()
+        Image.new("RGBA", (12, 12), (0, 0, 0, 0)).save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    import sys
+    from unittest.mock import MagicMock
+    mock_rembg = MagicMock()
+    mock_rembg.new_session = fake_new_session
+    mock_rembg.remove = fake_remove
+    monkeypatch.setitem(sys.modules, "rembg", mock_rembg)
+
+    response = client.post(
+        "/api/rembg/compare",
+        data={
+            "file": (io.BytesIO(image_data), "input.jpg"),
+            "format": "png",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    dest_folder = payload["dest_folder"]
+    try:
+        expected_models = routes.configuration_service.get_rembg_available_models()
+        assert seen_models == expected_models
+        assert [item["model"] for item in payload["results"]] == expected_models
+        assert [item["file"] for item in payload["results"]] == [
+            f"input_ai-bg-removed_{model}.png" for model in expected_models
+        ]
     finally:
         shutil.rmtree(dest_folder, ignore_errors=True)

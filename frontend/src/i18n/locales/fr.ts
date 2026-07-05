@@ -190,6 +190,22 @@ export const fr: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "Éditeur IA",
+    editorDescription: "Comparez les modèles IA locaux pour cette image.",
+    openButton: "Comparer l'IA",
+    editButton: "Modifier l'IA",
+    selectedBadge: "IA : {{model}}",
+    loadingTitle: "Comparaison des modèles IA",
+    loadingDescription: "Comparer tous les modèles IA peut prendre un moment.",
+    useModel: "Utiliser ce modèle",
+    downloadSelected: "Télécharger la sélection",
+    downloadAll: "Tout télécharger en ZIP",
+    close: "Fermer",
+    errorTitle: "Échec de la comparaison IA",
+    empty: "Aucun aperçu disponible.",
+    previewAlt: "Aperçu de suppression d'arrière-plan avec {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Afficher l'image compressée",
     trigger_other: "🗃️ Afficher les images compressées",

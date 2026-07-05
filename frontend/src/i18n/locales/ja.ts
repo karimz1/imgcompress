@@ -190,6 +190,22 @@ export const ja: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI エディター",
+    editorDescription: "この画像でローカル AI モデルを比較します。",
+    openButton: "AI 比較",
+    editButton: "AI 編集",
+    selectedBadge: "AI：{{model}}",
+    loadingTitle: "AI モデルを比較中",
+    loadingDescription: "すべての AI モデルの比較には少し時間がかかります。",
+    useModel: "このモデルを使う",
+    downloadSelected: "選択をダウンロード",
+    downloadAll: "すべて ZIP でダウンロード",
+    close: "閉じる",
+    errorTitle: "AI 比較に失敗しました",
+    empty: "プレビューはありません。",
+    previewAlt: "{{model}} による背景削除プレビュー",
+  },
   drawer: {
     trigger_one: "🗃️ 圧縮画像を表示",
     trigger_other: "🗃️ 圧縮画像を表示",

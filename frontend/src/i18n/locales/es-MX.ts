@@ -190,6 +190,22 @@ export const esMX: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "Editor de IA",
+    editorDescription: "Compara modelos locales de IA para esta imagen.",
+    openButton: "Comparar IA",
+    editButton: "Editar IA",
+    selectedBadge: "IA: {{model}}",
+    loadingTitle: "Comparando modelos de IA",
+    loadingDescription: "Comparar todos los modelos de IA puede tardar un momento.",
+    useModel: "Usar este modelo",
+    downloadSelected: "Descargar seleccionado",
+    downloadAll: "Descargar todo como ZIP",
+    close: "Cerrar",
+    errorTitle: "Falló la comparación de IA",
+    empty: "No hay vista previa disponible.",
+    previewAlt: "Vista previa de eliminación de fondo con {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Mostrar imagen comprimida",
     trigger_other: "🗃️ Mostrar imágenes comprimidas",

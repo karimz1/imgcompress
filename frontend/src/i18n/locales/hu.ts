@@ -190,6 +190,22 @@ export const hu: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "MI-szerkesztő",
+    editorDescription: "Hasonlítsa össze a helyi MI-modelleket ehhez a képhez.",
+    openButton: "MI összehasonlítás",
+    editButton: "MI szerkesztés",
+    selectedBadge: "MI: {{model}}",
+    loadingTitle: "MI-modellek összehasonlítása",
+    loadingDescription: "Az összes MI-modell összehasonlítása eltarthat egy ideig.",
+    useModel: "Modell használata",
+    downloadSelected: "Kiválasztott letöltése",
+    downloadAll: "Összes letöltése ZIP-ként",
+    close: "Bezárás",
+    errorTitle: "Az MI-összehasonlítás sikertelen",
+    empty: "Nincs elérhető előnézet.",
+    previewAlt: "Háttéreltávolítás előnézete ezzel: {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Tömörített kép megjelenítése",
     trigger_other: "🗃️ Tömörített képek megjelenítése",

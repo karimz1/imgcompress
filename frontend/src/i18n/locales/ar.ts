@@ -190,6 +190,22 @@ export const ar: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "محرر الذكاء الاصطناعي",
+    editorDescription: "قارن نماذج الذكاء الاصطناعي المحلية لهذه الصورة.",
+    openButton: "مقارنة الذكاء الاصطناعي",
+    editButton: "تحرير الذكاء الاصطناعي",
+    selectedBadge: "الذكاء الاصطناعي: {{model}}",
+    loadingTitle: "جارٍ مقارنة نماذج الذكاء الاصطناعي",
+    loadingDescription: "قد تستغرق مقارنة كل نماذج الذكاء الاصطناعي بعض الوقت.",
+    useModel: "استخدام هذا النموذج",
+    downloadSelected: "تنزيل المحدد",
+    downloadAll: "تنزيل الكل كملف ZIP",
+    close: "إغلاق",
+    errorTitle: "فشلت مقارنة الذكاء الاصطناعي",
+    empty: "لا توجد معاينة متاحة.",
+    previewAlt: "معاينة إزالة الخلفية باستخدام {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ عرض الصورة المضغوطة",
     trigger_other: "🗃️ عرض الصور المضغوطة",

@@ -187,6 +187,22 @@ export const en = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI editor",
+    editorDescription: "Compare local AI models for this image.",
+    openButton: "AI compare",
+    editButton: "AI edit",
+    selectedBadge: "AI: {{model}}",
+    loadingTitle: "Comparing AI models",
+    loadingDescription: "Comparing AI models can take a moment.",
+    useModel: "Use this model",
+    downloadSelected: "Download selected",
+    downloadAll: "Download all as ZIP",
+    close: "Close",
+    errorTitle: "AI comparison failed",
+    empty: "No preview available.",
+    previewAlt: "{{model}} background-removal preview",
+  },
   drawer: {
     trigger_one: "🗃️ Show Compressed Image",
     trigger_other: "🗃️ Show Compressed Images",

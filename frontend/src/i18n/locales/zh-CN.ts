@@ -190,6 +190,22 @@ export const zhCN: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI 编辑器",
+    editorDescription: "比较此图片的本地 AI 模型。",
+    openButton: "AI 对比",
+    editButton: "AI 编辑",
+    selectedBadge: "AI：{{model}}",
+    loadingTitle: "正在比较 AI 模型",
+    loadingDescription: "比较全部 AI 模型可能需要一点时间。",
+    useModel: "使用此模型",
+    downloadSelected: "下载所选结果",
+    downloadAll: "下载全部 ZIP",
+    close: "关闭",
+    errorTitle: "AI 对比失败",
+    empty: "没有可用预览。",
+    previewAlt: "{{model}} 背景移除预览",
+  },
   drawer: {
     trigger_one: "🗃️ 显示压缩后的图片",
     trigger_other: "🗃️ 显示压缩后的图片",

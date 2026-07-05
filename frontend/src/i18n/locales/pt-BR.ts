@@ -190,6 +190,22 @@ export const ptBR: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "Editor de IA",
+    editorDescription: "Compare modelos locais de IA para esta imagem.",
+    openButton: "Comparar IA",
+    editButton: "Editar IA",
+    selectedBadge: "IA: {{model}}",
+    loadingTitle: "Comparando modelos de IA",
+    loadingDescription: "Comparar todos os modelos de IA pode levar um momento.",
+    useModel: "Usar este modelo",
+    downloadSelected: "Baixar selecionado",
+    downloadAll: "Baixar tudo como ZIP",
+    close: "Fechar",
+    errorTitle: "Falha na comparação de IA",
+    empty: "Nenhuma prévia disponível.",
+    previewAlt: "Prévia de remoção de fundo com {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Mostrar imagem comprimida",
     trigger_other: "🗃️ Mostrar imagens comprimidas",

@@ -190,6 +190,22 @@ export const de: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "KI-Editor",
+    editorDescription: "Vergleiche lokale KI-Modelle für dieses Bild.",
+    openButton: "KI vergleichen",
+    editButton: "KI bearbeiten",
+    selectedBadge: "KI: {{model}}",
+    loadingTitle: "KI-Modelle werden verglichen",
+    loadingDescription: "Der Vergleich aller KI-Modelle kann einen Moment dauern.",
+    useModel: "Dieses Modell verwenden",
+    downloadSelected: "Auswahl herunterladen",
+    downloadAll: "Alles als ZIP herunterladen",
+    close: "Schließen",
+    errorTitle: "KI-Vergleich fehlgeschlagen",
+    empty: "Keine Vorschau verfügbar.",
+    previewAlt: "Vorschau der Hintergrundentfernung mit {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Konvertiertes Bild anzeigen",
     trigger_other: "🗃️ Konvertierte Bilder anzeigen",
