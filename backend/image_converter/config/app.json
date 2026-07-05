@@ -45,7 +45,8 @@
       "u2net",
       "isnet-anime",
       "isnet-general-use",
-      "u2net_human_seg",
+      "birefnet-portrait",
+      "birefnet-general",
       "birefnet-general-lite"
     ]
   }

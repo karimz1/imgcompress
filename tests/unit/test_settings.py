@@ -50,7 +50,8 @@ VALID_CONFIG = {
             "u2net",
             "isnet-anime",
             "isnet-general-use",
-            "u2net_human_seg",
+            "birefnet-portrait",
+            "birefnet-general",
             "birefnet-general-lite",
         ],
     },
@@ -106,7 +107,8 @@ def test_valid_config_loads_into_typed_app_config(config_file):
         "u2net",
         "isnet-anime",
         "isnet-general-use",
-        "u2net_human_seg",
+        "birefnet-portrait",
+        "birefnet-general",
         "birefnet-general-lite",
     )
 
@@ -272,7 +274,7 @@ def test_rembg_blank_env_override_falls_back_to_config(config_file, monkeypatch)
     monkeypatch.setenv("IMGCOMPRESS_REMBG_MODELS", "   ")
     config_file(VALID_CONFIG)
     assert settings.get().rembg.available_models[0] == "u2net"
-    assert len(settings.get().rembg.available_models) == 5
+    assert len(settings.get().rembg.available_models) == 6
 
     cfg = _copy_config()
     cfg["crop_preview"]["unsupported_input_extensions"] = ["pdf"]

@@ -117,20 +117,22 @@ export const en = {
       label: "AI model",
       placeholder: "Select a model",
       tooltip:
-        "Choose which local AI model removes the background.\nGeneral suits most images, Anime is tuned for drawings, Photos for real-world photography.",
+        "Choose which local AI model removes the background.\nUse BiRefNet for complex edges and fine detail; Anime is best for clean anime character masks.",
       options: {
         "u2net": "General",
         "isnet-anime": "Anime",
         "isnet-general-use": "Photos",
-        "u2net_human_seg": "Portraits",
+        "birefnet-portrait": "Portraits",
+        "birefnet-general": "Max quality",
         "birefnet-general-lite": "High quality",
       },
       descriptions: {
         "u2net": "For most images",
-        "isnet-anime": "Drawings & illustrations",
+        "isnet-anime": "Clean anime character masks",
         "isnet-general-use": "Real-world photography",
-        "u2net_human_seg": "People & cutouts",
-        "birefnet-general-lite": "Sharpest edges, slower",
+        "birefnet-portrait": "People and portrait cutouts",
+        "birefnet-general": "Best detail and edges, slowest",
+        "birefnet-general-lite": "Detailed edges, faster than max",
       },
     },
     quality: {

@@ -137,7 +137,7 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
 # full set (the `latest` tag); build with `--build-arg REMBG_MODELS=u2net` to
 # produce the lean `slim` tag. IMGCOMPRESS_REMBG_MODELS makes the app offer
 # exactly the baked set in the model dropdown.
-ARG REMBG_MODELS="u2net isnet-anime isnet-general-use u2net_human_seg birefnet-general-lite"
+ARG REMBG_MODELS="u2net isnet-anime isnet-general-use birefnet-portrait birefnet-general birefnet-general-lite"
 ENV IMGCOMPRESS_REMBG_MODELS=$REMBG_MODELS
 
 # Pre-download rembg model to prevent download overhead during runtime.
@@ -180,7 +180,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV U2NET_HOME=/container/.u2net
 
 # Must match the build stage so the running app offers exactly the baked models.
-ARG REMBG_MODELS="u2net isnet-anime isnet-general-use u2net_human_seg birefnet-general-lite"
+ARG REMBG_MODELS="u2net isnet-anime isnet-general-use birefnet-portrait birefnet-general birefnet-general-lite"
 ENV IMGCOMPRESS_REMBG_MODELS=$REMBG_MODELS
 
 WORKDIR /container

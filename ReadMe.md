@@ -85,10 +85,11 @@ Stop uploading personal or client photos to cloud-based removers. ImgCompress sh
 When background removal is on (PNG or AVIF output), a model dropdown lets you match the model to the image:
 
 - **General (`u2net`)** is the default and works for most images.
-- **Anime & illustrations (`isnet-anime`)** is tuned for drawings and anime art.
+- **Anime characters (`isnet-anime`)** is tuned for clean anime character masks.
 - **Photos (`isnet-general-use`)** targets real-world photography.
-- **People & portraits (`u2net_human_seg`)** is trained specifically for cutting out people.
-- **High quality (`birefnet-general-lite`)** gives the sharpest edges and finest detail, at the cost of being a bit slower.
+- **People & portraits (`birefnet-portrait`)** uses BiRefNet's portrait model for cleaner people cutouts.
+- **Max quality (`birefnet-general`)** is the strongest rembg-supported general model for complex edges and fine detail.
+- **High quality (`birefnet-general-lite`)** is the faster BiRefNet option when you still want cleaner edges than the default.
 
 Each option in the picker shows a short note on what it is best at. All models are pre-baked into the image, so switching between them needs no download and works fully offline.
 
