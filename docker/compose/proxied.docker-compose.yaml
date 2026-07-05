@@ -1,97 +1,129 @@
-# This is an example of advanced Docker Compose deployment for Imgcompress
-# with more settings & some best practices in common for deploying containers.
+# Proxied Docker Compose deployment for ImgCompress
+# This file sets up ImgCompress behind a Traefik reverse proxy with:
+#   - TLS termination & automatic HTTPS redirection
+#   - HTTP/3 (QUIC) support
+#   - Security headers (HSTS, X-Frame-Options, CSP, etc.)
+#   - Request body size limiting (anti "image bomb")
+#   - Internal networking to isolate ImgCompress from direct external access
+#
+# Prerequisites:
+#   - A valid domain name pointed to your server's IP (for TLS)
+#   - Docker Engine 20.10+ with Compose V2
+#
+# Usage:
+#   docker compose -f docker/compose/proxied.docker-compose.yaml up -d
 
-# Placing anchors for default options
-# so we can reuse them in multiple Docker services
+
+# YAML anchors — reusable default settings shared across services.
 x-logging: &default-logging
   driver: "json-file"
   options:
-    max-size: "50m"
-    max-file: "10"
-    compress: "true"
+    max-size: "50m"    # Rotate log file when it exceeds 50 MB
+    max-file: "10"     # Keep 10 rotated log files
+    compress: "true"   # gzip old log files
 x-healthcheck: &default-healthcheck
-  interval: 3s
-  retries: 10
-  timeout: 3s
-  start_period: 10s
+  interval: 3s         # Time between health-check probes
+  retries: 10          # Mark "unhealthy" after 10 consecutive failures
+  timeout: 3s          # Max wait time for a single probe response
+  start_period: 10s    # Grace period after container start before probes count
 
-# By default, Docker attachs 50 bytes header to routing network packets into container.
-# Lower MTU to 1450, so 1450 + 50 from Docker = 1500 (which is the standard MTU)
+# Docker adds a ~50-byte VXLAN/overlay header when routing packets into containers.
+# We lower MTU to 1450 so that 1450 (payload) + 50 (header) = 1500 (standard Ethernet MTU),
+# preventing fragmentation that can cause silent packet drops or degraded performance.
 networks:
   imgcompress-network:
     driver: bridge
-    # This setting will cut off container from outbound and inbound(from Docker host) connections.
-    # pop-the-hood, it declares for Docker to:
-    # Delete Default Gateway out of container.
-    # Not setup NAT (Network Address Translation) on iptables of Docker host for this network.
-    # Container inside this network still can connect to each others and use service-name DNS as normal.
+    # "internal: true" isolates this network by:
+    #   1. Removes the default gateway — containers cannot reach the Internet.
+    #   2. Skips NAT (iptables MASQUERADE) on the Docker host — no inbound/outbound routing.
+    # Containers on this network can still communicate with each other
+    # and resolve service names via Docker's built-in DNS.
     internal: true
     driver_opts:
       com.docker.network.driver.mtu: 1450
-  # Traefik need a dedicated network with emplicit "internal: false" to serve traffic.
-  # Otherwise, staying inside "imgcompress-network" will prevent you from making request to it,
-  # even if you exposed its ports in Docker Compose.
+  # Traefik needs a dedicated external network (internal: false = default) to serve traffic.
+  # If Traefik were only on the internal "imgcompress-network", incoming requests
+  # from the Docker host or the Internet would never reach it even with published ports.
   traefik-network:
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1450
 
 services:
+  # Traefik listens on ports 80/443 and routes requests to backend
+  # services based on Docker labels, auto-discovers containers
+  # via the Docker socket.
   traefik:
     image: traefik:v3.6
     restart: unless-stopped
+    # Allow Traefik to drain in-flight connections before Docker kills it.
     stop_grace_period: 35s
     ulimits:
       nofile:
         soft: 65536
         hard: 65536
+    # Prevent the container process from gaining additional Linux capabilities.
     security_opt:
       - no-new-privileges:true
     command:
-      - "--log.level=ERROR"
-      - "--log.format=common"
-      - "--ping=false"
-      - "--api=true"
-      - "--accesslog=true"
+      # ── Logging ──
+      - "--log.level=ERROR"                          # Only log errors from Traefik itself
+      - "--log.format=common"                        # CLF-style log format
+      - "--accesslog=true"                           # Log every incoming HTTP request
       - "--accesslog.format=common"
-      - "--metrics.prometheus=false"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedByDefault=false"
-      - "--providers.docker.network=imgcompress-network"
-      - "--providers.docker.network=traefik-network"
-      - "--entryPoints.traefik.address=:8190"
-      - "--entryPoints.app.address=:80"
+
+      # ── API / Metrics ──
+      - "--ping=false"                               # Disable /ping health endpoint
+      - "--api=true"                                 # Enable Traefik dashboard API
+      - "--metrics.prometheus=false"                  # Disable Prometheus metrics endpoint
+
+      # ── Docker provider ──
+      - "--providers.docker=true"                         # Auto-discover containers via Docker socket
+      - "--providers.docker.exposedByDefault=false"       # Only route containers with traefik.enable=true
+      - "--providers.docker.network=imgcompress-network"  # Use this network to reach backend containers
+
+      # ── Entrypoints ──
+      - "--entryPoints.traefik.address=:8190"           # Traefik dashboard (internal only)
+      - "--entryPoints.app.address=:80"                 # HTTP — auto-redirects to HTTPS below
       - "--entryPoints.app.http.redirections.entryPoint.to=app-secure"
       - "--entryPoints.app.http.redirections.entryPoint.scheme=https"
-      - "--entryPoints.app-secure.address=:443"
-      - "--entryPoints.app-secure.http3=true"
-      - "--entryPoints.app-secure.transport.lifeCycle.graceTimeOut=30s"
+      - "--entryPoints.app-secure.address=:443"         # HTTPS (TLS termination)
+      - "--entryPoints.app-secure.http3=true"           # Enable HTTP/3 over QUIC (UDP :443)
+      - "--entryPoints.app-secure.transport.lifeCycle.graceTimeOut=30s" # Drain timeout on shutdown
     ports:
-      - "${TRAEFIK_INTERNAL_PORT:-127.0.0.1:8190}:8190" # Traefik
-      - "${TRAEFIK_HTTP_PORT:-80}:80" # HTTP
-      - "${TRAEFIK_HTTPS_PORT:-443}:443" # HTTPS
-      - "${TRAEFIK_QUIC_PORT:-443}:443/udp" # HTTP/3
+      - "${TRAEFIK_INTERNAL_PORT:-127.0.0.1:8190}:8190"   # Dashboard — bound to localhost by default
+      - "${TRAEFIK_HTTP_PORT:-80}:80"                     # HTTP  (redirects → HTTPS)
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"                  # HTTPS (TCP)
+      - "${TRAEFIK_QUIC_PORT:-443}:443/udp"               # HTTP/3 (QUIC over UDP)
     networks:
-      - traefik-network
-      - imgcompress-network
+      - traefik-network          # External-facing network (receives public traffic)
+      - imgcompress-network      # Internal network (reaches ImgCompress container)
     volumes:
+      # Mount Docker socket read-only so Traefik can discover containers.
+      # This gives Traefik read access to the Docker API, acceptable for a
+      # reverse-proxy, but be mindful in multi-tenant environments.
       - /var/run/docker.sock:/var/run/docker.sock:ro
     logging: *default-logging
     labels:
       traefik.enable: true
+      # ── Traefik dashboard router ──
+      # Exposes Traefik's built-in API/dashboard on the "traefik" entrypoint (:8190).
       traefik.http.routers.traefik.rule: Host(`${TRAEFIK_DOMAIN_NAME:-localhost}`)
       traefik.http.routers.traefik.service: api@internal
       traefik.http.routers.traefik.entryPoints: traefik
       traefik.http.routers.traefik.middlewares: traefik-auth
+      # Basic-auth protects the dashboard. The Authorization header is stripped
+      # before forwarding to the upstream so credentials don't leak.
+      # Default credentials: user / 123456  — CHANGE THIS in production!
       traefik.http.middlewares.traefik-auth.basicauth.removeheader: true
-      traefik.http.middlewares.traefik-auth.basicauth.users: "${TRAEFIK_AUTH_USERS:-user:$$2y$$05$$8zbpsdxg9wDiiKdqxiB0zeAlxZtG68P1SDBOvCN4IooLFewLx70Gm}" # user:123456
+      traefik.http.middlewares.traefik-auth.basicauth.users: "${TRAEFIK_AUTH_USERS:-user:$$2y$$05$$8zbpsdxg9wDiiKdqxiB0zeAlxZtG68P1SDBOvCN4IooLFewLx70Gm}"
 
   imgcompress:
     image: ${IMGCOMPRESS_REGISTRY:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
     container_name: imgcompress
     restart: always
-    # As Traefik is the reverse proxy now, so not need to expose ImgCompress anymore.
-    # But keep this commented as documentary.
+    # Traefik handles all inbound traffic.
+    # This is commented for the sake of documentary:
     # ports:
     #   - "${IMGCOMPRESS_HOST:-127.0.0.1}:${IMGCOMPRESS_PORT:-3001}:5000"
     networks:
@@ -104,26 +136,26 @@ services:
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck
-    # Prevent container from causing Docker host run out of file descriptors
-    # (default limit of Linux is 65535)
+    # Cap file descriptors to prevent a runaway container from exhausting
+    # the Docker host's FD limit (Linux default: 65 535).
     ulimits:
       nofile:
         soft: 65536
         hard: 65536
-    # Allow cotainer to shut down gracefully, instead of let Docker calls SIGTERM killing it.
+    # Give the container 15s to finish in-flight requests before Docker sends SIGKILL.
     stop_grace_period: 15s
-    # Prevent container from gaining new privileges (container breakout)
+    # Prevent the process from gaining new Linux capabilities (mitigates container breakout).
     security_opt:
       - no-new-privileges:true
     logging:
       <<: *default-logging
-    # This bunch of labels is quite overwhelming, but please, stay calm and read the comments slowly.
-    # They are just instructions for Traefik to serve connection to ImgCompress.
+    # ── Traefik routing labels ──
+    # These labels tell Traefik how to route incoming requests to ImgCompress.
     labels:
       traefik.enable: true
-      # NOTE: you will need to buy a valid domain and point a DNS record to your instance,
-      # then change TRAEFIK_DOMAIN_NAME to match your domain's name.
-      # Traefik can auto-issue SSL certificate.
+      # Point your domain's DNS A/AAAA record to this server, then set
+      # TRAEFIK_DOMAIN_NAME in your .env to match. Traefik will auto-issue
+      # a TLS certificate via Let's Encrypt (when a certificate resolver is configured).
       traefik.http.routers.app-secure.rule: Host(`${TRAEFIK_DOMAIN_NAME:-localhost}`) || Host(`app.docker.localhost`)
       traefik.http.routers.app-secure.entryPoints: app-secure
       traefik.http.routers.app-secure.priority: 10
@@ -131,32 +163,39 @@ services:
       traefik.http.routers.app-secure.tls: true
       traefik.http.routers.app-secure.middlewares: security-headers
 
-      # Because container could exposes multiple ports in the future and for sake of implicity,
-      # instruct Traefik to route traffic to port 5000 of ImgCompress container.
+      # Explicitly tell Traefik which container port to forward traffic to.
+      # Required when the image exposes (or may expose) more than one port.
       traefik.http.services.app-service.loadbalancer.server.port: 5000
 
-      # TODO: Need to verify how can we healthcheck ImgCompress from outside the container
+      # TODO: Need to verify how we can healthcheck ImgCompress from outside the container
       # traefik.http.services.app-service.loadbalancer.healthCheck.path: "/up"
       # traefik.http.services.app-service.loadbalancer.healthCheck.hostname: "localhost"
       # traefik.http.services.app-service.loadbalancer.healthCheck.port: 5000
       # traefik.http.services.app-service.loadbalancer.healthCheck.interval: 2s
       # traefik.http.services.app-service.loadbalancer.healthCheck.timeout: 5s
 
-      # This settings to protect ImgCompress out of "image bombed"
-      traefik.http.middlewares.limit.buffering.maxRequestBodyBytes: 520000000 # 520mb
+      # Limit request body size to ~520 MB to mitigate "image bomb" / decompression-bomb
+      # attacks where an attacker uploads a maliciously large file.
+      traefik.http.middlewares.limit.buffering.maxRequestBodyBytes: 520000000
 
-      # Security headers settings, very useful and common practice setup all of them.
+      # ── Security response headers ──
+      # These headers instruct browsers to enforce strict security policies.
+      #
       traefik.http.middlewares.security-headers.headers.accesscontrolmaxage: 100
-      traefik.http.middlewares.security-headers.headers.addvaryheader: true # Vary: Origin
+      # Vary: Origin (important for caching with CORS)
+      traefik.http.middlewares.security-headers.headers.addvaryheader: true
       traefik.http.middlewares.security-headers.headers.hostsproxyheaders: X-Forwarded-Host
-      # Take note on HSTS: this settings will prevent browser to serve user with plan HTTPS.
-      traefik.http.middlewares.security-headers.headers.stsseconds: 63072000 # Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+      # HSTS: tells the browser to ALWAYS use HTTPS — once enabled, plain HTTP
+      # access is blocked for the configured duration. 63 072 000 s ≈ 2 years.
+      traefik.http.middlewares.security-headers.headers.stsseconds: 63072000
       traefik.http.middlewares.security-headers.headers.stsincludesubdomains: true
       traefik.http.middlewares.security-headers.headers.stspreload: true
       traefik.http.middlewares.security-headers.headers.forcestsheader: true
-      traefik.http.middlewares.security-headers.headers.customFrameOptionsValue: SAMEORIGIN # X-Frame-Options: same-origin
-      traefik.http.middlewares.security-headers.headers.contenttypenosniff: true # X-Content-Type-Options: nosniff
-      traefik.http.middlewares.security-headers.headers.browserxssfilter: true # X-XSS-Protection: 1; mode=block
+      traefik.http.middlewares.security-headers.headers.customFrameOptionsValue: SAMEORIGIN     # Prevent clickjacking via iframes
+      traefik.http.middlewares.security-headers.headers.contenttypenosniff: true                # Block MIME-type sniffing
+      traefik.http.middlewares.security-headers.headers.browserxssfilter: true                  # Legacy XSS filter (modern CSP is preferred)
       traefik.http.middlewares.security-headers.headers.referrerpolicy: strict-origin-when-cross-origin
+      # Restrict browser APIs the page is allowed to use.
       traefik.http.middlewares.security-headers.headers.permissionspolicy: "camera=(), geolocation=(), microphone=(), payment=(), usb=(), interest-cohort=(), gyroscope=()"
+      # Tell search-engine crawlers not to index or follow links on this site.
       traefik.http.middlewares.security-headers.headers.customresponseheaders.X-Robots-Tag: "noindex, nofollow"
