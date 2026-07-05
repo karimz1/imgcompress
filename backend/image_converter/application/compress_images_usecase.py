@@ -94,15 +94,17 @@ class CompressImagesUseCase:
                     else:
                         model_for_file = None
                         output_name_suffix = req.output_name_suffix
+                        use_rembg_for_file = req.use_rembg
                         if req.use_rembg and req.rembg_model_by_file:
                             model_for_file = req.rembg_model_by_file.get(item.name)
+                            use_rembg_for_file = bool(model_for_file)
                             if model_for_file:
                                 output_name_suffix = model_for_file
                         converter = self.converter_factory.create_converter(
                             req.image_format,
                             req.quality,
                             self.logger,
-                            req.use_rembg,
+                            use_rembg_for_file,
                             pdf_preset=pdf_preset,
                             pdf_scale=pdf_scale,
                             pdf_margin_mm=pdf_margin_mm,

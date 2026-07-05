@@ -15,7 +15,10 @@ from backend.image_converter.presentation.web.parse_services import (
     extract_rembg_compare_form_data,
 )
 from backend.image_converter.presentation.web.services.backend_diagnostics_service import BackendDiagnosticsService
-from backend.image_converter.presentation.web.services.compression_service import CompressionService
+from backend.image_converter.presentation.web.services.compression_service import (
+    CompressionService,
+    REMBG_COMPARE_CANCELLED_MESSAGE,
+)
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
 from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
@@ -67,6 +70,15 @@ def _storage_management_disabled_response():
     return jsonify({"error": "Storage management endpoints are disabled in this mode."}), 403
 
 
+def _request_cancel_token() -> str:
+    json_data = request.get_json(silent=True) if request.is_json else None
+    return (
+        request.form.get("cancel_token")
+        or (json_data or {}).get("cancel_token")
+        or ""
+    ).strip()
+
+
 @api_blueprint.route("/compress", methods=["POST"])
 def compress_images():
     temp_folder_service.cleanup()
@@ -102,11 +114,24 @@ def compare_rembg_models():
         data_result.value,
         requested_models=requested_models,
         dest_folder=request.form.get("dest_folder", "").strip() or None,
+        cancel_token=request.form.get("cancel_token", "").strip() or None,
     )
     if not result.is_successful:
+        if result.error == REMBG_COMPARE_CANCELLED_MESSAGE:
+            return jsonify({"error": "AI comparison cancelled", "message": result.error}), 499
         return jsonify({"error": "AI comparison failed", "message": result.error}), 500
 
     return jsonify({"status": "ok", **result.value}), 200
+
+
+@api_blueprint.route("/rembg/compare/cancel", methods=["POST"])
+def cancel_rembg_compare():
+    cancel_token = _request_cancel_token()
+    if not cancel_token:
+        return jsonify({"error": "Missing cancellation token."}), 400
+
+    compression_service.cancel_rembg_compare(cancel_token)
+    return jsonify({"status": "ok"}), 200
 
 
 @api_blueprint.route("/download", methods=["GET"])

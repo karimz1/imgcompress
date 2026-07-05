@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
 import { Crop as CropIcon, Info, Loader2, Sparkles, Trash, X } from "lucide-react";
@@ -26,6 +26,7 @@ import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
 import { CropDialog } from "@/components/crop/CropDialog";
 import { RembgCompareDialog } from "@/components/RembgCompareDialog";
 import { CropConfig, isCropableFile, isCropUnsupportedFile } from "@/lib/crop";
+import { orderRembgModels } from "@/lib/rembgModels";
 import { cn } from "@/lib/utils";
 
 interface FileConversionFormProps {
@@ -64,10 +65,6 @@ interface FileConversionFormProps {
   compressionMode: "quality" | "size";
   setCompressionMode: (val: "quality" | "size") => void;
 
-  useRembg: boolean;
-  setUseRembg: (val: boolean) => void;
-  rembgModel: string;
-  setRembgModel: (val: string) => void;
   rembgModelByFile: Record<string, string>;
   setRembgModelForFile: (name: string, model: string | null) => void;
   openRembgCompareFor: string | null;
@@ -120,10 +117,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setTargetSizeMB,
   compressionMode,
   setCompressionMode,
-  useRembg,
-  setUseRembg,
-  rembgModel,
-  setRembgModel,
   rembgModelByFile,
   setRembgModelForFile,
   openRembgCompareFor,
@@ -153,8 +146,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     quality: t("form.quality.tooltip"),
     resizeWidth: t("form.resizeWidth.tooltip"),
     targetSize: t("form.targetSize.tooltip"),
-    rembg: t("form.rembg.tooltip"),
-    rembgModel: t("form.rembgModel.tooltip"),
   };
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
@@ -169,10 +160,13 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const filePillClass = isDarkTheme
     ? "bg-gray-800 text-gray-100 border border-gray-700"
     : "bg-slate-100 text-slate-900 border border-slate-200";
+  const orderedRembgModels = useMemo(
+    () => orderRembgModels(rembgAvailableModels),
+    [rembgAvailableModels]
+  );
   const aiCompareEnabled =
-    useRembg &&
     (outputFormat === "png" || outputFormat === "avif") &&
-    rembgAvailableModels.length > 1;
+    orderedRembgModels.length > 0;
   const parsedPdfMargin = parseFloat(pdfMarginMm);
   const pdfMarginValue =
     pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
@@ -255,13 +249,27 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                   )}
                   {selectedRembgModel && (
                     <span
-                      className="inline-flex items-center gap-1 text-xs font-medium rounded-full px-2 py-0.5 bg-purple-500/15 text-purple-700 dark:text-purple-200 border border-purple-500/30"
+                      className="inline-flex items-center gap-1 text-xs font-medium rounded-full pl-2 pr-1 py-0.5 bg-purple-500/15 text-purple-700 dark:text-purple-200 border border-purple-500/30"
                       data-testid="dropzone-rembg-model-badge"
                     >
                       <Sparkles className="h-3 w-3" />
                       {t("rembgCompare.selectedBadge", {
-                        model: t(`form.rembgModel.options.${selectedRembgModel}`, selectedRembgModel),
+                        model: t(`form.rembgModel.options.${selectedRembgModel}`, {
+                          defaultValue: selectedRembgModel,
+                        }),
                       })}
+                      <button
+                        type="button"
+                        aria-label={t("rembgCompare.removeSelectedModel", {
+                          defaultValue: "Remove AI background removal for this image",
+                        })}
+                        disabled={isLoading}
+                        onClick={() => setRembgModelForFile(file.name, null)}
+                        className="rounded-full p-0.5 hover:bg-purple-500/25 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        data-testid="dropzone-rembg-model-badge-clear-btn"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </span>
                   )}
                   {cropable && (
@@ -308,16 +316,21 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           data-testid="dropzone-rembg-compare-file-btn"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
-                          {selectedRembgModel
-                            ? t("rembgCompare.editButton")
-                            : t("rembgCompare.openButton")}
+                          {t("rembgCompare.editButton", { defaultValue: "AI edit" })}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent
                         side="top"
                         className={cn("max-w-56 p-2 rounded shadow-lg border", tooltipSurface)}
                       >
-                        {t("rembgCompare.openTooltip", { count: rembgAvailableModels.length })}
+                        {t(
+                          "rembgCompare.openTooltip",
+                          {
+                            defaultValue:
+                              "Runs {{count}} local AI background-removal model(s) for this file. Choose a model to remove the background for this image.",
+                            count: orderedRembgModels.length,
+                          }
+                        )}
                       </TooltipContent>
                     </Tooltip>
                   )}
@@ -380,7 +393,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       t,
       aiCompareEnabled,
       rembgModelByFile,
-      rembgAvailableModels,
+      orderedRembgModels,
+      setRembgModelForFile,
       setOpenRembgCompareFor,
     ]
   );
@@ -412,7 +426,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       quality={quality}
       width={width}
       resizeWidthEnabled={resizeWidthEnabled}
-      rembgAvailableModels={rembgAvailableModels}
+      rembgAvailableModels={orderedRembgModels}
       isDarkTheme={isDarkTheme}
       disableLogo={disableLogo}
       onReportError={onReportCropError}
@@ -701,92 +715,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               {t("form.compressionMode.bySize")}
             </Button>
           </div>
-        </div>
-      )}
-
-      {(outputFormat === "png" || outputFormat === "avif") && (
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Label
-              htmlFor="rembgToggle"
-              className="text-sm flex items-center gap-1"
-            >
-              {t("form.rembg.label")}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
-                >
-                  <p className="text-sm">{tooltipContent.rembg}</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <Switch
-              data-testid="rembg-switch"
-              id="rembgToggle"
-              checked={useRembg}
-              onCheckedChange={setUseRembg}
-              disabled={isLoading}
-            />
-          </div>
-
-          {useRembg && rembgAvailableModels.length > 1 && (
-            <div className="space-y-1 pt-1 pb-2">
-              <div className="flex items-center gap-1">
-                <Label htmlFor="rembgModel" className="text-sm">
-                  {t("form.rembgModel.label")}
-                </Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
-                  >
-                    <p className="text-sm">{tooltipContent.rembgModel}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <Select value={rembgModel} onValueChange={setRembgModel} disabled={isLoading}>
-                <SelectTrigger
-                  id="rembgModel"
-                  data-testid="rembg-model-select"
-                  className={cn(
-                    selectSurface,
-                    "focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                  )}
-                >
-                  <SelectValue placeholder={t("form.rembgModel.placeholder")} />
-                </SelectTrigger>
-                <SelectContent className={cn(selectSurface, "pb-1.5")}>
-                  {rembgAvailableModels.map((model) => (
-                    <SelectItem
-                      key={model}
-                      value={model}
-                      description={t(`form.rembgModel.descriptions.${model}`, "")}
-                    >
-                      {t(`form.rembgModel.options.${model}`, model)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {rembgModel && (
-                <p className={cn("text-xs", subtleText)}>
-                  <span className="font-mono">{rembgModel}</span>
-                  {" · "}
-                  {t(`form.rembgModel.descriptions.${rembgModel}`, "")}
-                </p>
-              )}
-            </div>
-          )}
         </div>
       )}
 

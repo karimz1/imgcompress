@@ -51,8 +51,8 @@ VALID_CONFIG = {
             "isnet-anime",
             "isnet-general-use",
             "birefnet-portrait",
-            "birefnet-general",
             "birefnet-general-lite",
+            "birefnet-general",
         ],
     },
 }
@@ -108,8 +108,8 @@ def test_valid_config_loads_into_typed_app_config(config_file):
         "isnet-anime",
         "isnet-general-use",
         "birefnet-portrait",
-        "birefnet-general",
         "birefnet-general-lite",
+        "birefnet-general",
     )
 
 

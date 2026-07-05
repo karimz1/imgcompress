@@ -2,6 +2,7 @@ import os
 import shutil
 import time
 import traceback
+from threading import Lock
 from typing import Optional
 
 from werkzeug.utils import secure_filename
@@ -24,6 +25,9 @@ from backend.image_converter.domain.pdf_presets import (
 from backend.image_converter.domain.units import TargetSize, to_bytes
 
 
+REMBG_COMPARE_CANCELLED_MESSAGE = "AI comparison was cancelled."
+
+
 class CompressionService:
     def __init__(
         self,
@@ -36,6 +40,17 @@ class CompressionService:
         self.use_case = use_case
         self.temp_folder_service = temp_folder_service
         self.rembg_available_models = list(rembg_available_models or [])
+        self._rembg_compare_cancel_lock = Lock()
+        self._cancelled_rembg_compare_tokens: dict[str, float] = {}
+        self._rembg_compare_cancel_ttl_seconds = 15 * 60
+
+    def cancel_rembg_compare(self, cancel_token: str) -> None:
+        token = cancel_token.strip()
+        if not token:
+            return
+        with self._rembg_compare_cancel_lock:
+            self._prune_cancelled_rembg_compare_tokens_locked()
+            self._cancelled_rembg_compare_tokens[token] = time.time()
 
     def create_all_files_zip(self, folder_param: str) -> Result[str]:
         folder_path = self.temp_folder_service.get_validated_path(folder_param)
@@ -143,6 +158,7 @@ class CompressionService:
         form_data: CompressionFormData,
         requested_models: list[str] | None = None,
         dest_folder: str | None = None,
+        cancel_token: str | None = None,
     ) -> Result[dict]:
         if form_data.image_format not in {ImageFormat.PNG, ImageFormat.AVIF}:
             return Result.failure("AI comparison only supports PNG or AVIF output.")
@@ -164,6 +180,9 @@ class CompressionService:
         created_dest = False
 
         try:
+            if self._is_rembg_compare_cancelled(cancel_token):
+                return Result.failure(REMBG_COMPARE_CANCELLED_MESSAGE)
+
             src = self.temp_folder_service.create_temp_dir(prefix="source_")
             if dest_folder:
                 dst = self.temp_folder_service.get_validated_path(dest_folder)
@@ -182,6 +201,9 @@ class CompressionService:
             processed_files: list[str] = []
             errors: list[str] = []
             for model_name in model_names:
+                if self._is_rembg_compare_cancelled(cancel_token):
+                    return Result.failure(REMBG_COMPARE_CANCELLED_MESSAGE)
+
                 req = CompressRequest(
                     source_folder=src,
                     dest_folder=dst,
@@ -196,6 +218,10 @@ class CompressionService:
                 result = self.use_case.execute(req)
                 processed_files.extend(result.processed_files)
                 errors.extend(f"{model_name}: {err}" for err in result.errors)
+
+                if self._is_rembg_compare_cancelled(cancel_token):
+                    return Result.failure(REMBG_COMPARE_CANCELLED_MESSAGE)
+
                 for file_name in result.processed_files:
                     results.append({"model": model_name, "file": file_name})
 
@@ -225,6 +251,7 @@ class CompressionService:
                 shutil.rmtree(src, ignore_errors=True)
             if dst and created_dest and not dest_ready:
                 shutil.rmtree(dst, ignore_errors=True)
+            self._forget_rembg_compare_cancel(cancel_token)
 
     def _save_uploaded_files(self, files, folder: str) -> Result[None]:
         try:
@@ -254,3 +281,28 @@ class CompressionService:
                 continue
             normalized[safe_name] = model_name
         return normalized
+
+    def _is_rembg_compare_cancelled(self, cancel_token: str | None) -> bool:
+        token = (cancel_token or "").strip()
+        if not token:
+            return False
+        with self._rembg_compare_cancel_lock:
+            self._prune_cancelled_rembg_compare_tokens_locked()
+            return token in self._cancelled_rembg_compare_tokens
+
+    def _forget_rembg_compare_cancel(self, cancel_token: str | None) -> None:
+        token = (cancel_token or "").strip()
+        if not token:
+            return
+        with self._rembg_compare_cancel_lock:
+            self._cancelled_rembg_compare_tokens.pop(token, None)
+
+    def _prune_cancelled_rembg_compare_tokens_locked(self) -> None:
+        cutoff = time.time() - self._rembg_compare_cancel_ttl_seconds
+        expired_tokens = [
+            token
+            for token, created_at in self._cancelled_rembg_compare_tokens.items()
+            if created_at < cutoff
+        ]
+        for token in expired_tokens:
+            self._cancelled_rembg_compare_tokens.pop(token, None)

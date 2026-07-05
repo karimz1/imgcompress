@@ -83,7 +83,6 @@ function HomePageContent() {
   } = useCropUnsupportedExtensions();
   const {
     availableModels: rembgAvailableModels,
-    defaultModel: rembgDefaultModel,
   } = useRembgModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
@@ -111,8 +110,6 @@ function HomePageContent() {
   const [pdfPaginate, setPdfPaginate] = useState(false);
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
-  const [useRembg, setUseRembg] = useState(false);
-  const [rembgModel, setRembgModel] = useState("");
   const [rembgModelByFile, setRembgModelByFile] = useState<Record<string, string>>({});
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
@@ -144,9 +141,6 @@ function HomePageContent() {
       setCompressionMode("quality");
       setTargetSizeMB("");
     }
-    if (outputFormat !== "png" && outputFormat !== "avif") {
-      setUseRembg(false);
-    }
     if (outputFormat !== "pdf") {
       setPdfPreset("original");
       setPdfScale("fit");
@@ -157,14 +151,6 @@ function HomePageContent() {
       setFormatRequired(false);
     }
   }, [outputFormat]);
-
-  useEffect(() => {
-    // Default the model selection to the backend-provided default once it loads,
-    // without clobbering an explicit user choice.
-    if (!rembgModel && rembgDefaultModel) {
-      setRembgModel(rembgDefaultModel);
-    }
-  }, [rembgDefaultModel, rembgModel]);
 
   useEffect(() => {
     if (outputFormat === "pdf" && pdfPreset !== "original") {
@@ -340,14 +326,12 @@ function HomePageContent() {
           formData.append("target_size_kb", String(kb));
         }
       }
-      if ((outputFormat === "png" || outputFormat === "avif") && useRembg) {
+      if (
+        (outputFormat === "png" || outputFormat === "avif") &&
+        Object.keys(modelByUploadedFile).length > 0
+      ) {
         formData.append("use_rembg", "true");
-        if (rembgModel) {
-          formData.append("rembg_model", rembgModel);
-        }
-        if (Object.keys(modelByUploadedFile).length > 0) {
-          formData.append("rembg_model_by_file", JSON.stringify(modelByUploadedFile));
-        }
+        formData.append("rembg_model_by_file", JSON.stringify(modelByUploadedFile));
       }
 
       try {
@@ -423,8 +407,6 @@ function HomePageContent() {
       setError,
       compressionMode,
       targetSizeMB,
-      useRembg,
-      rembgModel,
       rembgModelByFile,
       pdfPreset,
       pdfScale,
@@ -620,10 +602,6 @@ function HomePageContent() {
               setTargetSizeMB={setTargetSizeMB}
               compressionMode={compressionMode}
               setCompressionMode={setCompressionMode}
-              useRembg={useRembg}
-              setUseRembg={setUseRembg}
-              rembgModel={rembgModel}
-              setRembgModel={setRembgModel}
               rembgModelByFile={rembgModelByFile}
               setRembgModelForFile={setRembgModelForFile}
               openRembgCompareFor={openRembgCompareFor}
