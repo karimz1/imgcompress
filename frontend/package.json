@@ -56,6 +56,6 @@
     "pdf-lib": "^1.17.1",
     "pnpm": "^11.8.0",
     "tailwindcss": "^4.3.2",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   }
 }
