@@ -1,5 +1,5 @@
 werkzeug
-cffi==2.0.0
+cffi==2.1.0
 pillow>=12.3.0
 pycparser==3.0
 pyheif==0.8.0
