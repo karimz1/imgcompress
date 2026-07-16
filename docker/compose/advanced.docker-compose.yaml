@@ -10,23 +10,19 @@ x-logging: &default-logging
     max-file: "10"
     compress: "true"
 x-healthcheck: &default-healthcheck
-  interval: 3s
-  retries: 10
-  timeout: 3s
+  interval: 30s
+  retries: 3
+  timeout: 10s
   start_period: 10s
 
 # Isolated network to prevent other services on Docker host seeing it.
-# By default, Docker attachs 50 bytes header to routing network packets into container.
-# Lower MTU to 1450, so 1450 + 50 from Docker = 1500 (which is the standard MTU)
 networks:
   imgcompress-network:
     driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: 1450
 
 services:
   imgcompress:
-    image: ${IMGCOMPRESS_REGISTRY:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
+    image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
     container_name: imgcompress
     restart: always
     ports:

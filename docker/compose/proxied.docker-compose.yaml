@@ -27,14 +27,11 @@ x-logging: &default-logging
     max-file: "10"
     compress: "true"
 x-healthcheck: &default-healthcheck
-  interval: 3s
-  retries: 10
-  timeout: 3s
+  interval: 30s
+  retries: 3
+  timeout: 10s
   start_period: 10s
 
-# Docker adds a ~50-byte VXLAN/overlay header when routing packets into containers.
-# We lower MTU to 1450 so that 1450 (payload) + 50 (header) = 1500 (standard Ethernet MTU),
-# preventing fragmentation that can cause silent packet drops or degraded performance.
 networks:
   imgcompress-network:
     driver: bridge
@@ -44,15 +41,11 @@ networks:
     # Containers on this network can still communicate with each other
     # and resolve service names via Docker's built-in DNS.
     internal: true
-    driver_opts:
-      com.docker.network.driver.mtu: 1450
   # Traefik needs a dedicated external network  to serve traffic.
   # If Traefik were only on the internal "imgcompress-network", incoming requests
   # from the Docker host or the Internet would never reach it even with published ports.
   traefik-network:
     driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: 1450
 
 volumes:
   # Named volume for persisting Let's Encrypt certificates.
@@ -138,7 +131,7 @@ services:
       traefik.http.middlewares.traefik-auth.basicauth.users: "${TRAEFIK_AUTH_USERS:-user:$$2y$$05$$8zbpsdxg9wDiiKdqxiB0zeAlxZtG68P1SDBOvCN4IooLFewLx70Gm}"
 
   imgcompress:
-    image: ${IMGCOMPRESS_REGISTRY:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
+    image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
     container_name: imgcompress
     restart: always
     # Traefik handles all inbound traffic.
