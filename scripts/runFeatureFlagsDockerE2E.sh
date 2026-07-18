@@ -25,19 +25,19 @@ cleanup_container() {
 trap cleanup_container EXIT
 
 if ! command -v docker >/dev/null 2>&1; then
-    echo "❌ docker is required but was not found in PATH" >&2
+    echo "docker is required but was not found in PATH" >&2
     exit 1
 fi
 
 if ! command -v pnpm >/dev/null 2>&1; then
-    echo "❌ pnpm is required but was not found in PATH" >&2
+    echo "pnpm is required but was not found in PATH" >&2
     echo "   Install pnpm or run from a shell that has it on PATH." >&2
     exit 1
 fi
 
 "$SCRIPT_DIR/ensureBuildxBuilder.sh" "$BUILDX_BUILDER"
 
-echo "🚧 Building Docker image: $IMAGE_NAME"
+echo "Building Docker image: $IMAGE_NAME"
 docker buildx build \
     --builder "$BUILDX_BUILDER" \
     --load \
@@ -63,7 +63,7 @@ for combo in "${COMBOS[@]}"; do
 
     echo
     echo "==========================================================="
-    echo "▶ Combo: DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM"
+    echo "Combo: DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM"
     echo "==========================================================="
 
     cleanup_container
@@ -75,7 +75,7 @@ for combo in "${COMBOS[@]}"; do
         -e DISABLE_STORAGE_MANAGEMENT="$DSM" \
         "$IMAGE_NAME" >/dev/null
 
-    echo "⏳ Waiting for http://localhost:$PORT_HOST/api/health/backend ..."
+    echo "Waiting for http://localhost:$PORT_HOST/api/health/backend ..."
     HEALTHY=0
     SECONDS=0
     while (( SECONDS < HEALTH_TIMEOUT )); do
@@ -87,23 +87,23 @@ for combo in "${COMBOS[@]}"; do
     done
 
     if (( HEALTHY != 1 )); then
-        echo "❌ Backend did not become healthy within ${HEALTH_TIMEOUT}s"
+        echo "Backend did not become healthy within ${HEALTH_TIMEOUT}s"
         docker logs --tail 100 "$CONTAINER_NAME" || true
         FAILURES+=("DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM (health timeout)")
         cleanup_container
         continue
     fi
 
-    echo "✅ Backend up. Running spec: $SPEC_PATH"
+    echo "Backend up. Running spec: $SPEC_PATH"
     if (
         cd "$FRONTEND_DIR" && \
         CI=true \
         PLAYWRIGHT_BASE_URL="http://localhost:$PORT_HOST" \
         pnpm exec playwright test "$SPEC_PATH"
     ); then
-        echo "✅ Spec passed for DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM"
+        echo "Spec passed for DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM"
     else
-        echo "❌ Spec failed for DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM"
+        echo "Spec failed for DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM"
         FAILURES+=("DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM (spec failed)")
     fi
 
@@ -113,11 +113,11 @@ done
 echo
 echo "==========================================================="
 if (( ${#FAILURES[@]} == 0 )); then
-    echo "✅ All 4 flag combinations passed"
+    echo "All 4 flag combinations passed"
     exit 0
 fi
 
-echo "❌ Failures:"
+echo "Failures:"
 for f in "${FAILURES[@]}"; do
     echo "   - $f"
 done

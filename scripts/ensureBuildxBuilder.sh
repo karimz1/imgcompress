@@ -18,5 +18,5 @@ if docker buildx inspect "$NAME" >/dev/null 2>&1; then
     exit 0
 fi
 
-echo "🛠  Creating local buildx builder '$NAME' (docker-container driver)"
+echo "Creating local buildx builder '$NAME' (docker-container driver)"
 docker buildx create --name "$NAME" --driver docker-container >/dev/null

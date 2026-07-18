@@ -112,9 +112,31 @@ export const ru: TranslationSchema = {
       bySize: "Задать по размеру файла",
     },
     rembg: {
-      label: "Удалить фон локальным ИИ ({{model}})",
+      label: "Удалить фон локальным ИИ",
       tooltip:
         "Локальный ИИ удаляет фон (интернет не требуется).\nОбработка медленнее, по краям могут быть небольшие артефакты.",
+    },
+    rembgModel: {
+      label: "Модель ИИ",
+      placeholder: "Выберите модель",
+      tooltip:
+        "Выберите, какая локальная модель ИИ удаляет фон.\nОбщая подходит для большинства изображений, Аниме настроена для рисунков, Фото — для реальной фотографии.",
+      options: {
+        "u2net": "Общая",
+        "isnet-anime": "Аниме",
+        "isnet-general-use": "Фото",
+        "birefnet-portrait": "Портреты",
+        "birefnet-general": "Максимальное качество",
+        "birefnet-general-lite": "Высокое качество",
+      },
+      descriptions: {
+        "u2net": "Для большинства изображений",
+        "isnet-anime": "Чистые маски аниме-персонажей",
+        "isnet-general-use": "Реальная фотография",
+        "birefnet-portrait": "Вырезы людей и портретов",
+        "birefnet-general": "Лучшие детали и края, самый медленный",
+        "birefnet-general-lite": "Детальные края, быстрее максимума",
+      },
     },
     quality: {
       label: "Качество",
@@ -168,6 +190,22 @@ export const ru: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "ИИ-редактор",
+    editorDescription: "Сравните локальные модели ИИ для этого изображения.",
+    openButton: "Сравнить ИИ",
+    editButton: "Изменить ИИ",
+    selectedBadge: "ИИ: {{model}}",
+    loadingTitle: "Сравнение моделей ИИ",
+    loadingDescription: "Сравнение всех моделей ИИ может занять некоторое время.",
+    useModel: "Использовать эту модель",
+    downloadSelected: "Скачать выбранное",
+    downloadAll: "Скачать всё ZIP-архивом",
+    close: "Закрыть",
+    errorTitle: "Сравнение ИИ не удалось",
+    empty: "Предпросмотр недоступен.",
+    previewAlt: "Предпросмотр удаления фона с {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Показать сжатое изображение",
     trigger_other: "🗃️ Показать сжатые изображения",

@@ -133,6 +133,13 @@ COPY --chown=nonroot:nonroot backend/ ./backend
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
     uv pip install .
 
+# Select which rembg models are baked into the image. The default bakes the
+# full set (the `latest` tag); build with `--build-arg REMBG_MODELS=u2net` to
+# produce the lean `slim` tag. IMGCOMPRESS_REMBG_MODELS makes the app offer
+# exactly the baked set in the model dropdown.
+ARG REMBG_MODELS="u2net isnet-anime isnet-general-use birefnet-portrait birefnet-general-lite birefnet-general"
+ENV IMGCOMPRESS_REMBG_MODELS=$REMBG_MODELS
+
 # Pre-download rembg model to prevent download overhead during runtime.
 ENV U2NET_HOME=/container/.u2net
 # Intent: Since backend code is copied earlier, any code change invalidates layer cache.
@@ -142,9 +149,9 @@ RUN --mount=type=cache,target=/cache/u2net,uid=65532,gid=65532 \
     U2NET_HOME=/cache/u2net python - <<'PY' && cp -a /cache/u2net/. /container/.u2net/
 from backend.image_converter.config import settings
 from rembg import new_session
-model_name = settings.get().rembg.model_name
-new_session(model_name)
-print(f"rembg model cached: {model_name}")
+for model_name in settings.get().rembg.available_models:
+    new_session(model_name)
+    print(f"rembg model cached: {model_name}")
 PY
 
 COPY --chown=nonroot:nonroot entrypoint.py ./entrypoint.py
@@ -171,6 +178,10 @@ LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.co
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV U2NET_HOME=/container/.u2net
+
+# Must match the build stage so the running app offers exactly the baked models.
+ARG REMBG_MODELS="u2net isnet-anime isnet-general-use birefnet-portrait birefnet-general-lite birefnet-general"
+ENV IMGCOMPRESS_REMBG_MODELS=$REMBG_MODELS
 
 WORKDIR /container
 

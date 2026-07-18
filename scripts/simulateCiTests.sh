@@ -73,10 +73,10 @@ run_stage() {
   echo ""
   echo "=== $stage_name ==="
   if "$@"; then
-    echo "✅ $stage_name"
+    echo "$stage_name"
   else
     status=$?
-    echo "❌ $stage_name (exit $status)"
+    echo "$stage_name (exit $status)"
     exit "$status"
   fi
 }
@@ -126,4 +126,4 @@ run_stage "Run e2e tests" \
     devcontainer:local-test -c "/app/scripts/run-e2e.sh"
 
 echo ""
-echo "✅ All stages passed"
+echo "All stages passed"

@@ -10,9 +10,15 @@ from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
-from backend.image_converter.presentation.web.parse_services import extract_form_data
+from backend.image_converter.presentation.web.parse_services import (
+    extract_form_data,
+    extract_rembg_compare_form_data,
+)
 from backend.image_converter.presentation.web.services.backend_diagnostics_service import BackendDiagnosticsService
-from backend.image_converter.presentation.web.services.compression_service import CompressionService
+from backend.image_converter.presentation.web.services.compression_service import (
+    CompressionService,
+    REMBG_COMPARE_CANCELLED_MESSAGE,
+)
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
 from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
@@ -33,11 +39,19 @@ payload_expander = create_payload_expander(logger)
 use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
 
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
-compression_service = CompressionService(logger, use_case, temp_folder_service)
+compression_service = CompressionService(
+    logger,
+    use_case,
+    temp_folder_service,
+    rembg_available_models=list(_config.rembg.available_models),
+)
 storage_management_service = StorageManagementService(
     is_enabled=_config.features.is_storage_management_enabled,
 )
-configuration_service = ConfigurationService(rembg_model_name=_config.rembg.model_name)
+configuration_service = ConfigurationService(
+    rembg_model_name=_config.rembg.default_model,
+    rembg_available_models=list(_config.rembg.available_models),
+)
 crop_preview_service = CropPreviewService(
     logger,
     payload_expander,
@@ -56,6 +70,15 @@ def _storage_management_disabled_response():
     return jsonify({"error": "Storage management endpoints are disabled in this mode."}), 403
 
 
+def _request_cancel_token() -> str:
+    json_data = request.get_json(silent=True) if request.is_json else None
+    return (
+        request.form.get("cancel_token")
+        or (json_data or {}).get("cancel_token")
+        or ""
+    ).strip()
+
+
 @api_blueprint.route("/compress", methods=["POST"])
 def compress_images():
     temp_folder_service.cleanup()
@@ -69,6 +92,46 @@ def compress_images():
         return jsonify({"error": "Compression failed", "message": result.error}), 500
 
     return jsonify({"status": "ok", **result.value.to_json_dict()}), 200
+
+
+@api_blueprint.route("/rembg/compare", methods=["POST"])
+def compare_rembg_models():
+    temp_folder_service.cleanup()
+
+    data_result = extract_rembg_compare_form_data(request, logger)
+    if not data_result.is_successful:
+        return jsonify({"error": str(data_result.error)}), 400
+
+    requested_model = request.form.get("model", "").strip()
+    requested_models = None
+    if requested_model:
+        available_models = configuration_service.get_rembg_available_models()
+        if requested_model not in available_models:
+            return jsonify({"error": f"Unsupported AI model: {requested_model}"}), 400
+        requested_models = [requested_model]
+
+    result = compression_service.compare_rembg_models(
+        data_result.value,
+        requested_models=requested_models,
+        dest_folder=request.form.get("dest_folder", "").strip() or None,
+        cancel_token=request.form.get("cancel_token", "").strip() or None,
+    )
+    if not result.is_successful:
+        if result.error == REMBG_COMPARE_CANCELLED_MESSAGE:
+            return jsonify({"error": "AI comparison cancelled", "message": result.error}), 499
+        return jsonify({"error": "AI comparison failed", "message": result.error}), 500
+
+    return jsonify({"status": "ok", **result.value}), 200
+
+
+@api_blueprint.route("/rembg/compare/cancel", methods=["POST"])
+def cancel_rembg_compare():
+    cancel_token = _request_cancel_token()
+    if not cancel_token:
+        return jsonify({"error": "Missing cancellation token."}), 400
+
+    compression_service.cancel_rembg_compare(cancel_token)
+    return jsonify({"status": "ok"}), 200
 
 
 @api_blueprint.route("/download", methods=["GET"])
@@ -158,7 +221,12 @@ def verified_image_formats():
 
 @api_blueprint.route("/rembg_model", methods=["GET"])
 def rembg_model():
-    return jsonify({"model_name": configuration_service.get_rembg_model_name()}), 200
+    default_model = configuration_service.get_rembg_model_name()
+    return jsonify({
+        "model_name": default_model,
+        "default_model": default_model,
+        "available_models": configuration_service.get_rembg_available_models(),
+    }), 200
 
 
 @api_blueprint.route("/crop_unsupported_formats", methods=["GET"])

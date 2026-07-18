@@ -112,9 +112,31 @@ export const ar: TranslationSchema = {
       bySize: "التعيين حسب حجم الملف",
     },
     rembg: {
-      label: "إزالة الخلفية بذكاء اصطناعي محلي ({{model}})",
+      label: "إزالة الخلفية بذكاء اصطناعي محلي",
       tooltip:
         "يزيل الذكاء الاصطناعي المحلي الخلفية (لا يلزم إنترنت).\nالمعالجة أبطأ، وقد تظهر عيوب صغيرة عند الحواف.",
+    },
+    rembgModel: {
+      label: "نموذج الذكاء الاصطناعي",
+      placeholder: "اختر نموذجًا",
+      tooltip:
+        "اختر نموذج الذكاء الاصطناعي المحلي الذي يزيل الخلفية.\nالعام يناسب معظم الصور، والأنمي مُهيأ للرسومات، والصور للتصوير الفوتوغرافي الواقعي.",
+      options: {
+        "u2net": "عام",
+        "isnet-anime": "أنمي",
+        "isnet-general-use": "الصور",
+        "birefnet-portrait": "الصور الشخصية",
+        "birefnet-general": "أعلى جودة",
+        "birefnet-general-lite": "جودة عالية",
+      },
+      descriptions: {
+        "u2net": "لمعظم الصور",
+        "isnet-anime": "أقنعة نظيفة لشخصيات الأنمي",
+        "isnet-general-use": "تصوير واقعي",
+        "birefnet-portrait": "قصّ الأشخاص والصور الشخصية",
+        "birefnet-general": "أفضل تفاصيل وحواف، الأبطأ",
+        "birefnet-general-lite": "حواف مفصلة، أسرع من الحد الأقصى",
+      },
     },
     quality: {
       label: "الجودة",
@@ -168,6 +190,22 @@ export const ar: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "محرر الذكاء الاصطناعي",
+    editorDescription: "قارن نماذج الذكاء الاصطناعي المحلية لهذه الصورة.",
+    openButton: "مقارنة الذكاء الاصطناعي",
+    editButton: "تحرير الذكاء الاصطناعي",
+    selectedBadge: "الذكاء الاصطناعي: {{model}}",
+    loadingTitle: "جارٍ مقارنة نماذج الذكاء الاصطناعي",
+    loadingDescription: "قد تستغرق مقارنة كل نماذج الذكاء الاصطناعي بعض الوقت.",
+    useModel: "استخدام هذا النموذج",
+    downloadSelected: "تنزيل المحدد",
+    downloadAll: "تنزيل الكل كملف ZIP",
+    close: "إغلاق",
+    errorTitle: "فشلت مقارنة الذكاء الاصطناعي",
+    empty: "لا توجد معاينة متاحة.",
+    previewAlt: "معاينة إزالة الخلفية باستخدام {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ عرض الصورة المضغوطة",
     trigger_other: "🗃️ عرض الصور المضغوطة",

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
-import { Crop as CropIcon, Info, Loader2, Trash, X } from "lucide-react";
+import { Crop as CropIcon, Info, Loader2, Sparkles, Trash, X } from "lucide-react";
 import { useMountedTheme } from "@/hooks/useMountedTheme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,9 @@ import {
 
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
 import { CropDialog } from "@/components/crop/CropDialog";
+import { RembgCompareDialog } from "@/components/RembgCompareDialog";
 import { CropConfig, isCropableFile, isCropUnsupportedFile } from "@/lib/crop";
+import { orderRembgModels } from "@/lib/rembgModels";
 import { cn } from "@/lib/utils";
 
 interface FileConversionFormProps {
@@ -63,9 +65,11 @@ interface FileConversionFormProps {
   compressionMode: "quality" | "size";
   setCompressionMode: (val: "quality" | "size") => void;
 
-  useRembg: boolean;
-  setUseRembg: (val: boolean) => void;
-  rembgModelName: string | null;
+  rembgModelByFile: Record<string, string>;
+  setRembgModelForFile: (name: string, model: string | null) => void;
+  openRembgCompareFor: string | null;
+  setOpenRembgCompareFor: (name: string | null) => void;
+  rembgAvailableModels: string[];
 
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
@@ -113,9 +117,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setTargetSizeMB,
   compressionMode,
   setCompressionMode,
-  useRembg,
-  setUseRembg,
-  rembgModelName,
+  rembgModelByFile,
+  setRembgModelForFile,
+  openRembgCompareFor,
+  setOpenRembgCompareFor,
+  rembgAvailableModels,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -140,7 +146,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     quality: t("form.quality.tooltip"),
     resizeWidth: t("form.resizeWidth.tooltip"),
     targetSize: t("form.targetSize.tooltip"),
-    rembg: t("form.rembg.tooltip"),
   };
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
@@ -155,10 +160,16 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const filePillClass = isDarkTheme
     ? "bg-gray-800 text-gray-100 border border-gray-700"
     : "bg-slate-100 text-slate-900 border border-slate-200";
+  const orderedRembgModels = useMemo(
+    () => orderRembgModels(rembgAvailableModels),
+    [rembgAvailableModels]
+  );
+  const aiCompareEnabled =
+    (outputFormat === "png" || outputFormat === "avif") &&
+    orderedRembgModels.length > 0;
   const parsedPdfMargin = parseFloat(pdfMarginMm);
   const pdfMarginValue =
     pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
-  const rembgLabel = rembgModelName?.trim() || "rembg";
   const renderError = useMemo(
     () =>
       error && (
@@ -189,6 +200,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             const cropable =
               !cropUnsupported && isCropableFile(file, supportedExtensions);
             const savedCrop = crops[file.name];
+            const selectedRembgModel = rembgModelByFile[file.name];
+            const canCompareAi = aiCompareEnabled && cropable;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
             return (
               <div
@@ -234,6 +247,31 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                       </TooltipContent>
                     </Tooltip>
                   )}
+                  {selectedRembgModel && (
+                    <span
+                      className="inline-flex items-center gap-1 text-xs font-medium rounded-full pl-2 pr-1 py-0.5 bg-purple-500/15 text-purple-700 dark:text-purple-200 border border-purple-500/30"
+                      data-testid="dropzone-rembg-model-badge"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      {t("rembgCompare.selectedBadge", {
+                        model: t(`form.rembgModel.options.${selectedRembgModel}`, {
+                          defaultValue: selectedRembgModel,
+                        }),
+                      })}
+                      <button
+                        type="button"
+                        aria-label={t("rembgCompare.removeSelectedModel", {
+                          defaultValue: "Remove AI background removal for this image",
+                        })}
+                        disabled={isLoading}
+                        onClick={() => setRembgModelForFile(file.name, null)}
+                        className="rounded-full p-0.5 hover:bg-purple-500/25 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        data-testid="dropzone-rembg-model-badge-clear-btn"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
                   {cropable && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -262,6 +300,37 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                         {savedCrop
                           ? t("form.filesList.editCropTooltip")
                           : t("form.filesList.addCropTooltip")}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {canCompareAi && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => setOpenRembgCompareFor(file.name)}
+                          className="h-7 gap-1.5 px-2 border-purple-500/35 bg-purple-500/5 text-purple-700 hover:bg-purple-500/10 dark:text-purple-200"
+                          data-testid="dropzone-rembg-compare-file-btn"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {t("rembgCompare.editButton", { defaultValue: "AI edit" })}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className={cn("max-w-56 p-2 rounded shadow-lg border", tooltipSurface)}
+                      >
+                        {t(
+                          "rembgCompare.openTooltip",
+                          {
+                            defaultValue:
+                              "Runs {{count}} local AI background-removal model(s) for this file. Choose a model to remove the background for this image.",
+                            count: orderedRembgModels.length,
+                          }
+                        )}
                       </TooltipContent>
                     </Tooltip>
                   )}
@@ -322,6 +391,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       cropUnsupportedExtensions,
       tooltipSurface,
       t,
+      aiCompareEnabled,
+      rembgModelByFile,
+      orderedRembgModels,
+      setRembgModelForFile,
+      setOpenRembgCompareFor,
     ]
   );
 
@@ -337,6 +411,25 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       onReportError={onReportCropError}
       isDarkTheme={isDarkTheme}
       disableLogo={disableLogo}
+    />
+  );
+
+  const rembgCompareDialogNode = (
+    <RembgCompareDialog
+      files={files}
+      crops={crops}
+      openFileName={openRembgCompareFor}
+      setOpenFileName={setOpenRembgCompareFor}
+      selectedModels={rembgModelByFile}
+      setModelForFile={setRembgModelForFile}
+      outputFormat={outputFormat}
+      quality={quality}
+      width={width}
+      resizeWidthEnabled={resizeWidthEnabled}
+      rembgAvailableModels={orderedRembgModels}
+      isDarkTheme={isDarkTheme}
+      disableLogo={disableLogo}
+      onReportError={onReportCropError}
     />
   );
 
@@ -625,39 +718,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "png" || outputFormat === "avif") && (
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Label
-              htmlFor="rembgToggle"
-              className="text-sm flex items-center gap-1"
-            >
-              {t("form.rembg.label", { model: rembgLabel })}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
-                >
-                  <p className="text-sm">{tooltipContent.rembg}</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <Switch
-              data-testid="rembg-switch"
-              id="rembgToggle"
-              checked={useRembg}
-              onCheckedChange={setUseRembg}
-              disabled={isLoading}
-            />
-          </div>
-        </div>
-      )}
-
       {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -833,6 +893,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       {renderFilesList}
 
       {cropDialogNode}
+      {rembgCompareDialogNode}
 
       <div className="flex items-center justify-between gap-4">
         <Button

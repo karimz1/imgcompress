@@ -112,3 +112,37 @@ def test_When_RembgConverts_Expect_PngWithAlpha(sample_rgba_png, tmp_path, mock_
 
     with Image.open(dest_path) as out_img:
         assert out_img.mode == "RGBA"
+
+
+def test_When_ModelSelected_Expect_SessionUsesThatModelAndProviders(
+    sample_rgba_png, tmp_path, mock_logger, monkeypatch
+):
+    """A non-default model and the detected providers reach rembg.new_session."""
+    sample_path = tmp_path / "test_image.png"
+    sample_path.write_bytes(sample_rgba_png)
+    image_data = sample_path.read_bytes()
+
+    captured = {}
+
+    def fake_new_session(model_name: str):
+        captured["model_name"] = model_name
+        return {"model": model_name}
+
+    def fake_remove(data, session, post_process_mask, alpha_matting):
+        buffer = BytesIO()
+        Image.new("RGBA", (16, 16), (0, 0, 255, 200)).save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    import sys
+    from unittest.mock import MagicMock
+    mock_rembg = MagicMock()
+    mock_rembg.new_session = fake_new_session
+    mock_rembg.remove = fake_remove
+    monkeypatch.setitem(sys.modules, "rembg", mock_rembg)
+
+    converter = ImageConverterFactory.create_converter(
+        ImageFormat.PNG, 80, mock_logger, use_rembg=True, rembg_model="isnet-anime"
+    )
+    converter.convert(image_data, str(sample_path), str(tmp_path / "out.png"))
+
+    assert captured["model_name"] == "isnet-anime"

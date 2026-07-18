@@ -74,11 +74,31 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 
 ## AI Background Removal: Local & Private
 
-Stop uploading personal or client photos to cloud-based removers. ImgCompress ships a bundled AI model that runs background removal **on your own hardware**. No API call, no subscription, no file ever leaves your server.
+Stop uploading personal or client photos to cloud-based removers. ImgCompress ships bundled AI models that run background removal **on your own hardware**. No API call, no subscription, no file ever leaves your server.
 
 | Original | Background Removed |
 |:---:|:---:|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="380" alt="Original sunset landscape photo"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="380" alt="Same photo with background removed by local AI"/> |
+
+### Pick the right model
+
+When background removal is on (PNG or AVIF output), a model dropdown lets you match the model to the image:
+
+- **General (`u2net`)** is the default and works for most images.
+- **Anime characters (`isnet-anime`)** is tuned for clean anime character masks.
+- **Photos (`isnet-general-use`)** targets real-world photography.
+- **People & portraits (`birefnet-portrait`)** uses BiRefNet's portrait model for cleaner people cutouts.
+- **Max quality (`birefnet-general`)** is the strongest rembg-supported general model for complex edges and fine detail.
+- **High quality (`birefnet-general-lite`)** is the faster BiRefNet option when you still want cleaner edges than the default.
+
+Each option in the picker shows a short note on what it is best at. All models are pre-baked into the image, so switching between them needs no download and works fully offline.
+
+### Image tags: `latest` vs `slim`
+
+- **`latest`** bundles every model above for the best out-of-the-box experience (a few extra MB per model).
+- **`slim`** ships only the default `u2net` model for the smallest possible image. The model picker is hidden, and background removal still works exactly as before.
+
+Both are privacy-first and fully local. Pick `slim` if you want the leanest image and only need the default model; pick `latest` if you want to match the right model to each image.
 
 ---
 
