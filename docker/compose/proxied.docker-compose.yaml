@@ -126,9 +126,8 @@ services:
       traefik.http.routers.traefik.middlewares: traefik-auth
       # Basic-auth protects the dashboard. The Authorization header is stripped
       # before forwarding to the upstream so credentials don't leak.
-      # Default credentials: user / 123456  — CHANGE THIS!
       traefik.http.middlewares.traefik-auth.basicauth.removeheader: true
-      traefik.http.middlewares.traefik-auth.basicauth.users: "${TRAEFIK_AUTH_USERS:-user:$$2y$$05$$8zbpsdxg9wDiiKdqxiB0zeAlxZtG68P1SDBOvCN4IooLFewLx70Gm}"
+      traefik.http.middlewares.traefik-auth.basicauth.users: "${TRAEFIK_AUTH_USERS:?Set TRAEFIK_AUTH_USERS in .env, generate with: htpasswd -nB admin}"
 
   imgcompress:
     image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
@@ -175,7 +174,7 @@ services:
       traefik.http.routers.app-secure.tls: true
       # Use the Let's Encrypt resolver defined in Traefik's command above. (Uncomment to setup)
       # traefik.http.routers.app-secure.tls.certResolver: letsencrypt
-      traefik.http.routers.app-secure.middlewares: security-headers
+      traefik.http.routers.app-secure.middlewares: security-headers,limit
 
       # Explicitly tell Traefik which container port to forward traffic to.
       # Required when the image exposes (or may expose) more than one port.
