@@ -19,12 +19,12 @@ from backend.image_converter.config.app_config import (
     FeaturesConfig,
     FormatsConfig,
     LoggingConfig,
+    PdfConfig,
     RembgConfig,
     TemporaryStorageConfig,
     UploadsConfig,
     WebConfig,
 )
-
 from backend.image_converter.domain.web_workers import WebWorkerCount
 
 
@@ -67,6 +67,9 @@ def load_from_file(path: Path) -> AppConfig:
     errors: list[str] = []
     reader = _Reader(raw, errors)
 
+    if "pdf" in raw and not isinstance(raw["pdf"], dict):
+        errors.append("config key 'pdf' must be an object")
+
     temp_storage = TemporaryStorageConfig(
         directory=reader.require_str(("temporary_storage", "directory")),
         max_age_seconds=reader.require_int(("temporary_storage", "max_age_seconds"), minimum=1),
@@ -99,6 +102,13 @@ def load_from_file(path: Path) -> AppConfig:
             ("formats", "custom_pipeline_extensions"),
         ),
     )
+    pdf = PdfConfig(
+        max_render_pixels_per_page=reader.optional_int(
+            ("pdf", "max_render_pixels_per_page"),
+            default=25_000_000,
+            minimum=1,
+        ),
+    )
     features = FeaturesConfig(
         is_storage_management_enabled=reader.require_feature_flag(
             ("features", "is_storage_management_enabled"),
@@ -122,6 +132,7 @@ def load_from_file(path: Path) -> AppConfig:
         logging=logging_cfg,
         crop_preview=crop_preview,
         formats=formats,
+        pdf=pdf,
         features=features,
         rembg=rembg,
     )
