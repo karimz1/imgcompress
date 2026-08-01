@@ -1,0 +1,57 @@
+# Advanced Docker Compose deployment for ImgCompress:
+# the minimal root setup plus common container best practices
+# (log rotation, healthcheck, ulimits, no-new-privileges).
+
+# YAML anchors - reusable default settings shared across services.
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "50m"
+    max-file: "10"
+    compress: "true"
+x-healthcheck: &default-healthcheck
+  interval: 30s
+  retries: 3
+  timeout: 10s
+  start_period: 10s
+
+# Dedicated bridge network, so containers from other Compose stacks
+# on this host cannot reach ImgCompress directly.
+networks:
+  imgcompress-network:
+    driver: bridge
+
+services:
+  imgcompress:
+    image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
+    container_name: imgcompress
+    restart: always
+    networks:
+      - imgcompress-network
+    ports:
+      # Reachable from your network by default: http://<server-ip>:3001
+      # To restrict access to this machine only, set IMGCOMPRESS_HOST=127.0.0.1 in `.env`.
+      # Note: the app has no login, so anyone on the network can use it.
+      - "${IMGCOMPRESS_HOST:-0.0.0.0}:${IMGCOMPRESS_PORT:-3001}:5000"
+    environment:
+      # Set to true to remove the mascot and enable a minimal, mascot-free UI
+      - DISABLE_LOGO=${IMGCOMPRESS_DISABLE_LOGO:-false}
+      # Set to true to disable the storage management features (e.g., for your users to not see all the files)
+      - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-false}
+    healthcheck:
+      test: ["CMD", "python", "/container/healthcheck.py"]
+      <<: *default-healthcheck
+    # Prevent container from causing Docker host run out of file descriptors
+    # (default limit of Linux is 65535)
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    # Give the container 15s to shut down gracefully before Docker sends SIGKILL.
+    stop_grace_period: 15s
+    # Prevent the process from gaining new privileges, e.g. via setuid binaries
+    # (mitigates privilege-escalation paths).
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      <<: *default-logging
