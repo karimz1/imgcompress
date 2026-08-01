@@ -1,8 +1,8 @@
-# This is an example of advanced Docker Compose deployment for Imgcompress
-# with more settings & some best practices in common for deploying containers.
+# Advanced Docker Compose deployment for ImgCompress:
+# the minimal root setup plus common container best practices
+# (log rotation, healthcheck, ulimits, no-new-privileges).
 
-# Placing anchors for default options
-# so we can reuse them in multiple Docker services
+# YAML anchors - reusable default settings shared across services.
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -15,7 +15,8 @@ x-healthcheck: &default-healthcheck
   timeout: 10s
   start_period: 10s
 
-# Isolated network to prevent other services on Docker host seeing it.
+# Dedicated bridge network, so containers from other Compose stacks
+# on this host cannot reach ImgCompress directly.
 networks:
   imgcompress-network:
     driver: bridge
@@ -25,10 +26,13 @@ services:
     image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
     container_name: imgcompress
     restart: always
+    networks:
+      - imgcompress-network
     ports:
-      # Only expose to localhost by default to prevent unintented public access.
-      # If you want to access from another machine, set IMGCOMPRESS_HOST=0.0.0.0 in `.env` file.
-      - "${IMGCOMPRESS_HOST:-127.0.0.1}:${IMGCOMPRESS_PORT:-3001}:5000"
+      # Reachable from your network by default: http://<server-ip>:3001
+      # To restrict access to this machine only, set IMGCOMPRESS_HOST=127.0.0.1 in `.env`.
+      # Note: the app has no login, so anyone on the network can use it.
+      - "${IMGCOMPRESS_HOST:-0.0.0.0}:${IMGCOMPRESS_PORT:-3001}:5000"
     environment:
       # Set to true to remove the mascot and enable a minimal, mascot-free UI
       - DISABLE_LOGO=${IMGCOMPRESS_DISABLE_LOGO:-false}
@@ -43,9 +47,10 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    # Allow cotainer to shut down gracefully, instead of let Docker calls SIGTERM killing it.
+    # Give the container 15s to shut down gracefully before Docker sends SIGKILL.
     stop_grace_period: 15s
-    # Prevent container from gaining new privileges (container breakout)
+    # Prevent the process from gaining new privileges, e.g. via setuid binaries
+    # (mitigates privilege-escalation paths).
     security_opt:
       - no-new-privileges:true
     logging:

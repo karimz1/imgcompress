@@ -115,7 +115,14 @@ docker run -d \
   karimz1/imgcompress:latest
 ```
 
-For Docker Compose, environment variables, and deploying without the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
+Prefer Docker Compose? Ready-made configurations live in [`docker/compose/`](docker/compose/):
+
+- **[advanced.docker-compose.yaml](docker/compose/advanced.docker-compose.yaml)** for home or LAN use. Reachable from any device on your network out of the box, with container best practices applied (log rotation, healthcheck, no-new-privileges).
+- **[proxied.docker-compose.yaml](docker/compose/proxied.docker-compose.yaml)** for hosting under a domain with HTTPS, behind a Traefik reverse proxy with TLS, security headers, and optional Let's Encrypt.
+
+Step-by-step instructions for both are in the **[compose guide](docker/compose/README.md)**.
+
+For environment variables and deploying without the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
 ---
 

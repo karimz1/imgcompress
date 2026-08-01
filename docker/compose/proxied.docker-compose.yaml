@@ -3,23 +3,31 @@
 # This file sets up ImgCompress behind a Traefik reverse proxy with:
 #   - TLS termination & automatic HTTPS redirection
 #   - HTTP/3 (QUIC) support
-#   - Security headers (HSTS, X-Frame-Options, CSP, etc.)
+#   - Security headers (HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy)
 #   - Request body size limiting (anti "image bomb")
 #   - Internal networking to isolate ImgCompress from direct external access
 #
+# Ready to use: no edits needed in this file, everything is configured
+# through a `.env` file next to it.
+#
 # Prerequisites:
-#   - A valid domain name pointed to your server's IP (for TLS)
+#   - A domain with a DNS A/AAAA record pointing to this server
+#   - For the automatic Let's Encrypt certificate: the domain must be
+#     reachable from the Internet on port 443 (see the ACME section below
+#     for LAN-only alternatives)
 #   - Docker Engine 20.10+ with Compose V2
 #
 # Quick start:
-#   1. Set your email and domain in a .env file:
-#        ACME_EMAIL=you@example.com
+#   1. Create a `.env` file next to this file with three values:
 #        TRAEFIK_DOMAIN_NAME=imgcompress.example.com
+#        ACME_EMAIL=you@example.com
+#        TRAEFIK_AUTH_USERS=<output of: htpasswd -nB admin>
 #   2. Run:
 #        docker compose -f proxied.docker-compose.yaml up -d
-#   3. Traefik will automatically obtain a Let's Encrypt TLS certificate.
+#   3. Open https://your-domain - the Let's Encrypt certificate is issued
+#      automatically on first request (takes a few seconds).
 
-# YAML anchors — reusable default settings shared across services.
+# YAML anchors - reusable default settings shared across services.
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -36,12 +44,12 @@ networks:
   imgcompress-network:
     driver: bridge
     # "internal: true" isolates this network by:
-    #   1. Removes the default gateway — containers cannot reach the Internet.
-    #   2. Skips NAT (iptables MASQUERADE) on the Docker host — no inbound/outbound routing.
+    #   1. Removes the default gateway - containers cannot reach the Internet.
+    #   2. Skips NAT (iptables MASQUERADE) on the Docker host - no inbound/outbound routing.
     # Containers on this network can still communicate with each other
     # and resolve service names via Docker's built-in DNS.
     internal: true
-  # Traefik needs a dedicated external network  to serve traffic.
+  # Traefik needs a dedicated external network to serve traffic.
   # If Traefik were only on the internal "imgcompress-network", incoming requests
   # from the Docker host or the Internet would never reach it even with published ports.
   traefik-network:
@@ -63,64 +71,75 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    # Prevent the container process from gaining additional Linux capabilities.
+    # Prevent the container process from gaining additional privileges
+    # (e.g. via setuid/setgid binaries).
     security_opt:
       - no-new-privileges:true
     command:
-      # ── Logging ──
+      # -- Logging --
       - "--log.level=ERROR"
       - "--log.format=common" # CLF-style log format
       - "--accesslog=true" # Log every incoming HTTP request
       - "--accesslog.format=common"
 
-      # ── API / Metrics ──
+      # -- API / Metrics --
       - "--ping=false" # Disable /ping health endpoint
       - "--api=true" # Enable Traefik dashboard API
       - "--metrics.prometheus=false" # Disable Prometheus metrics endpoint
 
-      # ── Docker provider ──
+      # -- Docker provider --
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false" # Only route containers with traefik.enable=true
       - "--providers.docker.network=imgcompress-network" # Use this network to reach imgcompress container
 
-      # ── Entrypoints ──
+      # -- Entrypoints --
       - "--entryPoints.traefik.address=:8190" # Traefik dashboard
-      - "--entryPoints.app.address=:80" # HTTP — auto-redirects to HTTPS below
+      - "--entryPoints.app.address=:80" # HTTP - auto-redirects to HTTPS below
       - "--entryPoints.app.http.redirections.entryPoint.to=app-secure"
       - "--entryPoints.app.http.redirections.entryPoint.scheme=https"
       - "--entryPoints.app-secure.address=:443" # HTTPS
       - "--entryPoints.app-secure.http3=true" # Enable HTTP/3 over QUIC (UDP :443)
       - "--entryPoints.app-secure.transport.lifeCycle.graceTimeOut=30s" # Drain timeout on shutdown
 
-      # ── Let's Encrypt (ACME) automatic TLS certificates ──
-      # The TLS-ALPN-01 challenge is used (port 443), so no extra ports needed.
-      # Set ACME_EMAIL in your .env — Let's Encrypt requires a valid contact email.
-      # To test without hitting rate limits, uncomment this caServer line to use
-      # the Let's Encrypt staging environment first.
-      # - "--certificatesResolvers.letsencrypt.acme.email=${ACME_EMAIL:-}"
-      # - "--certificatesResolvers.letsencrypt.acme.storage=/acme/acme.json"
-      # - "--certificatesResolvers.letsencrypt.acme.tlsChallenge=true"
+      # -- Let's Encrypt (ACME) automatic TLS certificates - enabled by default --
+      # Uses the TLS-ALPN-01 challenge: Let's Encrypt connects to your domain
+      # on port 443 to verify you control it, so the domain must be reachable
+      # from the Internet. No extra ports or file edits needed.
+      - "--certificatesResolvers.letsencrypt.acme.email=${ACME_EMAIL:?Set ACME_EMAIL in .env - Let's Encrypt requires a contact email}"
+      - "--certificatesResolvers.letsencrypt.acme.storage=/acme/acme.json"
+      - "--certificatesResolvers.letsencrypt.acme.tlsChallenge=true"
+      # Testing? Uncomment to use the Let's Encrypt staging environment: it has
+      # no rate limits but issues certificates browsers do not trust.
       # - "--certificatesResolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
+      # LAN-only server the Internet cannot reach? Replace the tlsChallenge
+      # line with a dnsChallenge for your DNS provider (needs API credentials):
+      # https://doc.traefik.io/traefik/https/acme/#dnschallenge
     ports:
-      - "${TRAEFIK_INTERNAL_PORT:-127.0.0.1:8190}:8190" # Traefik Dashboard — bound to localhost by default
+      - "${TRAEFIK_INTERNAL_PORT:-127.0.0.1:8190}:8190" # Traefik Dashboard - bound to localhost by default
       - "${TRAEFIK_HTTP_PORT:-80}:80"
       - "${TRAEFIK_HTTPS_PORT:-443}:443"
-      - "${TRAEFIK_QUIC_PORT:-443}:443/udp" # HTTP/3 (QUIC over UDP)
+      # HTTP/3 (QUIC over UDP). Keep in sync with TRAEFIK_HTTPS_PORT,
+      # browsers expect HTTP/3 on the same port as HTTPS.
+      - "${TRAEFIK_QUIC_PORT:-443}:443/udp"
     networks:
       - traefik-network # receives public traffic
       - imgcompress-network # reaches ImgCompress container
     volumes:
-      # Mount Docker socket read-only so Traefik can discover containers.
-      # This gives Traefik read access to the Docker API, be mindful in multi-tenant environments.
+      # Mount the Docker socket so Traefik can discover containers.
+      # NOTE: ":ro" only protects the socket file; the Docker API behind it is
+      # still fully usable, so a compromised Traefik is effectively root on the
+      # host. For stricter setups use a socket proxy (e.g. tecnativa/docker-socket-proxy).
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # Persist ACME certificates for Traefik. Uncomment this if setup auto-issue SSL cert.
-      # - acme-certs:/acme
+      # Persist Let's Encrypt certificates across container restarts.
+      - acme-certs:/acme
     logging: *default-logging
     labels:
       traefik.enable: true
-      # ── Traefik dashboard router ──
+      # -- Traefik dashboard router --
       # Exposes Traefik's built-in API/dashboard on the "traefik" entrypoint (:8190).
-      traefik.http.routers.traefik.rule: Host(`${TRAEFIK_DOMAIN_NAME:-localhost}`)
+      # Also matches localhost/127.0.0.1 so the dashboard stays reachable via
+      # http://127.0.0.1:8190 on the server after a domain is configured.
+      traefik.http.routers.traefik.rule: Host(`${TRAEFIK_DOMAIN_NAME:-localhost}`) || Host(`localhost`) || Host(`127.0.0.1`)
       traefik.http.routers.traefik.service: api@internal
       traefik.http.routers.traefik.entryPoints: traefik
       traefik.http.routers.traefik.middlewares: traefik-auth
@@ -133,8 +152,8 @@ services:
     image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
     container_name: imgcompress
     restart: always
-    # Traefik handles all inbound traffic.
-    # This is commented for the sake of documentary:
+    # Traefik handles all inbound traffic, so no ports are published here.
+    # Kept commented out for documentation purposes:
     # ports:
     #   - "${IMGCOMPRESS_HOST:-127.0.0.1}:${IMGCOMPRESS_PORT:-3001}:5000"
     networks:
@@ -142,38 +161,48 @@ services:
     environment:
       # Set to true to remove the mascot and enable a minimal, mascot-free UI
       - DISABLE_LOGO=${IMGCOMPRESS_DISABLE_LOGO:-false}
-      # Set to true to disable the storage management features (e.g., for your users to not see all the files)
-      - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-false}
+      # Storage management is disabled by default in this proxied setup:
+      # the app has no login, so it would let any visitor browse and manage
+      # ALL uploaded files. Set IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT=false
+      # in .env only if everyone who can reach this host is trusted.
+      - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-true}
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck
     # Cap file descriptors to prevent a runaway container from exhausting
-    # the Docker host's FD limit (Linux default: 65 535).
+    # the Docker host's FD limit.
     ulimits:
       nofile:
         soft: 65536
         hard: 65536
     # 15s to finish in-flight requests before Docker sends SIGKILL.
     stop_grace_period: 15s
-    # Prevent the process from gaining new Linux capabilities (mitigates container breakout).
+    # Prevent the process from gaining new privileges, e.g. via setuid binaries
+    # (mitigates privilege-escalation paths).
     security_opt:
       - no-new-privileges:true
     logging:
       <<: *default-logging
-    # ── Traefik routing labels ──
+    # -- Traefik routing labels --
     # These labels tell Traefik how to route incoming requests to ImgCompress.
     labels:
       traefik.enable: true
-      # Point your domain's DNS A/AAAA record to this server, then set
-      # TRAEFIK_DOMAIN_NAME in your .env to match. Traefik will auto-issue
-      # a TLS certificate via Let's Encrypt (when certificate resolver is uncommented and configured).
-      traefik.http.routers.app-secure.rule: Host(`${TRAEFIK_DOMAIN_NAME:-localhost}`) || Host(`app.docker.localhost`)
+      # Point your domain's DNS A/AAAA record to this server and set
+      # TRAEFIK_DOMAIN_NAME in your .env to match.
+      # Keep this rule to a single Host: Traefik requests a certificate for
+      # EVERY hostname in the rule, and Let's Encrypt rejects the whole
+      # request if one of them is not a real domain.
+      traefik.http.routers.app-secure.rule: Host(`${TRAEFIK_DOMAIN_NAME:?Set TRAEFIK_DOMAIN_NAME in .env}`)
       traefik.http.routers.app-secure.entryPoints: app-secure
       traefik.http.routers.app-secure.priority: 10
       traefik.http.routers.app-secure.service: app-service
       traefik.http.routers.app-secure.tls: true
-      # Use the Let's Encrypt resolver defined in Traefik's command above. (Uncomment to setup)
-      # traefik.http.routers.app-secure.tls.certResolver: letsencrypt
+      # Issue the certificate via the Let's Encrypt resolver defined above.
+      traefik.http.routers.app-secure.tls.certResolver: letsencrypt
+      # The app itself is served without authentication: anyone who can reach
+      # the domain can use it. Because of that, storage management is disabled
+      # by default in this file (see DISABLE_STORAGE_MANAGEMENT above).
+      # To require a login, add "traefik-auth," in front of the list below.
       traefik.http.routers.app-secure.middlewares: security-headers,limit
 
       # Explicitly tell Traefik which container port to forward traffic to.
@@ -190,16 +219,18 @@ services:
       # Limit request body size to ~520 MB to mitigate "image bomb" / decompression-bomb
       traefik.http.middlewares.limit.buffering.maxRequestBodyBytes: 520000000
 
-      # ── Security response headers ──
+      # -- Security response headers --
       traefik.http.middlewares.security-headers.headers.accesscontrolmaxage: 100
       # Vary: Origin (important for caching with CORS)
       traefik.http.middlewares.security-headers.headers.addvaryheader: true
       traefik.http.middlewares.security-headers.headers.hostsproxyheaders: X-Forwarded-Host
-      # HSTS: tells the browser to ALWAYS use HTTPS — once enabled, plain HTTP
-      # access is blocked for the configured duration. 63 072 000 s ≈ 2 years.
+      # HSTS: tells the browser to ALWAYS use HTTPS - once enabled, plain HTTP
+      # access is blocked for the configured duration (63072000 seconds, about 2 years).
       traefik.http.middlewares.security-headers.headers.stsseconds: 63072000
       traefik.http.middlewares.security-headers.headers.stsincludesubdomains: true
-      traefik.http.middlewares.security-headers.headers.stspreload: true
+      # HSTS "preload" is intentionally NOT enabled: submitting a domain to the
+      # browser preload list is a long-term commitment that is hard to undo.
+      # Set stspreload: true only if you understand the implications.
       traefik.http.middlewares.security-headers.headers.forcestsheader: true
       traefik.http.middlewares.security-headers.headers.customFrameOptionsValue: SAMEORIGIN # Prevent clickjacking via iframes
       traefik.http.middlewares.security-headers.headers.contenttypenosniff: true # Block MIME-type sniffing
