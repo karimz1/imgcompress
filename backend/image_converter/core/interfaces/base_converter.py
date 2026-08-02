@@ -2,6 +2,7 @@ import traceback
 from io import BytesIO
 from PIL import Image
 from backend.image_converter.application.dtos import ConversionDetails
+from backend.image_converter.core.exceptions import ConversionError
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.interfaces.iconverter import IImageConverter
@@ -35,6 +36,10 @@ class BaseImageConverter(IImageConverter):
                 bytes_written=len(converted_data),
             )
             return Result.success(conversion_details)
+        except ConversionError as exc:
+            message = str(exc)
+            self.logger.log(f"Failed to convert image: {message}", "error")
+            return Result.failure(message)
         except Exception:
             error_traceback = traceback.format_exc()
             self.logger.log(f"Failed to convert image: {error_traceback}", "error")

@@ -92,6 +92,19 @@ function clampPreviewZoom(value: number) {
   return Math.min(MAX_PREVIEW_ZOOM, Math.max(MIN_PREVIEW_ZOOM, value));
 }
 
+function normalizeCompareError(message: string) {
+  if (message.includes("Failed to allocate memory")) {
+    const match = message.match(/requested buffer of size (\d+)/);
+    const requestedBytes = match ? Number(match[1]) : null;
+    const requested =
+      requestedBytes && Number.isFinite(requestedBytes)
+        ? ` It failed while requesting another ${Math.round(requestedBytes / 1024 / 1024)} MiB.`
+        : "";
+    return `This model needs more RAM than the host currently has available.${requested}`;
+  }
+  return message;
+}
+
 export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
   files,
   crops,
@@ -221,7 +234,7 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
     "rembgCompare.warningDescription",
     {
       defaultValue:
-        "This editor runs all {{count}} installed local background-removal models for this image. It can take several minutes, especially with high-quality models. Finished results appear as soon as they are ready, and closing the editor cancels remaining work.",
+        "This editor runs {{count}} installed local background-removal models one at a time for this image. It can take several minutes, especially with high-quality models. Finished results appear as soon as they are ready, and closing the editor cancels remaining work.",
       count: totalCount,
     }
   );
@@ -323,19 +336,23 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
             }
           } catch (err) {
             if (cancelled() || signal.aborted) return;
-            const message = err instanceof Error ? err.message : "AI comparison failed.";
+            const message = normalizeCompareError(
+              err instanceof Error ? err.message : "AI comparison failed."
+            );
             lastError = message;
             setModelStatuses((prev) => ({ ...prev, [model]: "failed" }));
             setModelErrors((prev) => ({ ...prev, [model]: message }));
-            onReportErrorRef.current?.({
-              message,
-              details: err instanceof Error ? err.stack : undefined,
-            });
+            if (!activeWasSet) {
+              setPreviewMode("result");
+              setActiveModel(model);
+            }
           }
         }
 
         if (!cancelled() && !hasAnySuccess) {
-          setError(lastError || "No AI model finished successfully.");
+          const message = lastError || "No AI model finished successfully.";
+          setError(message);
+          onReportErrorRef.current?.({ message });
         }
       } finally {
         if (!cancelled()) {
@@ -491,6 +508,8 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
   const canCompareOriginal = Boolean(originalPreviewUrl);
   const effectivePreviewMode: PreviewMode =
     canCompareOriginal && previewMode === "original" ? "original" : "result";
+  const activeModelError =
+    effectivePreviewMode !== "original" && activeModel ? modelErrors[activeModel] || "" : "";
   const hasPreview = Boolean(activePreview) || effectivePreviewMode === "original";
   const isActivePreviewLoaded = Boolean(activePreviewKey && loadedPreviewKey === activePreviewKey);
   const isWaitingForActivePreview =
@@ -612,6 +631,7 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
             {rembgAvailableModels.map((model) => {
               const status = modelStatuses[model] || "queued";
               const isReady = status === "done" && modelGroups.has(model);
+              const isFailed = status === "failed";
               const isActive = effectivePreviewMode !== "original" && activeModel === model;
               const label = t(`form.rembgModel.options.${model}`, { defaultValue: model });
               return (
@@ -624,12 +644,17 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
                     if (isReady) {
                       setPreviewMode("result");
                       setActiveModel(model);
+                    } else if (isFailed) {
+                      setPreviewMode("result");
+                      setActiveModel(model);
                     }
                   }}
-                  disabled={!isReady}
+                  disabled={!isReady && !isFailed}
                   title={
                     isReady
                       ? label
+                      : isFailed
+                        ? modelErrors[model] || label
                       : t("rembgCompare.disabledTabTitle", {
                           defaultValue: "{{model}} is still being prepared. Please wait.",
                           model: label,
@@ -637,7 +662,8 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
                   }
                   className={cn(
                     "h-auto min-w-36 shrink-0 flex-col items-start gap-1 py-2 text-left",
-                    !isReady && "opacity-75"
+                    !isReady && !isFailed && "opacity-75",
+                    isFailed && "border-red-500/40 text-red-500 hover:text-red-500"
                   )}
                   data-testid="rembg-compare-model-tab"
                 >
@@ -652,6 +678,11 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
                   <span className="text-[11px] font-normal opacity-75">
                     {statusLabel(model)}
                   </span>
+                  {isFailed && modelErrors[model] && (
+                    <span className="max-w-52 truncate text-[11px] font-normal opacity-90">
+                      {modelErrors[model]}
+                    </span>
+                  )}
                 </Button>
               );
             })}
@@ -783,7 +814,19 @@ export const RembgCompareDialog: React.FC<RembgCompareDialogProps> = ({
               </>
             ) : (
               <div className="flex flex-col items-center justify-center p-6 text-center">
-                {isComparing ? (
+                {activeModelError ? (
+                  <>
+                    <AlertTriangle className="mb-3 h-8 w-8 text-red-500" />
+                    <p className="text-base font-semibold text-red-500">
+                      {t("rembgCompare.modelFailedTitle", {
+                        defaultValue: "This model cannot run on this host",
+                      })}
+                    </p>
+                    <p className="mt-1 max-w-lg text-sm opacity-80">
+                      {activeModelError}
+                    </p>
+                  </>
+                ) : isComparing ? (
                   <>
                     <Loader2 className="mb-3 h-8 w-8 animate-spin text-purple-500" />
                     <p className="text-base font-semibold">

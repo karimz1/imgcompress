@@ -9,13 +9,12 @@ For each model in the configured allowlist this test:
   3. Asserts the output is a real transparent PNG cutout (a mix of transparent
      and opaque pixels, not a uniform mask).
 
-Because it runs against the shipped `latest` image every model is already baked
-into the container (`/container/.u2net`), so it runs fully offline with no
-weight downloads. It requires the app container to be running and reachable at
-$IMGCOMPRESS_API_BASE (defaults to http://localhost:5000). The CI job
-`test-unverified-formats-api` brings the container up before invoking pytest, so
-this file is excluded from the plain integration run (see
-scripts/runIntegrationTests.sh).
+Because it runs against a container image with its selectable models baked into
+`/container/.u2net`, it runs fully offline with no weight downloads. It requires
+the app container to be running and reachable at $IMGCOMPRESS_API_BASE
+(defaults to http://localhost:5000). The CI job `test-unverified-formats-api`
+brings the container up before invoking pytest, so this file is excluded from
+the plain integration run (see scripts/runIntegrationTests.sh).
 """
 
 from __future__ import annotations

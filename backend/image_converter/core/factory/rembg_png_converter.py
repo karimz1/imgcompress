@@ -2,6 +2,7 @@ from typing import Optional
 
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.rembg_config import load_default_rembg_model
+from backend.image_converter.core.internals.rembg_runtime import remove_background
 from backend.image_converter.core.interfaces.base_converter import BaseImageConverter
 
 class RembgPngConverter(BaseImageConverter):
@@ -14,19 +15,11 @@ class RembgPngConverter(BaseImageConverter):
     def __init__(self, logger: Logger, model_name: Optional[str] = None):
         super().__init__(logger)
         self.model_name = model_name or load_default_rembg_model()
-        self._session: Optional[object] = None
-
-    def _get_background_removal_session(self):
-        if self._session is None:
-            from rembg import new_session
-            self._session = new_session(self.model_name)
-        return self._session
 
     def encode_to_bytes(self, image_data: bytes) -> bytes:
-        from rembg import remove
-        raw_output = remove(
+        raw_output = remove_background(
             image_data,
-            session=self._get_background_removal_session(),
+            self.model_name,
             post_process_mask=True,
             alpha_matting=False,
         )

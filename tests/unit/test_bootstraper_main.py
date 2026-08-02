@@ -93,3 +93,28 @@ def test_main_uses_cli_mode_when_explicit(monkeypatch, common_patches):
 def test_runtime_mode_from_arg_rejects_unknown_value():
     with pytest.raises(ValueError, match="unknown runtime mode"):
         RuntimeMode.from_arg("unknown")
+
+
+def test_launch_web_prod_auto_workers_uses_low_memory_default(monkeypatch):
+    captured = {"cmd": None}
+
+    class FakeStdout:
+        def __iter__(self):
+            return iter(())
+
+    class FakeProcess:
+        stdout = FakeStdout()
+
+        def __init__(self, cmd, **_kwargs):
+            captured["cmd"] = cmd
+
+        def wait(self):
+            return 0
+
+    monkeypatch.setattr(bootstraper, "start_scheduler", lambda: None)
+    monkeypatch.setattr(bootstraper.subprocess, "Popen", FakeProcess)
+
+    bootstraper.launch_web_prod(settings.get().web)
+
+    worker_index = captured["cmd"].index("--workers") + 1
+    assert captured["cmd"][worker_index] == "1"

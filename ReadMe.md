@@ -87,18 +87,19 @@ When background removal is on (PNG or AVIF output), a model dropdown lets you ma
 - **General (`u2net`)** is the default and works for most images.
 - **Anime characters (`isnet-anime`)** is tuned for clean anime character masks.
 - **Photos (`isnet-general-use`)** targets real-world photography.
-- **People & portraits (`birefnet-portrait`)** uses BiRefNet's portrait model for cleaner people cutouts.
-- **Max quality (`birefnet-general`)** is the strongest rembg-supported general model for complex edges and fine detail.
-- **High quality (`birefnet-general-lite`)** is the faster BiRefNet option when you still want cleaner edges than the default.
+- **People & portraits (`birefnet-portrait`)** uses BiRefNet's portrait model for cleaner people cutouts. This requires the opt-in full image and substantially more RAM.
+- **Max quality (`birefnet-general`)** is the strongest rembg-supported general model for complex edges and fine detail. This requires the opt-in full image and substantially more RAM.
+- **High quality (`birefnet-general-lite`)** is the faster BiRefNet option when you still want cleaner edges than the default. This requires the opt-in full image and more RAM.
 
-Each option in the picker shows a short note on what it is best at. All models are pre-baked into the image, so switching between them needs no download and works fully offline.
+Each option in the picker shows a short note on what it is best at. The image only offers models that were baked into it, so switching between them needs no download and works fully offline.
 
-### Image tags: `latest` vs `slim`
+### Image variants: balanced, `slim`, and full
 
-- **`latest`** bundles every model above for the best out-of-the-box experience (a few extra MB per model).
+- **Default / balanced** bundles `u2net`, `isnet-anime`, and `isnet-general-use`. This is the recommended default for broad hardware support, including many 8 GB hosts.
 - **`slim`** ships only the default `u2net` model for the smallest possible image. The model picker is hidden, and background removal still works exactly as before.
+- **Full** bundles every model, including BiRefNet. Use it only when you want the highest-quality models and have enough RAM, preferably 16 GB or more.
 
-Both are privacy-first and fully local. Pick `slim` if you want the leanest image and only need the default model; pick `latest` if you want to match the right model to each image.
+All variants are privacy-first and fully local. Pick `slim` if you want the leanest image and only need the default model; pick the default balanced image for normal use; pick full only for stronger hosts.
 
 ---
 

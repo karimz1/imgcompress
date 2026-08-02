@@ -34,7 +34,13 @@ command -v docker >/dev/null 2>&1 || { echo "docker is required but was not foun
 "$SCRIPT_DIR/ensureBuildxBuilder.sh" "$BUILDX_BUILDER"
 
 echo "Building full image (all models): $IMAGE_NAME"
-docker buildx build --builder "$BUILDX_BUILDER" --load --pull -t "$IMAGE_NAME" "$APP_ROOT"
+docker buildx build \
+    --builder "$BUILDX_BUILDER" \
+    --load \
+    --pull \
+    --build-arg "REMBG_MODELS=u2net isnet-anime isnet-general-use birefnet-portrait birefnet-general-lite birefnet-general" \
+    -t "$IMAGE_NAME" \
+    "$APP_ROOT"
 
 cleanup_container
 echo "Running container on http://localhost:$PORT_HOST"

@@ -1,5 +1,4 @@
 import logging
-import os
 import subprocess
 import sys
 import traceback
@@ -17,6 +16,8 @@ from backend.image_converter.infrastructure.logger import (
 from backend.image_converter.presentation.cli.app import main as cli_main
 from backend.image_converter.presentation.web.server import start_scheduler
 
+_DEFAULT_WEB_WORKERS = 1
+
 
 def _granian_stdout_logger() -> logging.Logger:
     logger = logging.getLogger("backend.image_converter.granian")
@@ -33,7 +34,7 @@ def _granian_stdout_logger() -> logging.Logger:
 
 def launch_web_prod(web: WebConfig) -> None:
     start_scheduler()
-    workers = web.workers.resolve(fallback_when_auto=os.cpu_count() or 1)
+    workers = web.workers.resolve(fallback_when_auto=_DEFAULT_WEB_WORKERS)
     web_server_process = subprocess.Popen(
         [
             "granian",
