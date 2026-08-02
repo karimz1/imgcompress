@@ -40,6 +40,7 @@ def main(argv=None):
             pdf_scale=pdf_scale,
             pdf_margin_mm=pdf_margin_mm,
             pdf_paginate=pdf_paginate,
+            pdf_quality="high",
             use_rembg=args.remove_background,
             debug=args.debug,
             json_output=args.json_output

@@ -7,6 +7,7 @@ from fpdf import FPDF
 from backend.image_converter.core.interfaces.base_converter import BaseImageConverter
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.domain.pdf_presets import PdfPreset
+from backend.image_converter.domain.pdf_quality import resolve_pdf_quality
 
 
 def _normalize_for_pdf(img: Image.Image) -> Image.Image:
@@ -36,12 +37,17 @@ class PdfConverter(BaseImageConverter):
         pdf_scale: str = "fit",
         pdf_margin_mm: float | None = None,
         pdf_paginate: bool = False,
+        pdf_quality: str = "high",
     ):
         super().__init__(logger)
         self.pdf_preset = pdf_preset
         self.pdf_scale = pdf_scale
         self.pdf_margin_mm = pdf_margin_mm
         self.pdf_paginate = pdf_paginate
+        quality_result = resolve_pdf_quality(pdf_quality)
+        if not quality_result.is_successful:
+            raise ValueError(quality_result.error)
+        self.quality = quality_result.value
 
     def encode_to_bytes(self, image_data: bytes) -> bytes:
         with Image.open(BytesIO(image_data)) as img:
@@ -52,6 +58,7 @@ class PdfConverter(BaseImageConverter):
 
     def _encode_original(self, img: Image.Image) -> bytes:
         page_w, page_h = img.size
+        img = self._limit_original_dimensions(img)
         pdf = FPDF(unit="pt", format=(page_w, page_h))
         pdf.add_page()
         return self._render_pdf(pdf, img, x=0, y=0, w=page_w, h=page_h)
@@ -87,6 +94,8 @@ class PdfConverter(BaseImageConverter):
             offset_x = margin_pt + (inner_w - target_w) / 2
             offset_y = margin_pt + (inner_h - target_h) / 2
 
+        img = self._downsample_for_render(img, target_w, target_h)
+
         pdf = FPDF(unit="pt", format=(page_w, page_h))
         pdf.add_page()
         return self._render_pdf(pdf, img, x=offset_x, y=offset_y, w=target_w, h=target_h)
@@ -120,6 +129,7 @@ class PdfConverter(BaseImageConverter):
                 continue
             slice_img = img.crop((0, top_i, img.width, bottom_i))
             target_h = (bottom_px - top_px) * scale
+            slice_img = self._downsample_for_render(slice_img, inner_w, target_h)
 
             pdf.add_page()
             self._render_pdf(
@@ -146,9 +156,15 @@ class PdfConverter(BaseImageConverter):
     ) -> bytes:
         tmp_path = None
         try:
-            with NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+            with NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
                 tmp_path = tmp.name
-                img.save(tmp, format="PNG")
+                img.save(
+                    tmp,
+                    format="JPEG",
+                    quality=self.quality.jpeg_quality,
+                    optimize=True,
+                    progressive=True,
+                )
             pdf.image(tmp_path, x=x, y=y, w=w, h=h)
             if return_bytes:
                 return self._output_pdf(pdf)
@@ -170,6 +186,23 @@ class PdfConverter(BaseImageConverter):
     @staticmethod
     def _mm_to_pt(mm: float) -> float:
         return mm * 72.0 / 25.4
+
+    def _downsample_for_render(self, img: Image.Image, width_pt: float, height_pt: float) -> Image.Image:
+        max_w = max(1, int(round(width_pt * self.quality.dpi / 72.0)))
+        max_h = max(1, int(round(height_pt * self.quality.dpi / 72.0)))
+        if img.width <= max_w and img.height <= max_h:
+            return img
+        resized = img.copy()
+        resized.thumbnail((max_w, max_h), Image.Resampling.LANCZOS)
+        return resized
+
+    def _limit_original_dimensions(self, img: Image.Image) -> Image.Image:
+        limit = self.quality.original_max_dimension
+        if limit is None or max(img.size) <= limit:
+            return img
+        resized = img.copy()
+        resized.thumbnail((limit, limit), Image.Resampling.LANCZOS)
+        return resized
 
     @staticmethod
     def _crop_to_aspect(img: Image.Image, target_ratio: float) -> Image.Image:

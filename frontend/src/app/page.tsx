@@ -106,6 +106,7 @@ function HomePageContent() {
   const [pdfScale, setPdfScale] = useState("fit");
   const [pdfMarginMm, setPdfMarginMm] = useState("10");
   const [pdfPaginate, setPdfPaginate] = useState(false);
+  const [pdfQuality, setPdfQuality] = useState("high");
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
@@ -146,6 +147,7 @@ function HomePageContent() {
       setPdfScale("fit");
       setPdfMarginMm("10");
       setPdfPaginate(false);
+      setPdfQuality("high");
     }
     if (outputFormat) {
       setFormatRequired(false);
@@ -301,6 +303,7 @@ function HomePageContent() {
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
         formData.append("pdf_preset", pdfPreset);
+        formData.append("pdf_quality", pdfQuality);
         if (pdfPreset !== "original") {
           formData.append("pdf_scale", pdfScale);
           formData.append("pdf_margin_mm", pdfMarginMm || "10");
@@ -397,6 +400,7 @@ function HomePageContent() {
       pdfScale,
       pdfMarginMm,
       pdfPaginate,
+      pdfQuality,
       crops,
     ]
   );
@@ -554,6 +558,8 @@ function HomePageContent() {
               setPdfMarginMm={setPdfMarginMm}
               pdfPaginate={pdfPaginate}
               setPdfPaginate={setPdfPaginate}
+              pdfQuality={pdfQuality}
+              setPdfQuality={setPdfQuality}
               files={files}
               removeFile={removeFile}
               clearFileSelection={clearFileSelection}

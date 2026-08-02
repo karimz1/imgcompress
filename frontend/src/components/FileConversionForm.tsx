@@ -47,6 +47,8 @@ interface FileConversionFormProps {
   setPdfMarginMm: (val: string) => void;
   pdfPaginate: boolean;
   setPdfPaginate: (val: boolean) => void;
+  pdfQuality: string;
+  setPdfQuality: (val: string) => void;
   files: File[];
   removeFile: (name: string) => void;
   clearFileSelection: () => void;
@@ -101,6 +103,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setPdfMarginMm,
   pdfPaginate,
   setPdfPaginate,
+  pdfQuality,
+  setPdfQuality,
   files,
   removeFile,
   clearFileSelection,
@@ -159,6 +163,17 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const pdfMarginValue =
     pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
   const rembgLabel = rembgModelName?.trim() || "rembg";
+  const pdfEstimate = useMemo(() => {
+    if (outputFormat !== "pdf" || files.length === 0) return null;
+    const ratios: Record<string, number> = { small: 0.22, medium: 0.38, high: 0.58, ultra: 0.82 };
+    const pageFactor = pdfPreset === "original" ? 1 : 0.82;
+    const sourceBytes = files.reduce((total, file) => total + file.size, 0);
+    const estimated = Math.max(18_000 * files.length, sourceBytes * (ratios[pdfQuality] ?? 0.58) * pageFactor);
+    const format = (bytes: number) => bytes >= 1024 * 1024
+      ? `${(bytes / (1024 * 1024)).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)} MB`
+      : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    return `${format(estimated * 0.7)}–${format(estimated * 1.35)}`;
+  }, [files, outputFormat, pdfPreset, pdfQuality]);
   const renderError = useMemo(
     () =>
       error && (
@@ -421,6 +436,33 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </p>
         )}
       </div>
+
+      {outputFormat === "pdf" && (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="pdfQuality" className="text-sm">PDF size & quality</Label>
+            {pdfEstimate && (
+              <span data-testid="pdf-size-estimate" className={cn("text-xs", subtleText)}>
+                Approx. {pdfEstimate}
+              </span>
+            )}
+          </div>
+          <Select value={pdfQuality} onValueChange={setPdfQuality}>
+            <SelectTrigger id="pdfQuality" data-testid="pdf-quality-select" className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className={selectSurface}>
+              <SelectItem value="small">Small · 96 DPI</SelectItem>
+              <SelectItem value="medium">Medium · 150 DPI</SelectItem>
+              <SelectItem value="high">High · 220 DPI</SelectItem>
+              <SelectItem value="ultra">Ultra · 300 DPI</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className={cn("text-xs", subtleText)}>
+            Lower presets reduce image dimensions and compression quality. Estimates vary with image detail.
+          </p>
+        </div>
+      )}
 
       {outputFormat === "pdf" && (
         <div className="space-y-1">

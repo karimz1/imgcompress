@@ -29,6 +29,7 @@ class CompressImagesUseCase:
         pdf_scale = "fit"
         pdf_margin_mm = None
         pdf_paginate = False
+        pdf_quality = req.pdf_quality
         if req.image_format == ImageFormat.PDF and req.pdf_preset:
             preset_res = resolve_pdf_preset(req.pdf_preset)
             if not preset_res.is_successful:
@@ -101,6 +102,7 @@ class CompressImagesUseCase:
                             pdf_scale=pdf_scale,
                             pdf_margin_mm=pdf_margin_mm,
                             pdf_paginate=pdf_paginate,
+                            pdf_quality=pdf_quality,
                         )
                         # Tag the filename when the converter itself removed the
                         # background, so the suffix follows the actual behaviour
