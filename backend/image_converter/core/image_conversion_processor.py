@@ -39,6 +39,7 @@ class ImageConversionProcessor:
         pdf_scale: str = "fit",
         pdf_margin_mm: Optional[float] = None,
         pdf_paginate: bool = False,
+        pdf_quality: str = "high",
         use_rembg: bool = False,
         debug: bool = False,
         json_output: bool = False
@@ -52,6 +53,7 @@ class ImageConversionProcessor:
         self.pdf_scale = pdf_scale
         self.pdf_margin_mm = pdf_margin_mm
         self.pdf_paginate = pdf_paginate
+        self.pdf_quality = pdf_quality
         self.use_rembg = use_rembg
         self.debug = debug
         self.json_output = json_output
@@ -86,6 +88,7 @@ class ImageConversionProcessor:
             pdf_scale=self.pdf_scale,
             pdf_margin_mm=self.pdf_margin_mm,
             pdf_paginate=self.pdf_paginate,
+            pdf_quality=self.pdf_quality,
         )
         self.results: List[PageProcessingResult] = []
 

@@ -23,6 +23,7 @@ class CompressRequest:
     pdf_scale: str = "fit"
     pdf_margin_mm: Optional[float] = None
     pdf_paginate: bool = False
+    pdf_quality: str = "high"
 
 
 @dataclass
@@ -92,6 +93,7 @@ class CompressionFormData:
     pdf_scale: str
     pdf_margin_mm: float
     pdf_paginate: bool
+    pdf_quality: str = "high"
 
 
 @dataclass(frozen=True)

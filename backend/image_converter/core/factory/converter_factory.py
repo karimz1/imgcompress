@@ -20,6 +20,7 @@ class ImageConverterFactory:
         pdf_scale: str = "fit",
         pdf_margin_mm: float | None = None,
         pdf_paginate: bool = False,
+        pdf_quality: str = "high",
     ) -> IImageConverter:
         
         match (image_format, use_rembg):
@@ -51,6 +52,7 @@ class ImageConverterFactory:
                     pdf_scale=pdf_scale,
                     pdf_margin_mm=pdf_margin_mm,
                     pdf_paginate=pdf_paginate,
+                    pdf_quality=pdf_quality,
                 )
             
             case _:

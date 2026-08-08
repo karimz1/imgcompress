@@ -78,3 +78,18 @@ def test_When_PaginatingLongImage_Expect_MultiplePages():
 
     pdf = pypdfium2.PdfDocument(pdf_bytes)
     assert len(pdf) >= 2
+
+
+def test_When_UsingSmallPdfQuality_Expect_SmallerOutputThanUltra():
+    image = Image.effect_noise((1200, 1600), 100).convert("RGB")
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    image_data = buffer.getvalue()
+    preset = resolve_pdf_preset("a4-portrait").value
+    logger = Logger(debug=False, json_output=False)
+
+    small = PdfConverter(logger, preset, pdf_quality="small").encode_to_bytes(image_data)
+    ultra = PdfConverter(logger, preset, pdf_quality="ultra").encode_to_bytes(image_data)
+
+    assert small.startswith(b"%PDF")
+    assert len(small) < len(ultra)
