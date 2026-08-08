@@ -52,7 +52,7 @@
     "@types/node": "^26.1.2",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@types/semver": "^7.7.1",
+    "@types/semver": "^7.8.0",
     "pdf-lib": "^1.17.1",
     "pnpm": "^11.8.0",
     "tailwindcss": "^4.3.2",
