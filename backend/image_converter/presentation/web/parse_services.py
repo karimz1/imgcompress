@@ -1,9 +1,11 @@
+import json
 from typing import Optional
 
 from flask import Request
 
 from backend.image_converter.application.dtos import CompressionFormData
 from backend.image_converter.core.enums.image_format import ImageFormat
+from backend.image_converter.core.internals.rembg_config import resolve_rembg_model
 from backend.image_converter.core.internals.utilities import Result, is_file_supported
 from backend.image_converter.infrastructure.logger import Logger
 
@@ -29,12 +31,49 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         image_format=format_result.value,
         target_size_kb=_parse_target_size_kb(request.form.get("target_size_kb", ""), logger),
         use_rembg=_parse_bool(request.form.get("use_rembg")),
+        rembg_model=resolve_rembg_model(request.form.get("rembg_model", "").strip() or None),
+        rembg_model_by_file=_parse_rembg_model_by_file(request.form.get("rembg_model_by_file"), logger),
         pdf_preset=request.form.get("pdf_preset", "").strip(),
         pdf_scale=request.form.get("pdf_scale", "").strip(),
         pdf_margin_mm=_parse_margin_mm(request.form.get("pdf_margin_mm", ""), logger),
         pdf_paginate=_parse_bool(request.form.get("pdf_paginate")),
     )
     return Result.success(form_data)
+
+
+def extract_rembg_compare_form_data(request: Request, logger: Logger) -> Result[CompressionFormData]:
+    uploaded_file = request.files.get("file")
+    if uploaded_file is None:
+        uploaded_files = request.files.getlist("files[]")
+        uploaded_file = uploaded_files[0] if uploaded_files else None
+    if uploaded_file is None:
+        return Result.failure("No file uploaded.")
+    if not is_file_supported(uploaded_file.filename):
+        return Result.failure(f"Unsupported file type: {uploaded_file.filename}")
+
+    raw_format = request.form.get("format", ImageFormat.PNG.value).lower()
+    format_result = ImageFormat.from_string_result(raw_format)
+    if not format_result.is_successful:
+        return Result.failure(format_result.error or "Unsupported image format")
+    if format_result.value not in {ImageFormat.PNG, ImageFormat.AVIF}:
+        return Result.failure("AI comparison only supports PNG or AVIF output.")
+
+    return Result.success(
+        CompressionFormData(
+            uploaded_files=(uploaded_file,),
+            quality=_parse_quality(request.form.get("quality", "85"), logger),
+            width=_parse_width(request.form.get("width", ""), logger),
+            image_format=format_result.value,
+            target_size_kb=None,
+            use_rembg=True,
+            rembg_model=resolve_rembg_model(None),
+            rembg_model_by_file={},
+            pdf_preset="",
+            pdf_scale="",
+            pdf_margin_mm=10.0,
+            pdf_paginate=False,
+        )
+    )
 
 
 def _parse_quality(value: str, logger: Logger) -> int:
@@ -81,6 +120,28 @@ def _parse_bool(value: Optional[str]) -> bool:
     if value is None:
         return False
     return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _parse_rembg_model_by_file(value: Optional[str], logger: Logger) -> dict[str, str]:
+    if value is None or not value.strip():
+        return {}
+    try:
+        raw = json.loads(value)
+    except json.JSONDecodeError:
+        logger.log("Invalid rembg_model_by_file JSON. Ignoring per-file AI model selections.", "warning")
+        return {}
+    if not isinstance(raw, dict):
+        logger.log("Invalid rembg_model_by_file payload. Expected an object.", "warning")
+        return {}
+    models: dict[str, str] = {}
+    for file_name, model_name in raw.items():
+        if not isinstance(file_name, str) or not isinstance(model_name, str):
+            continue
+        clean_file_name = file_name.strip()
+        if not clean_file_name:
+            continue
+        models[clean_file_name] = resolve_rembg_model(model_name.strip() or None)
+    return models
 
 
 def _parse_margin_mm(value: str, logger: Logger) -> float:

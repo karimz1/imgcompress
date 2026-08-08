@@ -112,9 +112,31 @@ export const hu: TranslationSchema = {
       bySize: "Fájlméret alapján",
     },
     rembg: {
-      label: "Háttér eltávolítása helyi AI-val ({{model}})",
+      label: "Háttér eltávolítása helyi AI-val",
       tooltip:
         "A helyi AI eltávolítja a hátteret (internet nem szükséges).\nLassabb feldolgozás, és kisebb élhibák előfordulhatnak.",
+    },
+    rembgModel: {
+      label: "MI-modell",
+      placeholder: "Válasszon modellt",
+      tooltip:
+        "Válassza ki, melyik helyi MI-modell távolítsa el a hátteret.\nAz Általános a legtöbb képhez megfelelő, az Anime rajzokhoz van hangolva, a Fotók valós fényképekhez.",
+      options: {
+        "u2net": "Általános",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotók",
+        "birefnet-portrait": "Portrék",
+        "birefnet-general": "Maximális minőség",
+        "birefnet-general-lite": "Kiváló minőség",
+      },
+      descriptions: {
+        "u2net": "A legtöbb képhez",
+        "isnet-anime": "Tiszta anime karaktermaszkok",
+        "isnet-general-use": "Valós fényképek",
+        "birefnet-portrait": "Emberek és portrékivágások",
+        "birefnet-general": "Legjobb részletek és élek, leglassabb",
+        "birefnet-general-lite": "Részletes élek, gyorsabb mint a maximum",
+      },
     },
     quality: {
       label: "Minőség",
@@ -168,6 +190,22 @@ export const hu: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "MI-szerkesztő",
+    editorDescription: "Hasonlítsa össze a helyi MI-modelleket ehhez a képhez.",
+    openButton: "MI összehasonlítás",
+    editButton: "MI szerkesztés",
+    selectedBadge: "MI: {{model}}",
+    loadingTitle: "MI-modellek összehasonlítása",
+    loadingDescription: "Az összes MI-modell összehasonlítása eltarthat egy ideig.",
+    useModel: "Modell használata",
+    downloadSelected: "Kiválasztott letöltése",
+    downloadAll: "Összes letöltése ZIP-ként",
+    close: "Bezárás",
+    errorTitle: "Az MI-összehasonlítás sikertelen",
+    empty: "Nincs elérhető előnézet.",
+    previewAlt: "Háttéreltávolítás előnézete ezzel: {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Tömörített kép megjelenítése",
     trigger_other: "🗃️ Tömörített képek megjelenítése",

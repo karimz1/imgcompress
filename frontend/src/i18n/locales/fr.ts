@@ -112,9 +112,31 @@ export const fr: TranslationSchema = {
       bySize: "Régler par taille de fichier",
     },
     rembg: {
-      label: "Supprimer l'arrière-plan avec l'IA locale ({{model}})",
+      label: "Supprimer l'arrière-plan avec l'IA locale",
       tooltip:
         "L'IA locale supprime l'arrière-plan (aucun internet requis).\nTraitement plus lent, de petits artefacts de bord peuvent apparaître.",
+    },
+    rembgModel: {
+      label: "Modèle d'IA",
+      placeholder: "Sélectionner un modèle",
+      tooltip:
+        "Choisissez quel modèle d'IA local supprime l'arrière-plan.\nGénéral convient à la plupart des images, Anime est optimisé pour les dessins, Photos pour la photographie réelle.",
+      options: {
+        "u2net": "Général",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Photos",
+        "birefnet-portrait": "Portraits",
+        "birefnet-general": "Qualité maximale",
+        "birefnet-general-lite": "Haute qualité",
+      },
+      descriptions: {
+        "u2net": "Pour la plupart des images",
+        "isnet-anime": "Masques propres de personnages anime",
+        "isnet-general-use": "Photographie réelle",
+        "birefnet-portrait": "Personnes et portraits détourés",
+        "birefnet-general": "Meilleurs détails et contours, le plus lent",
+        "birefnet-general-lite": "Contours détaillés, plus rapide que max",
+      },
     },
     quality: {
       label: "Qualité",
@@ -168,6 +190,22 @@ export const fr: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "Éditeur IA",
+    editorDescription: "Comparez les modèles IA locaux pour cette image.",
+    openButton: "Comparer l'IA",
+    editButton: "Modifier l'IA",
+    selectedBadge: "IA : {{model}}",
+    loadingTitle: "Comparaison des modèles IA",
+    loadingDescription: "Comparer tous les modèles IA peut prendre un moment.",
+    useModel: "Utiliser ce modèle",
+    downloadSelected: "Télécharger la sélection",
+    downloadAll: "Tout télécharger en ZIP",
+    close: "Fermer",
+    errorTitle: "Échec de la comparaison IA",
+    empty: "Aucun aperçu disponible.",
+    previewAlt: "Aperçu de suppression d'arrière-plan avec {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Afficher l'image compressée",
     trigger_other: "🗃️ Afficher les images compressées",

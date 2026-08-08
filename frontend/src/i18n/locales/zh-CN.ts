@@ -112,9 +112,31 @@ export const zhCN: TranslationSchema = {
       bySize: "按文件大小设置",
     },
     rembg: {
-      label: "使用本地 AI 移除背景（{{model}}）",
+      label: "使用本地 AI 移除背景",
       tooltip:
         "本地 AI 会移除背景（无需互联网）。\n处理较慢，边缘可能出现少量瑕疵。",
+    },
+    rembgModel: {
+      label: "AI 模型",
+      placeholder: "选择模型",
+      tooltip:
+        "选择由哪个本地 AI 模型移除背景。\n通用适用于大多数图片，动漫针对插画进行了优化，照片适用于真实摄影。",
+      options: {
+        "u2net": "通用",
+        "isnet-anime": "动漫",
+        "isnet-general-use": "照片",
+        "birefnet-portrait": "肖像",
+        "birefnet-general": "最高质量",
+        "birefnet-general-lite": "高质量",
+      },
+      descriptions: {
+        "u2net": "适用于大多数图片",
+        "isnet-anime": "干净的动漫角色蒙版",
+        "isnet-general-use": "真实摄影",
+        "birefnet-portrait": "人物和肖像抠图",
+        "birefnet-general": "细节和边缘最好，最慢",
+        "birefnet-general-lite": "边缘细致，比最高质量更快",
+      },
     },
     quality: {
       label: "质量",
@@ -168,6 +190,22 @@ export const zhCN: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI 编辑器",
+    editorDescription: "比较此图片的本地 AI 模型。",
+    openButton: "AI 对比",
+    editButton: "AI 编辑",
+    selectedBadge: "AI：{{model}}",
+    loadingTitle: "正在比较 AI 模型",
+    loadingDescription: "比较全部 AI 模型可能需要一点时间。",
+    useModel: "使用此模型",
+    downloadSelected: "下载所选结果",
+    downloadAll: "下载全部 ZIP",
+    close: "关闭",
+    errorTitle: "AI 对比失败",
+    empty: "没有可用预览。",
+    previewAlt: "{{model}} 背景移除预览",
+  },
   drawer: {
     trigger_one: "🗃️ 显示压缩后的图片",
     trigger_other: "🗃️ 显示压缩后的图片",

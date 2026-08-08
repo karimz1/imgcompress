@@ -112,9 +112,31 @@ export const de: TranslationSchema = {
       bySize: "Nach Dateigröße festlegen",
     },
     rembg: {
-      label: "Hintergrund mit lokaler KI entfernen ({{model}})",
+      label: "Hintergrund mit lokaler KI entfernen",
       tooltip:
         "Lokale KI entfernt den Hintergrund (kein Internet erforderlich).\nLangsamere Verarbeitung, kleine Kantenartefakte können auftreten.",
+    },
+    rembgModel: {
+      label: "KI-Modell",
+      placeholder: "Modell auswählen",
+      tooltip:
+        "Wähle, welches lokale KI-Modell den Hintergrund entfernt.\nAllgemein passt für die meisten Bilder, Anime ist auf Zeichnungen abgestimmt, Fotos für reale Fotografie.",
+      options: {
+        "u2net": "Allgemein",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotos",
+        "birefnet-portrait": "Porträts",
+        "birefnet-general": "Maximale Qualität",
+        "birefnet-general-lite": "Hohe Qualität",
+      },
+      descriptions: {
+        "u2net": "Für die meisten Bilder",
+        "isnet-anime": "Saubere Anime-Charaktermasken",
+        "isnet-general-use": "Reale Fotografie",
+        "birefnet-portrait": "Personen- und Porträtfreisteller",
+        "birefnet-general": "Beste Details und Kanten, am langsamsten",
+        "birefnet-general-lite": "Detaillierte Kanten, schneller als Maximum",
+      },
     },
     quality: {
       label: "Qualität",
@@ -168,6 +190,22 @@ export const de: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "KI-Editor",
+    editorDescription: "Vergleiche lokale KI-Modelle für dieses Bild.",
+    openButton: "KI vergleichen",
+    editButton: "KI bearbeiten",
+    selectedBadge: "KI: {{model}}",
+    loadingTitle: "KI-Modelle werden verglichen",
+    loadingDescription: "Der Vergleich aller KI-Modelle kann einen Moment dauern.",
+    useModel: "Dieses Modell verwenden",
+    downloadSelected: "Auswahl herunterladen",
+    downloadAll: "Alles als ZIP herunterladen",
+    close: "Schließen",
+    errorTitle: "KI-Vergleich fehlgeschlagen",
+    empty: "Keine Vorschau verfügbar.",
+    previewAlt: "Vorschau der Hintergrundentfernung mit {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Konvertiertes Bild anzeigen",
     trigger_other: "🗃️ Konvertierte Bilder anzeigen",

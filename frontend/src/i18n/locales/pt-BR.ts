@@ -112,9 +112,31 @@ export const ptBR: TranslationSchema = {
       bySize: "Definir por tamanho de arquivo",
     },
     rembg: {
-      label: "Remover fundo com IA local ({{model}})",
+      label: "Remover fundo com IA local",
       tooltip:
         "A IA local remove o fundo (sem necessidade de internet).\nProcessamento mais lento, pode mostrar pequenos artefatos nas bordas.",
+    },
+    rembgModel: {
+      label: "Modelo de IA",
+      placeholder: "Selecione um modelo",
+      tooltip:
+        "Escolha qual modelo de IA local remove o fundo.\nGeral serve para a maioria das imagens, Anime é ajustado para desenhos, Fotos para fotografia real.",
+      options: {
+        "u2net": "Geral",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotos",
+        "birefnet-portrait": "Retratos",
+        "birefnet-general": "Qualidade máxima",
+        "birefnet-general-lite": "Alta qualidade",
+      },
+      descriptions: {
+        "u2net": "Para a maioria das imagens",
+        "isnet-anime": "Máscaras limpas de personagens anime",
+        "isnet-general-use": "Fotografia real",
+        "birefnet-portrait": "Pessoas e retratos recortados",
+        "birefnet-general": "Melhores detalhes e bordas, mais lento",
+        "birefnet-general-lite": "Bordas detalhadas, mais rápido que máximo",
+      },
     },
     quality: {
       label: "Qualidade",
@@ -168,6 +190,22 @@ export const ptBR: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "Editor de IA",
+    editorDescription: "Compare modelos locais de IA para esta imagem.",
+    openButton: "Comparar IA",
+    editButton: "Editar IA",
+    selectedBadge: "IA: {{model}}",
+    loadingTitle: "Comparando modelos de IA",
+    loadingDescription: "Comparar todos os modelos de IA pode levar um momento.",
+    useModel: "Usar este modelo",
+    downloadSelected: "Baixar selecionado",
+    downloadAll: "Baixar tudo como ZIP",
+    close: "Fechar",
+    errorTitle: "Falha na comparação de IA",
+    empty: "Nenhuma prévia disponível.",
+    previewAlt: "Prévia de remoção de fundo com {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Mostrar imagem comprimida",
     trigger_other: "🗃️ Mostrar imagens comprimidas",
