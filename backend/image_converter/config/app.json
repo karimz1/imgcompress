@@ -34,6 +34,9 @@
       ".psd"
     ]
   },
+  "pdf": {
+    "max_render_pixels_per_page": 25000000
+  },
   "features": {
     "is_storage_management_enabled": true,
     "is_logo_enabled": true,

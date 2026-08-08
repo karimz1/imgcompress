@@ -51,6 +51,11 @@ class FormatsConfig:
 
 
 @dataclass(frozen=True)
+class PdfConfig:
+    max_render_pixels_per_page: int
+
+
+@dataclass(frozen=True)
 class FeaturesConfig:
     is_storage_management_enabled: bool
     is_logo_enabled: bool
@@ -70,5 +75,6 @@ class AppConfig:
     logging: LoggingConfig
     crop_preview: CropPreviewConfig
     formats: FormatsConfig
+    pdf: PdfConfig
     features: FeaturesConfig
     rembg: RembgConfig
