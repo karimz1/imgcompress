@@ -3,6 +3,13 @@ name: Repair frontend Dependabot pnpm lockfile
 # Triggered by:
 #   - workflow_dispatch (maintainers manually pick a PR number)
 #   - PR comment "/chan-fix" by karimz1
+#
+# The work is split across two jobs on purpose:
+#   * `regenerate` checks out the PR branch and runs its build tooling, but holds
+#     no secrets and only read permissions.
+#   * `publish` holds the imgcompress-chan token but never checks out or executes
+#     PR code; it pushes through the GitHub API.
+# Only the regenerated lockfile crosses that boundary, as data rather than code.
 
 on:
   workflow_dispatch:
@@ -22,7 +29,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  repair:
+  regenerate:
+    name: regenerate lockfile (unprivileged)
     if: >
       github.event_name == 'workflow_dispatch' ||
       (
@@ -34,23 +42,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: write
       pull-requests: read
+    outputs:
+      number: ${{ steps.pr.outputs.number }}
+      head_ref: ${{ steps.pr.outputs.head_ref }}
+      is_fork: ${{ steps.pr.outputs.is_fork }}
     steps:
-      - name: Mint imgcompress-chan token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
-          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
-          permission-contents: write
-          permission-issues: write
-          permission-pull-requests: read
-
       - name: Resolve and validate PR
         id: pr
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER_INPUT: ${{ inputs.pr_number || github.event.issue.number }}
         run: |
@@ -61,8 +62,30 @@ jobs:
           pr_json="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER_INPUT}")"
           head_repo="$(jq -r '.head.repo.full_name' <<< "$pr_json")"
           head_ref="$(jq -r '.head.ref' <<< "$pr_json")"
+          pr_state="$(jq -r '.state' <<< "$pr_json")"
+          pr_author="$(jq -r '.user.login' <<< "$pr_json")"
+          default_branch="$(jq -r '.base.repo.default_branch' <<< "$pr_json")"
 
           echo "head_ref=${head_ref}" >> "$GITHUB_OUTPUT"
+
+          # The publish job merges main into head_ref and commits to it with a
+          # contents:write token. A PR head can be ANY same-repo branch, so
+          # without these guards a /chan-fix on an unrelated PR would mutate
+          # whatever branch that PR happens to be based on.
+          if [[ "$pr_author" != "dependabot[bot]" ]]; then
+            echo "::error::PR #${PR_NUMBER_INPUT} is authored by ${pr_author}; this workflow only repairs Dependabot lockfile PRs."
+            exit 1
+          fi
+
+          if [[ "$head_ref" == "$default_branch" ]]; then
+            echo "::error::PR #${PR_NUMBER_INPUT} has ${default_branch} as its head branch; refusing to write to the default branch."
+            exit 1
+          fi
+
+          if [[ "$pr_state" != "open" ]]; then
+            echo "::error::PR #${PR_NUMBER_INPUT} is ${pr_state}, not open; nothing to repair."
+            exit 1
+          fi
 
           if [[ "$head_repo" != "$REPOSITORY" ]]; then
             echo "is_fork=true" >> "$GITHUB_OUTPUT"
@@ -71,13 +94,16 @@ jobs:
             echo "is_fork=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Checkout PR branch
+      # issue_comment and workflow_dispatch both run in the DEFAULT BRANCH context,
+      # so anything executed here writes to main's Actions cache scope. That makes
+      # checking out the PR ref a cache-poisoning vector even with no secrets in
+      # the job. So we never check out PR code: we check out main and pull the PR's
+      # manifests in as plain data.
+      - name: Checkout default branch
         if: steps.pr.outputs.is_fork != 'true'
         uses: actions/checkout@v7
         with:
-          ref: ${{ steps.pr.outputs.head_ref }}
-          fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - name: Set up Node
         if: steps.pr.outputs.is_fork != 'true'
@@ -85,24 +111,39 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Configure git identity as imgcompress-chan
+      # pnpm resolves the lockfile from the manifests alone, so these two files are
+      # all the PR content we need. They are written as data and never executed.
+      - name: Fetch PR manifests
         if: steps.pr.outputs.is_fork != 'true'
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          MERGE_REF: refs/pull/${{ steps.pr.outputs.number }}/merge
         run: |
           set -euo pipefail
-          user_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq '.id')"
-          git config user.name "${APP_SLUG}[bot]"
-          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
 
-      - name: Refresh branch from main
-        if: steps.pr.outputs.is_fork != 'true'
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          if ! git merge --no-edit origin/main; then
-            echo "::error::Merge from main hit conflicts; resolve manually on the PR."
+          fetch_manifest() {
+            local name="$1"
+            local target="frontend/${name}"
+            if gh api "repos/${REPOSITORY}/contents/frontend/${name}" \
+                 -f "ref=${MERGE_REF}" \
+                 -H "Accept: application/vnd.github.raw" > "${target}.pr" 2>/dev/null; then
+              mv "${target}.pr" "$target"
+              echo "Took frontend/${name} from the PR."
+            else
+              rm -f "${target}.pr"
+              if [[ -e "$target" ]]; then
+                rm -f "$target"
+                echo "frontend/${name} is absent in the PR; removed the main copy."
+              fi
+            fi
+          }
+
+          fetch_manifest package.json
+          fetch_manifest pnpm-workspace.yaml
+
+          if [[ ! -f frontend/package.json ]]; then
+            echo "::error::The PR has no frontend/package.json; nothing to regenerate."
             exit 1
           fi
 
@@ -110,52 +151,182 @@ jobs:
         if: steps.pr.outputs.is_fork != 'true'
         env:
           PNPM_INSTALL_ARGS: "--lockfile-only --ignore-scripts"
+          COMMIT_LOCKFILE: "0"
         run: ./scripts/applyFrontendDependencyFix.sh
 
-      - name: Push repaired branch
+      - name: Upload regenerated lockfile
         if: steps.pr.outputs.is_fork != 'true'
-        run: git push origin "HEAD:${{ steps.pr.outputs.head_ref }}"
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-pnpm-lock
+          path: frontend/pnpm-lock.yaml
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    name: publish lockfile as imgcompress-chan
+    needs: regenerate
+    if: always() && needs.regenerate.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      # Two tokens on purpose. The push token carries contents:write and is only
+      # minted on the path that actually pushes; every other path (fork PR, failed
+      # regenerate) gets a comment-only token that cannot write to the repository.
+      - name: Mint imgcompress-chan push token
+        id: app-token
+        if: needs.regenerate.result == 'success' && needs.regenerate.outputs.is_fork != 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: read
+
+      - name: Mint imgcompress-chan comment token
+        id: comment-token
+        if: always() && steps.app-token.outcome == 'skipped'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+          permission-issues: write
+
+      - name: Download regenerated lockfile
+        id: artifact
+        if: needs.regenerate.result == 'success' && needs.regenerate.outputs.is_fork != 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: frontend-pnpm-lock
+          path: ${{ runner.temp }}/lockfile
+
+      - name: Refresh branch from main
+        if: needs.regenerate.result == 'success' && needs.regenerate.outputs.is_fork != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_REF: ${{ needs.regenerate.outputs.head_ref }}
+        run: |
+          set -euo pipefail
+
+          status=0
+          response="$(
+            gh api --method POST "repos/${REPOSITORY}/merges" \
+              -f "base=${HEAD_REF}" \
+              -f "head=main" \
+              -f "commit_message=chore: merge main before repairing the frontend lockfile" 2>&1
+          )" || status=$?
+
+          if [[ $status -ne 0 ]]; then
+            if grep -qi "conflict" <<< "$response"; then
+              echo "::error::Merge from main hit conflicts; resolve manually on the PR."
+            else
+              # The ref name and the API response are untrusted text. Keep them out
+              # of the ::error:: line so neither can forge a workflow command.
+              echo "::error::Could not merge main into the PR branch; see the log line below."
+              printf 'ref: %s\nresponse: %s\n' "$HEAD_REF" "$response"
+            fi
+            exit 1
+          fi
+
+      - name: Commit lockfile as imgcompress-chan
+        id: push
+        if: needs.regenerate.result == 'success' && needs.regenerate.outputs.is_fork != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_REF: ${{ needs.regenerate.outputs.head_ref }}
+          LOCKFILE: frontend/pnpm-lock.yaml
+          NEW_LOCKFILE: ${{ runner.temp }}/lockfile/pnpm-lock.yaml
+          DOCS_URL: https://imgcompress.karimzouine.com/docs/developers#root-cause
+        run: |
+          set -euo pipefail
+
+          # -f puts ref in the query string with proper encoding; branch names may
+          # legally contain characters like & and # that would otherwise split it.
+          current_sha="$(
+            gh api "repos/${REPOSITORY}/contents/${LOCKFILE}" -f "ref=${HEAD_REF}" --jq '.sha' 2>/dev/null || true
+          )"
+          new_sha="$(git hash-object "$NEW_LOCKFILE")"
+
+          if [[ "$current_sha" == "$new_sha" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Lockfile on ${HEAD_REF} is already up to date."
+            exit 0
+          fi
+
+          bot_login="${APP_SLUG}[bot]"
+          bot_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq '.id')"
+          bot_email="${bot_id}+${bot_login}@users.noreply.github.com"
+          message="$(printf 'chore: regenerate pnpm lockfile after dependabot merge\n\nRoot cause and recovery docs: %s' "$DOCS_URL")"
+
+          jq -n \
+            --arg message "$message" \
+            --arg content "$(base64 < "$NEW_LOCKFILE" | tr -d '\n')" \
+            --arg branch "$HEAD_REF" \
+            --arg sha "$current_sha" \
+            --arg name "$bot_login" \
+            --arg email "$bot_email" \
+            '{
+              message: $message,
+              content: $content,
+              branch: $branch,
+              author: {name: $name, email: $email},
+              committer: {name: $name, email: $email}
+            } + (if $sha == "" then {} else {sha: $sha} end)' |
+          gh api --method PUT "repos/${REPOSITORY}/contents/${LOCKFILE}" --input - --jq '.commit.sha'
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Comment outcome on PR as imgcompress-chan
-        if: always() && steps.pr.outputs.number != ''
+        if: always() && needs.regenerate.outputs.number != ''
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || steps.comment-token.outputs.token || github.token }}
           REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ steps.pr.outputs.number }}
-          IS_FORK: ${{ steps.pr.outputs.is_fork }}
+          PR_NUMBER: ${{ needs.regenerate.outputs.number }}
+          IS_FORK: ${{ needs.regenerate.outputs.is_fork }}
+          REGEN_RESULT: ${{ needs.regenerate.result }}
+          CHANGED: ${{ steps.push.outputs.changed }}
           STATUS: ${{ job.status }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [[ "$IS_FORK" == "true" ]]; then
-            body=$(cat <<'EOF'
-          ### Can't reach this one from here 🥺
+            body="### Can't reach this one from here 🥺
 
           Hi~! This PR comes from a fork, so I don't have permission to push the lockfile fix back to it. (╥﹏╥)
 
           If you'd like the repair anyway, please:
 
-          1. Refresh your branch by merging `main` into it first
-          2. Run `./scripts/applyFrontendDependencyFix.sh` locally
-          3. Push the result up to your fork, ne~? 💛
-          EOF
-          )
-          elif [[ "$STATUS" == "success" ]]; then
-            body=$(cat <<'EOF'
-          ### Frontend pnpm lockfile repaired! 🎉
+          1. Refresh your branch by merging \`main\` into it first
+          2. Run \`./scripts/applyFrontendDependencyFix.sh\` locally
+          3. Push the result up to your fork, ne~? 💛"
+          elif [[ "$REGEN_RESULT" == "success" && "$STATUS" == "success" && "$CHANGED" == "false" ]]; then
+            body="### Nothing to repair here 💡
 
-          Yatta~! I refreshed your branch from `main` and regenerated `frontend/pnpm-lock.yaml` for you. (｡♥‿♥｡)
+          I refreshed your branch from \`main\` and regenerated \`frontend/pnpm-lock.yaml\`, but it already matched what's on the branch. Leaving it as is~ (｡•̀ᴗ-)✧"
+          elif [[ "$REGEN_RESULT" == "success" && "$STATUS" == "success" ]]; then
+            body="### Frontend pnpm lockfile repaired! 🎉
 
-          Gonna take a little nap while pipeline re-runs on the new commit~ 💤
-          EOF
-          )
+          Yatta~! I refreshed your branch from \`main\` and regenerated \`frontend/pnpm-lock.yaml\` for you. (｡♥‿♥｡)
+
+          Gonna take a little nap while pipeline re-runs on the new commit~ 💤"
           else
-            body=$(cat <<EOF
-          ### Frontend pnpm lockfile repair 💔
+            if [[ "$REGEN_RESULT" != "success" ]]; then
+              failed_stage="regenerating the lockfile"
+              failed_status="$REGEN_RESULT"
+            else
+              failed_stage="pushing the lockfile back"
+              failed_status="$STATUS"
+            fi
+            body="### Frontend pnpm lockfile repair 💔
 
-          Uwaa... gomen, senpai. The repair finished with status \`${STATUS}\` and I couldn't fix it on my own. (╥﹏╥)
+          Uwaa... gomen, senpai. I got stuck ${failed_stage} (status \`${failed_status}\`) and couldn't fix it on my own. (╥﹏╥)
 
-          Could you peek at the [run log](${RUN_URL}) when you have a sec? I'll be waiting right here, ne~? 💛
-          EOF
-          )
+          Could you peek at the [run log](${RUN_URL}) when you have a sec? I'll be waiting right here, ne~? 💛"
           fi
           gh pr comment --repo "$REPOSITORY" "$PR_NUMBER" --body "$body"

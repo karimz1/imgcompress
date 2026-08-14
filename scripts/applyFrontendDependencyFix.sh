@@ -4,6 +4,10 @@ set -euo pipefail
 DOCS_URL="https://imgcompress.karimzouine.com/docs/developers#root-cause"
 COMMIT_MESSAGE="chore: regenerate pnpm lockfile after dependabot merge"
 
+# Set COMMIT_LOCKFILE=0 to regenerate the lockfile without committing it. CI uses
+# this so it can pick the file up without needing a git identity on the runner.
+COMMIT_LOCKFILE="${COMMIT_LOCKFILE:-1}"
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
@@ -29,8 +33,11 @@ echo "Root cause and manual recovery docs: $DOCS_URL"
 cd "$FRONTEND_DIR"
 
 PNPM_SPEC="$(node -p "require('./package.json').packageManager || 'pnpm@latest'")"
-if [[ "$PNPM_SPEC" != pnpm@* ]]; then
-  echo "frontend/package.json packageManager must be a pnpm spec, got: $PNPM_SPEC" >&2
+# corepack also accepts URL and git specs, which would let a package.json point
+# this at arbitrary code. Only a published version or dist-tag is allowed.
+PNPM_SPEC_PATTERN='^pnpm@(latest|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?(\+[0-9A-Za-z.]+)?)$'
+if [[ ! "$PNPM_SPEC" =~ $PNPM_SPEC_PATTERN ]]; then
+  echo "frontend/package.json packageManager must be pnpm@<version>, got: $PNPM_SPEC" >&2
   exit 1
 fi
 
@@ -49,7 +56,12 @@ if [[ -n "${PNPM_INSTALL_ARGS:-}" ]]; then
   read -r -a PNPM_INSTALL_ARGS_ARRAY <<< "$PNPM_INSTALL_ARGS"
   echo "Using additional pnpm install args: $PNPM_INSTALL_ARGS"
 fi
-corepack pnpm install "${PNPM_INSTALL_ARGS_ARRAY[@]}"
+corepack pnpm install ${PNPM_INSTALL_ARGS_ARRAY[@]+"${PNPM_INSTALL_ARGS_ARRAY[@]}"}
+
+if [[ "$COMMIT_LOCKFILE" == "0" ]]; then
+  echo "COMMIT_LOCKFILE=0, leaving frontend/pnpm-lock.yaml uncommitted."
+  exit 0
+fi
 
 git -C "$PROJECT_ROOT" add frontend/pnpm-lock.yaml
 
