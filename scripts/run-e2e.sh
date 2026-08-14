@@ -75,6 +75,9 @@ run_pnpm() {
 
 run_pnpm install --frozen-lockfile
 run_pnpm exec playwright install --with-deps chromium
-run_pnpm test:e2e -- "$@"
+# No `--` separator here. pnpm forwards extra args to the script on its own, and
+# Playwright 1.62 stopped treating operands after `--` as spec filters, so passing
+# it silently ran the whole suite instead of the requested spec.
+run_pnpm test:e2e "$@"
 
 echo "E2E Tests completed successfully!"
