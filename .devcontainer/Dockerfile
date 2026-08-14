@@ -1,4 +1,4 @@
-FROM ghcr.io/karimz1/devcontainer-image-only-for-devs:2026-05
+FROM ghcr.io/karimz1/devcontainer-image-only-for-devs:2026-07
 #FROM my-base-image
 
 # Install Python dependencies

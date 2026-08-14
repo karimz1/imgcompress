@@ -1,3 +1,7 @@
+# Minimal getting-started setup: run "docker compose up -d", then open
+# localhost:3001 (or http://<server-ip>:3001 from any device on your network).
+# Hardened variants (log rotation, healthchecks, Traefik reverse proxy
+# with HTTPS) live in docker/compose/ - see docker/compose/README.md.
 services:
   imgcompress:
     image: karimz1/imgcompress:latest
