@@ -133,6 +133,33 @@ COPY --chown=nonroot:nonroot backend/ ./backend
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
     uv pip install .
 
+# Empty the standalone interpreter's own site-packages.
+#
+# uv installs the app into /container/venv, which is created without system
+# site-packages, so the interpreter's site-packages is never on sys.path at
+# runtime. It holds nothing but pip, setuptools and their support files, and the
+# build installs through uv rather than pip, so the whole directory is unused
+# rather than partly unused. It is emptied instead of curated by name.
+#
+# This is not cosmetic. Those two packages were the only vulnerabilities left in
+# the image after the base image patch (CVE-2026-8643 in pip, CVE-2026-59890 in
+# setuptools) and sat below the old HIGH/CRITICAL scan gate unreported. ensurepip
+# goes with them: it bundles older wheels still (pip 24.0, setuptools 79.0.1) and
+# exists only to bootstrap pip into an interpreter that lacks it.
+#
+# The assertions matter more than the deletion. The paths are globbed rather than
+# version-pinned, so a Python upgrade cannot turn this into a silent no-op, and a
+# base image that reintroduces either package fails the build.
+RUN set -eux; \
+    rm -rf /container/python/*/lib/python*/site-packages/* \
+           /container/python/*/lib/python*/ensurepip; \
+    for sp in /container/python/*/lib/python*/site-packages/; do \
+      [ -z "$(ls -A "$sp")" ] || { echo "not empty: $sp" >&2; exit 1; }; \
+    done; \
+    ! /container/venv/bin/python -c 'import pip' 2>/dev/null; \
+    ! /container/venv/bin/python -c 'import setuptools' 2>/dev/null; \
+    /container/venv/bin/python -c 'import flask, PIL; print("runtime imports OK")'
+
 # Pre-download rembg model to prevent download overhead during runtime.
 ENV U2NET_HOME=/container/.u2net
 # Intent: Since backend code is copied earlier, any code change invalidates layer cache.
