@@ -26,7 +26,6 @@ RUN pnpm run build
 
 # The built static files are in /app/frontend/out/
 
-
 # Stage 2: PYTHON BACKEND BUILD
 # ------------------------------------------------------------------------------------------
 # Intent: Fallback to debian-base:trixie-debian13-dev because dhi.io/python:3.11-debian13 is 
@@ -36,7 +35,7 @@ FROM dhi.io/debian-base:trixie-debian13-dev@sha256:4440cf16b142316744a7fd1c5070e
 
 # Use 'uv' for high-performance Python package management instead of standard pip.
 # Ref: https://github.com/astral-sh/uv
-COPY --from=dhi.io/uv:0.11.18-debian13@sha256:be1c2d5905075a57885f83a04f4f64eab0d4b99c4695803d9a707a7fd448152d /uv /uvx /bin/
+COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
 
 # 🧩 Install system dependencies required for full Pillow image format support
 #
@@ -115,10 +114,21 @@ ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Setup standalone Python managed by uv to avoid missing python in final stage.
 # This standalone python is statically built and does not depend on OS libraries.
+#
+# Pinned to 3.14 rather than 3.11. Beyond being current, the standalone builds
+# from 3.12 onwards no longer bundle setuptools and ship a patched pip, which is
+# what removes the last vulnerabilities from the image:
+#
+#   3.11  pip 26.1.1 (CVE-2026-8643)  setuptools 82.0.1 (CVE-2026-59890)
+#   3.14  pip 26.1.2                  setuptools not shipped
+#
+# Neither package is reachable at runtime in any case, since the venv is created
+# without system site-packages, but the scanner reports what is present on disk.
 ENV UV_PYTHON_INSTALL_DIR=/container/python
+ENV PYTHON_VERSION=3.14
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
-    uv python install 3.11 && \
-    uv venv --python 3.11 $VIRTUAL_ENV
+    uv python install "$PYTHON_VERSION" && \
+    uv venv --python "$PYTHON_VERSION" $VIRTUAL_ENV
 
 WORKDIR /container
 
@@ -153,7 +163,6 @@ COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 # Create static site directory. Required pre-creation as a nonroot user 
 # to avoid permission issues when copying frontend assets.
 RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
-
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
