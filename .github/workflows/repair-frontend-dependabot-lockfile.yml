@@ -1,15 +1,28 @@
 name: Repair frontend Dependabot pnpm lockfile
 
 # Triggered by:
+#   - pull_request_target on Dependabot PRs that touch the frontend manifests
+#     (automatic; no maintainer action needed)
+#   - PR comment "/chan-fix" by karimz1 (manual override / re-run)
 #   - workflow_dispatch (maintainers manually pick a PR number)
-#   - PR comment "/chan-fix" by karimz1
+#
+# The automatic trigger is the point of this workflow. Dependabot regularly opens
+# frontend PRs whose pnpm lockfile is stale, CI goes red, and the security patch
+# then waits on a human to type /chan-fix. With six figures of image pulls that
+# is not a reasonable thing to have a person in the middle of.
+#
+# pull_request_target rather than pull_request: events raised by Dependabot read
+# from the Dependabot secrets store, so the App credentials come back empty on a
+# plain pull_request. handoff-dependabot-ci.yml uses pull_request_target for the
+# same reason.
 #
 # The work is split across two jobs on purpose:
-#   * `regenerate` checks out the PR branch and runs its build tooling, but holds
-#     no secrets and only read permissions.
+#   * `regenerate` holds no secrets and only read permissions. It never checks out
+#     PR code; it pulls the PR's manifests in as data.
 #   * `publish` holds the imgcompress-chan token but never checks out or executes
 #     PR code; it pushes through the GitHub API.
 # Only the regenerated lockfile crosses that boundary, as data rather than code.
+# That separation is what makes an automatic privileged trigger safe here.
 
 on:
   workflow_dispatch:
@@ -20,12 +33,18 @@ on:
         type: number
   issue_comment:
     types: [created]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'frontend/package.json'
+      - 'frontend/pnpm-lock.yaml'
+      - 'frontend/pnpm-workspace.yaml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: repair-frontend-lockfile-${{ github.event.issue.number || inputs.pr_number }}
+  group: repair-frontend-lockfile-${{ github.event.issue.number || github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: false
 
 jobs:
@@ -33,6 +52,11 @@ jobs:
     name: regenerate lockfile (unprivileged)
     if: >
       github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'pull_request_target' &&
+        github.event.pull_request.user.login == 'dependabot[bot]' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      ) ||
       (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request &&
@@ -53,7 +77,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          PR_NUMBER_INPUT: ${{ inputs.pr_number || github.event.issue.number }}
+          PR_NUMBER_INPUT: ${{ inputs.pr_number || github.event.issue.number || github.event.pull_request.number }}
         run: |
           set -euo pipefail
 
@@ -293,8 +317,21 @@ jobs:
           REGEN_RESULT: ${{ needs.regenerate.result }}
           CHANGED: ${{ steps.push.outputs.changed }}
           STATUS: ${{ job.status }}
+          IS_AUTO: ${{ github.event_name == 'pull_request_target' }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          # On the automatic trigger, stay quiet when there was nothing to do.
+          # This fires on every Dependabot frontend PR, and again on the
+          # synchronize raised by our own push, so commenting each time would
+          # bury the PR in noise. A human asking via /chan-fix always gets an
+          # answer, and failures always get one.
+          if [[ "$IS_AUTO" == "true" && "$IS_FORK" != "true" \
+                && "$REGEN_RESULT" == "success" && "$STATUS" == "success" \
+                && "$CHANGED" != "true" ]]; then
+            echo "Automatic run with no lockfile change; skipping the PR comment."
+            exit 0
+          fi
+
           if [[ "$IS_FORK" == "true" ]]; then
             body="### Can't reach this one from here 🥺
 
