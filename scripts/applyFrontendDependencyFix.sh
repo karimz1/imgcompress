@@ -4,6 +4,10 @@ set -euo pipefail
 DOCS_URL="https://imgcompress.karimzouine.com/docs/developers#root-cause"
 COMMIT_MESSAGE="chore: regenerate pnpm lockfile after dependabot merge"
 
+# Set COMMIT_LOCKFILE=0 to regenerate the lockfile without committing it. CI uses
+# this so it can pick the file up without needing a git identity on the runner.
+COMMIT_LOCKFILE="${COMMIT_LOCKFILE:-1}"
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
@@ -50,6 +54,11 @@ if [[ -n "${PNPM_INSTALL_ARGS:-}" ]]; then
   echo "Using additional pnpm install args: $PNPM_INSTALL_ARGS"
 fi
 corepack pnpm install ${PNPM_INSTALL_ARGS_ARRAY[@]+"${PNPM_INSTALL_ARGS_ARRAY[@]}"}
+
+if [[ "$COMMIT_LOCKFILE" == "0" ]]; then
+  echo "COMMIT_LOCKFILE=0, leaving frontend/pnpm-lock.yaml uncommitted."
+  exit 0
+fi
 
 git -C "$PROJECT_ROOT" add frontend/pnpm-lock.yaml
 

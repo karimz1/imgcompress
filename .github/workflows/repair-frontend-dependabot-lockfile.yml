@@ -62,8 +62,30 @@ jobs:
           pr_json="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER_INPUT}")"
           head_repo="$(jq -r '.head.repo.full_name' <<< "$pr_json")"
           head_ref="$(jq -r '.head.ref' <<< "$pr_json")"
+          pr_state="$(jq -r '.state' <<< "$pr_json")"
+          pr_author="$(jq -r '.user.login' <<< "$pr_json")"
+          default_branch="$(jq -r '.base.repo.default_branch' <<< "$pr_json")"
 
           echo "head_ref=${head_ref}" >> "$GITHUB_OUTPUT"
+
+          # The publish job merges main into head_ref and commits to it with a
+          # contents:write token. A PR head can be ANY same-repo branch, so
+          # without these guards a /chan-fix on an unrelated PR would mutate
+          # whatever branch that PR happens to be based on.
+          if [[ "$pr_author" != "dependabot[bot]" ]]; then
+            echo "::error::PR #${PR_NUMBER_INPUT} is authored by ${pr_author}; this workflow only repairs Dependabot lockfile PRs."
+            exit 1
+          fi
+
+          if [[ "$head_ref" == "$default_branch" ]]; then
+            echo "::error::PR #${PR_NUMBER_INPUT} has ${default_branch} as its head branch; refusing to write to the default branch."
+            exit 1
+          fi
+
+          if [[ "$pr_state" != "open" ]]; then
+            echo "::error::PR #${PR_NUMBER_INPUT} is ${pr_state}, not open; nothing to repair."
+            exit 1
+          fi
 
           if [[ "$head_repo" != "$REPOSITORY" ]]; then
             echo "is_fork=true" >> "$GITHUB_OUTPUT"
@@ -72,12 +94,14 @@ jobs:
             echo "is_fork=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Checkout PR branch
+      # refs/pull/N/merge is the PR branch already merged with the base branch,
+      # computed by GitHub. Using it instead of a local fetch-and-merge keeps this
+      # job free of any git identity or write operation.
+      - name: Checkout PR merge ref
         if: steps.pr.outputs.is_fork != 'true'
         uses: actions/checkout@v7
         with:
-          ref: ${{ steps.pr.outputs.head_ref }}
-          fetch-depth: 0
+          ref: refs/pull/${{ steps.pr.outputs.number }}/merge
           persist-credentials: false
 
       - name: Set up Node
@@ -86,22 +110,11 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Refresh branch from main
-        if: steps.pr.outputs.is_fork != 'true'
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          if ! git merge --no-edit origin/main; then
-            echo "::error::Merge from main hit conflicts; resolve manually on the PR."
-            exit 1
-          fi
-
       - name: Regenerate frontend pnpm lockfile
         if: steps.pr.outputs.is_fork != 'true'
         env:
           PNPM_INSTALL_ARGS: "--lockfile-only --ignore-scripts"
+          COMMIT_LOCKFILE: "0"
         run: ./scripts/applyFrontendDependencyFix.sh
 
       - name: Upload regenerated lockfile
@@ -123,8 +136,12 @@ jobs:
       issues: write
       pull-requests: read
     steps:
-      - name: Mint imgcompress-chan token
+      # Two tokens on purpose. The push token carries contents:write and is only
+      # minted on the path that actually pushes; every other path (fork PR, failed
+      # regenerate) gets a comment-only token that cannot write to the repository.
+      - name: Mint imgcompress-chan push token
         id: app-token
+        if: needs.regenerate.result == 'success' && needs.regenerate.outputs.is_fork != 'true'
         uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
@@ -132,6 +149,15 @@ jobs:
           permission-contents: write
           permission-issues: write
           permission-pull-requests: read
+
+      - name: Mint imgcompress-chan comment token
+        id: comment-token
+        if: always() && steps.app-token.outcome == 'skipped'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
+          private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
+          permission-issues: write
 
       - name: Download regenerated lockfile
         id: artifact
@@ -162,7 +188,10 @@ jobs:
             if grep -qi "conflict" <<< "$response"; then
               echo "::error::Merge from main hit conflicts; resolve manually on the PR."
             else
-              echo "::error::Could not merge main into ${HEAD_REF}: ${response}"
+              # The ref name and the API response are untrusted text. Keep them out
+              # of the ::error:: line so neither can forge a workflow command.
+              echo "::error::Could not merge main into the PR branch; see the log line below."
+              printf 'ref: %s\nresponse: %s\n' "$HEAD_REF" "$response"
             fi
             exit 1
           fi
@@ -181,8 +210,10 @@ jobs:
         run: |
           set -euo pipefail
 
+          # -f puts ref in the query string with proper encoding; branch names may
+          # legally contain characters like & and # that would otherwise split it.
           current_sha="$(
-            gh api "repos/${REPOSITORY}/contents/${LOCKFILE}?ref=${HEAD_REF}" --jq '.sha' 2>/dev/null || true
+            gh api "repos/${REPOSITORY}/contents/${LOCKFILE}" -f "ref=${HEAD_REF}" --jq '.sha' 2>/dev/null || true
           )"
           new_sha="$(git hash-object "$NEW_LOCKFILE")"
 
@@ -218,7 +249,7 @@ jobs:
       - name: Comment outcome on PR as imgcompress-chan
         if: always() && needs.regenerate.outputs.number != ''
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || steps.comment-token.outputs.token || github.token }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ needs.regenerate.outputs.number }}
           IS_FORK: ${{ needs.regenerate.outputs.is_fork }}
