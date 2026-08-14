@@ -133,6 +133,33 @@ COPY --chown=nonroot:nonroot backend/ ./backend
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
     uv pip install .
 
+# The uv-managed standalone Python ships pip and setuptools in its own
+# site-packages. The venv is built without system site-packages, so none of them
+# are importable at runtime (verified: pip, setuptools and pkg_resources all
+# raise ModuleNotFoundError under /container/venv/bin/python). They only ever
+# served the build, which uses uv rather than pip, so they are removed here.
+#
+# They are not inert: as of 0.8.3 they accounted for the only CVEs left in the
+# image after the base image patch (CVE-2026-8643 in pip, CVE-2026-59890 in
+# setuptools), and being below the HIGH/CRITICAL scan gate they went unreported.
+# Deleting them removes that class of finding permanently instead of tracking
+# upstream releases for packages the runtime never loads.
+# ensurepip is included as well. It carries its own bundled wheels, which are
+# older than the installed copies (pip 24.0, setuptools 79.0.1), and it only
+# exists to bootstrap pip into an interpreter that has none. Nothing at runtime
+# bootstraps anything.
+RUN set -eux; \
+    find /container/python -depth -type d \
+      \( -name 'pip' -o -name 'pip-*.dist-info' \
+         -o -name 'setuptools' -o -name 'setuptools-*.dist-info' \
+         -o -name 'pkg_resources' -o -name '_distutils_hack' \
+         -o -name 'ensurepip' \) \
+      -exec rm -rf {} +; \
+    find /container/python -name 'distutils-precedence.pth' -delete; \
+    ! /container/venv/bin/python -c 'import pip' 2>/dev/null; \
+    ! /container/venv/bin/python -c 'import setuptools' 2>/dev/null; \
+    /container/venv/bin/python -c 'import flask, PIL; print("runtime imports OK")'
+
 # Pre-download rembg model to prevent download overhead during runtime.
 ENV U2NET_HOME=/container/.u2net
 # Intent: Since backend code is copied earlier, any code change invalidates layer cache.
