@@ -193,14 +193,29 @@ jobs:
             gh pr edit "$existing_pr_url" \
               --title "chore(docker): ${SUMMARY}" \
               --body-file /tmp/pr-body.md
+            pr_url="$existing_pr_url"
           else
-            gh pr create \
+            # Create the PR WITHOUT labels first. `gh pr create --label` aborts the
+            # whole command when a label does not exist in the repo, and that is not
+            # hypothetical: a missing `docker-dependencies-update` label failed this
+            # step every night for days. The branch kept getting pushed, no PR was
+            # ever opened, and an OpenSSL CVE fix sat unmerged the entire time.
+            # A cosmetic label must never be able to block a security patch.
+            pr_url="$(gh pr create \
               --repo "$REPOSITORY" \
               --base main \
               --head "$BRANCH" \
               --title "chore(docker): ${SUMMARY}" \
-              --body-file /tmp/pr-body.md \
-              --label "dependencies" \
-              --label "docker-dependencies-update" \
-              --label "automated-digest-refresh"
+              --body-file /tmp/pr-body.md)"
           fi
+
+          echo "PR ready: ${pr_url}"
+
+          # Labels are applied best-effort afterwards. Note that the auto-merge job
+          # keys off `automated-digest-refresh`, so a warning here means the PR is
+          # open but needs merging by hand.
+          for label in dependencies docker-dependencies-update automated-digest-refresh; do
+            if ! gh pr edit "$pr_url" --add-label "$label" >/dev/null 2>&1; then
+              echo "::warning::Could not add label '${label}' to ${pr_url}. The PR is open, but auto-merge may not pick it up."
+            fi
+          done
