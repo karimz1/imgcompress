@@ -1,5 +1,6 @@
 import os
 from flask import Blueprint, jsonify, send_from_directory, abort, current_app
+from werkzeug.security import safe_join
 
 from backend.image_converter.config import settings
 
@@ -74,8 +75,8 @@ def serve_out_files(path):
     if path.startswith("api/"):
         abort(404)
 
-    full_path = os.path.join(current_app.static_folder, path)
-    if os.path.exists(full_path) and os.path.isfile(full_path):
+    full_path = safe_join(current_app.static_folder, path)
+    if full_path is not None and os.path.isfile(full_path):
         return send_from_directory(current_app.static_folder, path)
 
     return serve_static_file("index.html")

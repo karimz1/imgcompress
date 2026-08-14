@@ -49,7 +49,7 @@ if [[ -n "${PNPM_INSTALL_ARGS:-}" ]]; then
   read -r -a PNPM_INSTALL_ARGS_ARRAY <<< "$PNPM_INSTALL_ARGS"
   echo "Using additional pnpm install args: $PNPM_INSTALL_ARGS"
 fi
-corepack pnpm install "${PNPM_INSTALL_ARGS_ARRAY[@]}"
+corepack pnpm install ${PNPM_INSTALL_ARGS_ARRAY[@]+"${PNPM_INSTALL_ARGS_ARRAY[@]}"}
 
 git -C "$PROJECT_ROOT" add frontend/pnpm-lock.yaml
 

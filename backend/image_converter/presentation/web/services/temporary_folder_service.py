@@ -71,12 +71,20 @@ class TemporaryFolderService:
         else:
             real = os.path.realpath(os.path.join(base, path))
         try:
-            common = os.path.commonpath([base, real])
+            relative = os.path.relpath(real, base)
         except ValueError:
             return None
-        if common != base:
+        # Rebuild the path from the temp root through safe_join, which rejects
+        # anything that climbs out of it. Callers may hand us either an absolute
+        # temp path we handed them earlier or a bare folder name, so both shapes
+        # are normalised to a relative segment first.
+        safe = safe_join(base, relative)
+        if safe is None:
             return None
-        return Path(real)
+        resolved = Path(safe)
+        if not self._is_inside(self.base_dir, resolved):
+            return None
+        return resolved
 
     @staticmethod
     def _is_inside(base_dir: Path, candidate: Path) -> bool:

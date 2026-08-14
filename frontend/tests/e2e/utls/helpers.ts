@@ -2,7 +2,7 @@ import path from 'path';
 import { promises as fsPromises } from 'fs';
 import {expect, Page, Locator, APIRequestContext} from '@playwright/test';
 import AdmZip, { IZipEntry } from 'adm-zip';
-import sharp from 'sharp';
+import sharp, { type Metadata } from 'sharp';
 import { ImageFileDto } from './ImageFileDto';
 import { DownloadType } from './DownloadType';
 
@@ -263,7 +263,7 @@ export async function assertDownloadLinksAsync(
 }
 
 
-export async function AssertImageWidth(expectedWidth: number, metadata: sharp.Metadata) {
+export async function AssertImageWidth(expectedWidth: number, metadata: Metadata) {
   console.log('Downloaded file metadata:', metadata);
   expect(metadata.width).toEqual(expectedWidth);
 }
