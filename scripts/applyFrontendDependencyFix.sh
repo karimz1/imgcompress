@@ -33,8 +33,11 @@ echo "Root cause and manual recovery docs: $DOCS_URL"
 cd "$FRONTEND_DIR"
 
 PNPM_SPEC="$(node -p "require('./package.json').packageManager || 'pnpm@latest'")"
-if [[ "$PNPM_SPEC" != pnpm@* ]]; then
-  echo "frontend/package.json packageManager must be a pnpm spec, got: $PNPM_SPEC" >&2
+# corepack also accepts URL and git specs, which would let a package.json point
+# this at arbitrary code. Only a published version or dist-tag is allowed.
+PNPM_SPEC_PATTERN='^pnpm@(latest|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?(\+[0-9A-Za-z.]+)?)$'
+if [[ ! "$PNPM_SPEC" =~ $PNPM_SPEC_PATTERN ]]; then
+  echo "frontend/package.json packageManager must be pnpm@<version>, got: $PNPM_SPEC" >&2
   exit 1
 fi
 

@@ -94,14 +94,15 @@ jobs:
             echo "is_fork=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # refs/pull/N/merge is the PR branch already merged with the base branch,
-      # computed by GitHub. Using it instead of a local fetch-and-merge keeps this
-      # job free of any git identity or write operation.
-      - name: Checkout PR merge ref
+      # issue_comment and workflow_dispatch both run in the DEFAULT BRANCH context,
+      # so anything executed here writes to main's Actions cache scope. That makes
+      # checking out the PR ref a cache-poisoning vector even with no secrets in
+      # the job. So we never check out PR code: we check out main and pull the PR's
+      # manifests in as plain data.
+      - name: Checkout default branch
         if: steps.pr.outputs.is_fork != 'true'
         uses: actions/checkout@v7
         with:
-          ref: refs/pull/${{ steps.pr.outputs.number }}/merge
           persist-credentials: false
 
       - name: Set up Node
@@ -109,6 +110,42 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: "24"
+
+      # pnpm resolves the lockfile from the manifests alone, so these two files are
+      # all the PR content we need. They are written as data and never executed.
+      - name: Fetch PR manifests
+        if: steps.pr.outputs.is_fork != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          MERGE_REF: refs/pull/${{ steps.pr.outputs.number }}/merge
+        run: |
+          set -euo pipefail
+
+          fetch_manifest() {
+            local name="$1"
+            local target="frontend/${name}"
+            if gh api "repos/${REPOSITORY}/contents/frontend/${name}" \
+                 -f "ref=${MERGE_REF}" \
+                 -H "Accept: application/vnd.github.raw" > "${target}.pr" 2>/dev/null; then
+              mv "${target}.pr" "$target"
+              echo "Took frontend/${name} from the PR."
+            else
+              rm -f "${target}.pr"
+              if [[ -e "$target" ]]; then
+                rm -f "$target"
+                echo "frontend/${name} is absent in the PR; removed the main copy."
+              fi
+            fi
+          }
+
+          fetch_manifest package.json
+          fetch_manifest pnpm-workspace.yaml
+
+          if [[ ! -f frontend/package.json ]]; then
+            echo "::error::The PR has no frontend/package.json; nothing to regenerate."
+            exit 1
+          fi
 
       - name: Regenerate frontend pnpm lockfile
         if: steps.pr.outputs.is_fork != 'true'
