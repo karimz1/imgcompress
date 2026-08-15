@@ -6,6 +6,7 @@ export const APP_CONFIG = {
   // Documentation URLs
   DOCS_URL: "https://imgcompress.karimzouine.com",
   DOCS_WEB_UI_URL: "https://imgcompress.karimzouine.com/web-ui/",
+  DOCS_OFFLINE_PRIVACY: "https://imgcompress.karimzouine.com/docs/privacy#keeping-your-server-offline",
   DOCS_RELEASE_NOTES_URL: "https://imgcompress.karimzouine.com/release-notes/",
   DOCS_UPDATE_GUIDE_URL: "https://imgcompress.karimzouine.com/installation/#maintenance-updates",
 

@@ -1,6 +1,6 @@
 {
    "name": "Image Compressor DevContainer",
-   "image": "ghcr.io/karimz1/devcontainer-image-only-for-devs:2025-12",
+   "image": "ghcr.io/karimz1/devcontainer-image-only-for-devs:2026-07",
    /*
    // I use the cached / prebuild image version for better performance less cold start :) ^_^
    "build": {
