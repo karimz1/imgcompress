@@ -112,9 +112,31 @@ export const hi: TranslationSchema = {
       bySize: "फ़ाइल आकार से सेट करें",
     },
     rembg: {
-      label: "स्थानीय AI से बैकग्राउंड हटाएं ({{model}})",
+      label: "स्थानीय AI से बैकग्राउंड हटाएं",
       tooltip:
         "स्थानीय AI बैकग्राउंड हटाता है (इंटरनेट की ज़रूरत नहीं)।\nप्रोसेसिंग धीमी हो सकती है, किनारों पर छोटे आर्टिफैक्ट दिख सकते हैं।",
+    },
+    rembgModel: {
+      label: "AI मॉडल",
+      placeholder: "एक मॉडल चुनें",
+      tooltip:
+        "चुनें कि कौन-सा स्थानीय AI मॉडल बैकग्राउंड हटाता है।\nजनरल अधिकांश छवियों के लिए उपयुक्त है, ऐनिमे चित्रों के लिए ट्यून किया गया है, फ़ोटो वास्तविक फ़ोटोग्राफी के लिए।",
+      options: {
+        "u2net": "जनरल",
+        "isnet-anime": "ऐनिमे",
+        "isnet-general-use": "फ़ोटो",
+        "birefnet-portrait": "पोर्ट्रेट",
+        "birefnet-general": "अधिकतम गुणवत्ता",
+        "birefnet-general-lite": "उच्च गुणवत्ता",
+      },
+      descriptions: {
+        "u2net": "अधिकांश छवियों के लिए",
+        "isnet-anime": "साफ ऐनिमे कैरेक्टर मास्क",
+        "isnet-general-use": "वास्तविक फ़ोटोग्राफी",
+        "birefnet-portrait": "लोग और पोर्ट्रेट कटआउट",
+        "birefnet-general": "सबसे अच्छे विवरण और किनारे, सबसे धीमा",
+        "birefnet-general-lite": "विस्तृत किनारे, अधिकतम से तेज",
+      },
     },
     quality: {
       label: "गुणवत्ता",
@@ -168,6 +190,22 @@ export const hi: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI एडिटर",
+    editorDescription: "इस छवि के लिए स्थानीय AI मॉडल की तुलना करें।",
+    openButton: "AI तुलना",
+    editButton: "AI संपादित करें",
+    selectedBadge: "एआई: {{model}}",
+    loadingTitle: "AI मॉडल की तुलना हो रही है",
+    loadingDescription: "सभी AI मॉडल की तुलना में थोड़ा समय लग सकता है।",
+    useModel: "यह मॉडल उपयोग करें",
+    downloadSelected: "चयनित डाउनलोड करें",
+    downloadAll: "सब ZIP के रूप में डाउनलोड करें",
+    close: "बंद करें",
+    errorTitle: "AI तुलना विफल रही",
+    empty: "कोई पूर्वावलोकन उपलब्ध नहीं है।",
+    previewAlt: "{{model}} से बैकग्राउंड हटाने का पूर्वावलोकन",
+  },
   drawer: {
     trigger_one: "🗃️ कंप्रेस की गई इमेज दिखाएं",
     trigger_other: "🗃️ कंप्रेस की गई इमेज दिखाएं",

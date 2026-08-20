@@ -527,6 +527,19 @@ jobs:
             devcontainer:local-test \
             -c ". /venv/bin/activate && pytest tests/integration/test_unverified_formats_api.py -s --tb=short -ra"
 
+      - name: Run rembg model matrix API test (all baked models)
+        run: |
+          docker run --rm \
+            --platform linux/amd64 \
+            --entrypoint /bin/sh \
+            --network host \
+            -v "$(pwd):/app/" \
+            -e IMGCOMPRESS_API_BASE=http://localhost:5000 \
+            -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
+            --name devcontainer_rembg_models_api \
+            devcontainer:local-test \
+            -c ". /venv/bin/activate && pytest tests/integration/test_rembg_models_api.py -s --tb=short -ra"
+
       - name: Stop Application Container
         if: always()
         run: |

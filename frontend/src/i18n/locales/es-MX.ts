@@ -112,9 +112,31 @@ export const esMX: TranslationSchema = {
       bySize: "Definir por tamaño de archivo",
     },
     rembg: {
-      label: "Eliminar fondo con IA local ({{model}})",
+      label: "Eliminar fondo con IA local",
       tooltip:
         "La IA local elimina el fondo (no requiere internet).\nProcesamiento más lento; puede mostrar pequeños artefactos en los bordes.",
+    },
+    rembgModel: {
+      label: "Modelo de IA",
+      placeholder: "Selecciona un modelo",
+      tooltip:
+        "Elige qué modelo de IA local elimina el fondo.\nGeneral funciona para la mayoría de las imágenes, Anime está ajustado para dibujos, Fotos para fotografía real.",
+      options: {
+        "u2net": "General",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Fotos",
+        "birefnet-portrait": "Retratos",
+        "birefnet-general": "Máxima calidad",
+        "birefnet-general-lite": "Alta calidad",
+      },
+      descriptions: {
+        "u2net": "Para la mayoría de las imágenes",
+        "isnet-anime": "Máscaras limpias de personajes anime",
+        "isnet-general-use": "Fotografía real",
+        "birefnet-portrait": "Personas y retratos recortados",
+        "birefnet-general": "Mejor detalle y bordes, el más lento",
+        "birefnet-general-lite": "Bordes detallados, más rápido que máximo",
+      },
     },
     quality: {
       label: "Calidad",
@@ -168,6 +190,22 @@ export const esMX: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "Editor de IA",
+    editorDescription: "Compara modelos locales de IA para esta imagen.",
+    openButton: "Comparar IA",
+    editButton: "Editar IA",
+    selectedBadge: "IA: {{model}}",
+    loadingTitle: "Comparando modelos de IA",
+    loadingDescription: "Comparar todos los modelos de IA puede tardar un momento.",
+    useModel: "Usar este modelo",
+    downloadSelected: "Descargar seleccionado",
+    downloadAll: "Descargar todo como ZIP",
+    close: "Cerrar",
+    errorTitle: "Falló la comparación de IA",
+    empty: "No hay vista previa disponible.",
+    previewAlt: "Vista previa de eliminación de fondo con {{model}}",
+  },
   drawer: {
     trigger_one: "🗃️ Mostrar imagen comprimida",
     trigger_other: "🗃️ Mostrar imágenes comprimidas",

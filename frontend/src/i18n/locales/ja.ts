@@ -112,9 +112,31 @@ export const ja: TranslationSchema = {
       bySize: "ファイルサイズで設定",
     },
     rembg: {
-      label: "ローカル AI で背景を削除 ({{model}})",
+      label: "ローカル AI で背景を削除",
       tooltip:
         "ローカル AI が背景を削除します (インターネット不要)。\n処理は遅めで、輪郭に小さなアーティファクトが出る場合があります。",
+    },
+    rembgModel: {
+      label: "AI モデル",
+      placeholder: "モデルを選択",
+      tooltip:
+        "背景を削除するローカル AI モデルを選択します。\n汎用はほとんどの画像に適し、アニメはイラスト向けに調整、写真は実写向けです。",
+      options: {
+        "u2net": "汎用",
+        "isnet-anime": "アニメ",
+        "isnet-general-use": "写真",
+        "birefnet-portrait": "ポートレート",
+        "birefnet-general": "最高品質",
+        "birefnet-general-lite": "高品質",
+      },
+      descriptions: {
+        "u2net": "ほとんどの画像向け",
+        "isnet-anime": "きれいなアニメキャラクター用マスク",
+        "isnet-general-use": "実写向け",
+        "birefnet-portrait": "人物とポートレートの切り抜き",
+        "birefnet-general": "細部とエッジが最良、最も低速",
+        "birefnet-general-lite": "細かいエッジ、最高品質より高速",
+      },
     },
     quality: {
       label: "品質",
@@ -168,6 +190,22 @@ export const ja: TranslationSchema = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI エディター",
+    editorDescription: "この画像でローカル AI モデルを比較します。",
+    openButton: "AI 比較",
+    editButton: "AI 編集",
+    selectedBadge: "AI：{{model}}",
+    loadingTitle: "AI モデルを比較中",
+    loadingDescription: "すべての AI モデルの比較には少し時間がかかります。",
+    useModel: "このモデルを使う",
+    downloadSelected: "選択をダウンロード",
+    downloadAll: "すべて ZIP でダウンロード",
+    close: "閉じる",
+    errorTitle: "AI 比較に失敗しました",
+    empty: "プレビューはありません。",
+    previewAlt: "{{model}} による背景削除プレビュー",
+  },
   drawer: {
     trigger_one: "🗃️ 圧縮画像を表示",
     trigger_other: "🗃️ 圧縮画像を表示",

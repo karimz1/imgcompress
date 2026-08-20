@@ -109,9 +109,31 @@ export const en = {
       bySize: "Set by File Size",
     },
     rembg: {
-      label: "Remove background with local AI ({{model}})",
+      label: "Remove background with local AI",
       tooltip:
         "Local AI removes background (no internet required).\nSlower processing, may show small edge artifacts.",
+    },
+    rembgModel: {
+      label: "AI model",
+      placeholder: "Select a model",
+      tooltip:
+        "Choose which local AI model removes the background.\nUse BiRefNet for complex edges and fine detail; Anime is best for clean anime character masks.",
+      options: {
+        "u2net": "General",
+        "isnet-anime": "Anime",
+        "isnet-general-use": "Photos",
+        "birefnet-portrait": "Portraits",
+        "birefnet-general": "Max quality",
+        "birefnet-general-lite": "High quality",
+      },
+      descriptions: {
+        "u2net": "For most images",
+        "isnet-anime": "Clean anime character masks",
+        "isnet-general-use": "Real-world photography",
+        "birefnet-portrait": "People and portrait cutouts",
+        "birefnet-general": "Best detail and edges, slowest",
+        "birefnet-general-lite": "Detailed edges, faster than max",
+      },
     },
     quality: {
       label: "Quality",
@@ -165,6 +187,22 @@ export const en = {
     },
   },
 
+  rembgCompare: {
+    editorTitle: "AI editor",
+    editorDescription: "Compare local AI models for this image.",
+    openButton: "AI compare",
+    editButton: "AI edit",
+    selectedBadge: "AI: {{model}}",
+    loadingTitle: "Comparing AI models",
+    loadingDescription: "Comparing AI models can take a moment.",
+    useModel: "Use this model",
+    downloadSelected: "Download selected",
+    downloadAll: "Download all as ZIP",
+    close: "Close",
+    errorTitle: "AI comparison failed",
+    empty: "No preview available.",
+    previewAlt: "{{model}} background-removal preview",
+  },
   drawer: {
     trigger_one: "🗃️ Show Compressed Image",
     trigger_other: "🗃️ Show Compressed Images",

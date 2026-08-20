@@ -1,6 +1,7 @@
 """Unit tests for `extract_form_data` — verifies the typed DTO contract."""
 
 import io
+import json
 
 from werkzeug.datastructures import FileStorage
 from werkzeug.test import EnvironBuilder
@@ -43,6 +44,56 @@ def test_extract_form_data_returns_typed_dto():
     assert form_data.quality == 80
     assert form_data.width == 1024
     assert form_data.use_rembg is True
+    assert form_data.rembg_model_by_file == {}
+    # No explicit model -> resolves to the configured default.
+    assert form_data.rembg_model == "u2net"
+
+
+def test_extract_form_data_accepts_allowlisted_rembg_model():
+    request = _build_request(
+        {"format": "png", "use_rembg": "true", "rembg_model": "isnet-anime"},
+        {"files[]": (b"x", "image.png")},
+    )
+
+    form_data = extract_form_data(request, _Logger()).value
+
+    assert form_data.rembg_model == "isnet-anime"
+
+
+def test_extract_form_data_falls_back_when_rembg_model_unknown():
+    request = _build_request(
+        {"format": "png", "use_rembg": "true", "rembg_model": "totally-made-up"},
+        {"files[]": (b"x", "image.png")},
+    )
+
+    form_data = extract_form_data(request, _Logger()).value
+
+    assert form_data.rembg_model == "u2net"
+
+
+def test_extract_form_data_accepts_per_file_rembg_model_map():
+    request = _build_request(
+        {
+            "format": "png",
+            "use_rembg": "true",
+            "rembg_model_by_file": json.dumps(
+                {
+                    "first.png": "birefnet-general",
+                    "second.png": "isnet-anime",
+                    "bad.png": "not-real",
+                }
+            ),
+        },
+        {"files[]": (b"x", "first.png")},
+    )
+
+    form_data = extract_form_data(request, _Logger()).value
+
+    assert form_data.rembg_model_by_file == {
+        "first.png": "birefnet-general",
+        "second.png": "isnet-anime",
+        "bad.png": "u2net",
+    }
 
 
 def test_extract_form_data_rejects_unsupported_extensions():

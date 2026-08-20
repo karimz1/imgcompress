@@ -92,21 +92,34 @@ class CompressImagesUseCase:
                         else:
                             processed.append(dest_name)
                     else:
+                        model_for_file = None
+                        output_name_suffix = req.output_name_suffix
+                        use_rembg_for_file = req.use_rembg
+                        if req.use_rembg and req.rembg_model_by_file:
+                            model_for_file = req.rembg_model_by_file.get(item.name)
+                            use_rembg_for_file = bool(model_for_file)
+                            if model_for_file:
+                                output_name_suffix = model_for_file
                         converter = self.converter_factory.create_converter(
                             req.image_format,
                             req.quality,
                             self.logger,
-                            req.use_rembg,
+                            use_rembg_for_file,
                             pdf_preset=pdf_preset,
                             pdf_scale=pdf_scale,
                             pdf_margin_mm=pdf_margin_mm,
                             pdf_paginate=pdf_paginate,
+                            rembg_model=model_for_file or req.rembg_model,
                         )
                         # Tag the filename when the converter itself removed the
                         # background, so the suffix follows the actual behaviour
                         # regardless of which formats support rembg.
                         dest_name = self._build_dest_name(
-                            item.stem, new_ext, payload.page_index, converter.removes_background
+                            item.stem,
+                            new_ext,
+                            payload.page_index,
+                            converter.removes_background,
+                            output_name_suffix,
                         )
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         result = converter.convert(
@@ -133,10 +146,18 @@ class CompressImagesUseCase:
 
     @classmethod
     def _build_dest_name(
-        cls, stem: str, extension: str, page_index: Optional[int], background_removed: bool = False
+        cls,
+        stem: str,
+        extension: str,
+        page_index: Optional[int],
+        background_removed: bool = False,
+        output_name_suffix: Optional[str] = None,
     ) -> str:
-        if background_removed and not stem.endswith(cls._BG_REMOVED_SUFFIX):
-            stem = f"{stem}{cls._BG_REMOVED_SUFFIX}"
+        if background_removed:
+            if not stem.endswith(cls._BG_REMOVED_SUFFIX):
+                stem = f"{stem}{cls._BG_REMOVED_SUFFIX}"
+            if output_name_suffix:
+                stem = f"{stem}_{output_name_suffix}"
         if page_index is None:
             return stem + extension
         return f"{stem}_page-{page_index}{extension}"

@@ -81,7 +81,9 @@ function HomePageContent() {
   const {
     unsupportedExtensions: cropUnsupportedExtensions,
   } = useCropUnsupportedExtensions();
-  const { modelName: rembgModelName } = useRembgModel();
+  const {
+    availableModels: rembgAvailableModels,
+  } = useRembgModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -108,11 +110,12 @@ function HomePageContent() {
   const [pdfPaginate, setPdfPaginate] = useState(false);
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
-  const [useRembg, setUseRembg] = useState(false);
+  const [rembgModelByFile, setRembgModelByFile] = useState<Record<string, string>>({});
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [crops, setCrops] = useState<Record<string, CropConfig>>({});
   const [openCropFor, setOpenCropFor] = useState<string | null>(null);
+  const [openRembgCompareFor, setOpenRembgCompareFor] = useState<string | null>(null);
 
   const [fileManagerRefresh, setFileManagerRefresh] = useState(0);
   const abortControllerRef = React.useRef<AbortController | null>(null);
@@ -137,9 +140,6 @@ function HomePageContent() {
     if (outputFormat !== "jpeg" && outputFormat !== "avif") {
       setCompressionMode("quality");
       setTargetSizeMB("");
-    }
-    if (outputFormat !== "png" && outputFormat !== "avif") {
-      setUseRembg(false);
     }
     if (outputFormat !== "pdf") {
       setPdfPreset("original");
@@ -290,6 +290,17 @@ function HomePageContent() {
         return;
       }
 
+      const modelByUploadedFile: Record<string, string> = {};
+      files.forEach((file, index) => {
+        const selectedModel = rembgModelByFile[file.name];
+        const processedName = processedFiles[index]?.name;
+        if (!selectedModel) return;
+        modelByUploadedFile[file.name] = selectedModel;
+        if (processedName) {
+          modelByUploadedFile[processedName] = selectedModel;
+        }
+      });
+
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
       if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
@@ -315,8 +326,12 @@ function HomePageContent() {
           formData.append("target_size_kb", String(kb));
         }
       }
-      if ((outputFormat === "png" || outputFormat === "avif") && useRembg) {
+      if (
+        (outputFormat === "png" || outputFormat === "avif") &&
+        Object.keys(modelByUploadedFile).length > 0
+      ) {
         formData.append("use_rembg", "true");
+        formData.append("rembg_model_by_file", JSON.stringify(modelByUploadedFile));
       }
 
       try {
@@ -392,7 +407,7 @@ function HomePageContent() {
       setError,
       compressionMode,
       targetSizeMB,
-      useRembg,
+      rembgModelByFile,
       pdfPreset,
       pdfScale,
       pdfMarginMm,
@@ -405,6 +420,8 @@ function HomePageContent() {
     setFiles([]);
     setCrops({});
     setOpenCropFor(null);
+    setOpenRembgCompareFor(null);
+    setRembgModelByFile({});
     if (files.length > 0) {
       toast.info(t("page.toast.selectionCleared", { count: files.length }));
     }
@@ -412,6 +429,12 @@ function HomePageContent() {
 
   const removeFile = useCallback((fileName: string) => {
     setFiles((prev) => prev.filter((f) => f.name !== fileName));
+    setRembgModelByFile((prev) => {
+      if (!(fileName in prev)) return prev;
+      const next = { ...prev };
+      delete next[fileName];
+      return next;
+    });
     setCrops((prev) => {
       if (!(fileName in prev)) return prev;
       const next = { ...prev };
@@ -419,6 +442,19 @@ function HomePageContent() {
       return next;
     });
     setOpenCropFor((prev) => (prev === fileName ? null : prev));
+    setOpenRembgCompareFor((prev) => (prev === fileName ? null : prev));
+  }, []);
+
+  const setRembgModelForFile = useCallback((fileName: string, model: string | null) => {
+    setRembgModelByFile((prev) => {
+      if (!model) {
+        if (!(fileName in prev)) return prev;
+        const next = { ...prev };
+        delete next[fileName];
+        return next;
+      }
+      return { ...prev, [fileName]: model };
+    });
   }, []);
 
   const setCropForFile = useCallback((fileName: string, crop: CropConfig | null) => {
@@ -566,9 +602,11 @@ function HomePageContent() {
               setTargetSizeMB={setTargetSizeMB}
               compressionMode={compressionMode}
               setCompressionMode={setCompressionMode}
-              useRembg={useRembg}
-              setUseRembg={setUseRembg}
-              rembgModelName={rembgModelName}
+              rembgModelByFile={rembgModelByFile}
+              setRembgModelForFile={setRembgModelForFile}
+              openRembgCompareFor={openRembgCompareFor}
+              setOpenRembgCompareFor={setOpenRembgCompareFor}
+              rembgAvailableModels={rembgAvailableModels}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}
