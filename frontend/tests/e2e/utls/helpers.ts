@@ -5,6 +5,7 @@ import AdmZip, { IZipEntry } from 'adm-zip';
 import sharp, { type Metadata } from 'sharp';
 import { ImageFileDto } from './ImageFileDto';
 import { DownloadType } from './DownloadType';
+import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
 
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
@@ -327,15 +328,12 @@ export async function setPdfScaleAsync(page: Page, scaleLabel: string): Promise<
 }
 
 /**
- * Document quality presets, in ascending order. These are the wire values sent
- * as `pdf_quality`; the select and its options are addressed by data-testid, so
- * renaming the visible copy or running a non-English locale cannot break this.
+ * Selects a document quality preset. The trigger and the options are addressed by
+ * data-testid, so renaming the visible copy or running a non-English locale
+ * cannot break this. The preset union comes from the app source, so a new preset
+ * is a compile error here rather than a silently untested option.
  */
-export const PDF_QUALITY_KEYS = ['small', 'medium', 'high', 'ultra'] as const;
-
-export type PdfQualityKey = (typeof PDF_QUALITY_KEYS)[number];
-
-export async function setPdfQualityAsync(page: Page, quality: PdfQualityKey): Promise<void> {
+export async function setPdfQualityAsync(page: Page, quality: PdfQualityOption): Promise<void> {
   const trigger = page.locator(selectors.pdfQualitySelect);
   await expect(trigger).toBeVisible();
   await trigger.click();
