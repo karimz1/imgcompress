@@ -140,9 +140,11 @@ def render_table(findings: Sequence[Finding], max_rows: int = MAX_TABLE_ROWS) ->
 
 
 def render_counts(counts: dict[str, int]) -> list[str]:
-    present = [s for s in SEVERITIES if counts.get(s)]
-    if not present:
+    """One count row. The four graded severities always appear, so the row keeps
+    the same shape between runs; UNKNOWN only shows up when Trivy reports one."""
+    if not any(counts.get(s) for s in SEVERITIES):
         return []
+    present = [s for s in SEVERITIES if s != "UNKNOWN" or counts.get(s)]
     header = "| " + " | ".join(present) + " |"
     divider = "| " + " | ".join("---" for _ in present) + " |"
     values = "| " + " | ".join(str(counts[s]) for s in present) + " |"
@@ -206,8 +208,8 @@ def render_summary(
     lines.append(REMEDIATION_NOTE)
     lines.append("")
     lines.append(
-        "Every finding below has a fix available upstream; the scan runs with "
-        "`--ignore-unfixed`."
+        "Every finding listed above has a fix available upstream; the scan runs "
+        "with `--ignore-unfixed`."
     )
     return "\n".join(lines) + "\n"
 
