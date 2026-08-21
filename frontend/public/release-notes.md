@@ -1,6 +1,16 @@
 ## v0.9.0 — Nightly
 
+### Features
+
 - PDF export: New Document quality presets (96, 150, 220, or 300 DPI) let you trade image sharpness against file size. Images are now embedded as JPEG instead of full-resolution PNG, so a 9 MB photo exports to a few hundred KB instead of ~30 MB. Pick Low for email, Standard for reading on screen, High or Maximum for printing. [#802](https://github.com/karimz1/imgcompress/pull/802)
+
+### Security Patches
+
+This release also focuses on **important security fixes** to keep `imgcompress`secure and up to date with the latest CVE reports and security alerts from Docker Hub and GitHub.
+
+- [fix: close open Dependabot and CodeQL security alerts - #812](https://github.com/karimz1/imgcompress/pull/812)
+- [chore(docker): refresh 2 DHI base image digests (fixes CVE-2026-45447)](https://github.com/karimz1/imgcompress/pull/813)
+- [fix(docker): move the image to Python 3.14 and drop dead dependencies](https://github.com/karimz1/imgcompress/pull/818)
 
 
 ## v0.8.3 — 2026-07-01
