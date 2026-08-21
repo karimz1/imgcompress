@@ -87,6 +87,23 @@ export const fr: TranslationSchema = {
         mobileLandscape: "Mobile paysage (1920x1080)",
       },
     },
+    pdfQuality: {
+      label: "Qualité du document",
+      tooltip:
+        "Un nombre de ppp plus élevé rend les images plus nettes, mais alourdit aussi le fichier PDF.\nChoisissez un réglage plus bas pour un fichier léger à partager, plus haut pour imprimer.",
+      options: {
+        small: "Basse · 96 ppp",
+        medium: "Standard · 150 ppp",
+        high: "Haute · 220 ppp",
+        ultra: "Maximale · 300 ppp",
+      },
+      hints: {
+        small: "Fichier le plus léger. Idéal pour un envoi rapide par e-mail.",
+        medium: "Fichier léger. Parfait pour la lecture à l'écran.",
+        high: "Fichier plus lourd. Pour des impressions nettes.",
+        ultra: "Fichier le plus lourd. Netteté maximale pour l'archivage et l'impression professionnelle.",
+      },
+    },
     pdfScale: {
       label: "Mode de mise à l'échelle PDF",
       paginationHint: "La pagination utilise le mode Ajuster pour conserver toute la largeur.",

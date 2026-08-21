@@ -1,3 +1,8 @@
+## v0.9.0 — Nightly
+
+- PDF export: New Document quality presets (96, 150, 220, or 300 DPI) let you trade image sharpness against file size. Images are now embedded as JPEG instead of full-resolution PNG, so a 9 MB photo exports to a few hundred KB instead of ~30 MB. Pick Low for email, Standard for reading on screen, High or Maximum for printing. [#802](https://github.com/karimz1/imgcompress/pull/802)
+
+
 ## v0.8.3 — 2026-07-01
 
 - UI: Redesigned the per-file crop editor for mobile. [#737](https://github.com/karimz1/imgcompress/issues/737)

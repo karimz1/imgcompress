@@ -4,6 +4,7 @@ from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
 from backend.image_converter.core.factory.pdf_converter import PdfConverter
+from backend.image_converter.domain.pdf_quality import PdfQuality
 from ..interfaces.iconverter import IImageConverter
 from backend.image_converter.core.exceptions import ConversionError
 
@@ -20,6 +21,7 @@ class ImageConverterFactory:
         pdf_scale: str = "fit",
         pdf_margin_mm: float | None = None,
         pdf_paginate: bool = False,
+        pdf_quality: PdfQuality = PdfQuality.HIGH,
     ) -> IImageConverter:
         
         match (image_format, use_rembg):
@@ -51,6 +53,7 @@ class ImageConverterFactory:
                     pdf_scale=pdf_scale,
                     pdf_margin_mm=pdf_margin_mm,
                     pdf_paginate=pdf_paginate,
+                    pdf_quality=pdf_quality,
                 )
             
             case _:

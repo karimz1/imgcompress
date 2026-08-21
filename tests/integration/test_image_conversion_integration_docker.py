@@ -26,7 +26,10 @@ class TestDockerIntegration:
     DOCKERFILE_PATH = os.path.join(PROJECT_ROOT, "Dockerfile")
 
     SAMPLE_IMAGES_DIR = os.path.join(PROJECT_ROOT, "tests", "sample-images")
-    OUTPUT_DIR = os.path.join(PROJECT_ROOT, "tests", "output")
+    OUTPUT_DIR = os.environ.get(
+        "IMGCOMPRESS_TEST_OUTPUT_DIR",
+        os.path.join(PROJECT_ROOT, "tests", "output"),
+    )
     EXPECTED_IMAGE_WIDTH = 800
     DEVCONTAINER_NAME = "devcontainer"
 

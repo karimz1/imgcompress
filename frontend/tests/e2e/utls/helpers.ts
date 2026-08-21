@@ -5,6 +5,7 @@ import AdmZip, { IZipEntry } from 'adm-zip';
 import sharp, { type Metadata } from 'sharp';
 import { ImageFileDto } from './ImageFileDto';
 import { DownloadType } from './DownloadType';
+import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
 
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
@@ -22,6 +23,7 @@ const selectors = {
   outputFormatSelect: '#outputFormat',
   pdfPresetSelect: '#pdfPreset',
   pdfScaleSelect: '#pdfScale',
+  pdfQualitySelect: '[data-testid="pdf-quality-select"]',
   pdfMarginInput: '[data-testid="pdfMarginInput"]',
   pdfPaginateSwitch: '[data-testid="pdf-paginate-switch"]',
   storageManagementButton: '[data-testid="storage-management-btn"]',
@@ -321,6 +323,22 @@ export async function setPdfScaleAsync(page: Page, scaleLabel: string): Promise<
   const option = page.locator('[data-radix-collection-item][role="option"]', {
     hasText: new RegExp(scaleLabel, 'i'),
   });
+  await expect(option).toBeVisible();
+  await option.click();
+}
+
+/**
+ * Selects a document quality preset. The trigger and the options are addressed by
+ * data-testid, so renaming the visible copy or running a non-English locale
+ * cannot break this. The preset union comes from the app source, so a new preset
+ * is a compile error here rather than a silently untested option.
+ */
+export async function setPdfQualityAsync(page: Page, quality: PdfQualityOption): Promise<void> {
+  const trigger = page.locator(selectors.pdfQualitySelect);
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+
+  const option = page.locator(`[data-testid="pdf-quality-option-${quality}"]`);
   await expect(option).toBeVisible();
   await option.click();
 }

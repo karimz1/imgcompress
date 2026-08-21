@@ -39,6 +39,7 @@ import { useRembgModel } from "@/hooks/useRembgModel";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
+import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
 
 
 function HomePageContent() {
@@ -106,6 +107,7 @@ function HomePageContent() {
   const [pdfScale, setPdfScale] = useState("fit");
   const [pdfMarginMm, setPdfMarginMm] = useState("10");
   const [pdfPaginate, setPdfPaginate] = useState(false);
+  const [pdfQuality, setPdfQuality] = useState<PdfQualityOption>(DEFAULT_PDF_QUALITY);
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
@@ -146,6 +148,7 @@ function HomePageContent() {
       setPdfScale("fit");
       setPdfMarginMm("10");
       setPdfPaginate(false);
+      setPdfQuality(DEFAULT_PDF_QUALITY);
     }
     if (outputFormat) {
       setFormatRequired(false);
@@ -301,6 +304,7 @@ function HomePageContent() {
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
         formData.append("pdf_preset", pdfPreset);
+        formData.append("pdf_quality", pdfQuality);
         if (pdfPreset !== "original") {
           formData.append("pdf_scale", pdfScale);
           formData.append("pdf_margin_mm", pdfMarginMm || "10");
@@ -397,6 +401,7 @@ function HomePageContent() {
       pdfScale,
       pdfMarginMm,
       pdfPaginate,
+      pdfQuality,
       crops,
     ]
   );
@@ -554,6 +559,8 @@ function HomePageContent() {
               setPdfMarginMm={setPdfMarginMm}
               pdfPaginate={pdfPaginate}
               setPdfPaginate={setPdfPaginate}
+              pdfQuality={pdfQuality}
+              setPdfQuality={setPdfQuality}
               files={files}
               removeFile={removeFile}
               clearFileSelection={clearFileSelection}

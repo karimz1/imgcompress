@@ -20,6 +20,7 @@ from backend.image_converter.domain.pdf_presets import (
     resolve_pdf_preset,
     resolve_pdf_scale,
 )
+from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize, to_bytes
 
 
@@ -51,6 +52,7 @@ class CompressionService:
         pdf_scale = normalize_pdf_scale(form_data.pdf_scale)
         pdf_margin_mm = form_data.pdf_margin_mm
         pdf_paginate = form_data.pdf_paginate
+        pdf_quality = PdfQuality.default()
         if fmt == ImageFormat.PDF:
             preset_res = resolve_pdf_preset(pdf_preset)
             if not preset_res.is_successful:
@@ -58,6 +60,10 @@ class CompressionService:
             scale_res = resolve_pdf_scale(pdf_scale)
             if not scale_res.is_successful:
                 return Result.failure(scale_res.error)
+            quality_res = PdfQuality.from_string_result(form_data.pdf_quality)
+            if not quality_res.is_successful:
+                return Result.failure(quality_res.error)
+            pdf_quality = quality_res.value
             if preset_res.value.size is None:
                 pdf_preset = None
                 pdf_margin_mm = None
@@ -98,6 +104,7 @@ class CompressionService:
                 pdf_scale=pdf_scale,
                 pdf_margin_mm=pdf_margin_mm,
                 pdf_paginate=pdf_paginate,
+                pdf_quality=pdf_quality,
             )
 
             result = self.use_case.execute(req)

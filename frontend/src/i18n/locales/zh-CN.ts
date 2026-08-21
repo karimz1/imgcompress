@@ -87,6 +87,23 @@ export const zhCN: TranslationSchema = {
         mobileLandscape: "手机横向（1920x1080）",
       },
     },
+    pdfQuality: {
+      label: "文档质量",
+      tooltip:
+        "DPI 越高，图像越清晰，但 PDF 文件也越大。\n需要小文件便于分享时选择较低档位，需要打印时选择较高档位。",
+      options: {
+        small: "低 · 96 DPI",
+        medium: "标准 · 150 DPI",
+        high: "高 · 220 DPI",
+        ultra: "最高 · 300 DPI",
+      },
+      hints: {
+        small: "文件最小。最适合通过电子邮件快速发送。",
+        medium: "文件较小。适合在屏幕上阅读。",
+        high: "文件较大。适合打印清晰的文档。",
+        ultra: "文件最大。用于存档和专业印刷的最高清晰度。",
+      },
+    },
     pdfScale: {
       label: "PDF 缩放模式",
       paginationHint: "分页使用适应模式以保留完整宽度。",

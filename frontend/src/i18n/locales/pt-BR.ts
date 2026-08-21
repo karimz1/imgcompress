@@ -87,6 +87,23 @@ export const ptBR: TranslationSchema = {
         mobileLandscape: "Celular paisagem (1920x1080)",
       },
     },
+    pdfQuality: {
+      label: "Qualidade do documento",
+      tooltip:
+        "Um DPI mais alto deixa as imagens mais nítidas, mas também aumenta o tamanho do PDF.\nEscolha um ajuste menor quando precisar de um arquivo pequeno para compartilhar e um maior quando for imprimir.",
+      options: {
+        small: "Baixa · 96 DPI",
+        medium: "Padrão · 150 DPI",
+        high: "Alta · 220 DPI",
+        ultra: "Máxima · 300 DPI",
+      },
+      hints: {
+        small: "Arquivo menor. Ideal para enviar rapidamente por e-mail.",
+        medium: "Arquivo pequeno. Perfeita para leitura na tela.",
+        high: "Arquivo maior. Para impressões nítidas.",
+        ultra: "Arquivo maior de todos. Nitidez máxima para arquivamento e impressão profissional.",
+      },
+    },
     pdfScale: {
       label: "Modo de escala PDF",
       paginationHint: "A paginação usa o modo Ajustar para preservar a largura total.",

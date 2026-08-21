@@ -87,6 +87,23 @@ export const hu: TranslationSchema = {
         mobileLandscape: "Mobil fekvő (1920x1080)",
       },
     },
+    pdfQuality: {
+      label: "Dokumentum minősége",
+      tooltip:
+        "A magasabb DPI élesebb képeket ad, de a PDF-fájl is nagyobb lesz.\nVálasszon alacsonyabb beállítást, ha kis fájlra van szüksége a megosztáshoz, és magasabbat, ha nyomtatni szeretne.",
+      options: {
+        small: "Alacsony · 96 DPI",
+        medium: "Normál · 150 DPI",
+        high: "Magas · 220 DPI",
+        ultra: "Maximális · 300 DPI",
+      },
+      hints: {
+        small: "A legkisebb fájl. Ideális gyors e-mailes küldéshez.",
+        medium: "Kis fájl. Képernyőn való olvasáshoz a legjobb.",
+        high: "Nagyobb fájl. Éles nyomtatáshoz.",
+        ultra: "A legnagyobb fájl. Maximális élesség archiváláshoz és professzionális nyomtatáshoz.",
+      },
+    },
     pdfScale: {
       label: "PDF méretezési mód",
       paginationHint: "Oldalazáskor az Illesztés mód marad aktív, hogy a teljes szélesség megmaradjon.",

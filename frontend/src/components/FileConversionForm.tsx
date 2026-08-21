@@ -2,6 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  PDF_QUALITY_OPTIONS,
+  toPdfQualityOption,
+  type PdfQualityOption,
+} from "@/lib/pdfQuality";
 import { useDropzone } from "react-dropzone";
 import { Crop as CropIcon, Info, Loader2, Trash, X } from "lucide-react";
 import { useMountedTheme } from "@/hooks/useMountedTheme";
@@ -47,6 +52,8 @@ interface FileConversionFormProps {
   setPdfMarginMm: (val: string) => void;
   pdfPaginate: boolean;
   setPdfPaginate: (val: boolean) => void;
+  pdfQuality: PdfQualityOption;
+  setPdfQuality: (val: PdfQualityOption) => void;
   files: File[];
   removeFile: (name: string) => void;
   clearFileSelection: () => void;
@@ -101,6 +108,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setPdfMarginMm,
   pdfPaginate,
   setPdfPaginate,
+  pdfQuality,
+  setPdfQuality,
   files,
   removeFile,
   clearFileSelection,
@@ -134,6 +143,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const tooltipContent = {
     outputFormat: t("form.outputFormat.tooltip"),
     pdfPreset: t("form.pdfPreset.tooltip"),
+    pdfQuality: t("form.pdfQuality.tooltip"),
     pdfScale: t("form.pdfScale.tooltip"),
     pdfMargin: t("form.pdfMargin.tooltip"),
     pdfPaginate: t("form.pdfPaginate.tooltip"),
@@ -421,6 +431,51 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </p>
         )}
       </div>
+
+      {outputFormat === "pdf" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="pdfQuality" className="text-sm">
+              {t("form.pdfQuality.label")}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+              >
+                {tooltipContent.pdfQuality}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Select
+            value={pdfQuality}
+            onValueChange={(value) => setPdfQuality(toPdfQualityOption(value))}
+          >
+            <SelectTrigger id="pdfQuality" data-testid="pdf-quality-select" className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className={selectSurface}>
+              {PDF_QUALITY_OPTIONS.map((option) => (
+                <SelectItem
+                  key={option}
+                  value={option}
+                  data-testid={`pdf-quality-option-${option}`}
+                >
+                  {t(`form.pdfQuality.options.${option}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p data-testid="pdf-quality-hint" className={cn("text-xs", subtleText)}>
+            {t(`form.pdfQuality.hints.${pdfQuality}`)}
+          </p>
+        </div>
+      )}
 
       {outputFormat === "pdf" && (
         <div className="space-y-1">
