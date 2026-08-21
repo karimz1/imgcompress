@@ -461,7 +461,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             </SelectTrigger>
             <SelectContent className={selectSurface}>
               {PDF_QUALITY_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option}>
+                <SelectItem
+                  key={option}
+                  value={option}
+                  data-testid={`pdf-quality-option-${option}`}
+                >
                   {t(`form.pdfQuality.options.${option}`)}
                 </SelectItem>
               ))}

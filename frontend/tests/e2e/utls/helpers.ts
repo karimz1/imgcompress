@@ -22,6 +22,7 @@ const selectors = {
   outputFormatSelect: '#outputFormat',
   pdfPresetSelect: '#pdfPreset',
   pdfScaleSelect: '#pdfScale',
+  pdfQualitySelect: '[data-testid="pdf-quality-select"]',
   pdfMarginInput: '[data-testid="pdfMarginInput"]',
   pdfPaginateSwitch: '[data-testid="pdf-paginate-switch"]',
   storageManagementButton: '[data-testid="storage-management-btn"]',
@@ -321,6 +322,25 @@ export async function setPdfScaleAsync(page: Page, scaleLabel: string): Promise<
   const option = page.locator('[data-radix-collection-item][role="option"]', {
     hasText: new RegExp(scaleLabel, 'i'),
   });
+  await expect(option).toBeVisible();
+  await option.click();
+}
+
+/**
+ * Document quality presets, in ascending order. These are the wire values sent
+ * as `pdf_quality`; the select and its options are addressed by data-testid, so
+ * renaming the visible copy or running a non-English locale cannot break this.
+ */
+export const PDF_QUALITY_KEYS = ['small', 'medium', 'high', 'ultra'] as const;
+
+export type PdfQualityKey = (typeof PDF_QUALITY_KEYS)[number];
+
+export async function setPdfQualityAsync(page: Page, quality: PdfQualityKey): Promise<void> {
+  const trigger = page.locator(selectors.pdfQualitySelect);
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+
+  const option = page.locator(`[data-testid="pdf-quality-option-${quality}"]`);
   await expect(option).toBeVisible();
   await option.click();
 }
