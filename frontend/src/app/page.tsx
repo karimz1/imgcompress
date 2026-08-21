@@ -39,6 +39,7 @@ import { useRembgModel } from "@/hooks/useRembgModel";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
+import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
 
 
 function HomePageContent() {
@@ -106,7 +107,7 @@ function HomePageContent() {
   const [pdfScale, setPdfScale] = useState("fit");
   const [pdfMarginMm, setPdfMarginMm] = useState("10");
   const [pdfPaginate, setPdfPaginate] = useState(false);
-  const [pdfQuality, setPdfQuality] = useState("high");
+  const [pdfQuality, setPdfQuality] = useState<PdfQualityOption>(DEFAULT_PDF_QUALITY);
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
@@ -147,7 +148,7 @@ function HomePageContent() {
       setPdfScale("fit");
       setPdfMarginMm("10");
       setPdfPaginate(false);
-      setPdfQuality("high");
+      setPdfQuality(DEFAULT_PDF_QUALITY);
     }
     if (outputFormat) {
       setFormatRequired(false);

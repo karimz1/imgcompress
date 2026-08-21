@@ -85,6 +85,23 @@ export const en = {
         mobileLandscape: "Mobile Landscape (1920x1080)",
       },
     },
+    pdfQuality: {
+      label: "Document quality",
+      tooltip:
+        "A higher DPI makes images sharper but also makes the PDF file bigger.\nPick a lower setting when you need a small file to share, a higher one when you plan to print.",
+      options: {
+        small: "Low · 96 DPI",
+        medium: "Standard · 150 DPI",
+        high: "High · 220 DPI",
+        ultra: "Maximum · 300 DPI",
+      },
+      hints: {
+        small: "Smallest file. Best for sending quickly by email.",
+        medium: "Small file. Ideal for reading on screen.",
+        high: "Bigger file. For crisp printouts.",
+        ultra: "Biggest file. Maximum sharpness for archiving and professional printing.",
+      },
+    },
     pdfScale: {
       label: "PDF Scale Mode",
       paginationHint: "Pagination uses Fit mode to preserve full width.",

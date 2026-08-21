@@ -87,6 +87,23 @@ export const esMX: TranslationSchema = {
         mobileLandscape: "Móvil horizontal (1920x1080)",
       },
     },
+    pdfQuality: {
+      label: "Calidad del documento",
+      tooltip:
+        "Un DPI más alto hace que las imágenes se vean más nítidas, pero también aumenta el tamaño del PDF.\nElige un ajuste bajo si necesitas un archivo pequeño para compartir y uno alto si vas a imprimir.",
+      options: {
+        small: "Baja · 96 DPI",
+        medium: "Estándar · 150 DPI",
+        high: "Alta · 220 DPI",
+        ultra: "Máxima · 300 DPI",
+      },
+      hints: {
+        small: "Archivo más pequeño. Ideal para enviar rápido por correo electrónico.",
+        medium: "Archivo pequeño. Perfecta para leer en pantalla.",
+        high: "Archivo más grande. Para impresiones nítidas.",
+        ultra: "Archivo más grande de todos. Máxima nitidez para archivo e impresión profesional.",
+      },
+    },
     pdfScale: {
       label: "Modo de escala PDF",
       paginationHint: "La paginación usa el modo Ajustar para conservar todo el ancho.",

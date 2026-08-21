@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 from werkzeug.datastructures import FileStorage
 
 from backend.image_converter.core.enums.image_format import ImageFormat
+from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize
 
 
@@ -23,7 +24,7 @@ class CompressRequest:
     pdf_scale: str = "fit"
     pdf_margin_mm: Optional[float] = None
     pdf_paginate: bool = False
-    pdf_quality: str = "high"
+    pdf_quality: PdfQuality = PdfQuality.HIGH
 
 
 @dataclass

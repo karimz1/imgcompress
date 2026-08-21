@@ -7,7 +7,7 @@ from fpdf import FPDF
 from backend.image_converter.core.interfaces.base_converter import BaseImageConverter
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.domain.pdf_presets import PdfPreset
-from backend.image_converter.domain.pdf_quality import resolve_pdf_quality
+from backend.image_converter.domain.pdf_quality import PdfQuality
 
 
 def _normalize_for_pdf(img: Image.Image) -> Image.Image:
@@ -37,17 +37,14 @@ class PdfConverter(BaseImageConverter):
         pdf_scale: str = "fit",
         pdf_margin_mm: float | None = None,
         pdf_paginate: bool = False,
-        pdf_quality: str = "high",
+        pdf_quality: PdfQuality = PdfQuality.HIGH,
     ):
         super().__init__(logger)
         self.pdf_preset = pdf_preset
         self.pdf_scale = pdf_scale
         self.pdf_margin_mm = pdf_margin_mm
         self.pdf_paginate = pdf_paginate
-        quality_result = resolve_pdf_quality(pdf_quality)
-        if not quality_result.is_successful:
-            raise ValueError(quality_result.error)
-        self.quality = quality_result.value
+        self.quality = pdf_quality.preset
 
     def encode_to_bytes(self, image_data: bytes) -> bytes:
         with Image.open(BytesIO(image_data)) as img:

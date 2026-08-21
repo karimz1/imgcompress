@@ -3,6 +3,7 @@ import traceback
 from backend.image_converter.presentation.cli.argument_parser import parse_arguments
 from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.enums.image_format import ImageFormat
+from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.infrastructure.logger import Logger
 
 def main(argv=None):
@@ -40,7 +41,7 @@ def main(argv=None):
             pdf_scale=pdf_scale,
             pdf_margin_mm=pdf_margin_mm,
             pdf_paginate=pdf_paginate,
-            pdf_quality="high",
+            pdf_quality=PdfQuality.default(),
             use_rembg=args.remove_background,
             debug=args.debug,
             json_output=args.json_output

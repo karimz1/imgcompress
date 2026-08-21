@@ -87,6 +87,23 @@ export const de: TranslationSchema = {
         mobileLandscape: "Mobil Querformat (1920x1080)",
       },
     },
+    pdfQuality: {
+      label: "Dokumentenqualität",
+      tooltip:
+        "Ein höherer DPI-Wert macht die Bilder schärfer, aber die PDF-Datei auch größer.\nWählen Sie eine niedrigere Stufe für kleine Dateien zum Teilen und eine höhere zum Drucken.",
+      options: {
+        small: "Niedrig · 96 DPI",
+        medium: "Normal · 150 DPI",
+        high: "Hoch · 220 DPI",
+        ultra: "Maximal · 300 DPI",
+      },
+      hints: {
+        small: "Kleinste Datei. Perfekt für den schnellen E-Mail-Versand.",
+        medium: "Kleine Datei. Optimal für das Lesen am Bildschirm.",
+        high: "Größere Datei. Für gestochen scharfe Ausdrucke.",
+        ultra: "Größte Datei. Maximale Schärfe für Archiv und professionellen Druck.",
+      },
+    },
     pdfScale: {
       label: "PDF-Skalierungsmodus",
       paginationHint: "Die Seitenteilung verwendet den Modus Einpassen, damit die volle Breite erhalten bleibt.",

@@ -87,6 +87,23 @@ export const ja: TranslationSchema = {
         mobileLandscape: "モバイル横 (1920x1080)",
       },
     },
+    pdfQuality: {
+      label: "ドキュメントの品質",
+      tooltip:
+        "DPI が高いほど画像は鮮明になりますが、PDF のファイルサイズも大きくなります。\n共有用に小さなファイルが必要なときは低い設定を、印刷するときは高い設定を選んでください。",
+      options: {
+        small: "低 · 96 DPI",
+        medium: "標準 · 150 DPI",
+        high: "高 · 220 DPI",
+        ultra: "最高 · 300 DPI",
+      },
+      hints: {
+        small: "最小のファイルサイズ。メールで素早く送るのに最適です。",
+        medium: "小さいファイルサイズ。画面で読むのに最適です。",
+        high: "大きめのファイルサイズ。くっきりとした印刷向けです。",
+        ultra: "最大のファイルサイズ。保存や商業印刷に適した最高の精細さです。",
+      },
+    },
     pdfScale: {
       label: "PDF スケールモード",
       paginationHint: "ページ分割では全幅を保つためにフィットモードを使用します。",

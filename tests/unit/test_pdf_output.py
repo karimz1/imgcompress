@@ -6,6 +6,7 @@ import pypdfium2
 from backend.image_converter.core.factory.pdf_converter import PdfConverter
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.domain.pdf_presets import resolve_pdf_preset
+from backend.image_converter.domain.pdf_quality import PdfQuality
 
 
 def _make_png_bytes() -> bytes:
@@ -88,8 +89,8 @@ def test_When_UsingSmallPdfQuality_Expect_SmallerOutputThanUltra():
     preset = resolve_pdf_preset("a4-portrait").value
     logger = Logger(debug=False, json_output=False)
 
-    small = PdfConverter(logger, preset, pdf_quality="small").encode_to_bytes(image_data)
-    ultra = PdfConverter(logger, preset, pdf_quality="ultra").encode_to_bytes(image_data)
+    small = PdfConverter(logger, preset, pdf_quality=PdfQuality.SMALL).encode_to_bytes(image_data)
+    ultra = PdfConverter(logger, preset, pdf_quality=PdfQuality.ULTRA).encode_to_bytes(image_data)
 
     assert small.startswith(b"%PDF")
     assert len(small) < len(ultra)
