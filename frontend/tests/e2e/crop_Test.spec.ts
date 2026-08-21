@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import path from 'path';
-import sharp from 'sharp';
+import sharp, { type Metadata } from 'sharp';
 import {
   assertFilesPresentInDropzoneAsync,
   clickConversionButtonAsync,
@@ -228,7 +228,7 @@ test('crop is applied to the converted output and filename carries _cropped suff
 
   const downloads = await downloadFilesAndGetMetadataAsync(page, downloadLinks);
   expect(downloads.length).toBe(1);
-  const meta: sharp.Metadata = downloads[0].metadata;
+  const meta: Metadata = downloads[0].metadata;
   expect(meta.width).toBe(400);
   expect(meta.height).toBe(300);
   const downloadedName = path.basename(downloads[0].newFilePath);

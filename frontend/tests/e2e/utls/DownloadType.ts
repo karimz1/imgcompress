@@ -1,6 +1,6 @@
-import sharp from "sharp";
+import type { Metadata } from "sharp";
 
 export type DownloadType = {
-  newFilePath: string; 
-  metadata: sharp.Metadata
+  newFilePath: string;
+  metadata: Metadata
 }

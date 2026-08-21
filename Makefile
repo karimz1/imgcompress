@@ -36,7 +36,7 @@ scan: build-local
 deploy-local: lint
 	PORT_HOST=8080 NO_CACHE=true ./scripts/runLocalDockerBuildTester.sh
 
-deploy-local-dev-mode: lint 
+deploy-local-dev-mode: 
 	PORT_HOST=8080 \
 	NO_CACHE=false \
 	DEV_MODE=true \

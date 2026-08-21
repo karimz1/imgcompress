@@ -5,6 +5,7 @@ import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useInternetHealth } from "@/hooks/useInternetHealth";
 import { Network, X } from "lucide-react";
 import { useState } from "react";
+import { APP_CONFIG } from "@/lib/config"
 
 export function BackendStatusFloating() {
   const { t } = useTranslation();
@@ -83,7 +84,7 @@ export function BackendStatusFloating() {
             </p>
 
             <a
-              href="https://imgcompress.karimzouine.com/web-ui/#high-security-offline-usage"
+              href={APP_CONFIG.DOCS_OFFLINE_PRIVACY}
               target="_blank"
               rel="noopener noreferrer"
               className="underline opacity-80 hover:opacity-100 inline-block"

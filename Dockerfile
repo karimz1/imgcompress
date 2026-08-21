@@ -26,17 +26,16 @@ RUN pnpm run build
 
 # The built static files are in /app/frontend/out/
 
-
 # Stage 2: PYTHON BACKEND BUILD
 # ------------------------------------------------------------------------------------------
 # Intent: Fallback to debian-base:trixie-debian13-dev because dhi.io/python:3.11-debian13 is 
 # currently affected by CVE-2026-6100 (CVSS 9.1) without an upstream patch.
 # Ref: https://scout.docker.com/vulnerabilities/id/CVE-2026-6100
-FROM dhi.io/debian-base:trixie-debian13-dev@sha256:41cc0e62bbb3b8cbb29deb40c987e55577cf98c4d00ede32b40159a1a4d87565 AS backend-build-stage
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:49803d7b8ccb129d9c89181dd67df7adad74fc344e3928a4c461c2914ea14dd4 AS backend-build-stage
 
 # Use 'uv' for high-performance Python package management instead of standard pip.
 # Ref: https://github.com/astral-sh/uv
-COPY --from=dhi.io/uv:0.11.18-debian13@sha256:be1c2d5905075a57885f83a04f4f64eab0d4b99c4695803d9a707a7fd448152d /uv /uvx /bin/
+COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
 
 # 🧩 Install system dependencies required for full Pillow image format support
 #
@@ -115,10 +114,21 @@ ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Setup standalone Python managed by uv to avoid missing python in final stage.
 # This standalone python is statically built and does not depend on OS libraries.
+#
+# Pinned to 3.14 rather than 3.11. Beyond being current, the standalone builds
+# from 3.12 onwards no longer bundle setuptools and ship a patched pip, which is
+# what removes the last vulnerabilities from the image:
+#
+#   3.11  pip 26.1.1 (CVE-2026-8643)  setuptools 82.0.1 (CVE-2026-59890)
+#   3.14  pip 26.1.2                  setuptools not shipped
+#
+# Neither package is reachable at runtime in any case, since the venv is created
+# without system site-packages, but the scanner reports what is present on disk.
 ENV UV_PYTHON_INSTALL_DIR=/container/python
+ENV PYTHON_VERSION=3.14
 RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
-    uv python install 3.11 && \
-    uv venv --python 3.11 $VIRTUAL_ENV
+    uv python install "$PYTHON_VERSION" && \
+    uv venv --python "$PYTHON_VERSION" $VIRTUAL_ENV
 
 WORKDIR /container
 
@@ -154,10 +164,9 @@ COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 # to avoid permission issues when copying frontend assets.
 RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
-
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
-FROM dhi.io/debian-base:trixie-debian13@sha256:436787c2d77ed1ef1cfe3ce5848f3968244d8948463a29094e1e672da9a6fa24 AS final-stage
+FROM dhi.io/debian-base:trixie-debian13@sha256:014bacad6433af5bc9bd098ac713c4f104f9b395dd1d9d58bbcafd51ad2ce582 AS final-stage
 
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import path from 'path';
-import sharp from 'sharp';
+import sharp, { type Metadata } from 'sharp';
 import {
   bootCropPageAsync,
   CROP_FIXTURES,
@@ -37,7 +37,7 @@ test('crop runs first: PSD round-trip through backend bitmap render + compress',
   ).toBe(true);
 
   const downloads = await downloadFilesAndGetMetadataAsync(page, downloadLinks);
-  const meta: sharp.Metadata = downloads[0].metadata;
+  const meta: Metadata = downloads[0].metadata;
   expect(meta.format).toBe('png');
   expect(meta.width).toBe(480);
   expect(meta.height).toBe(270);
