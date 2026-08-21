@@ -7,7 +7,7 @@ granian>=2.8.1
 pillow_heif==1.5.0
 pypdfium2==5.12.1
 
-psd-tools==1.17.4
+psd-tools==1.18.0
 rembg==2.0.75
 onnxruntime==1.26.0
 fpdf2==2.8.8
