@@ -1,3 +1,8 @@
+## v0.9.0 — Nightly
+
+- Enhance PDF Export allow Quality Preset for optimal Filesize - [#802](https://github.com/karimz1/imgcompress/pull/802)
+
+
 ## v0.8.3 — 2026-07-01
 
 - UI: Redesigned the per-file crop editor for mobile. [#737](https://github.com/karimz1/imgcompress/issues/737)
