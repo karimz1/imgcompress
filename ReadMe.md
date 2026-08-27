@@ -35,11 +35,18 @@
   </p>
 
   <p>
+    <a href="https://buymeacoffee.com/karimz1">
+      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="41" />
+    </a>
+  </p>
+
+  <p>
     <a href="https://imgcompress.karimzouine.com/">Website</a> ·
     <a href="https://imgcompress.karimzouine.com/docs">Docs</a> ·
     <a href="https://imgcompress.karimzouine.com/docs/installation">Installation Guide</a> ·
     <a href="https://hub.docker.com/r/karimz1/imgcompress">Docker Hub</a> ·
-    <a href="https://github.com/karimz1/imgcompress/issues">Issues</a>
+    <a href="https://github.com/karimz1/imgcompress/issues">Issues</a> ·
+    <a href="https://buymeacoffee.com/karimz1">Buy Me a Coffee</a>
   </p>
 
   <br />

@@ -21,4 +21,4 @@ I maintain the full technical documentation on my main site to ensure it is alwa
 * **[E2E Testing with Playwright →](https://imgcompress.karimzouine.com/docs/e2e)**: How we verify 100% offline stability across all 70+ formats. This guide covers interactive UI debugging, step-by-step trace viewing, and simulating the full CI pipeline to ensure your changes are production-ready.
 
 ---
-**Love the tool?** [Give it a star on GitHub](https://github.com/karimz1/imgcompress)! It’s the best way to support independent, open-source development.
+**Love the tool?** [Give it a star on GitHub](https://github.com/karimz1/imgcompress)! It’s the best way to support independent, open-source development. If it saved you real time, you can also [buy me a coffee](https://buymeacoffee.com/karimz1).
