@@ -37,7 +37,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-dropzone": "^20.1.0",
-    "react-i18next": "^17.0.11",
+    "react-i18next": "^17.0.12",
     "react-toastify": "^11.1.0",
     "semver": "^7.8.5",
     "sharp": "^0.35.3",
