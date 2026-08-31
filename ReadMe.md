@@ -17,7 +17,7 @@
     <a href="https://hub.docker.com/r/karimz1/imgcompress">
       <img src="https://img.shields.io/docker/pulls/karimz1/imgcompress?style=flat-square&color=0db7ed&label=Docker%20Pulls&logo=docker&logoColor=white" alt="Docker Pulls" />
     </a>
-    <a href="https://github.com/karimz1/imgcompress/stargazers">
+    <a href="https://github.com/karimz1/imgcompress">
       <img src="https://img.shields.io/github/stars/karimz1/imgcompress?style=flat-square&color=f4d03f&label=Stars&logo=github&logoColor=black" alt="GitHub Stars" />
     </a>
   </p>
