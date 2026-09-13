@@ -20,7 +20,12 @@
     <a href="https://github.com/karimz1/imgcompress">
       <img src="https://img.shields.io/github/stars/karimz1/imgcompress?style=flat-square&color=f4d03f&label=Stars&logo=github&logoColor=black" alt="GitHub Stars" />
     </a>
+    <a href="./TRANSLATIONS.md">
+      <img src="https://img.shields.io/badge/Multi--language-12%20locales-16a34a?style=flat-square&logo=googletranslate&logoColor=white" alt="Multi-language support: 12 locales" />
+    </a>
   </p>
+  
+<p><strong>Featured &amp; Listed on</strong></p>
 
  <p>
   <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#readme">
@@ -29,15 +34,16 @@
   <a href="https://coolify.io/docs/services/imgcompress?utm_source=github.com">
     <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as official Coolify service" />
   </a>
-  <a href="https://alternativeto.net/software/imgcompress/about/?utm_source=badge&utm_medium=referral">
+  <a href="https://alternativeto.net/software/imgcompress/about">
     <img src="https://img.shields.io/badge/AlternativeTo-Listed-1e40af?style=flat-square" alt="Listed on AlternativeTo" />
   </a>
   <a href="https://selfhostedworld.com/software/imgcompress">
     <img src="https://img.shields.io/badge/SelfHostedWorld-Listed-1e40af?style=flat-square" alt="ImgCompress listed on SelfHostedWorld" />
   </a>
-  <a href="./TRANSLATIONS.md">
-    <img src="https://img.shields.io/badge/Multi--language-12%20locales-16a34a?style=flat-square&logo=googletranslate&logoColor=white" alt="Multi-language support: 12 locales" />
+  <a href="https://www.pitchhut.com/project/imgcompress-toolbox">
+    <img src="https://img.shields.io/badge/pitchhut-Listed-1e40af?style=flat-square" alt="ImgCompress listed on pitchhut" />
   </a>
+
 </p>
 
 ---
