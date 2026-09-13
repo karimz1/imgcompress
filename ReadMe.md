@@ -30,10 +30,10 @@
     <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as official Coolify service" />
   </a>
   <a href="https://alternativeto.net/software/imgcompress/about/?utm_source=badge&utm_medium=referral">
-    <img src="https://img.shields.io/badge/AlternativeTo-Listed-EA3F3F?style=flat-square" alt="Listed on AlternativeTo" />
+    <img src="https://img.shields.io/badge/AlternativeTo-Listed-1e40af?style=flat-square" alt="Listed on AlternativeTo" />
   </a>
   <a href="https://selfhostedworld.com/software/imgcompress">
-    <img src="https://img.shields.io/badge/SelfHostedWorld-Listed-0f172a?style=flat-square" alt="ImgCompress listed on SelfHostedWorld" />
+    <img src="https://img.shields.io/badge/SelfHostedWorld-Listed-1e40af?style=flat-square" alt="ImgCompress listed on SelfHostedWorld" />
   </a>
   <a href="./TRANSLATIONS.md">
     <img src="https://img.shields.io/badge/Multi--language-12%20locales-16a34a?style=flat-square&logo=googletranslate&logoColor=white" alt="Multi-language support: 12 locales" />
