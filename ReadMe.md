@@ -22,17 +22,25 @@
     </a>
   </p>
 
-  <p>
-    <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#readme">
-      <img src="https://awesome.re/mentioned-badge-flat.svg" alt="Mentioned in Awesome Self-Hosted" />
-    </a>
-    <a href="https://coolify.io/docs/services/imgcompress?utm_source=github.com">
-      <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as official Coolify service" />
-    </a>
-    <a href="./TRANSLATIONS.md">
-      <img src="https://img.shields.io/badge/Multi--language-12%20locales-16a34a?style=flat-square&logo=googletranslate&logoColor=white" alt="Multi-language support: 12 locales" />
-    </a>
-  </p>
+ <p>
+  <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#readme">
+    <img src="https://awesome.re/mentioned-badge-flat.svg" alt="Mentioned in Awesome Self-Hosted" />
+  </a>
+  <a href="https://coolify.io/docs/services/imgcompress?utm_source=github.com">
+    <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as official Coolify service" />
+  </a>
+  <a href="https://alternativeto.net/software/imgcompress/about/?utm_source=badge&utm_medium=referral">
+    <img src="https://img.shields.io/badge/AlternativeTo-Listed-EA3F3F?style=flat-square" alt="Listed on AlternativeTo" />
+  </a>
+  <a href="https://selfhostedworld.com/software/imgcompress">
+    <img src="https://img.shields.io/badge/SelfHostedWorld-Listed-0f172a?style=flat-square" alt="ImgCompress listed on SelfHostedWorld" />
+  </a>
+  <a href="./TRANSLATIONS.md">
+    <img src="https://img.shields.io/badge/Multi--language-12%20locales-16a34a?style=flat-square&logo=googletranslate&logoColor=white" alt="Multi-language support: 12 locales" />
+  </a>
+</p>
+
+---
 
   <p>
     <a href="https://buymeacoffee.com/karimz1">
@@ -45,8 +53,7 @@
     <a href="https://imgcompress.karimzouine.com/docs">Docs</a> ·
     <a href="https://imgcompress.karimzouine.com/docs/installation">Installation Guide</a> ·
     <a href="https://hub.docker.com/r/karimz1/imgcompress">Docker Hub</a> ·
-    <a href="https://github.com/karimz1/imgcompress/issues">Issues</a> ·
-    <a href="https://buymeacoffee.com/karimz1">Buy Me a Coffee</a>
+    <a href="https://github.com/karimz1/imgcompress/issues">Issues</a>
   </p>
 
   <br />
