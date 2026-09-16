@@ -1,74 +1,121 @@
 # Contributing Translations
 
-imgcompress uses [react-i18next](https://react.i18next.com/) for internationalization. All translation files live in `frontend/src/i18n/locales/`. Adding a new language requires changes to exactly three files.
+ImgCompress uses [i18next](https://www.i18next.com/) and
+[react-i18next](https://react.i18next.com/). Translation files live in
+[`frontend/src/i18n/locales/`](frontend/src/i18n/locales/), with `en.ts` as the
+source of truth.
 
-Some translations are online-tool assisted and may be imperfect. If a translation does not look right, community improvements are highly appreciated. Please improve the relevant locale file in `frontend/src/i18n/locales/`
+Some translations were created with online tools and may be imperfect. Fixes
+from fluent speakers are always welcome.
 
-Together we can make ImgCompress better for everyone. Thanks to all the great people who have translated and improved the project in the past.
+New to the project? Read the
+[Developer Guide](https://imgcompress.karimzouine.com/docs/developers) first.
+It explains the recommended Dev Container, required tools, local development,
+Make targets, testing, and how to simulate CI before opening a pull request.
 
-## How to add a new language
+## Improve an existing translation
+
+Edit the matching locale file and keep the same keys and structure as `en.ts`.
+Only translate values—do not rename keys.
+
+Please preserve:
+
+- placeholders such as `{{count}}`, `{{fileName}}`, and `{{model}}`;
+- plural keys such as `_one` and `_other`;
+- arrays and intentional line breaks (`\n`).
+
+The locale files use `TranslationSchema`, which is generated from English.
+TypeScript will catch missing, extra, or incorrectly shaped values.
+
+For a meaningful translation improvement, also update the contributor credit
+in [`frontend/src/i18n/locales/README.md`](frontend/src/i18n/locales/README.md).
+
+## Add a new language
+
+Use a valid [BCP 47 language tag](https://www.rfc-editor.org/rfc/rfc5646), such
+as `it` or `pt-BR`.
 
 ### 1. Create the locale file
 
-Copy `frontend/src/i18n/locales/en.ts` to a new file named after the [BCP 47 language tag](https://en.wikipedia.org/wiki/IETF_language_tag) (e.g. `de.ts` for German, `fr.ts` for French):
-
-```
-frontend/src/i18n/locales/de.ts
-```
-
-The file must export a typed constant that satisfies `TranslationSchema`:
+Copy `frontend/src/i18n/locales/en.ts`, rename it to the new locale, and
+translate every value:
 
 ```ts
 import type { TranslationSchema } from "../types";
 
-export const de: TranslationSchema = {
+export const it: TranslationSchema = {
   page: {
-    subtitle: "Ein Bildkomprimierungswerkzeug",
-    // ... translate every key from en.ts
+    subtitle: "Uno strumento per comprimere immagini",
+    // ...translate the remaining values
   },
   // ...
 };
 ```
 
-`TranslationSchema` is derived from `en.ts` at compile time, so TypeScript will report an error for any missing or extra key — you cannot ship an incomplete translation.
+### 2. Register the locale
 
-### 2. Register the locale in the i18n initializer
+In [`frontend/src/i18n/index.ts`](frontend/src/i18n/index.ts):
 
-Open `frontend/src/i18n/index.ts` and add your import and resource entry:
+1. Import the new locale.
+2. Add its tag to `SUPPORTED_LOCALES`.
+3. Add it to the `resources` map.
 
-```diff
- import { en } from "./locales/en";
- import { hu } from "./locales/hu";
-+import { de } from "./locales/de";
+`SUPPORTED_LOCALES` controls locale detection and the languages shown in the
+switcher. If a regional locale needs a special fallback—for example, `pt`
+resolving to `pt-BR`—update `resolveSupportedLocale` too.
 
- i18n.use(initReactI18next).init({
-   resources: {
-     en: { translation: en },
-     hu: { translation: hu },
-+    de: { translation: de },
-   },
+### 3. Add it to the language switcher
+
+In
+[`frontend/src/components/LanguageSwitcher.tsx`](frontend/src/components/LanguageSwitcher.tsx),
+add entries to both maps:
+
+```ts
+const LANGUAGE_META = {
+  it: { label: "Italiano" },
+};
+
+const LANGUAGE_FLAG_CODES = {
+  it: "it",
+};
 ```
 
-### 3. Add the language to the switcher
+Use the language's native name. This project uses the
+[`flag-icons`](https://github.com/lipis/flag-icons) package, not emoji. Browse
+the [flag-icons gallery](https://flagicons.lipis.dev/) to find an available
+code. Most flags use a lowercase ISO 3166-1 country code (`it`, `br`, `mx`),
+while the package also provides a few regional codes such as `arab`.
 
-Open `frontend/src/components/LanguageSwitcher.tsx` and add an entry to `LANGUAGE_META`:
+Enter only the code in `LANGUAGE_FLAG_CODES`. The component turns it into the
+CSS class `fi-<code>` automatically—for example, `it: "it"` uses `fi-it`.
+Because languages and countries are not the same thing, choose the least
+misleading flag for languages spoken in several countries.
 
-```diff
- const LANGUAGE_META: Record<Locale, { label: string; flag: string }> = {
-   en: { label: "English", flag: "🇬🇧" },
-   hu: { label: "Magyar",  flag: "🇭🇺" },
-+  de: { label: "Deutsch", flag: "🇩🇪" },
- };
+For a right-to-left language, also update the direction handling in
+[`frontend/src/context/I18nProvider.tsx`](frontend/src/context/I18nProvider.tsx).
+
+### 4. Update tests and credits
+
+- Add relevant locale-resolution cases to
+  `frontend/tests/e2e/translations_Completeness_Test.spec.ts`.
+- Add the language and contributor to `frontend/src/i18n/locales/README.md`.
+- Update the supported-language list in `ReadMe.md`.
+
+## Check your work
+
+From the `frontend` directory, run:
+
+```sh
+pnpm lint
+pnpm exec playwright test tests/e2e/translations_Completeness_Test.spec.ts
 ```
 
-That is all — no changes to any component or page are needed.
+These checks verify the TypeScript shape, missing or extra keys, empty values,
+untranslated English copies, and mismatched placeholders.
 
-## Opening a PR
+Finally, open the app and confirm that the language appears in the switcher,
+looks correct, and remains selected after reloading the page.
 
-Once your three files are ready:
-
-1. Fork the repository and create a branch named `feat/i18n-<language-code>` (e.g. `feat/i18n-de`).
-2. Commit only the three changed/new files.
-3. Open a pull request against `main` and reference this file in the description.
-
-The maintainer will review the translation and merge it when ready.
+For the full local build and test workflow, including `make e2e` and
+`make simci`, see the
+[Developer Guide](https://imgcompress.karimzouine.com/docs/developers).
