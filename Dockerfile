@@ -31,7 +31,7 @@ RUN pnpm run build
 # Intent: Fallback to debian-base:trixie-debian13-dev because dhi.io/python:3.11-debian13 is 
 # currently affected by CVE-2026-6100 (CVSS 9.1) without an upstream patch.
 # Ref: https://scout.docker.com/vulnerabilities/id/CVE-2026-6100
-FROM dhi.io/debian-base:trixie-debian13-dev@sha256:f3bd649e61fc5357c3b2f207a0b047961d5562f0dc9905b85adbf4fa19580292 AS backend-build-stage
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:50618300f8544f54a083d623488a9437aed7c2769c82c9899a4ac71929b91d05 AS backend-build-stage
 
 # Use 'uv' for high-performance Python package management instead of standard pip.
 # Ref: https://github.com/astral-sh/uv
