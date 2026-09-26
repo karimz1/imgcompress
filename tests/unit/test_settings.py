@@ -24,7 +24,6 @@ from backend.image_converter.config.loader import ConfigError, load_from_file
 from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
 from backend.image_converter.domain.web_workers import WebWorkerCount
 
-
 VALID_CONFIG = {
     "temporary_storage": {"directory": "/tmp", "max_age_seconds": 3600},
     "uploads": {"max_file_size_mebibytes": 40960},
@@ -39,6 +38,9 @@ VALID_CONFIG = {
         "unsupported_input_extensions": [".pdf", ".svg", ".raw"],
     },
     "formats": {"custom_pipeline_extensions": [".pdf", ".psd"]},
+    "pdf": {
+        "max_render_pixels_per_page": 25000000,
+    },
     "features": {
         "is_storage_management_enabled": True,
         "is_logo_enabled": True,
@@ -89,6 +91,7 @@ def test_valid_config_loads_into_typed_app_config(config_file):
     assert config.logging.max_size_bytes == 25 * BYTES_PER_MEBIBYTE
     assert config.crop_preview.max_retry_attempts == 3
     assert config.crop_preview.unsupported_input_extensions == (".pdf", ".svg", ".raw")
+    assert config.pdf.max_render_pixels_per_page == 25000000
     assert config.features.is_storage_management_enabled is True
     assert config.features.is_logo_enabled is True
     assert config.features.is_dev_mode_enabled is False
@@ -158,6 +161,23 @@ def test_logging_size_and_backups_default_when_omitted(config_file):
     assert logging_cfg.max_size_bytes == 25 * BYTES_PER_MEBIBYTE
 
 
+def test_pdf_render_pixel_limit_defaults_when_pdf_config_is_omitted(config_file):
+    cfg = _copy_config()
+    del cfg["pdf"]
+    config_file(cfg)
+
+    assert settings.get().pdf.max_render_pixels_per_page == 25_000_000
+
+
+def test_pdf_config_must_be_an_object(config_file):
+    cfg = _copy_config()
+    cfg["pdf"] = None
+    config_file(cfg)
+
+    with pytest.raises(ConfigError, match="config key 'pdf' must be an object"):
+        settings.get()
+
+
 @pytest.mark.parametrize(
     ("path", "bad_value", "message"),
     [
@@ -170,6 +190,7 @@ def test_logging_size_and_backups_default_when_omitted(config_file):
         (("crop_preview", "unsupported_input_extensions"), ".pdf", "must be a list"),
         (("logging", "max_size_mebibytes"), "25", "integer"),
         (("logging", "backup_count"), True, "integer"),
+        (("pdf", "max_render_pixels_per_page"), True, "integer"),
     ],
 )
 def test_invalid_value_types_are_rejected(config_file, path, bad_value, message):
@@ -190,6 +211,7 @@ def test_invalid_value_types_are_rejected(config_file, path, bad_value, message)
         (("crop_preview", "max_retry_attempts"), 0, ">= 1"),
         (("logging", "max_size_mebibytes"), 0, ">= 1"),
         (("logging", "backup_count"), -1, ">= 0"),
+        (("pdf", "max_render_pixels_per_page"), 0, ">= 1"),
     ],
 )
 def test_out_of_range_values_are_rejected(config_file, path, bad_value, message):
