@@ -10,4 +10,4 @@ pypdfium2==5.13.0
 psd-tools==1.18.0
 rembg==2.0.75
 onnxruntime==1.26.0
-fpdf2==2.8.8
+fpdf2==2.8.9
