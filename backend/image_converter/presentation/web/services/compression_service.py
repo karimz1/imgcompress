@@ -74,6 +74,13 @@ class CompressionService:
             pdf_margin_mm = None
             pdf_paginate = False
 
+        webp_lossless = fmt == ImageFormat.WEBP and form_data.webp_lossless
+        if webp_lossless and form_data.target_size_kb:
+            return Result.failure(
+                "Lossless WebP cannot be combined with a max file size. "
+                "Turn off lossless or remove the size limit."
+            )
+
         src: Optional[str] = None
         dst: Optional[str] = None
         dest_ready = False
@@ -105,6 +112,7 @@ class CompressionService:
                 pdf_margin_mm=pdf_margin_mm,
                 pdf_paginate=pdf_paginate,
                 pdf_quality=pdf_quality,
+                webp_lossless=webp_lossless,
             )
 
             result = self.use_case.execute(req)

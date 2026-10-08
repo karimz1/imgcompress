@@ -34,6 +34,7 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         pdf_margin_mm=_parse_margin_mm(request.form.get("pdf_margin_mm", ""), logger),
         pdf_paginate=_parse_bool(request.form.get("pdf_paginate")),
         pdf_quality=request.form.get("pdf_quality", "high").strip(),
+        webp_lossless=_parse_bool(request.form.get("webp_lossless")),
     )
     return Result.success(form_data)
 

@@ -29,6 +29,7 @@ const selectors = {
   storageManagementButton: '[data-testid="storage-management-btn"]',
   storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]',
   rembgSwitch: '[data-testid="rembg-switch"]',
+  webpLosslessSwitch: '[data-testid="webp-lossless-switch"]',
   supportedFormatsBtn: '[data-testid="supported-formats-btn"]',
   supportedFormatsCount: '[data-testid="supported-formats-count"]',
   compressionModeQualityBtn: '[data-testid="compression-mode-quality-btn"]',
@@ -360,6 +361,15 @@ export async function setPdfPaginateEnabledAsync(page: Page, enabled: boolean): 
 
 export async function setRembgEnabledAsync(page: Page, enabled: boolean): Promise<void> {
   const toggle = page.locator(selectors.rembgSwitch);
+  await expect(toggle).toBeVisible();
+  const isChecked = await toggle.getAttribute('data-state');
+  if ((isChecked === 'checked') !== enabled) {
+    await toggle.click();
+  }
+}
+
+export async function setWebpLosslessEnabledAsync(page: Page, enabled: boolean): Promise<void> {
+  const toggle = page.locator(selectors.webpLosslessSwitch);
   await expect(toggle).toBeVisible();
   const isChecked = await toggle.getAttribute('data-state');
   if ((isChecked === 'checked') !== enabled) {

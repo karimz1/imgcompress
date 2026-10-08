@@ -111,6 +111,7 @@ function HomePageContent() {
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
+  const [webpLossless, setWebpLossless] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [crops, setCrops] = useState<Record<string, CropConfig>>({});
@@ -135,13 +136,26 @@ function HomePageContent() {
   const accentOneClass = isDarkTheme ? "bg-slate-500/10" : "bg-slate-300/15";
   const accentTwoClass = isDarkTheme ? "bg-slate-400/10" : "bg-slate-200/15";
 
+  // Formats with a quality knob. Lossless WebP has none, so it gets neither a
+  // quality value nor a max file size.
+  const hasQualitySettings =
+    outputFormat === "jpeg" ||
+    outputFormat === "avif" ||
+    (outputFormat === "webp" && !webpLossless);
+
   useEffect(() => {
-    if (outputFormat !== "jpeg" && outputFormat !== "avif") {
+    if (!hasQualitySettings) {
       setCompressionMode("quality");
       setTargetSizeMB("");
     }
-    if (outputFormat !== "png" && outputFormat !== "avif") {
+  }, [hasQualitySettings]);
+
+  useEffect(() => {
+    if (outputFormat !== "png" && outputFormat !== "avif" && outputFormat !== "webp") {
       setUseRembg(false);
+    }
+    if (outputFormat !== "webp") {
+      setWebpLossless(false);
     }
     if (outputFormat !== "pdf") {
       setPdfPreset("original");
@@ -234,7 +248,7 @@ function HomePageContent() {
         return;
       }
 
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
+      if (hasQualitySettings && compressionMode === "quality") {
         const qualityNum = parseInt(quality, 10);
         if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
           setError({ message: t("page.toast.qualityRangeError") });
@@ -257,7 +271,7 @@ function HomePageContent() {
         }
       }
 
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
+      if (hasQualitySettings && compressionMode === "size") {
         const trimmed = (targetSizeMB || "").trim();
         const parsedSize = parseFloat(trimmed);
         if (!trimmed || isNaN(parsedSize) || parsedSize <= 0) {
@@ -295,7 +309,7 @@ function HomePageContent() {
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
+      if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
       if (resizeWidthEnabled) {
@@ -313,13 +327,16 @@ function HomePageContent() {
           }
         }
       }
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
+      if (hasQualitySettings && compressionMode === "size") {
         const kb = Math.round(parseFloat(targetSizeMB) * 1024);
         if (!isNaN(kb) && kb > 0) {
           formData.append("target_size_kb", String(kb));
         }
       }
-      if ((outputFormat === "png" || outputFormat === "avif") && useRembg) {
+      if (outputFormat === "webp" && webpLossless) {
+        formData.append("webp_lossless", "true");
+      }
+      if ((outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp") && useRembg) {
         formData.append("use_rembg", "true");
       }
 
@@ -397,6 +414,8 @@ function HomePageContent() {
       compressionMode,
       targetSizeMB,
       useRembg,
+      webpLossless,
+      hasQualitySettings,
       pdfPreset,
       pdfScale,
       pdfMarginMm,
@@ -576,6 +595,8 @@ function HomePageContent() {
               useRembg={useRembg}
               setUseRembg={setUseRembg}
               rembgModelName={rembgModelName}
+              webpLossless={webpLossless}
+              setWebpLossless={setWebpLossless}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

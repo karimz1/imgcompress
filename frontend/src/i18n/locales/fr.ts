@@ -64,11 +64,12 @@ export const fr: TranslationSchema = {
         jpeg: "JPEG (taille de fichier réduite)",
         png: "PNG (conserve la transparence)",
         avif: "AVIF (meilleure compression et qualité)",
+        webp: "WebP (fichiers légers, compatible partout)",
         pdf: "PDF (document d'une page)",
         ico: "ICO (conserve la transparence)",
       },
       tooltip:
-        "PNG : conserve la transparence (alpha) et convient aux images avec arrière-plan transparent.\nJPEG : idéal pour les images sans transparence et produit des fichiers plus petits.\nAVIF : format moderne avec une excellente compression et une bonne qualité, avec prise en charge de la transparence.\nPDF : exporte les images en PDF avec des préréglages de page, marges et découpe multipage optionnels.\nICO : souvent utilisé pour les favicons et les icônes d'application, avec prise en charge de la transparence (alpha). Utilisez de préférence un PNG comme source pour convertir en ICO.",
+        "PNG : conserve la transparence (alpha) et convient aux images avec arrière-plan transparent.\nJPEG : idéal pour les images sans transparence et produit des fichiers plus petits.\nAVIF : format moderne avec une excellente compression et une bonne qualité, avec prise en charge de la transparence.\nWebP : fichiers légers largement pris en charge par les navigateurs, gère la transparence et propose un mode sans perte optionnel.\nPDF : exporte les images en PDF avec des préréglages de page, marges et découpe multipage optionnels.\nICO : souvent utilisé pour les favicons et les icônes d'application, avec prise en charge de la transparence (alpha). Utilisez de préférence un PNG comme source pour convertir en ICO.",
     },
     pdfPreset: {
       label: "Préréglage de page PDF",
@@ -123,6 +124,11 @@ export const fr: TranslationSchema = {
       label: "Diviser les images longues en plusieurs pages",
       tooltip: "Divise les images longues en plusieurs pages lorsqu'un préréglage PDF est sélectionné.",
     },
+    webpLossless: {
+      label: "WebP sans perte",
+      tooltip:
+        "Conserve chaque pixel exactement comme dans l'original. Les fichiers sont plus lourds qu'en WebP avec perte, la qualité et la taille maximale ne sont donc pas disponibles.\nIdéal pour les captures d'écran, les logos et les graphiques contenant du texte.",
+    },
     compressionMode: {
       label: "Mode de réglage {{format}}",
       byQuality: "Régler par qualité",
@@ -136,7 +142,7 @@ export const fr: TranslationSchema = {
     quality: {
       label: "Qualité",
       tooltip:
-        "Ajustez la qualité (100 donne la meilleure qualité, les valeurs plus basses réduisent la taille du fichier). S'applique à JPEG et AVIF.",
+        "Ajustez la qualité (100 donne la meilleure qualité, les valeurs plus basses réduisent la taille du fichier). S'applique à JPEG, AVIF et WebP.",
       presets: {
         smaller: "Plus petit (60)",
         balanced: "Équilibré (75)",
@@ -149,7 +155,7 @@ export const fr: TranslationSchema = {
       placeholder: "p. ex. 0,50",
       hint: "Chaque fichier {{format}} sera maintenu à cette taille ou en dessous en ajustant automatiquement la qualité.",
       tooltip:
-        "Définissez une taille maximale de sortie optionnelle (en Mo). S'applique aux sorties JPEG et AVIF.",
+        "Définissez une taille maximale de sortie optionnelle (en Mo). S'applique aux sorties JPEG, AVIF et WebP.",
     },
     resizeWidth: {
       label: "Redimensionner la largeur",

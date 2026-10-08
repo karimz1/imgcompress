@@ -25,6 +25,7 @@ class CompressRequest:
     pdf_margin_mm: Optional[float] = None
     pdf_paginate: bool = False
     pdf_quality: PdfQuality = PdfQuality.HIGH
+    webp_lossless: bool = False
 
 
 @dataclass
@@ -95,6 +96,7 @@ class CompressionFormData:
     pdf_margin_mm: float
     pdf_paginate: bool
     pdf_quality: str = "high"
+    webp_lossless: bool = False
 
 
 @dataclass(frozen=True)

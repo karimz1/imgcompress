@@ -64,11 +64,12 @@ export const esMX: TranslationSchema = {
         jpeg: "JPEG (menor tamaño de archivo)",
         png: "PNG (conserva transparencia)",
         avif: "AVIF (mejor compresión y calidad)",
+        webp: "WebP (archivos pequeños, funciona en todas partes)",
         pdf: "PDF (documento de una página)",
         ico: "ICO (conserva transparencia)",
       },
       tooltip:
-        "PNG: Conserva la transparencia (alfa) y es ideal para imágenes con fondos transparentes.\nJPEG: Ideal para imágenes sin transparencia y produce archivos más pequeños.\nAVIF: Formato moderno con compresión y calidad superiores; admite transparencia.\nPDF: Exporta imágenes a PDF con ajustes opcionales de página, márgenes y división en varias páginas.\nICO: Se usa comúnmente para favicons e iconos de aplicaciones; admite transparencia (alfa). Se recomienda usar PNG como origen al convertir a ICO.",
+        "PNG: Conserva la transparencia (alfa) y es ideal para imágenes con fondos transparentes.\nJPEG: Ideal para imágenes sin transparencia y produce archivos más pequeños.\nAVIF: Formato moderno con compresión y calidad superiores; admite transparencia.\nWebP: Archivos pequeños con amplio soporte en navegadores, admite transparencia y un modo sin pérdida opcional.\nPDF: Exporta imágenes a PDF con ajustes opcionales de página, márgenes y división en varias páginas.\nICO: Se usa comúnmente para favicons e iconos de aplicaciones; admite transparencia (alfa). Se recomienda usar PNG como origen al convertir a ICO.",
     },
     pdfPreset: {
       label: "Preajuste de página PDF",
@@ -123,6 +124,11 @@ export const esMX: TranslationSchema = {
       label: "Dividir imágenes largas en varias páginas",
       tooltip: "Divide imágenes largas en varias páginas cuando se selecciona un preajuste PDF.",
     },
+    webpLossless: {
+      label: "WebP sin pérdida",
+      tooltip:
+        "Conserva cada píxel exactamente como en el original. Los archivos son más grandes que con WebP con pérdida, por lo que la calidad y el tamaño máximo de archivo no están disponibles.\nIdeal para capturas de pantalla, logotipos y gráficos con texto.",
+    },
     compressionMode: {
       label: "Modo de ajustes de {{format}}",
       byQuality: "Definir por calidad",
@@ -136,7 +142,7 @@ export const esMX: TranslationSchema = {
     quality: {
       label: "Calidad",
       tooltip:
-        "Ajusta la calidad (100 da la mejor calidad; valores menores reducen el tamaño del archivo). Aplica a JPEG y AVIF.",
+        "Ajusta la calidad (100 da la mejor calidad; valores menores reducen el tamaño del archivo). Aplica a JPEG, AVIF y WebP.",
       presets: {
         smaller: "Más pequeño (60)",
         balanced: "Equilibrado (75)",
@@ -149,7 +155,7 @@ export const esMX: TranslationSchema = {
       placeholder: "p. ej., 0.50",
       hint: "Intentará mantener cada {{format}} en este tamaño o por debajo ajustando la calidad automáticamente.",
       tooltip:
-        "Define un tamaño máximo opcional de salida (en MB). Aplica a salidas JPEG y AVIF.",
+        "Define un tamaño máximo opcional de salida (en MB). Aplica a salidas JPEG, AVIF y WebP.",
     },
     resizeWidth: {
       label: "Cambiar ancho",

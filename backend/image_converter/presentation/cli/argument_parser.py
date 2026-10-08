@@ -3,7 +3,7 @@ import argparse
 def parse_arguments(argv=None) -> argparse.Namespace:
     """Parse command-line arguments for the image conversion script."""
     parser = argparse.ArgumentParser(
-        description="Convert images to JPEG, PNG, AVIF, or PDF (optionally resizing to a given width)."
+        description="Convert images to JPEG, PNG, AVIF, WebP, or PDF (optionally resizing to a given width)."
     )
     parser.add_argument(
         "source",
@@ -17,7 +17,7 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         "--quality",
         type=int,
         default=85,
-        help="JPEG quality (default: 85)"
+        help="JPEG, AVIF, and WebP quality (default: 85)"
     )
     parser.add_argument(
         "--width",
@@ -28,9 +28,14 @@ def parse_arguments(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--format",
         type=str,
-        choices=["jpeg", "png", "avif", "pdf"],
+        choices=["jpeg", "png", "avif", "webp", "pdf"],
         default="jpeg",
-        help="Output format: 'jpeg', 'png', 'avif', or 'pdf' (default: jpeg)"
+        help="Output format: 'jpeg', 'png', 'avif', 'webp', or 'pdf' (default: jpeg)"
+    )
+    parser.add_argument(
+        "--webp-lossless",
+        action="store_true",
+        help="Encode WebP losslessly (only used with --format webp; --quality is ignored)."
     )
     parser.add_argument(
         "--pdf-preset",
@@ -70,7 +75,7 @@ def parse_arguments(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--remove-background",
         action="store_true",
-        help="Remove image background using local AI (works with --format png or --format avif)"
+        help="Remove image background using local AI (works with --format png, avif, or webp)"
     )
     parser.add_argument(
         "--debug",

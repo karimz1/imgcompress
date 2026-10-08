@@ -62,11 +62,12 @@ export const en = {
         jpeg: "JPEG (smaller file size)",
         png: "PNG (preserves transparency)",
         avif: "AVIF (best compression & quality)",
+        webp: "WebP (small files, works everywhere)",
         pdf: "PDF (single-page document)",
         ico: "ICO (preserves transparency)",
       },
       tooltip:
-        "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+        "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nWebP: Small files with wide browser support, supports transparency and an optional lossless mode.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
     },
     pdfPreset: {
       label: "PDF Page Preset",
@@ -120,6 +121,11 @@ export const en = {
       label: "Split long images into multiple pages",
       tooltip: "Splits long images into multiple pages when a PDF preset is selected.",
     },
+    webpLossless: {
+      label: "Lossless WebP",
+      tooltip:
+        "Keeps every pixel exactly as in the source. Files are larger than lossy WebP, so quality and max file size are not available.\nGood for screenshots, logos, and graphics with text.",
+    },
     compressionMode: {
       label: "{{format}} settings mode",
       byQuality: "Set by Quality",
@@ -133,7 +139,7 @@ export const en = {
     quality: {
       label: "Quality",
       tooltip:
-        "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG and AVIF.",
+        "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG, AVIF, and WebP.",
       presets: {
         smaller: "Smaller (60)",
         balanced: "Balanced (75)",
@@ -146,7 +152,7 @@ export const en = {
       placeholder: "e.g., 0.50",
       hint: "It will try to keep each {{format}} at or below this size by automatically adjusting quality.",
       tooltip:
-        "Set an optional maximum output size (in MB). Applies to JPEG and AVIF output.",
+        "Set an optional maximum output size (in MB). Applies to JPEG, AVIF, and WebP output.",
     },
     resizeWidth: {
       label: "Resize Width",
