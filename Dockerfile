@@ -178,6 +178,10 @@ COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d99
 
 # torch and onnxruntime wheels link against the system C++ runtime and OpenMP, which
 # the base image doesn't ship (same packages as in the backend stage).
+# ca-certificates: the build script downloads the official weights over HTTPS with
+# Python's own TLS stack, which finds no CA certificates in this image (uv and
+# requests/certifi bring their own roots, urllib does not). Without it the download
+# fails with CERTIFICATE_VERIFY_FAILED.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
@@ -187,8 +191,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         if [ "$i" -ge 5 ]; then echo "apt-get update failed after 5 attempts" >&2; exit 1; fi; \
         sleep 15; \
     done && \
-    apt-get install -y --no-install-recommends libstdc++6 libgomp1 && \
+    apt-get install -y --no-install-recommends ca-certificates libstdc++6 libgomp1 && \
     mkdir -p /build && chown -R nonroot:nonroot /build
+
+# uv's standalone Python looks for /etc/ssl/cert.pem, which Debian doesn't create;
+# point it at the bundle ca-certificates installs.
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 USER nonroot
 WORKDIR /build
