@@ -1,7 +1,7 @@
 from typing import Callable
 
 from backend.image_converter.core.internals.utilities import Result, supported_extensions
-from backend.image_converter.infrastructure.upscale_model import UPSCALE_MODEL, locate_model
+from backend.image_converter.infrastructure.upscale_model import MODEL_NAME, locate_model
 
 
 class ConfigurationService:
@@ -33,4 +33,4 @@ class ConfigurationService:
 
     def get_upscale_model_status(self) -> dict:
         """Name of the bundled upscaling model and whether it is installed (checked on disk only)."""
-        return {"model_name": UPSCALE_MODEL.name, "available": self._locate_upscale_model().is_successful}
+        return {"model_name": MODEL_NAME, "available": self._locate_upscale_model().is_successful}

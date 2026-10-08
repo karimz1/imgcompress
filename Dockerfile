@@ -157,23 +157,58 @@ new_session(model_name)
 print(f"rembg model cached: {model_name}")
 PY
 
-# Bundle the AI upscaling model the same way as the rembg model: downloaded once
-# here, checked against the SHA-256 pinned in upscale_model.py (the build fails on
-# a mismatch), and copied into the image. The app only reads it from disk and
-# never downloads anything at runtime. The cache mount avoids re-downloading
-# when backend code changes invalidate this layer.
-ENV IMGCOMPRESS_MODEL_HOME=/container/.models
-RUN --mount=type=cache,target=/cache/models,uid=65532,gid=65532 \
-    python -m backend.image_converter.infrastructure.upscale_model /cache/models && \
-    mkdir -p /container/.models && \
-    cp /cache/models/realesr-general-x4v3.onnx /container/.models/
-
 COPY --chown=nonroot:nonroot entrypoint.py ./entrypoint.py
 COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 
 # Create static site directory. Required pre-creation as a nonroot user 
 # to avoid permission issues when copying frontend assets.
 RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
+
+# Stage 2b: AI UPSCALING MODEL BUILD
+# ------------------------------------------------------------------------------------------
+# Intent: Build the ONNX model for AI upscaling from the official Real-ESRGAN weights in
+# a stage of its own. The .pth weights are a Python pickle, so they are SHA-256 checked
+# against the official release before anything loads them, then loaded with
+# torch.load(weights_only=True) and exported to ONNX (graph and weights, no code).
+# Only the .onnx and its .sha256 file are copied into the final image; torch, onnx and
+# the .pth stay here. See scripts/build_upscale_model.py.
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:c6fc0de84b65bc20346cee5f071fd976ccf383431515db2a4d9721ca936feb9f AS upscale-model-stage
+
+COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
+
+# torch and onnxruntime wheels link against the system C++ runtime and OpenMP, which
+# the base image doesn't ship (same packages as in the backend stage).
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -eux; \
+    i=0; \
+    until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
+        i=$((i+1)); \
+        if [ "$i" -ge 5 ]; then echo "apt-get update failed after 5 attempts" >&2; exit 1; fi; \
+        sleep 15; \
+    done && \
+    apt-get install -y --no-install-recommends libstdc++6 libgomp1 && \
+    mkdir -p /build && chown -R nonroot:nonroot /build
+
+USER nonroot
+WORKDIR /build
+
+ENV UV_PYTHON_INSTALL_DIR=/build/python
+# CPU-only torch wheel (no CUDA libraries); versions pinned so the exported graph is
+# reproducible and matches the operator allowlist in the build script.
+RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
+    uv python install 3.14 && \
+    uv venv --python 3.14 /build/venv && \
+    uv pip install --python /build/venv/bin/python \
+        --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 && \
+    uv pip install --python /build/venv/bin/python \
+        onnx==1.23.2 onnxruntime==1.26.0 numpy==2.5.3
+
+COPY --chown=nonroot:nonroot scripts/build_upscale_model.py ./build_upscale_model.py
+# The cache mount keeps the verified .pth between builds; it is re-checked every time.
+RUN --mount=type=cache,target=/home/nonroot/.cache/upscale-weights,uid=65532,gid=65532 \
+    /build/venv/bin/python build_upscale_model.py /build/models \
+        --cache /home/nonroot/.cache/upscale-weights
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
@@ -199,7 +234,7 @@ COPY --from=backend-build-stage /dpkg-export/ /
 COPY --from=backend-build-stage --chown=65532:65532 /container/python /container/python
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
-COPY --from=backend-build-stage --chown=65532:65532 /container/.models /container/.models
+COPY --from=upscale-model-stage --chown=65532:65532 /build/models /container/.models
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py

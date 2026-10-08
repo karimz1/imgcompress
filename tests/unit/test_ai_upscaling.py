@@ -6,7 +6,9 @@ when the model is installed (it is in the Docker image) and are skipped otherwis
 """
 
 import hashlib
+import importlib.util
 import json
+from pathlib import Path
 from io import BytesIO
 from types import SimpleNamespace
 
@@ -27,9 +29,9 @@ from backend.image_converter.infrastructure.ai_upscaler import (
     resolve_thread_count,
 )
 from backend.image_converter.infrastructure.upscale_model import (
+    CHECKSUM_SUFFIX,
+    MODEL_FILENAME,
     MODEL_HOME_ENV,
-    ModelSpec,
-    download_model,
     locate_model,
 )
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
@@ -126,55 +128,73 @@ def test_When_UpscaleOptionUnknown_Expect_FailureListingOptions():
 # --- Bundled model file -----------------------------------------------------------------
 
 
-def _spec_for(content: bytes) -> ModelSpec:
-    return ModelSpec(
-        name="test-model",
-        filename="test-model.onnx",
-        url="https://example.invalid/test-model.onnx",
-        sha256=hashlib.sha256(content).hexdigest(),
-        license="test",
-    )
+def _install(directory: Path, content: bytes, checksum_of: bytes | None = None) -> Path:
+    path = directory / MODEL_FILENAME
+    path.write_bytes(content)
+    digest = hashlib.sha256(content if checksum_of is None else checksum_of).hexdigest()
+    (directory / (MODEL_FILENAME + CHECKSUM_SUFFIX)).write_text(f"{digest}  {MODEL_FILENAME}\n")
+    return path
 
 
-def test_When_ModelFileMissing_Expect_FailureWithInstallHint(tmp_path, monkeypatch):
+def test_When_ModelFileMissing_Expect_FailureWithBuildHint(tmp_path, monkeypatch):
     monkeypatch.setenv(MODEL_HOME_ENV, str(tmp_path))
 
-    result = locate_model(_spec_for(b"weights"))
+    result = locate_model()
 
     assert not result.is_successful
     assert str(tmp_path) in result.error
-    assert "upscale_model" in result.error
+    assert "build_upscale_model.py" in result.error
 
 
 def test_When_ModelFileMatchesChecksum_Expect_Path(tmp_path, monkeypatch):
     monkeypatch.setenv(MODEL_HOME_ENV, str(tmp_path))
-    (tmp_path / "test-model.onnx").write_bytes(b"weights")
+    path = _install(tmp_path, b"graph")
 
-    result = locate_model(_spec_for(b"weights"))
+    result = locate_model()
 
     assert result.is_successful
-    assert result.value == tmp_path / "test-model.onnx"
+    assert result.value == path
 
 
 def test_When_ModelFileIsCorrupt_Expect_FailureNotUsed(tmp_path, monkeypatch):
     monkeypatch.setenv(MODEL_HOME_ENV, str(tmp_path))
-    (tmp_path / "test-model.onnx").write_bytes(b"truncated")
+    _install(tmp_path, b"truncated", checksum_of=b"graph")
 
-    result = locate_model(_spec_for(b"weights"))
+    result = locate_model()
 
     assert not result.is_successful
     assert "checksum" in result.error
 
 
-def test_When_LocatingModel_Expect_NoNetworkAccess(tmp_path, monkeypatch):
+def test_When_ChecksumFileMissing_Expect_FailureNotUsed(tmp_path, monkeypatch):
     monkeypatch.setenv(MODEL_HOME_ENV, str(tmp_path))
+    (tmp_path / MODEL_FILENAME).write_bytes(b"graph")
 
-    def _no_network(*args, **kwargs):
-        raise AssertionError("locate_model must never download")
+    result = locate_model()
 
-    monkeypatch.setattr(upscale_model.urllib.request, "urlopen", _no_network)
+    assert not result.is_successful
+    assert "no checksum file" in result.error
 
-    assert not locate_model(_spec_for(b"weights")).is_successful
+
+def test_When_RuntimeModelModuleLoaded_Expect_NoNetworkCode():
+    source = Path(upscale_model.__file__).read_text(encoding="utf-8")
+
+    assert "urllib" not in source
+    assert "requests" not in source
+    assert "http" not in source
+
+
+# --- Model build script (runs in its own Docker build stage) ------------------------------
+
+_BUILD_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "build_upscale_model.py"
+
+
+@pytest.fixture(scope="module")
+def build_script():
+    spec = importlib.util.spec_from_file_location("build_upscale_model", _BUILD_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class _FakeResponse(BytesIO):
@@ -185,33 +205,81 @@ class _FakeResponse(BytesIO):
         self.close()
 
 
-def test_When_DownloadMatchesChecksum_Expect_FileInPlace(tmp_path, monkeypatch):
-    monkeypatch.setattr(upscale_model.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"weights"))
+def test_When_BuildScriptAndAppNameFiles_Expect_SameNames(build_script):
+    assert build_script.ONNX_FILENAME == MODEL_FILENAME
+    assert build_script.CHECKSUM_SUFFIX == CHECKSUM_SUFFIX
+    assert build_script.WEIGHTS_URL.startswith("https://github.com/xinntao/Real-ESRGAN/releases/download/")
 
-    path = download_model(_spec_for(b"weights"), target_dir=tmp_path)
+
+def test_When_WeightsMatchPinnedChecksum_Expect_FileKept(build_script, tmp_path, monkeypatch):
+    monkeypatch.setattr(build_script.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"weights"))
+
+    path = build_script.fetch_verified_weights(tmp_path, sha256=hashlib.sha256(b"weights").hexdigest())
 
     assert path.read_bytes() == b"weights"
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["test-model.onnx"]
+    assert [p.name for p in tmp_path.iterdir()] == [build_script.WEIGHTS_FILENAME]
 
 
-def test_When_DownloadHasWrongChecksum_Expect_ErrorAndNoFileLeft(tmp_path, monkeypatch):
-    monkeypatch.setattr(upscale_model.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"tampered"))
+def test_When_WeightsChecksumWrong_Expect_ErrorAndNothingLeftToLoad(build_script, tmp_path, monkeypatch):
+    monkeypatch.setattr(build_script.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"tampered"))
+    monkeypatch.setattr(
+        build_script, "build_reference_model", lambda weights: pytest.fail("must not load unverified weights")
+    )
 
     with pytest.raises(RuntimeError, match="Checksum mismatch"):
-        download_model(_spec_for(b"weights"), target_dir=tmp_path)
+        build_script.build(tmp_path / "out", tmp_path / "cache")
 
-    assert list(tmp_path.iterdir()) == []
+    assert list((tmp_path / "cache").iterdir()) == []
+    assert not (tmp_path / "out").exists()
 
 
-def test_When_ModelAlreadyDownloaded_Expect_NoSecondDownload(tmp_path, monkeypatch):
-    (tmp_path / "test-model.onnx").write_bytes(b"weights")
+def test_When_VerifiedWeightsCached_Expect_NoSecondDownload(build_script, tmp_path, monkeypatch):
+    (tmp_path / build_script.WEIGHTS_FILENAME).write_bytes(b"weights")
+    monkeypatch.setattr(
+        build_script.urllib.request, "urlopen", lambda *args, **kwargs: pytest.fail("verified copy must be reused")
+    )
 
-    def _no_network(*args, **kwargs):
-        raise AssertionError("a verified file must not be downloaded again")
+    path = build_script.fetch_verified_weights(tmp_path, sha256=hashlib.sha256(b"weights").hexdigest())
 
-    monkeypatch.setattr(upscale_model.urllib.request, "urlopen", _no_network)
+    assert path.read_bytes() == b"weights"
 
-    assert download_model(_spec_for(b"weights"), target_dir=tmp_path).read_bytes() == b"weights"
+
+def test_When_CachedWeightsTampered_Expect_DownloadedAgainAndChecked(build_script, tmp_path, monkeypatch):
+    (tmp_path / build_script.WEIGHTS_FILENAME).write_bytes(b"tampered")
+    monkeypatch.setattr(build_script.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"weights"))
+
+    path = build_script.fetch_verified_weights(tmp_path, sha256=hashlib.sha256(b"weights").hexdigest())
+
+    assert path.read_bytes() == b"weights"
+
+
+def _onnx_model(op_type: str, domain: str = ""):
+    onnx = pytest.importorskip("onnx")
+    from onnx import TensorProto, helper
+
+    node = helper.make_node(op_type, ["x", "x"], ["y"], domain=domain)
+    graph = helper.make_graph(
+        [node],
+        "g",
+        [helper.make_tensor_value_info("x", TensorProto.FLOAT, [1])],
+        [helper.make_tensor_value_info("y", TensorProto.FLOAT, [1])],
+    )
+    opsets = [helper.make_opsetid("", 17)] + ([helper.make_opsetid(domain, 1)] if domain else [])
+    return onnx, helper.make_model(graph, opset_imports=opsets)
+
+
+def test_When_GraphUsesOnlyAllowedOps_Expect_Accepted(build_script):
+    _, model = _onnx_model("Add")
+
+    build_script.check_graph(model)
+
+
+@pytest.mark.parametrize(("op_type", "domain"), [("Mul", ""), ("Run", "com.example")])
+def test_When_GraphHasUnexpectedOp_Expect_Rejected(build_script, op_type, domain):
+    _, model = _onnx_model(op_type, domain)
+
+    with pytest.raises(Exception):
+        build_script.check_graph(model)
 
 
 def test_When_AskingForModelStatus_Expect_NameAndAvailability():
