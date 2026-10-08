@@ -157,6 +157,17 @@ new_session(model_name)
 print(f"rembg model cached: {model_name}")
 PY
 
+# Bundle the AI upscaling model the same way as the rembg model: downloaded once
+# here, checked against the SHA-256 pinned in upscale_model.py (the build fails on
+# a mismatch), and copied into the image. The app only reads it from disk and
+# never downloads anything at runtime. The cache mount avoids re-downloading
+# when backend code changes invalidate this layer.
+ENV IMGCOMPRESS_MODEL_HOME=/container/.models
+RUN --mount=type=cache,target=/cache/models,uid=65532,gid=65532 \
+    python -m backend.image_converter.infrastructure.upscale_model /cache/models && \
+    mkdir -p /container/.models && \
+    cp /cache/models/realesr-general-x4v3.onnx /container/.models/
+
 COPY --chown=nonroot:nonroot entrypoint.py ./entrypoint.py
 COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 
@@ -171,7 +182,7 @@ FROM dhi.io/debian-base:trixie-debian13@sha256:20079b51710f0397da5e056bfc7156b6a
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
       org.opencontainers.image.title="imgcompress - High Performance Image Compression & Background Removal" \
-      org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), and background removal using local AI. Supports 70+ formats." \
+      org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), background removal and upscaling using local AI. Supports 70+ formats." \
       org.opencontainers.image.url="https://github.com/karimz1/imgcompress" \
       org.opencontainers.image.source="https://github.com/karimz1/imgcompress" \
       org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress" \
@@ -180,6 +191,7 @@ LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.co
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV U2NET_HOME=/container/.u2net
+ENV IMGCOMPRESS_MODEL_HOME=/container/.models
 
 WORKDIR /container
 
@@ -187,6 +199,7 @@ COPY --from=backend-build-stage /dpkg-export/ /
 COPY --from=backend-build-stage --chown=65532:65532 /container/python /container/python
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
+COPY --from=backend-build-stage --chown=65532:65532 /container/.models /container/.models
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py

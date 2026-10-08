@@ -157,10 +157,26 @@ export const ptBR: TranslationSchema = {
       tooltip:
         "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG, AVIF e WebP.",
     },
+    upscale: {
+      label: "Ampliação com IA",
+      tooltip:
+        "Amplia as imagens com um modelo de IA local ({{model}}) que reconstrói bordas e detalhes finos em vez de apenas esticar os pixels. Roda na CPU deste servidor e nada é enviado para fora.",
+      targetLabel: "Ampliar para",
+      options: {
+        "2x": "2× maior",
+        "4x": "4× maior",
+        "1080p": "Full HD (cabe em 1920 × 1080)",
+        "4k": "4K (cabe em 3840 × 2160)",
+      },
+      hint:
+        "Roda na CPU, então leva um tempo: uma imagem 720p para 4K precisa de uns 10 a 40 segundos, dependendo da máquina. Imagens que já são grandes o bastante ficam como estão.",
+      unavailableHint: "O modelo de ampliação não está instalado neste servidor.",
+    },
     resizeWidth: {
       label: "Redimensionar largura",
       tooltip:
         "Redimensiona a(s) imagem(ns) para a largura desejada preservando a proporção original.",
+      upscaleActiveHint: "Não é usado enquanto a ampliação com IA está ativada.",
     },
     dropzone: {
       dragActive: "Solte imagens ou PDFs aqui...",

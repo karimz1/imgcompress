@@ -157,10 +157,26 @@ export const de: TranslationSchema = {
       tooltip:
         "Lege eine optionale maximale Ausgabegröße (in MB) fest. Gilt für JPEG-, AVIF- und WebP-Ausgaben.",
     },
+    upscale: {
+      label: "KI-Hochskalierung",
+      tooltip:
+        "Vergrößert Bilder mit einem lokalen KI-Modell ({{model}}), das Kanten und feine Details neu aufbaut, statt nur Pixel zu strecken. Es läuft auf der CPU dieses Servers, es wird nichts nach außen gesendet.",
+      targetLabel: "Hochskalieren auf",
+      options: {
+        "2x": "2× größer",
+        "4x": "4× größer",
+        "1080p": "Full HD (passt in 1920 × 1080)",
+        "4k": "4K (passt in 3840 × 2160)",
+      },
+      hint:
+        "Läuft auf der CPU und dauert daher etwas: Ein 720p-Bild auf 4K braucht je nach Rechner etwa 10 bis 40 Sekunden. Bilder, die schon groß genug sind, bleiben unverändert.",
+      unavailableHint: "Das Modell für die Hochskalierung ist auf diesem Server nicht installiert.",
+    },
     resizeWidth: {
       label: "Breite ändern",
       tooltip:
         "Ändert die Größe der Bilder auf die gewünschte Breite und behält dabei das ursprüngliche Seitenverhältnis bei.",
+      upscaleActiveHint: "Wird nicht verwendet, solange die KI-Hochskalierung aktiv ist.",
     },
     dropzone: {
       dragActive: "Bilder oder PDFs hier ablegen...",

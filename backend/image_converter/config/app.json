@@ -41,5 +41,9 @@
   },
   "rembg": {
     "model_name": "u2net"
+  },
+  "upscaling": {
+    "threads": "auto",
+    "max_output_megapixels": 36
   }
 }

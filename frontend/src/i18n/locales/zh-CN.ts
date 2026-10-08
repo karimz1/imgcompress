@@ -157,10 +157,26 @@ export const zhCN: TranslationSchema = {
       tooltip:
         "设置可选的最大输出大小（MB）。适用于 JPEG、AVIF 和 WebP 输出。",
     },
+    upscale: {
+      label: "AI 放大",
+      tooltip:
+        "使用本地 AI 模型（{{model}}）放大图片，重建边缘和细节，而不只是拉伸像素。它在本服务器的 CPU 上运行，不会向外发送任何内容。",
+      targetLabel: "放大到",
+      options: {
+        "2x": "放大 2 倍",
+        "4x": "放大 4 倍",
+        "1080p": "全高清（适配 1920 × 1080）",
+        "4k": "4K（适配 3840 × 2160）",
+      },
+      hint:
+        "在 CPU 上运行，需要一些时间：把 720p 图片放大到 4K 大约需要 10 到 40 秒，视机器而定。已经足够大的图片保持不变。",
+      unavailableHint: "此服务器未安装放大模型。",
+    },
     resizeWidth: {
       label: "调整宽度",
       tooltip:
         "将图片调整到所需宽度，同时保留原始宽高比。",
+      upscaleActiveHint: "开启 AI 放大时不使用。",
     },
     dropzone: {
       dragActive: "将图片或 PDF 拖到这里...",

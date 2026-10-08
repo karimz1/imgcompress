@@ -157,10 +157,26 @@ export const hu: TranslationSchema = {
       tooltip:
         "Opcionális maximális kimeneti méret (MB-ban). JPEG, AVIF és WebP kimenethez érvényes.",
     },
+    upscale: {
+      label: "MI-felskálázás",
+      tooltip:
+        "Helyi MI-modellel ({{model}}) nagyítja a képeket, amely újraépíti az éleket és a finom részleteket ahelyett, hogy csak széthúzná a pixeleket. Ennek a szervernek a processzorán fut, semmi nem kerül máshová.",
+      targetLabel: "Felskálázás erre",
+      options: {
+        "2x": "2× nagyobb",
+        "4x": "4× nagyobb",
+        "1080p": "Full HD (belefér: 1920 × 1080)",
+        "4k": "4K (belefér: 3840 × 2160)",
+      },
+      hint:
+        "A processzoron fut, ezért eltart egy ideig: egy 720p-s kép 4K-ra gépenként nagyjából 10–40 másodperc. A már elég nagy képek változatlanok maradnak.",
+      unavailableHint: "A felskálázó modell nincs telepítve ezen a szerveren.",
+    },
     resizeWidth: {
       label: "Átméretezés szélesség alapján",
       tooltip:
         "A kép(ek) átméretezése a kívánt szélességre, az eredeti képarány megtartásával.",
+      upscaleActiveHint: "Nem használatos, amíg az MI-felskálázás be van kapcsolva.",
     },
     dropzone: {
       dragActive: "Ejtsd ide a képeket vagy PDF-eket...",

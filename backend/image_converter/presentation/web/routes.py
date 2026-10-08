@@ -8,6 +8,7 @@ from backend.image_converter.config import settings
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
+from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.presentation.web.parse_services import extract_form_data
@@ -30,7 +31,14 @@ logger = Logger(debug=False, json_output=False)
 resizer = ImageResizer()
 storage = LocalStorage(logger=logger)
 payload_expander = create_payload_expander(logger)
-use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
+upscaler = AiUpscaler(
+    logger,
+    threads=_config.upscaling.threads,
+    max_output_megapixels=_config.upscaling.max_output_megapixels,
+)
+use_case = CompressImagesUseCase(
+    logger, resizer, ImageConverterFactory, storage, payload_expander, upscaler=upscaler
+)
 
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
@@ -159,6 +167,11 @@ def verified_image_formats():
 @api_blueprint.route("/rembg_model", methods=["GET"])
 def rembg_model():
     return jsonify({"model_name": configuration_service.get_rembg_model_name()}), 200
+
+
+@api_blueprint.route("/upscale_model", methods=["GET"])
+def upscale_model():
+    return jsonify(configuration_service.get_upscale_model_status()), 200
 
 
 @api_blueprint.route("/crop_unsupported_formats", methods=["GET"])

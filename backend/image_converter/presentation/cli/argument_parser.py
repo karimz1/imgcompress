@@ -26,6 +26,14 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         help="Optional width for resizing (height auto-calculated)"
     )
     parser.add_argument(
+        "--upscale",
+        type=str,
+        choices=["2x", "4x", "1080p", "4k"],
+        default=None,
+        help="Enlarge images with the bundled local AI model (runs on the CPU, no network). "
+             "1080p and 4k fit the image into that frame. Replaces --width. Not available with --format pdf."
+    )
+    parser.add_argument(
         "--format",
         type=str,
         choices=["jpeg", "png", "avif", "webp", "pdf"],

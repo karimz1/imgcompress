@@ -157,10 +157,26 @@ export const esMX: TranslationSchema = {
       tooltip:
         "Define un tamaño máximo opcional de salida (en MB). Aplica a salidas JPEG, AVIF y WebP.",
     },
+    upscale: {
+      label: "Ampliación con IA",
+      tooltip:
+        "Amplía las imágenes con un modelo de IA local ({{model}}) que reconstruye bordes y detalles finos en lugar de solo estirar los píxeles. Se ejecuta en la CPU de este servidor y no se envía nada a ningún lado.",
+      targetLabel: "Ampliar a",
+      options: {
+        "2x": "2× más grande",
+        "4x": "4× más grande",
+        "1080p": "Full HD (cabe en 1920 × 1080)",
+        "4k": "4K (cabe en 3840 × 2160)",
+      },
+      hint:
+        "Se ejecuta en la CPU, así que tarda un poco: una imagen de 720p a 4K necesita unos 10 a 40 segundos según el equipo. Las imágenes que ya son lo bastante grandes se quedan igual.",
+      unavailableHint: "El modelo de ampliación no está instalado en este servidor.",
+    },
     resizeWidth: {
       label: "Cambiar ancho",
       tooltip:
         "Cambia el tamaño de la(s) imagen(es) al ancho deseado conservando la relación de aspecto original.",
+      upscaleActiveHint: "No se usa mientras la ampliación con IA está activada.",
     },
     dropzone: {
       dragActive: "Arrastra imágenes o PDF aquí...",

@@ -11,6 +11,7 @@ from tests.test_utils import (
     create_sample_test_image,
 )
 
+import numpy as np
 import pillow_heif
 from PIL import Image, ImageDraw
 
@@ -329,6 +330,54 @@ class TestDockerIntegration:
                 for y in range(0, output_img.height, 10)
             )
             assert has_transparency, "Expected some transparent pixels in background-removed image"
+
+    def test_run_docker_cli_upscale_withoutNetworkOnOneCpu_usesBundledModel(self):
+        """
+        --upscale must work fully offline on a plain CPU: the model ships in the
+        image and nothing is downloaded at runtime. --network none makes any
+        download attempt fail, --cpus 1 mimics a small box without a GPU.
+        """
+        test_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_upscale_cli.png")
+        img = Image.new("RGB", (160, 90), (245, 245, 240))
+        draw = ImageDraw.Draw(img)
+        for x in range(4, 160, 9):
+            draw.line((x, 0, x, 45), fill=(30, 30, 30), width=1)
+        draw.rectangle([20, 56, 60, 78], fill=(200, 40, 40))
+        img.save(test_img_path, "PNG")
+
+        try:
+            strategy = self._mounting_strategy()
+            cmd = [
+                "docker", "run", "--rm", "--network", "none", "--cpus", "1",
+                *strategy["volume_args"],
+                self.DOCKER_IMAGE_NAME,
+                "cli",
+                os.path.join(strategy["input_path"], "test_upscale_cli.png"),
+                strategy["output_path"],
+                "--format", "png",
+                "--upscale", "4x",
+            ]
+            print("Docker --upscale command:", shlex.join(cmd))
+            subprocess.run(cmd, check=True)
+        finally:
+            os.remove(test_img_path)
+
+        output_path = os.path.join(self.OUTPUT_DIR, "test_upscale_cli.png")
+        assert os.path.exists(output_path)
+        with Image.open(output_path) as out_img:
+            assert out_img.size == (640, 360)
+            ai = out_img.convert("L")
+
+        # The model output has far crisper edges than plain bicubic, which proves
+        # the AI path ran rather than a silent resize.
+        bicubic = img.resize((640, 360), Image.Resampling.BICUBIC).convert("L")
+
+        def edge_energy(image):
+            grey = np.asarray(image, dtype=np.float32)
+            lap = 4 * grey[1:-1, 1:-1] - grey[:-2, 1:-1] - grey[2:, 1:-1] - grey[1:-1, :-2] - grey[1:-1, 2:]
+            return float(np.mean(lap**2))
+
+        assert edge_energy(ai) > 2 * edge_energy(bicubic)
 
     def test_run_docker_cli_avifFormat_producesValidAvifFile(self):
         """

@@ -9,6 +9,7 @@ from werkzeug.datastructures import FileStorage
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize
+from backend.image_converter.domain.upscaling import UpscaleTarget
 
 
 @dataclass
@@ -26,6 +27,7 @@ class CompressRequest:
     pdf_paginate: bool = False
     pdf_quality: PdfQuality = PdfQuality.HIGH
     webp_lossless: bool = False
+    upscale: Optional[UpscaleTarget] = None
 
 
 @dataclass
@@ -97,6 +99,7 @@ class CompressionFormData:
     pdf_paginate: bool
     pdf_quality: str = "high"
     webp_lossless: bool = False
+    upscale: str = ""
 
 
 @dataclass(frozen=True)

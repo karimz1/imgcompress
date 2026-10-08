@@ -22,6 +22,7 @@ from backend.image_converter.config.app_config import (
     RembgConfig,
     TemporaryStorageConfig,
     UploadsConfig,
+    UpscalingConfig,
     WebConfig,
 )
 
@@ -111,6 +112,13 @@ def load_from_file(path: Path) -> AppConfig:
         ),
     )
     rembg = RembgConfig(model_name=reader.require_str(("rembg", "model_name")))
+    # Optional block so existing config files keep working unchanged.
+    upscaling = UpscalingConfig(
+        threads=reader.optional_thread_count(("upscaling", "threads")),
+        max_output_megapixels=reader.optional_int(
+            ("upscaling", "max_output_megapixels"), default=36, minimum=1, maximum=1000
+        ),
+    )
 
     if errors:
         raise ConfigError("invalid backend config:\n  - " + "\n  - ".join(errors))
@@ -124,6 +132,7 @@ def load_from_file(path: Path) -> AppConfig:
         formats=formats,
         features=features,
         rembg=rembg,
+        upscaling=upscaling,
     )
 
 
@@ -240,6 +249,18 @@ class _Reader:
             self._errors.append(f"config key '{_render(path)}' must be >= 1")
             return WebWorkerCount.auto()
         return WebWorkerCount.fixed(raw)
+
+    def optional_thread_count(self, path: Tuple[str, ...]) -> Optional[int]:
+        """``"auto"`` or a missing key gives None; otherwise an integer >= 1."""
+        raw = self._peek(path)
+        if raw is _SENTINEL:
+            return None
+        if isinstance(raw, str) and raw.strip().lower() == "auto":
+            return None
+        if isinstance(raw, bool) or not isinstance(raw, int) or raw < 1:
+            self._errors.append(f"config key '{_render(path)}' must be an integer >= 1 or \"auto\"")
+            return None
+        return raw
 
     def require_extension_list(self, path: Tuple[str, ...]) -> Tuple[str, ...]:
         raw = self._lookup(path)

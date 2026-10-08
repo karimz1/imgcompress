@@ -22,6 +22,7 @@ from backend.image_converter.domain.pdf_presets import (
 )
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize, to_bytes
+from backend.image_converter.domain.upscaling import UpscaleTarget
 
 
 class CompressionService:
@@ -80,6 +81,12 @@ class CompressionService:
                 "Lossless WebP cannot be combined with a max file size. "
                 "Turn off lossless or remove the size limit."
             )
+        upscale_res = UpscaleTarget.from_string_result(form_data.upscale)
+        if not upscale_res.is_successful:
+            return Result.failure(upscale_res.error)
+        upscale = upscale_res.value
+        if upscale and fmt == ImageFormat.PDF:
+            return Result.failure("AI upscaling is not available for PDF output.")
 
         src: Optional[str] = None
         dst: Optional[str] = None
@@ -104,7 +111,8 @@ class CompressionService:
                 dest_folder=dst,
                 image_format=fmt,
                 quality=form_data.quality,
-                width=form_data.width,
+                # Upscaling decides the output size, so a resize width would undo it.
+                width=None if upscale else form_data.width,
                 target_size=target,
                 use_rembg=form_data.use_rembg,
                 pdf_preset=pdf_preset,
@@ -113,6 +121,7 @@ class CompressionService:
                 pdf_paginate=pdf_paginate,
                 pdf_quality=pdf_quality,
                 webp_lossless=webp_lossless,
+                upscale=upscale,
             )
 
             result = self.use_case.execute(req)

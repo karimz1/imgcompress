@@ -15,12 +15,14 @@ class CompressImagesUseCase:
         converter_factory,
         storage,
         payload_expander: FilePayloadExpander,
+        upscaler=None,
     ):
         self.logger = logger
         self.resizer = resizer
         self.converter_factory = converter_factory
         self.storage = storage
         self.payload_expander = payload_expander
+        self.upscaler = upscaler
 
     def execute(self, req: CompressRequest) -> CompressResult:
         processed, errors = [], []
@@ -63,8 +65,13 @@ class CompressImagesUseCase:
             for payload in page_payloads:
                 page_label = payload.label
                 try:
+                    upscaled = False
                     if pdf_preset and req.image_format == ImageFormat.PDF:
                         data = payload.data
+                    elif req.upscale:
+                        upscaled_data = self._get_upscaler().upscale(payload.data, req.upscale)
+                        upscaled = upscaled_data is not None
+                        data = upscaled_data if upscaled else payload.data
                     else:
                         data = self._resize_if_needed(payload.data, req.width)
 
@@ -85,7 +92,9 @@ class CompressImagesUseCase:
                             )
 
                         # The target-size path never removes the background.
-                        dest_name = self._build_dest_name(item.stem, new_ext, payload.page_index)
+                        dest_name = self._build_dest_name(
+                            item.stem, new_ext, payload.page_index, upscaled=upscaled
+                        )
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         write_result = self.storage.write_bytes(dest_path, out)
                         if not write_result.is_successful:
@@ -109,7 +118,11 @@ class CompressImagesUseCase:
                         # background, so the suffix follows the actual behaviour
                         # regardless of which formats support rembg.
                         dest_name = self._build_dest_name(
-                            item.stem, new_ext, payload.page_index, converter.removes_background
+                            item.stem,
+                            new_ext,
+                            payload.page_index,
+                            converter.removes_background,
+                            upscaled=upscaled,
                         )
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         result = converter.convert(
@@ -126,6 +139,18 @@ class CompressImagesUseCase:
 
         return CompressResult(processed_files=processed, errors=errors)
 
+    def _get_upscaler(self):
+        if self.upscaler is None:
+            # Lazy so the CLI and tests that never upscale do not import onnxruntime.
+            from backend.image_converter.config import settings
+            from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
+
+            config = settings.get().upscaling
+            self.upscaler = AiUpscaler(
+                self.logger, threads=config.threads, max_output_megapixels=config.max_output_megapixels
+            )
+        return self.upscaler
+
     def _resize_if_needed(self, data: bytes, width: Optional[int]) -> bytes:
         if width and width > 0:
             return self.resizer.resize_image(data, width)
@@ -133,11 +158,19 @@ class CompressImagesUseCase:
 
 
     _BG_REMOVED_SUFFIX = "_ai-bg-removed"
+    _UPSCALED_SUFFIX = "_ai-upscaled"
 
     @classmethod
     def _build_dest_name(
-        cls, stem: str, extension: str, page_index: Optional[int], background_removed: bool = False
+        cls,
+        stem: str,
+        extension: str,
+        page_index: Optional[int],
+        background_removed: bool = False,
+        upscaled: bool = False,
     ) -> str:
+        if upscaled and not stem.endswith(cls._UPSCALED_SUFFIX):
+            stem = f"{stem}{cls._UPSCALED_SUFFIX}"
         if background_removed and not stem.endswith(cls._BG_REMOVED_SUFFIX):
             stem = f"{stem}{cls._BG_REMOVED_SUFFIX}"
         if page_index is None:

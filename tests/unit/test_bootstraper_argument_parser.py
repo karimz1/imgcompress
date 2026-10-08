@@ -22,6 +22,7 @@ def test_cli_help_is_forwarded_to_cli_parser(monkeypatch, capsys):
     assert "--width WIDTH" in output
     assert "--format {jpeg,png,avif,webp,pdf}" in output
     assert "--webp-lossless" in output
+    assert "--upscale {2x,4x,1080p,4k}" in output
     assert "--pdf-preset" in output
     assert "--pdf-scale" in output
     assert "--pdf-margin-mm" in output

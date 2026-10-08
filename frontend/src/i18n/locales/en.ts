@@ -154,10 +154,26 @@ export const en = {
       tooltip:
         "Set an optional maximum output size (in MB). Applies to JPEG, AVIF, and WebP output.",
     },
+    upscale: {
+      label: "AI upscaling",
+      tooltip:
+        "Enlarges images with a local AI model ({{model}}) that rebuilds edges and fine detail instead of just stretching pixels. It runs on this server's CPU and nothing is sent anywhere.",
+      targetLabel: "Upscale to",
+      options: {
+        "2x": "2× larger",
+        "4x": "4× larger",
+        "1080p": "Full HD (fits 1920 × 1080)",
+        "4k": "4K (fits 3840 × 2160)",
+      },
+      hint:
+        "Runs on the CPU, so it takes a while: a 720p image to 4K needs roughly 10 to 40 seconds depending on the machine. Images that are already big enough stay as they are.",
+      unavailableHint: "The upscaling model is not installed on this server.",
+    },
     resizeWidth: {
       label: "Resize Width",
       tooltip:
         "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
+      upscaleActiveHint: "Not used while AI upscaling is on.",
     },
     dropzone: {
       dragActive: "Drop images or PDFs here...",

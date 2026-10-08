@@ -36,6 +36,8 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 import { useRembgModel } from "@/hooks/useRembgModel";
+import { useUpscaleModel } from "@/hooks/useUpscaleModel";
+import { DEFAULT_UPSCALE_SETTINGS, type UpscaleSettings } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
@@ -83,6 +85,7 @@ function HomePageContent() {
     unsupportedExtensions: cropUnsupportedExtensions,
   } = useCropUnsupportedExtensions();
   const { modelName: rembgModelName } = useRembgModel();
+  const { modelName: upscaleModelName, available: upscaleAvailable } = useUpscaleModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -97,6 +100,7 @@ function HomePageContent() {
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
+  const [upscale, setUpscale] = useState<UpscaleSettings>(DEFAULT_UPSCALE_SETTINGS);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
@@ -175,6 +179,14 @@ function HomePageContent() {
       setWidth("");
     }
   }, [outputFormat, pdfPreset]);
+
+  useEffect(() => {
+    // Upscaling decides the output size, so a resize width would contradict it.
+    if (upscale.enabled && outputFormat !== "pdf") {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [upscale.enabled, outputFormat]);
 
   useEffect(() => {
     if (outputFormat === "pdf" && pdfPreset === "original") {
@@ -312,8 +324,12 @@ function HomePageContent() {
       if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
-      if (resizeWidthEnabled) {
+      const upscaleActive = upscale.enabled && outputFormat !== "pdf";
+      if (resizeWidthEnabled && !upscaleActive) {
         formData.append("width", width);
+      }
+      if (upscaleActive) {
+        formData.append("upscale", upscale.target);
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -409,6 +425,7 @@ function HomePageContent() {
       quality,
       resizeWidthEnabled,
       width,
+      upscale,
       clearError,
       setError,
       compressionMode,
@@ -567,6 +584,10 @@ function HomePageContent() {
               setWidth={setWidth}
               resizeWidthEnabled={resizeWidthEnabled}
               setResizeWidthEnabled={setResizeWidthEnabled}
+              upscale={upscale}
+              setUpscale={setUpscale}
+              upscaleModelName={upscaleModelName}
+              upscaleAvailable={upscaleAvailable}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}

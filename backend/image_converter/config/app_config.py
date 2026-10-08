@@ -1,6 +1,7 @@
 """Typed backend configuration models."""
 
 from dataclasses import dataclass
+from typing import Optional
 
 from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
 from backend.image_converter.domain.web_workers import WebWorkerCount
@@ -63,6 +64,13 @@ class RembgConfig:
 
 
 @dataclass(frozen=True)
+class UpscalingConfig:
+    # None means "auto": the CPUs available to the container, capped at 8.
+    threads: Optional[int]
+    max_output_megapixels: int
+
+
+@dataclass(frozen=True)
 class AppConfig:
     temporary_storage: TemporaryStorageConfig
     uploads: UploadsConfig
@@ -72,3 +80,4 @@ class AppConfig:
     formats: FormatsConfig
     features: FeaturesConfig
     rembg: RembgConfig
+    upscaling: UpscalingConfig
