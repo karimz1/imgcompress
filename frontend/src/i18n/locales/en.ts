@@ -9,6 +9,7 @@ export const en = {
       noFormatError: "Please select an output format first.",
       qualityRangeError: "Quality must be a number between 1 and 100.",
       widthPositiveError: "Width must be a positive number.",
+      fitSizeError: "Fit to exact size needs a width and height between 1 and 8192 pixels.",
       icoWidthClamped:
         "ICO format is limited to a max width of 256px. Your input has been clamped to 256.",
       targetSizeError: "Please set a positive Max file size (in MB).",
@@ -178,11 +179,47 @@ export const en = {
         "Keeps the aspect ratio. Images already large enough for a resolution target stay unchanged. Larger images and slower CPUs take longer. Beyond 4×, AI upscaling is followed by standard resizing.",
       unavailableHint: "The upscaling model is not installed.",
     },
+    fitSize: {
+      label: "Fit to exact size",
+      tooltip:
+        "Outputs every image at exactly this size, for example for a GitHub social preview. If the aspect ratio is different, the image is either cropped or placed on a blurred copy of itself.",
+      preset: {
+        label: "Size",
+        options: {
+          githubSocial: "GitHub social preview (1280 × 640)",
+          openGraph: "Open Graph link preview (1200 × 630)",
+          custom: "Custom size",
+        },
+      },
+      widthLabel: "Width (px)",
+      heightLabel: "Height (px)",
+      mode: {
+        label: "If the aspect ratio is different",
+        crop: "Crop to fill",
+        blur: "Blurred background",
+        cropHint: "Fills the whole frame. Parts of the image are cut off.",
+        blurHint: "Keeps the whole image. The empty sides show a blurred, slightly darker copy of it.",
+      },
+      anchor: {
+        label: "Keep",
+        tooltip:
+          "Automatic looks for text, faces, and other detail and keeps as much of it as possible without cutting through it. Pick a side to choose yourself.",
+        options: {
+          auto: "Important content (automatic)",
+          center: "Center",
+          top: "Top",
+          bottom: "Bottom",
+          left: "Left",
+          right: "Right",
+        },
+      },
+    },
     resizeWidth: {
       label: "Resize Width",
       tooltip:
         "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
       upscaleActiveHint: "Not used while AI upscaling is on.",
+      fitActiveHint: "Not used while Fit to exact size is on.",
     },
     dropzone: {
       dragActive: "Drop images or PDFs here...",

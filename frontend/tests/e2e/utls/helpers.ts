@@ -7,6 +7,7 @@ import { ImageFileDto } from './ImageFileDto';
 import { DownloadType } from './DownloadType';
 import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
 import type { UpscaleTarget } from '../../../src/lib/upscale';
+import type { FitAnchor, FitMode, FitPreset } from '../../../src/lib/fitToSize';
 
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
@@ -36,7 +37,12 @@ const selectors = {
   compressionModeQualityBtn: '[data-testid="compression-mode-quality-btn"]',
   compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]',
   upscaleSwitch: '[data-testid="upscale-switch"]',
-  upscaleTargetSelect: '[data-testid="upscale-target-select"]'
+  upscaleTargetSelect: '[data-testid="upscale-target-select"]',
+  fitSizeSwitch: '[data-testid="fit-size-switch"]',
+  fitPresetSelect: '[data-testid="fit-preset-select"]',
+  fitWidthInput: '[data-testid="fit-width-input"]',
+  fitHeightInput: '[data-testid="fit-height-input"]',
+  fitAnchorSelect: '[data-testid="fit-anchor-select"]'
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
@@ -205,6 +211,39 @@ export async function setUpscaleAsync(page: Page, target: UpscaleTarget): Promis
   await page.locator(selectors.upscaleTargetSelect).click();
   await page.getByTestId(`upscale-target-option-${target}`).click();
   await expect(page.locator(selectors.upscaleTargetSelect)).toBeVisible();
+}
+
+export interface FitToSizeOptions {
+  preset: FitPreset;
+  width?: number;
+  height?: number;
+  mode?: FitMode;
+  anchor?: FitAnchor;
+}
+
+export async function setFitToSizeAsync(page: Page, options: FitToSizeOptions): Promise<void> {
+  const toggle = page.locator(selectors.fitSizeSwitch);
+  await expect(toggle).toBeVisible();
+  if ((await toggle.getAttribute('data-state')) !== 'checked') {
+    await toggle.click();
+  }
+
+  await page.locator(selectors.fitPresetSelect).click();
+  await page.getByTestId(`fit-preset-option-${options.preset}`).click();
+  await expect(page.locator(selectors.fitPresetSelect)).toBeVisible();
+
+  if (options.preset === 'custom') {
+    await page.locator(selectors.fitWidthInput).fill(String(options.width));
+    await page.locator(selectors.fitHeightInput).fill(String(options.height));
+  }
+
+  const mode = options.mode ?? 'crop';
+  await page.getByTestId(`fit-mode-${mode}-btn`).click();
+
+  if (mode === 'crop' && options.anchor) {
+    await page.locator(selectors.fitAnchorSelect).click();
+    await page.getByTestId(`fit-anchor-option-${options.anchor}`).click();
+  }
 }
 
 export async function waitForSupportedFormatsCountAsync(page: Page): Promise<number> {

@@ -44,6 +44,31 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         help="AI model for --upscale: general for photos, anime for drawn images (default: general).",
     )
     parser.add_argument(
+        "--fit",
+        type=str,
+        default=None,
+        metavar="WIDTHxHEIGHT",
+        help="Output exactly this size, e.g. 1280x640 for a GitHub social preview. "
+             "Replaces --width. With --upscale, the image is upscaled first. "
+             "Not available with --format pdf."
+    )
+    parser.add_argument(
+        "--fit-mode",
+        type=str,
+        choices=["crop", "blur"],
+        default="crop",
+        help="How --fit handles a different aspect ratio: crop the overflow, or fit the whole "
+             "image on a blurred copy of itself (default: crop)."
+    )
+    parser.add_argument(
+        "--fit-anchor",
+        type=str,
+        choices=["auto", "center", "top", "bottom", "left", "right"],
+        default="auto",
+        help="Which part to keep when --fit-mode crop cuts the image. 'auto' looks for the "
+             "important content (default: auto)."
+    )
+    parser.add_argument(
         "--format",
         type=str,
         choices=["jpeg", "png", "avif", "webp", "pdf"],

@@ -5,6 +5,7 @@ import json
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.file_manager import FileManager
 from backend.image_converter.core.internals.image_loader import ImageLoader
+from backend.image_converter.domain.fit_to_size import FitToSize
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
@@ -38,6 +39,7 @@ class ImageConversionProcessor:
         quality: int = 85,
         width: Optional[int] = None,
         upscale: Optional[UpscaleTarget] = None,
+        fit: Optional[FitToSize] = None,
         pdf_preset: Optional[str] = None,
         pdf_scale: str = "fit",
         pdf_margin_mm: Optional[float] = None,
@@ -57,6 +59,7 @@ class ImageConversionProcessor:
         self.upscale = upscale
         self.upscale_model = upscale_model
         self._upscaler = None
+        self.fit = fit
         self.pdf_preset = pdf_preset
         self.pdf_scale = pdf_scale
         self.pdf_margin_mm = pdf_margin_mm
@@ -184,12 +187,17 @@ class ImageConversionProcessor:
 
             if self.image_format == ImageFormat.PDF and self.pdf_preset_config:
                 data = payload.data
-            elif self.upscale:
-                upscaled = self._get_upscaler().upscale(payload.data, self.upscale, self.upscale_model)
-                if upscaled is not None:
-                    data = upscaled
-                    with Image.open(BytesIO(data)) as upscaled_img:
-                        new_width, _ = upscaled_img.size
+            elif self.upscale or self.fit:
+                if self.upscale:
+                    upscaled = self._get_upscaler().upscale(data, self.upscale, self.upscale_model)
+                    if upscaled is not None:
+                        data = upscaled
+                        with Image.open(BytesIO(data)) as upscaled_img:
+                            new_width, _ = upscaled_img.size
+                if self.fit:
+                    # Upscale first so the exact size is cut from the sharper image.
+                    data = self.image_resizer.fit_to_size(data, self.fit)
+                    new_width = self.fit.width
             elif self.width and self.width > 0:
                 data = self.image_resizer.resize_image(payload.data, self.width)
                 with Image.open(BytesIO(data)) as resized_img:

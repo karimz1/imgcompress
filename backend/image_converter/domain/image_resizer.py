@@ -1,5 +1,14 @@
-from PIL import Image, ImageOps
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 from io import BytesIO
+
+from backend.image_converter.domain.fit_to_size import FitAnchor, FitMode, FitToSize
+from backend.image_converter.domain.smart_crop import find_crop_offset, to_8bit
+
+# Blurred background for FitMode.BLUR: blur radius as a share of the longer
+# target side, and how much the background is darkened so the image in front
+# stands out. Matches the hand-made social preview this feature started from.
+_BLUR_RADIUS_SHARE = 0.025
+_BLUR_BRIGHTNESS = 0.85
 
 
 class ImageResizer:
@@ -97,6 +106,97 @@ class ImageResizer:
             buffer = BytesIO()
             base.save(buffer, format="TIFF", compression="tiff_deflate")
             return buffer.getvalue()
+
+    def fit_to_size(self, image_data: bytes, fit: FitToSize) -> bytes:
+        """
+        Returns the image at exactly ``fit.width`` x ``fit.height``.
+
+        CROP scales the image to cover the target and cuts off the overflow,
+        either where the least important content is (AUTO) or at the given
+        anchor. BLUR scales the whole image to fit and fills the empty sides
+        with a blurred, slightly darkened copy of itself; the result is opaque.
+        """
+        with Image.open(BytesIO(image_data)) as img:
+            try:
+                img = ImageOps.exif_transpose(img)
+            except Exception:
+                pass
+            icc_profile = img.info.get("icc_profile")
+
+            if img.mode in ("P", "PA"):
+                img = img.convert("RGBA" if self._has_alpha(img) else "RGB")
+
+            if fit.mode == FitMode.BLUR:
+                result = self._fit_on_blurred_background(img, fit.width, fit.height)
+            else:
+                result = self._fit_by_cropping(img, fit.width, fit.height, fit.anchor)
+
+            buffer = BytesIO()
+            result.save(
+                buffer,
+                format="TIFF",
+                icc_profile=icc_profile,
+                compression="tiff_deflate",
+            )
+            return buffer.getvalue()
+
+    @classmethod
+    def _fit_by_cropping(
+        cls, img: Image.Image, width: int, height: int, anchor: FitAnchor
+    ) -> Image.Image:
+        covering = cls._resize_to_cover(img, width, height)
+        free_x = covering.width - width
+        free_y = covering.height - height
+
+        if anchor == FitAnchor.AUTO:
+            left, top = find_crop_offset(covering, width, height)
+        else:
+            left = {FitAnchor.LEFT: 0, FitAnchor.RIGHT: free_x}.get(anchor, free_x // 2)
+            top = {FitAnchor.TOP: 0, FitAnchor.BOTTOM: free_y}.get(anchor, free_y // 2)
+
+        return covering.crop((left, top, left + width, top + height))
+
+    @classmethod
+    def _fit_on_blurred_background(cls, img: Image.Image, width: int, height: int) -> Image.Image:
+        # Blur and compositing work on 8-bit RGB; the output is opaque anyway.
+        img = to_8bit(img)
+        if cls._has_alpha(img):
+            rgba = img.convert("RGBA")
+            # Transparent areas would blur into whatever colour hides behind
+            # them (often black), so flatten onto white first.
+            flat = Image.new("RGB", rgba.size, (255, 255, 255))
+            flat.paste(rgba.convert("RGB"), mask=rgba.getchannel("A"))
+        else:
+            rgba = None
+            flat = img.convert("RGB")
+
+        background = cls._resize_to_cover(flat, width, height)
+        left = (background.width - width) // 2
+        top = (background.height - height) // 2
+        background = background.crop((left, top, left + width, top + height))
+        radius = max(2.0, max(width, height) * _BLUR_RADIUS_SHARE)
+        background = background.filter(ImageFilter.GaussianBlur(radius))
+        background = ImageEnhance.Brightness(background).enhance(_BLUR_BRIGHTNESS)
+
+        ratio = min(width / img.width, height / img.height)
+        size = (max(1, min(width, round(img.width * ratio))), max(1, min(height, round(img.height * ratio))))
+        offset = ((width - size[0]) // 2, (height - size[1]) // 2)
+        if rgba is not None:
+            foreground = rgba.resize(size, Image.Resampling.LANCZOS)
+            background.paste(foreground.convert("RGB"), offset, mask=foreground.getchannel("A"))
+        else:
+            background.paste(flat.resize(size, Image.Resampling.LANCZOS), offset)
+        return background
+
+    @staticmethod
+    def _resize_to_cover(img: Image.Image, width: int, height: int) -> Image.Image:
+        ratio = max(width / img.width, height / img.height)
+        size = (max(width, round(img.width * ratio)), max(height, round(img.height * ratio)))
+        return img.resize(size, Image.Resampling.LANCZOS)
+
+    @staticmethod
+    def _has_alpha(img: Image.Image) -> bool:
+        return img.mode in ("RGBA", "LA", "PA") or (img.mode == "P" and "transparency" in img.info)
 
     @staticmethod
     def _mm_to_px(mm: float) -> int:

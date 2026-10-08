@@ -84,6 +84,7 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 | **70+ Image Formats** | HEIC, HEIF, PSD, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60+ more |
 | **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
 | **Local AI Upscaling** | Choose General or Anime. Real-ESRGAN enlarges images 2x, 4x, 8x, or to Full HD / 4K / 6K / 8K / 16K on your CPU, preserving the aspect ratio. Both models ship in the image; nothing is downloaded at runtime |
+| **Fit to Exact Size** | GitHub social preview (1280 × 640), Open Graph (1200 × 630), or any size. Smart crop that keeps text and detail, or a blurred background |
 | **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, image batches to paginated PDF, and more |
 | **Per-File Cropping** | Crop each upload before conversion with ratio presets (Free, 1:1, 16:9, 4:3) or custom pixel dimensions |

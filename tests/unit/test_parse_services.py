@@ -132,3 +132,26 @@ def test_extract_form_data_defaults_webp_lossless_to_false():
 
     assert result.is_successful
     assert result.value.webp_lossless is False
+
+
+def test_extract_form_data_passes_fit_fields_through_as_text():
+    request = _build_request(
+        {"format": "jpeg", "fit_width": " 1280 ", "fit_height": "640", "fit_mode": "blur", "fit_anchor": "top"},
+        {"files[]": (b"\xff\xd8\xff" + b"x" * 10, "x.jpg")},
+    )
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    form_data = result.value
+    assert (form_data.fit_width, form_data.fit_height) == ("1280", "640")
+    assert (form_data.fit_mode, form_data.fit_anchor) == ("blur", "top")
+
+
+def test_extract_form_data_leaves_fit_blank_when_not_sent():
+    request = _build_request({"format": "jpeg"}, {"files[]": (b"x", "x.jpg")})
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    assert result.value.fit_width == "" and result.value.fit_height == ""

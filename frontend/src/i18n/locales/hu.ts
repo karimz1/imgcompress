@@ -11,6 +11,7 @@ export const hu: TranslationSchema = {
       noFormatError: "Kérlek, először válassz kimeneti formátumot.",
       qualityRangeError: "A minőségnek 1 és 100 közötti számnak kell lennie.",
       widthPositiveError: "A szélességnek pozitív számnak kell lennie.",
+      fitSizeError: "A pontos méretre igazításhoz 1 és 8192 pixel közötti szélesség és magasság szükséges.",
       icoWidthClamped:
         "Az ICO formátum legfeljebb 256 px szélességet támogat. A megadott értéket 256-ra állítottam.",
       targetSizeError: "Kérlek, adj meg egy pozitív maximális fájlméretet (MB-ban).",
@@ -181,11 +182,47 @@ export const hu: TranslationSchema = {
         "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
       unavailableHint: "A felskálázó modell nincs telepítve.",
     },
+    fitSize: {
+      label: "Pontos méretre igazítás",
+      tooltip:
+        "Minden képet pontosan ebben a méretben ad ki, például GitHub közösségi előnézethez. Ha a képarány eltér, a kép vagy körbe lesz vágva, vagy saját elmosott másolatára kerül.",
+      preset: {
+        label: "Méret",
+        options: {
+          githubSocial: "GitHub közösségi előnézet (1280 × 640)",
+          openGraph: "Open Graph linkelőnézet (1200 × 630)",
+          custom: "Egyéni méret",
+        },
+      },
+      widthLabel: "Szélesség (px)",
+      heightLabel: "Magasság (px)",
+      mode: {
+        label: "Ha a képarány eltér",
+        crop: "Kitöltés vágással",
+        blur: "Elmosott háttér",
+        cropHint: "Kitölti a teljes keretet. A kép egyes részei levágásra kerülnek.",
+        blurHint: "A teljes kép megmarad. Az üres oldalakon a kép elmosott, kissé sötétebb másolata látszik.",
+      },
+      anchor: {
+        label: "Megtartandó rész",
+        tooltip:
+          "Az automatikus mód szöveget, arcokat és más részleteket keres, és ezekből a lehető legtöbbet megtartja anélkül, hogy átvágná őket. Válassz egy oldalt, ha magad döntenél.",
+        options: {
+          auto: "Fontos tartalom (automatikus)",
+          center: "Közép",
+          top: "Fent",
+          bottom: "Lent",
+          left: "Bal",
+          right: "Jobb",
+        },
+      },
+    },
     resizeWidth: {
       label: "Átméretezés szélesség alapján",
       tooltip:
         "A kép(ek) átméretezése a kívánt szélességre, az eredeti képarány megtartásával.",
       upscaleActiveHint: "Nem használatos, amíg az MI-felskálázás be van kapcsolva.",
+      fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
     },
     dropzone: {
       dragActive: "Ejtsd ide a képeket vagy PDF-eket...",

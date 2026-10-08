@@ -42,6 +42,7 @@ import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensio
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
+import { DEFAULT_FIT_SETTINGS, resolveFitSize, type FitSettings } from "@/lib/fitToSize";
 
 
 function HomePageContent() {
@@ -111,6 +112,7 @@ function HomePageContent() {
       if (availableModel) setUpscale((previous) => ({ ...previous, model: availableModel.id }));
     }
   }, [upscaleModels, upscale.model]);
+  const [fit, setFit] = useState<FitSettings>(DEFAULT_FIT_SETTINGS);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
@@ -189,6 +191,21 @@ function HomePageContent() {
       setWidth("");
     }
   }, [outputFormat, pdfPreset]);
+
+  // Fit to size produces an exact size, so a resize width would only fight it,
+  // and PDF output has its own page presets instead.
+  useEffect(() => {
+    if (fit.enabled && outputFormat !== "pdf") {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [fit.enabled, outputFormat]);
+
+  useEffect(() => {
+    if (outputFormat === "pdf" && fit.enabled) {
+      setFit((prev) => ({ ...prev, enabled: false }));
+    }
+  }, [outputFormat, fit.enabled]);
 
   useEffect(() => {
     // Upscaling decides the output size, so a resize width would contradict it.
@@ -293,6 +310,13 @@ function HomePageContent() {
         }
       }
 
+      const fitSize = fit.enabled && outputFormat !== "pdf" ? resolveFitSize(fit) : null;
+      if (fit.enabled && outputFormat !== "pdf" && !fitSize) {
+        setError({ message: t("page.toast.fitSizeError") });
+        toast.error(t("page.toast.fitSizeError"));
+        return;
+      }
+
       if (hasQualitySettings && compressionMode === "size") {
         const trimmed = (targetSizeMB || "").trim();
         const parsedSize = parseFloat(trimmed);
@@ -335,12 +359,20 @@ function HomePageContent() {
         formData.append("quality", quality);
       }
       const upscaleActive = upscale.enabled && outputFormat !== "pdf";
-      if (resizeWidthEnabled && !upscaleActive) {
+      if (resizeWidthEnabled && !upscaleActive && !fitSize) {
         formData.append("width", width);
       }
       if (upscaleActive) {
         formData.append("upscale", upscale.target);
         formData.append("upscale_model", upscale.model);
+      }
+      if (fitSize) {
+        formData.append("fit_width", String(fitSize.width));
+        formData.append("fit_height", String(fitSize.height));
+        formData.append("fit_mode", fit.mode);
+        if (fit.mode === "crop") {
+          formData.append("fit_anchor", fit.anchor);
+        }
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -437,6 +469,7 @@ function HomePageContent() {
       resizeWidthEnabled,
       width,
       upscale,
+      fit,
       clearError,
       setError,
       compressionMode,
@@ -600,6 +633,8 @@ function HomePageContent() {
               upscaleModelName={upscaleModelName}
               upscaleAvailable={upscaleAvailable}
               upscaleModels={upscaleModels}
+              fit={fit}
+              setFit={setFit}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}

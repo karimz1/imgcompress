@@ -11,6 +11,7 @@ export const de: TranslationSchema = {
       noFormatError: "Bitte wähle zuerst ein Ausgabeformat aus.",
       qualityRangeError: "Die Qualität muss eine Zahl zwischen 1 und 100 sein.",
       widthPositiveError: "Die Breite muss eine positive Zahl sein.",
+      fitSizeError: "„Auf exakte Größe bringen“ braucht eine Breite und Höhe zwischen 1 und 8192 Pixeln.",
       icoWidthClamped:
         "Das ICO-Format ist auf eine maximale Breite von 256 px beschränkt. Deine Eingabe wurde auf 256 gesetzt.",
       targetSizeError: "Bitte lege eine positive maximale Dateigröße (in MB) fest.",
@@ -181,11 +182,47 @@ export const de: TranslationSchema = {
         "Behält das Seitenverhältnis bei. Bilder, die für die Zielauflösung bereits groß genug sind, bleiben unverändert. Größere Bilder und langsamere CPUs brauchen mehr Zeit. Über 4× folgt auf die KI-Hochskalierung eine normale Größenänderung.",
       unavailableHint: "Das Modell für die Hochskalierung ist nicht installiert.",
     },
+    fitSize: {
+      label: "Auf exakte Größe bringen",
+      tooltip:
+        "Gibt jedes Bild in genau dieser Größe aus, zum Beispiel für eine GitHub-Social-Preview. Wenn das Seitenverhältnis abweicht, wird das Bild entweder zugeschnitten oder auf eine unscharfe Kopie von sich selbst gesetzt.",
+      preset: {
+        label: "Größe",
+        options: {
+          githubSocial: "GitHub-Social-Preview (1280 × 640)",
+          openGraph: "Open-Graph-Linkvorschau (1200 × 630)",
+          custom: "Eigene Größe",
+        },
+      },
+      widthLabel: "Breite (px)",
+      heightLabel: "Höhe (px)",
+      mode: {
+        label: "Wenn das Seitenverhältnis abweicht",
+        crop: "Zuschneiden",
+        blur: "Unscharfer Hintergrund",
+        cropHint: "Füllt den ganzen Rahmen. Teile des Bildes werden abgeschnitten.",
+        blurHint: "Behält das ganze Bild. Die freien Seiten zeigen eine unscharfe, etwas dunklere Kopie davon.",
+      },
+      anchor: {
+        label: "Behalten",
+        tooltip:
+          "Automatisch sucht nach Text, Gesichtern und anderen Details und behält so viel davon wie möglich, ohne sie zu zerschneiden. Wähle eine Seite, um selbst zu entscheiden.",
+        options: {
+          auto: "Wichtiger Inhalt (automatisch)",
+          center: "Mitte",
+          top: "Oben",
+          bottom: "Unten",
+          left: "Links",
+          right: "Rechts",
+        },
+      },
+    },
     resizeWidth: {
       label: "Breite ändern",
       tooltip:
         "Ändert die Größe der Bilder auf die gewünschte Breite und behält dabei das ursprüngliche Seitenverhältnis bei.",
       upscaleActiveHint: "Wird nicht verwendet, solange die KI-Hochskalierung aktiv ist.",
+      fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
     },
     dropzone: {
       dragActive: "Bilder oder PDFs hier ablegen...",

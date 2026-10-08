@@ -11,6 +11,7 @@ export const zhCN: TranslationSchema = {
       noFormatError: "请先选择输出格式。",
       qualityRangeError: "质量必须是 1 到 100 之间的数字。",
       widthPositiveError: "宽度必须是正数。",
+      fitSizeError: "“调整为精确尺寸”需要 1 到 8192 像素之间的宽度和高度。",
       icoWidthClamped:
         "ICO 格式的最大宽度限制为 256px。你的输入已被限制为 256。",
       targetSizeError: "请设置一个正的最大文件大小（MB）。",
@@ -181,11 +182,47 @@ export const zhCN: TranslationSchema = {
         "保持宽高比。已经足够达到目标分辨率的图片保持不变。较大的图片和较慢的 CPU 需要更长时间。超过 4 倍的放大会先进行 AI 放大，再使用常规缩放。",
       unavailableHint: "未安装放大模型。",
     },
+    fitSize: {
+      label: "调整为精确尺寸",
+      tooltip:
+        "将每张图片输出为正好这个尺寸，例如用于 GitHub 社交预览图。如果宽高比不同，图片会被裁剪，或放在其自身的模糊副本之上。",
+      preset: {
+        label: "尺寸",
+        options: {
+          githubSocial: "GitHub 社交预览 (1280 × 640)",
+          openGraph: "Open Graph 链接预览 (1200 × 630)",
+          custom: "自定义尺寸",
+        },
+      },
+      widthLabel: "宽度 (px)",
+      heightLabel: "高度 (px)",
+      mode: {
+        label: "宽高比不同时",
+        crop: "裁剪填充",
+        blur: "模糊背景",
+        cropHint: "填满整个画面，图片的部分内容会被裁掉。",
+        blurHint: "保留完整图片，空白两侧显示该图片模糊并略微变暗的副本。",
+      },
+      anchor: {
+        label: "保留",
+        tooltip:
+          "自动模式会寻找文字、人脸和其他细节，并在不切断它们的前提下尽量保留。也可以手动选择保留的一侧。",
+        options: {
+          auto: "重要内容（自动）",
+          center: "居中",
+          top: "顶部",
+          bottom: "底部",
+          left: "左侧",
+          right: "右侧",
+        },
+      },
+    },
     resizeWidth: {
       label: "调整宽度",
       tooltip:
         "将图片调整到所需宽度，同时保留原始宽高比。",
       upscaleActiveHint: "开启 AI 放大时不使用。",
+      fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
     },
     dropzone: {
       dragActive: "将图片或 PDF 拖到这里...",

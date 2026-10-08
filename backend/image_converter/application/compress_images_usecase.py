@@ -68,10 +68,15 @@ class CompressImagesUseCase:
                     upscaled = False
                     if pdf_preset and req.image_format == ImageFormat.PDF:
                         data = payload.data
-                    elif req.upscale:
-                        upscaled_data = self._get_upscaler().upscale(payload.data, req.upscale, req.upscale_model)
-                        upscaled = upscaled_data is not None
-                        data = upscaled_data if upscaled else payload.data
+                    elif req.upscale or req.fit:
+                        data = payload.data
+                        if req.upscale:
+                            upscaled_data = self._get_upscaler().upscale(data, req.upscale, req.upscale_model)
+                            upscaled = upscaled_data is not None
+                            data = upscaled_data if upscaled else data
+                        if req.fit:
+                            # Upscale first so the exact size is cut from the sharper image.
+                            data = self.resizer.fit_to_size(data, req.fit)
                     else:
                         data = self._resize_if_needed(payload.data, req.width)
 

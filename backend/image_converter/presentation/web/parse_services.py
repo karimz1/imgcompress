@@ -37,6 +37,10 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         webp_lossless=_parse_bool(request.form.get("webp_lossless")),
         upscale=request.form.get("upscale", "").strip(),
         upscale_model=request.form.get("upscale_model", "general").strip(),
+        fit_width=request.form.get("fit_width", "").strip(),
+        fit_height=request.form.get("fit_height", "").strip(),
+        fit_mode=request.form.get("fit_mode", "").strip(),
+        fit_anchor=request.form.get("fit_anchor", "").strip(),
     )
     return Result.success(form_data)
 

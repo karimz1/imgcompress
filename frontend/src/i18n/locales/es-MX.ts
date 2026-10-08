@@ -11,6 +11,7 @@ export const esMX: TranslationSchema = {
       noFormatError: "Primero selecciona un formato de salida.",
       qualityRangeError: "La calidad debe ser un número entre 1 y 100.",
       widthPositiveError: "El ancho debe ser un número positivo.",
+      fitSizeError: "Ajustar a tamaño exacto necesita un ancho y un alto entre 1 y 8192 píxeles.",
       icoWidthClamped:
         "El formato ICO está limitado a un ancho máximo de 256 px. Tu entrada se ajustó a 256.",
       targetSizeError: "Define un tamaño máximo de archivo positivo (en MB).",
@@ -181,11 +182,47 @@ export const esMX: TranslationSchema = {
         "Conserva las proporciones. Las imágenes que ya son lo bastante grandes para la resolución elegida se quedan igual. Las imágenes más grandes y las CPU más lentas necesitan más tiempo. Más allá de 4×, la ampliación con IA va seguida de un cambio de tamaño convencional.",
       unavailableHint: "El modelo de ampliación no está instalado.",
     },
+    fitSize: {
+      label: "Ajustar a tamaño exacto",
+      tooltip:
+        "Genera cada imagen exactamente con este tamaño, por ejemplo para una vista previa social de GitHub. Si la relación de aspecto es distinta, la imagen se recorta o se coloca sobre una copia desenfocada de sí misma.",
+      preset: {
+        label: "Tamaño",
+        options: {
+          githubSocial: "Vista previa social de GitHub (1280 × 640)",
+          openGraph: "Vista previa de enlace Open Graph (1200 × 630)",
+          custom: "Tamaño personalizado",
+        },
+      },
+      widthLabel: "Ancho (px)",
+      heightLabel: "Alto (px)",
+      mode: {
+        label: "Si la relación de aspecto es distinta",
+        crop: "Recortar para llenar",
+        blur: "Fondo desenfocado",
+        cropHint: "Llena todo el marco. Se recortan partes de la imagen.",
+        blurHint: "Conserva la imagen completa. Los lados vacíos muestran una copia desenfocada y un poco más oscura.",
+      },
+      anchor: {
+        label: "Conservar",
+        tooltip:
+          "El modo automático busca texto, rostros y otros detalles y conserva todo lo posible sin cortarlos. Elige un lado para decidir tú.",
+        options: {
+          auto: "Contenido importante (automático)",
+          center: "Centro",
+          top: "Arriba",
+          bottom: "Abajo",
+          left: "Izquierda",
+          right: "Derecha",
+        },
+      },
+    },
     resizeWidth: {
       label: "Cambiar ancho",
       tooltip:
         "Cambia el tamaño de la(s) imagen(es) al ancho deseado conservando la relación de aspecto original.",
       upscaleActiveHint: "No se usa mientras la ampliación con IA está activada.",
+      fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
     },
     dropzone: {
       dragActive: "Arrastra imágenes o PDF aquí...",

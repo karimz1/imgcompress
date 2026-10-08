@@ -11,6 +11,7 @@ export const ptBR: TranslationSchema = {
       noFormatError: "Primeiro selecione um formato de saída.",
       qualityRangeError: "A qualidade deve ser um número entre 1 e 100.",
       widthPositiveError: "A largura deve ser um número positivo.",
+      fitSizeError: "Ajustar ao tamanho exato precisa de largura e altura entre 1 e 8192 pixels.",
       icoWidthClamped:
         "O formato ICO é limitado a uma largura máxima de 256 px. Sua entrada foi ajustada para 256.",
       targetSizeError: "Defina um tamanho máximo de arquivo positivo (em MB).",
@@ -181,11 +182,47 @@ export const ptBR: TranslationSchema = {
         "Mantém as proporções. Imagens que já são grandes o bastante para a resolução escolhida ficam como estão. Imagens maiores e CPUs mais lentas levam mais tempo. Acima de 4×, a ampliação com IA é seguida por um redimensionamento convencional.",
       unavailableHint: "O modelo de ampliação não está instalado.",
     },
+    fitSize: {
+      label: "Ajustar ao tamanho exato",
+      tooltip:
+        "Gera cada imagem exatamente neste tamanho, por exemplo para uma prévia social do GitHub. Se a proporção for diferente, a imagem é recortada ou colocada sobre uma cópia desfocada dela mesma.",
+      preset: {
+        label: "Tamanho",
+        options: {
+          githubSocial: "Prévia social do GitHub (1280 × 640)",
+          openGraph: "Prévia de link Open Graph (1200 × 630)",
+          custom: "Tamanho personalizado",
+        },
+      },
+      widthLabel: "Largura (px)",
+      heightLabel: "Altura (px)",
+      mode: {
+        label: "Se a proporção for diferente",
+        crop: "Recortar para preencher",
+        blur: "Fundo desfocado",
+        cropHint: "Preenche todo o quadro. Partes da imagem são cortadas.",
+        blurHint: "Mantém a imagem inteira. As laterais vazias mostram uma cópia desfocada e um pouco mais escura.",
+      },
+      anchor: {
+        label: "Manter",
+        tooltip:
+          "O modo automático procura texto, rostos e outros detalhes e mantém o máximo possível sem cortá-los. Escolha um lado para decidir você mesmo.",
+        options: {
+          auto: "Conteúdo importante (automático)",
+          center: "Centro",
+          top: "Topo",
+          bottom: "Base",
+          left: "Esquerda",
+          right: "Direita",
+        },
+      },
+    },
     resizeWidth: {
       label: "Redimensionar largura",
       tooltip:
         "Redimensiona a(s) imagem(ns) para a largura desejada preservando a proporção original.",
       upscaleActiveHint: "Não é usado enquanto a ampliação com IA está ativada.",
+      fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
     },
     dropzone: {
       dragActive: "Solte imagens ou PDFs aqui...",

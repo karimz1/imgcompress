@@ -11,6 +11,7 @@ export const fr: TranslationSchema = {
       noFormatError: "Veuillez d'abord choisir un format de sortie.",
       qualityRangeError: "La qualité doit être un nombre entre 1 et 100.",
       widthPositiveError: "La largeur doit être un nombre positif.",
+      fitSizeError: "« Ajuster à une taille exacte » nécessite une largeur et une hauteur entre 1 et 8192 pixels.",
       icoWidthClamped:
         "Le format ICO est limité à une largeur maximale de 256 px. Votre saisie a été limitée à 256.",
       targetSizeError: "Veuillez définir une taille maximale de fichier positive (en Mo).",
@@ -181,11 +182,47 @@ export const fr: TranslationSchema = {
         "Conserve les proportions. Les images déjà assez grandes pour la résolution choisie restent inchangées. Les grandes images et les processeurs plus lents demandent plus de temps. Au-delà de 4×, l’agrandissement par IA est suivi d’un redimensionnement classique.",
       unavailableHint: "Le modèle d’agrandissement n’est pas installé.",
     },
+    fitSize: {
+      label: "Ajuster à une taille exacte",
+      tooltip:
+        "Produit chaque image exactement à cette taille, par exemple pour un aperçu social GitHub. Si le format est différent, l'image est soit recadrée, soit placée sur une copie floutée d'elle-même.",
+      preset: {
+        label: "Taille",
+        options: {
+          githubSocial: "Aperçu social GitHub (1280 × 640)",
+          openGraph: "Aperçu de lien Open Graph (1200 × 630)",
+          custom: "Taille personnalisée",
+        },
+      },
+      widthLabel: "Largeur (px)",
+      heightLabel: "Hauteur (px)",
+      mode: {
+        label: "Si le format est différent",
+        crop: "Recadrer pour remplir",
+        blur: "Arrière-plan flou",
+        cropHint: "Remplit tout le cadre. Des parties de l'image sont coupées.",
+        blurHint: "Conserve l'image entière. Les côtés vides affichent une copie floutée et légèrement assombrie.",
+      },
+      anchor: {
+        label: "Conserver",
+        tooltip:
+          "Le mode automatique repère le texte, les visages et les autres détails et en garde le plus possible sans les couper. Choisissez un côté pour décider vous-même.",
+        options: {
+          auto: "Contenu important (automatique)",
+          center: "Centre",
+          top: "Haut",
+          bottom: "Bas",
+          left: "Gauche",
+          right: "Droite",
+        },
+      },
+    },
     resizeWidth: {
       label: "Redimensionner la largeur",
       tooltip:
         "Redimensionne l'image ou les images à la largeur souhaitée en conservant le rapport d'aspect d'origine.",
       upscaleActiveHint: "Non utilisé tant que l'agrandissement par IA est activé.",
+      fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
     },
     dropzone: {
       dragActive: "Déposez des images ou des PDF ici...",
