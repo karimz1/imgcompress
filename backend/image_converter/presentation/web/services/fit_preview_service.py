@@ -7,11 +7,17 @@ from backend.image_converter.domain.fit_to_size import FitAnchor, FitMode, FitTo
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.domain.smart_crop import to_8bit
 
+# Longest side of the preview shown in the editor. Every preset fits, so a
+# preset preview is the exported image pixel for pixel; a large custom size
+# gets a scaled preview instead of a full-size PNG on every update. Rendering
+# for export (render=true) always returns the full size.
+PREVIEW_MAX_SIDE = 2048
+
 
 class FitPreviewService:
     """Fit a decoded editor bitmap, using explicit crop bounds after Auto fit."""
 
-    def build(self, upload, form):
+    def build(self, upload, form, full_size: bool = False):
         fit_result = FitToSize.from_strings_result(
             form.get("fit_width"),
             form.get("fit_height"),
@@ -30,8 +36,11 @@ class FitPreviewService:
             with Image.open(upload.stream) as source:
                 img = to_8bit(ImageOps.exif_transpose(source))
                 img.load()
+                icc_profile = img.info.get("icc_profile")
                 if img.mode not in ("RGB", "RGBA", "L", "LA", "P"):
                     img = img.convert("RGBA" if "A" in img.getbands() else "RGB")
+                    # The profile described the old colour space (e.g. CMYK).
+                    icc_profile = None
                 original_width, original_height = img.size
                 crop = self._crop_bounds(img, fit, form)
                 if crop is None:
@@ -40,12 +49,13 @@ class FitPreviewService:
                     )
                 x, y, width, height = crop
                 selected = img.crop((x, y, x + width, y + height))
-                bitmap = BytesIO()
-                selected.save(bitmap, format="PNG")
-                fitted = ImageResizer().fit_to_size(bitmap.getvalue(), fit)
-                with Image.open(BytesIO(fitted)) as result:
-                    png = BytesIO()
-                    result.save(png, format="PNG")
+                fitted = ImageResizer.fit_image(selected, fit)
+                if not full_size:
+                    fitted.thumbnail(
+                        (PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.Resampling.LANCZOS
+                    )
+                png = BytesIO()
+                fitted.save(png, format="PNG", icc_profile=icc_profile)
                 return Result.success(
                     (
                         {
@@ -65,7 +75,7 @@ class FitPreviewService:
                         png.getvalue(),
                     )
                 )
-        except (UnidentifiedImageError, OSError, ValueError):
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
             return Result.failure("Could not read the editor bitmap.")
 
     @staticmethod

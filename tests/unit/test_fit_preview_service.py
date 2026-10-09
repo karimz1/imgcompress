@@ -127,3 +127,33 @@ def test_preview_and_render_api_use_the_same_saved_selection():
     import base64
 
     assert rendered.data == base64.b64decode(preview.json["preview"].split(",", 1)[1])
+
+
+def test_large_custom_size_gets_a_scaled_preview_but_renders_at_full_size():
+    image = Image.new("RGB", (600, 400), "green")
+    fields = {"fit_width": "4000", "fit_height": "3000", "fit_mode": "blur"}
+    preview = render(image, **fields)
+    assert preview.is_successful
+    assert Image.open(BytesIO(preview.value[1])).size == (2048, 1536)
+
+    bitmap = BytesIO()
+    image.save(bitmap, format="PNG")
+    bitmap.seek(0)
+    full = FitPreviewService().build(FileStorage(stream=bitmap), fields, full_size=True)
+    assert full.is_successful
+    assert Image.open(BytesIO(full.value[1])).size == (4000, 3000)
+
+
+def test_colour_profile_is_kept_for_rgb_and_dropped_after_cmyk_conversion():
+    from PIL import ImageCms
+
+    srgb = ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
+    for mode, expected in (("RGB", srgb), ("CMYK", None)):
+        bitmap = BytesIO()
+        Image.new(mode, (300, 200)).save(bitmap, format="JPEG", icc_profile=srgb)
+        bitmap.seek(0)
+        result = FitPreviewService().build(
+            FileStorage(stream=bitmap), {"fit_width": "400", "fit_height": "200"}
+        )
+        assert result.is_successful
+        assert Image.open(BytesIO(result.value[1])).info.get("icc_profile") == expected
