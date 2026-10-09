@@ -4,12 +4,16 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { ExternalLink, Heart, ArrowUpCircle } from "lucide-react";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
+import { useBuildInfo } from "@/hooks/useBuildInfo";
 import { APP_CONFIG } from "@/lib/config";
 import { BuildDetails } from "@/components/BuildDetails";
 
 const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const { t } = useTranslation();
   const { currentVersion, latestVersion, updateAvailable } = useVersionCheck();
+  const buildInfo = useBuildInfo();
+  // The baked-in build wins: an RC knows its own version, the notes may not.
+  const installedVersion = buildInfo?.version || currentVersion;
 
   const links = [
     { href: APP_CONFIG.DOCS_URL, label: t("footer.links.docs") },
@@ -61,8 +65,9 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
             );
           })}
         </div>
+        {installedVersion && (
           <div className="text-xs text-muted-foreground/50 space-x-2">
-            <BuildDetails currentVersion={currentVersion} />
+            <BuildDetails info={buildInfo} version={installedVersion} />
             <span className="text-muted-foreground/30">•</span>
             <a
               href={APP_CONFIG.DOCS_RELEASE_NOTES_URL}
@@ -73,6 +78,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
               {t("footer.releaseNotes")}
             </a>
           </div>
+        )}
       </div>
     </footer>
   );
