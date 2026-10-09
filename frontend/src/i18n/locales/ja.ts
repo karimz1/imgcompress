@@ -423,6 +423,7 @@ export const ja: TranslationSchema = {
       applyAll: "すべての画像を自動調整",
       output: "出力: {{w}} × {{h}} px",
       preview: "出力プレビュー",
+      previewScaled: "プレビュー {{pw}} × {{ph}} px · 書き出しはフルサイズ {{w}} × {{h}} px",
       updating: "プレビューを更新中…",
     },
     aspectRatio: "アスペクト比",

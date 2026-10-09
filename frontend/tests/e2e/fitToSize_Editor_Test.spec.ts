@@ -376,6 +376,44 @@ test("preset, custom dimensions, and mode changes refresh automatically", async 
   expect(await pixelDifference(fs.readFileSync(exported), preview)).toBe(0);
 });
 
+test("a scaled-down preview says so, and the export keeps the full size", async ({
+  page,
+}) => {
+  await page.getByTestId("dropzone-input").setInputFiles(original);
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await page.getByTestId("crop-tab-fit").click();
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await expect(page.getByTestId("crop-fit-preview")).toBeVisible();
+  // 1280 × 640 fits in the preview, so there is nothing to explain.
+  await expect(page.getByTestId("crop-fit-preview-scaled")).toHaveCount(0);
+
+  await page.getByTestId("fit-preset-select").click();
+  await page.getByTestId("fit-preset-option-custom").click();
+  await page.getByTestId("fit-width-input").fill("800");
+  await page.getByTestId("fit-height-input").fill("400");
+  await expect(page.getByTestId("crop-fit-output-size")).toContainText(
+    "800 × 400",
+  );
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await expect(page.getByTestId("crop-fit-preview-scaled")).toHaveCount(0);
+
+  await page.getByTestId("fit-width-input").fill("4096");
+  await page.getByTestId("fit-height-input").fill("2304");
+  await expect(page.getByTestId("crop-fit-output-size")).toContainText(
+    "4096 × 2304",
+  );
+  await expect(page.getByTestId("crop-fit-preview-scaled")).toHaveText(
+    "Preview 2048 × 1152 px · exports at full size 4096 × 2304 px",
+  );
+  const preview = await sharp(await readPreview(page)).metadata();
+  expect([preview.width, preview.height]).toEqual([2048, 1152]);
+
+  await page.getByTestId("crop-save-btn").click();
+  const exported = await convert(page);
+  const metadata = await sharp(exported).metadata();
+  expect([metadata.width, metadata.height]).toEqual([4096, 2304]);
+});
+
 test("preview retry keeps an adjusted crop instead of automatically reframing it", async ({
   page,
 }) => {

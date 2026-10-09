@@ -423,6 +423,7 @@ export const ru: TranslationSchema = {
       applyAll: "Подогнать все изображения",
       output: "Результат: {{w}} × {{h}} px",
       preview: "Предпросмотр результата",
+      previewScaled: "Предпросмотр {{pw}} × {{ph}} px · экспорт в полном размере {{w}} × {{h}} px",
       updating: "Обновление предпросмотра…",
     },
     aspectRatio: "Соотношение сторон",

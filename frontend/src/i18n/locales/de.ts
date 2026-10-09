@@ -423,6 +423,7 @@ export const de: TranslationSchema = {
       applyAll: "Alle Bilder einpassen",
       output: "Ausgabe: {{w}} × {{h}} px",
       preview: "Ausgabevorschau",
+      previewScaled: "Vorschau {{pw}} × {{ph}} px · Export in voller Größe {{w}} × {{h}} px",
       updating: "Vorschau wird aktualisiert…",
     },
     aspectRatio: "Seitenverhältnis",

@@ -422,6 +422,7 @@ export const ar: TranslationSchema = {
       applyAll: "ملاءمة جميع الصور",
       output: "الناتج: {{w}} × {{h}} بكسل",
       preview: "معاينة الناتج",
+      previewScaled: "معاينة {{pw}} × {{ph}} بكسل · التصدير بالحجم الكامل {{w}} × {{h}} بكسل",
       updating: "جارٍ تحديث المعاينة…",
     },
     aspectRatio: "نسبة الأبعاد",

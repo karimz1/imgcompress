@@ -423,6 +423,7 @@ export const ptBR: TranslationSchema = {
       applyAll: "Ajustar todas as imagens",
       output: "Saída: {{w}} × {{h}} px",
       preview: "Prévia da saída",
+      previewScaled: "Prévia {{pw}} × {{ph}} px · exporta em tamanho real {{w}} × {{h}} px",
       updating: "Atualizando prévia…",
     },
     aspectRatio: "Proporção",

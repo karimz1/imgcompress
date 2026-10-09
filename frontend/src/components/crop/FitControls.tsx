@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, WandSparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,22 @@ export function FitControls({
   canApplyToAll: boolean;
 }) {
   const { t } = useTranslation();
+  // Size of the preview image as delivered. Large outputs get a smaller
+  // preview (the backend caps it at 2048 px per side); export stays full size.
+  const [previewSize, setPreviewSize] = useState<{
+    src: string;
+    width: number;
+    height: number;
+  } | null>(null);
+  const scaledPreview =
+    fit.applied &&
+    fit.previewCurrent &&
+    previewSize &&
+    previewSize.src === fit.preview &&
+    (previewSize.width < fit.applied.width ||
+      previewSize.height < fit.applied.height)
+      ? previewSize
+      : null;
   const labelKeys = {
     "github-social": "githubSocial",
     "open-graph": "openGraph",
@@ -170,7 +187,27 @@ export function FitControls({
               alt={t("crop.fit.preview")}
               className={`w-full rounded border transition-opacity ${fit.working || fit.pending ? "opacity-50" : ""}`}
               data-testid={`crop-fit-preview${suffix}`}
+              onLoad={(e) =>
+                setPreviewSize({
+                  src: e.currentTarget.getAttribute("src") ?? "",
+                  width: e.currentTarget.naturalWidth,
+                  height: e.currentTarget.naturalHeight,
+                })
+              }
             />
+          )}
+          {scaledPreview && fit.applied && (
+            <p
+              className="text-xs opacity-70"
+              data-testid={`crop-fit-preview-scaled${suffix}`}
+            >
+              {t("crop.fit.previewScaled", {
+                pw: scaledPreview.width,
+                ph: scaledPreview.height,
+                w: fit.applied.width,
+                h: fit.applied.height,
+              })}
+            </p>
           )}
           {!fit.pending &&
             !fit.working &&

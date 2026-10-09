@@ -146,6 +146,8 @@ Both examples below use the same **1536 × 1024** original and produce a **1280 
 4. Inspect the automatic preview. Move or resize the crop box if needed; **Adjust crop** also offers pixel dimensions. After a manual adjustment, **Auto fit** resets the framing.
 5. Click **Save**, then convert and download. The saved selection and output size are used during conversion.
 
+Previews are at most 2048 px per side. For bigger sizes the editor shows the preview size next to the export size, for example *Preview 2048 × 1152 px · exports at full size 4096 × 2304 px*. The download is always full size.
+
 For a batch, **Auto fit all images** prepares a separate automatic result for every file using the selected size and mode. Open any file's editor to review or adjust it before converting.
 
 Use the **Crop** tab for a manual crop without a fixed output size. Switching tabs keeps both drafts while the editor is open; **Save** applies the active tab. Saved fits reopen in **Fit to size** with their framing intact.

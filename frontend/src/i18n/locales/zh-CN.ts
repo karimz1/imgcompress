@@ -422,6 +422,7 @@ export const zhCN: TranslationSchema = {
       applyAll: "自动适配所有图片",
       output: "输出：{{w}} × {{h}} 像素",
       preview: "输出预览",
+      previewScaled: "预览 {{pw}} × {{ph}} 像素 · 按完整尺寸导出 {{w}} × {{h}} 像素",
       updating: "正在更新预览…",
     },
     aspectRatio: "宽高比",

@@ -423,6 +423,7 @@ export const esMX: TranslationSchema = {
       applyAll: "Ajustar todas las imágenes",
       output: "Salida: {{w}} × {{h}} px",
       preview: "Vista previa de salida",
+      previewScaled: "Vista previa {{pw}} × {{ph}} px · se exporta a tamaño completo {{w}} × {{h}} px",
       updating: "Actualizando vista previa…",
     },
     aspectRatio: "Relación de aspecto",

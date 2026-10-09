@@ -424,6 +424,7 @@ export const hu: TranslationSchema = {
       applyAll: "Minden kép illesztése",
       output: "Kimenet: {{w}} × {{h}} px",
       preview: "Kimeneti előnézet",
+      previewScaled: "Előnézet {{pw}} × {{ph}} px · exportálás teljes méretben: {{w}} × {{h}} px",
       updating: "Előnézet frissítése…",
     },
     aspectRatio: "Képarány",

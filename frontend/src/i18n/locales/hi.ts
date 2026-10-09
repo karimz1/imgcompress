@@ -423,6 +423,7 @@ export const hi: TranslationSchema = {
       applyAll: "सभी चित्र स्वतः फ़िट करें",
       output: "आउटपुट: {{w}} × {{h}} px",
       preview: "आउटपुट पूर्वावलोकन",
+      previewScaled: "पूर्वावलोकन {{pw}} × {{ph}} px · पूरे आकार में एक्सपोर्ट {{w}} × {{h}} px",
       updating: "पूर्वावलोकन अपडेट हो रहा है…",
     },
     aspectRatio: "आस्पेक्ट रेशियो",

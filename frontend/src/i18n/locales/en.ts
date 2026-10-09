@@ -420,6 +420,7 @@ export const en = {
       applyAll: "Auto fit all images",
       output: "Output: {{w}} × {{h}} px",
       preview: "Output preview",
+      previewScaled: "Preview {{pw}} × {{ph}} px · exports at full size {{w}} × {{h}} px",
       updating: "Updating preview…",
     },
     aspectRatio: "Aspect ratio",
