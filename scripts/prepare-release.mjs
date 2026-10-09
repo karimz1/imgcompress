@@ -34,6 +34,31 @@ export function githubRequest(token, fetcher = fetch) {
   };
 }
 
+export async function listReleases(repository, request) {
+  const releases = [];
+  for (let page = 1; ; page++) {
+    const batch = await request(`repos/${repository}/releases?per_page=100&page=${page}`);
+    releases.push(...batch);
+    if (batch.length < 100) break;
+  }
+  return releases;
+}
+
+// Backports and reruns of older releases must not move `latest` back.
+export function isNewestStable(releases, tag) {
+  const current = parseReleaseTag(tag);
+  if (current.prerelease) return false;
+  return releases.every((release) => {
+    if (release.draft || release.prerelease || release.tag_name === tag) return true;
+    try {
+      const parsed = parseReleaseTag(release.tag_name);
+      return parsed.prerelease || compareVersions(parsed.version, current.version) <= 0;
+    } catch {
+      return true;
+    }
+  });
+}
+
 export async function previousStableRelease(releases, tag, repository, request) {
   const current = parseReleaseTag(tag);
   const candidates = releases.filter((release) => {
@@ -105,12 +130,7 @@ export async function prepareRelease({ repository, tag, request }) {
   if (!/^[\w.-]+\/[\w.-]+$/.test(repository)) throw new Error('Invalid repository');
   const parsed = parseReleaseTag(tag);
   await request(`repos/${repository}/git/ref/tags/${encodeURIComponent(tag)}`);
-  const releases = [];
-  for (let page = 1; ; page++) {
-    const batch = await request(`repos/${repository}/releases?per_page=100&page=${page}`);
-    releases.push(...batch);
-    if (batch.length < 100) break;
-  }
+  const releases = await listReleases(repository, request);
   const existing = releases.find((release) => release.tag_name === tag);
   if (existing) return existing; // Never replace reviewed text on a retry.
 
@@ -124,7 +144,7 @@ export async function prepareRelease({ repository, tag, request }) {
   body += `\n\n### Installation\n\n[Installation & update guide](https://imgcompress.karimzouine.com/installation/)\n\nPin this version with \`karimz1/imgcompress:${parsed.version}\`.\n`;
   return request(`repos/${repository}/releases`, {
     method: 'POST',
-    body: { tag_name: tag, name: `v${parsed.version}`, body, draft: true, prerelease: parsed.prerelease, make_latest: parsed.prerelease ? 'false' : 'true' },
+    body: { tag_name: tag, name: `v${parsed.version}`, body, draft: true, prerelease: parsed.prerelease, make_latest: isNewestStable(releases, tag) ? 'true' : 'false' },
   });
 }
 

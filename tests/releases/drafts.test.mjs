@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { addIssueLinks, parseReleaseTag, prepareRelease, previousStableRelease, githubRequest } from '../../scripts/prepare-release.mjs';
+import { addIssueLinks, isNewestStable, parseReleaseTag, prepareRelease, previousStableRelease, githubRequest } from '../../scripts/prepare-release.mjs';
 import { imageTags } from '../../scripts/docker-image-tags.mjs';
 
 test('release tags support stable, RC, and historical four-part versions', () => {
@@ -18,6 +18,24 @@ test('RCs never update latest, even if the release was incorrectly marked stable
   assert.equal(imageTags({ owner: 'karimz1', tag: 'release_0.10.0' }).tags.filter((tag) => tag.endsWith(':latest')).length, 2);
   assert.ok(imageTags({ owner: 'karimz1', ref: 'refs/heads/main' }).tags.every((tag) => tag.endsWith(':nightly')));
   assert.throws(() => imageTags({ owner: 'karimz1', ref: 'refs/tags/release_0.10.0' }));
+});
+
+test('only the newest stable release moves latest, so backports and reruns cannot roll it back', () => {
+  const releases = [
+    { tag_name: 'release_0.10.0' },
+    { tag_name: 'release_0.11.0-rc.1', prerelease: true },
+    { tag_name: 'release_0.12.0', draft: true },
+    { tag_name: 'release_0.9.1' },
+  ];
+  assert.equal(isNewestStable(releases, 'release_0.10.0'), true);
+  assert.equal(isNewestStable(releases, 'release_0.9.1'), false);
+  assert.equal(isNewestStable(releases, 'release_0.11.0-rc.1'), false);
+  const backport = imageTags({ owner: 'karimz1', tag: 'release_0.9.1', releases });
+  assert.equal(backport.latest, false);
+  assert.deepEqual(backport.tags, ['karimz1/imgcompress:0.9.1', 'ghcr.io/karimz1/imgcompress:0.9.1']);
+  const current = imageTags({ owner: 'karimz1', tag: 'release_0.10.0', releases });
+  assert.equal(current.latest, true);
+  assert.ok(current.tags.includes('karimz1/imgcompress:latest'));
 });
 
 test('comparison skips RCs, drafts, future versions, and unrelated histories', async () => {
@@ -82,6 +100,22 @@ test('new RC draft uses the stable comparison and keeps the native changelog', a
   assert.match(created.body, /Full Changelog/);
   assert.match(created.body, /New Contributors/);
   assert.match(created.body, /imgcompress:0.10.0-rc.2/);
+});
+
+test('a backport draft is not marked as the latest release', async () => {
+  let created;
+  await prepareRelease({ repository: 'karimz1/imgcompress', tag: 'release_0.9.2', request: async (route, options) => {
+    if (route.includes('/releases?')) return [{ tag_name: 'release_0.10.0' }, { tag_name: 'release_0.9.1' }];
+    if (route.includes('/compare/')) return { status: route.includes('release_0.9.1') ? 'ahead' : 'diverged' };
+    if (route.endsWith('/generate-notes')) {
+      assert.equal(options.body.previous_tag_name, 'release_0.9.1');
+      return { body: '* Fix' };
+    }
+    if (route.endsWith('/releases')) created = options.body;
+    return created ?? {};
+  } });
+  assert.equal(created.prerelease, false);
+  assert.equal(created.make_latest, 'false');
 });
 
 test('first release omits the comparison base and failed API calls are surfaced', async () => {
