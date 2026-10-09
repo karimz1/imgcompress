@@ -13,6 +13,12 @@ on:
 permissions:
   contents: read
 
+# One release deploy per tag at a time, and nightly pushes in order, so a rerun
+# or a slow build can't overwrite a newer image with an older one.
+concurrency:
+  group: deploy-docker-image-${{ github.event.release.tag_name || 'nightly' }}
+  cancel-in-progress: false
+
 jobs:
   deploy-image-to-dockerhub:
     if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'release_')
@@ -20,11 +26,14 @@ jobs:
     permissions:
       contents: read
       packages: write  # needed for pushing to GHCR with GITHUB_TOKEN
+    outputs:
+      latest: ${{ steps.tags.outputs.latest }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name || github.event.client_payload.ref || github.ref }}
+          # refs/tags/ so a branch with the same name can never be built instead.
+          ref: ${{ github.event_name == 'release' && format('refs/tags/{0}', github.event.release.tag_name) || github.event.client_payload.ref || github.ref }}
           persist-credentials: false
 
       - name: Set up Node
@@ -35,6 +44,7 @@ jobs:
       - name: Compute image tags
         id: tags
         env:
+          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name || '' }}
           RELEASE_PRERELEASE: ${{ github.event.release.prerelease || false }}
           DEPLOY_REF: ${{ github.event.client_payload.ref || github.ref }}
@@ -94,13 +104,16 @@ jobs:
 
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub
-    if: github.event_name == 'release' && !github.event.release.prerelease && startsWith(github.event.release.tag_name, 'release_') && !contains(github.event.release.tag_name, '-')
+    # Only the release that also got `latest`, so a backport keeps the current README.
+    if: github.event_name == 'release' && needs.deploy-image-to-dockerhub.outputs.latest == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: refs/tags/${{ github.event.release.tag_name }}
           persist-credentials: false
 
       - name: Set up Python
@@ -113,13 +126,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Choose README ref
-        id: readme-ref
-        shell: bash
-        run: |
-          README_REF="${GITHUB_REF#refs/tags/}"
-          echo "README_REF=$README_REF" >> "$GITHUB_ENV"
-
       - name: Update Docker Hub Description
         run: |
           python update_dockerhub_description.py \
@@ -127,6 +133,7 @@ jobs:
               --branch "$README_REF" \
               --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/$README_REF"
         env:
+          README_REF: ${{ github.event.release.tag_name }}
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: "imgcompress"
