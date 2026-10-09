@@ -176,3 +176,26 @@ def test_selection_only_request_skips_the_preview():
     assert response.status_code == 200
     assert "preview" not in response.json
     assert (response.json["crop"]["width"], response.json["crop"]["height"]) == (600, 300)
+
+
+def test_exif_rotated_bitmap_is_measured_and_fitted_upright():
+    # Stored landscape, EXIF orientation 6: the browser shows it 300 x 600.
+    stored = Image.new("RGB", (600, 300), "blue")
+    stored.paste("red", (0, 0, 300, 300))
+    exif = Image.Exif()
+    exif[0x0112] = 6
+    bitmap = BytesIO()
+    stored.save(bitmap, format="JPEG", exif=exif, quality=95)
+    bitmap.seek(0)
+
+    result = FitPreviewService().build(
+        FileStorage(stream=bitmap),
+        {"fit_width": "200", "fit_height": "400", "fit_mode": "blur"},
+    )
+
+    assert result.is_successful
+    selection, png = result.value
+    assert (selection["originalWidth"], selection["originalHeight"]) == (300, 600)
+    output = Image.open(BytesIO(png)).convert("RGB")
+    assert output.getpixel((100, 50))[0] > 200
+    assert output.getpixel((100, 350))[2] > 200
