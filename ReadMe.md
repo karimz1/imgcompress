@@ -265,39 +265,31 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 
 ### Preparing a release
 
-Push a tag for the commit you want to ship. For example:
+Push a tag for the commit you want to ship:
 
 ```bash
 git tag release_0.10.0-rc.1
 git push origin release_0.10.0-rc.1
-# For the stable version, use release_0.10.0 instead.
+# stable: release_0.10.0
 ```
 
 The **Prepare release draft** workflow creates a draft with GitHub's generated
-change list, contributors, and full comparison link. It compares against the
-previous stable release on the tag's history, so a stable release includes all
-changes tested in its RCs. PRs remain linked, with their closing tickets added
-where available. Use `Closes #123` in PR descriptions to link the original request.
-Labels group changes into features, fixes, security, and dependencies; use
-`skip-release-notes` for changes that do not belong in the announcement.
+change list, new contributors and the full changelog link. It compares against
+the previous stable release on the tag's history, so a stable release also lists
+everything that went into its RCs. Each PR line gets the tickets it closes, so use
+`Closes #123` in PR descriptions. Labels group the changes; `skip-release-notes`
+leaves a PR out.
 
-Review the draft under **Releases**, adjust the wording, then click **Publish
-release**. Publishing builds the tagged commit for Docker Hub and GHCR. RC tags
-are automatically marked as prereleases and publish their versioned image only,
-for example `karimz1/imgcompress:0.10.0-rc.1`. Stable releases also update `latest`.
-Main branch builds continue to use `nightly`.
+Review the draft under **Releases**, adjust the wording and click **Publish
+release**. Publishing builds the tagged commit for Docker Hub and GHCR. RCs are
+prereleases and only get their version tag, e.g. `karimz1/imgcompress:0.10.0-rc.1`.
+A stable release also moves `latest`, unless a newer stable release already
+exists (backports). Main keeps publishing `nightly`.
 
-If the draft workflow needs to be retried, run
-`make release-draft RELEASE_TAG=release_0.10.0-rc.1` or use its manual Actions
-input. Existing drafts and published releases are left intact. Run the release
-automation checks locally with `make release-tests` (Node 24).
+If a draft is missing, run `make release-draft RELEASE_TAG=release_0.10.0-rc.1`
+or start the workflow by hand. Existing drafts and published releases are never
+changed. `make release-tests` runs the checks locally (Node 24).
 
-GitHub's social preview is configured once in **Settings → General → Social
-preview**, not in the release pipeline. The uploaded repository image does not
-need to be attached to every release. GitHub controls which image its mobile
-feed shows; release links also have a GitHub-generated preview. See
-[GitHub's social preview guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/customizing-your-repositorys-social-media-preview)
-for the recommended 1280 × 640 image size and file-size limit.
 ---
 
 ## License & Author
