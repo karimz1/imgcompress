@@ -181,6 +181,7 @@ export const zhCN: TranslationSchema = {
       hint:
         "保持宽高比。已经足够达到目标分辨率的图片保持不变。较大的图片和较慢的 CPU 需要更长时间。超过 4 倍的放大会先进行 AI 放大，再使用常规缩放。",
       unavailableHint: "未安装放大模型。",
+      fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
     },
     fitSize: {
       label: "调整为精确尺寸",
@@ -427,6 +428,15 @@ export const zhCN: TranslationSchema = {
   },
 
   crop: {
+    fit: {
+      hint: "选择尺寸，然后点击“自动适配”来预览和调整结果。",
+      autoFit: "自动适配",
+      applyAll: "自动适配所有图片",
+      updateHint: "点击“自动适配”更新预览。",
+      output: "输出：{{w}} × {{h}} 像素",
+      preview: "输出预览",
+      updating: "正在更新预览…",
+    },
     aspectRatio: "宽高比",
     adjust: "调整",
     zoom: "缩放",
@@ -441,7 +451,7 @@ export const zhCN: TranslationSchema = {
     original: "原始：{{w}} × {{h}} px",
     removeSavedCrop: "移除已保存裁剪",
     discard: "放弃",
-    saveCrop: "保存裁剪",
+    saveCrop: "保存",
     switchToLight: "切换到浅色主题",
     switchToDark: "切换到深色主题",
     confirmDialog: {
@@ -472,8 +482,8 @@ export const zhCN: TranslationSchema = {
       },
     },
     freeRatio: "自由",
-    editorTitle: "裁剪编辑器",
-    editorDescription: "调整此图片的裁剪区域、比例和缩放，然后点击保存裁剪或放弃。",
+    editorTitle: "裁剪与调整尺寸",
+    editorDescription: "调整此图片的裁剪区域、比例和缩放，然后点击保存或放弃。",
     removeDialog: {
       title: "移除已保存裁剪？",
       description: "这会清除此文件的已保存裁剪。原始文件仍会保留在转换列表中。",

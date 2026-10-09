@@ -60,6 +60,9 @@ import {
 import { useCropImageLoader } from "@/components/crop/useCropImageLoader";
 import { useFitPreviewBox } from "@/components/crop/useFitPreviewBox";
 import { useCropPanZoom } from "@/components/crop/useCropPanZoom";
+import { useEditorFit } from "@/components/crop/useEditorFit";
+import { FitControls } from "@/components/crop/FitControls";
+import type { FitOutput } from "@/lib/fitToSize";
 
 export interface CropWidgetHandle {
   requestClose: () => void;
@@ -74,6 +77,8 @@ interface CropWidgetProps {
   onReportError?: (payload: { message: string; details?: string }) => void;
   isDarkTheme: boolean;
   disableLogo?: boolean;
+  fitAvailable?: boolean;
+  onApplyFitToAll?: (fit: FitOutput, signal: AbortSignal) => Promise<void>;
 }
 
 type DragMode =
@@ -103,6 +108,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     onReportError,
     isDarkTheme,
     disableLogo = false,
+    fitAvailable = true,
+    onApplyFitToAll,
   },
   ref
 ) {
@@ -125,6 +132,18 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         }
       : null
   );
+  const fit = useEditorFit({
+    imgUrl,
+    crop,
+    initialCrop,
+    onSelection: (selection) => { setPreset("free"); setCrop(selection); resetView(); },
+    onApplyToAll: onApplyFitToAll,
+  });
+  const fitRef = useRef<FitOutput | null>(fit.applied);
+  fitRef.current = fit.applied;
+  const lockedRatio = fit.applied?.mode === "crop"
+    ? fit.applied.width / fit.applied.height
+    : getPresetRatio(preset);
   const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
   const initialStateRef = useRef<{ crop: Rect; preset: RatioPresetId } | null>(null);
   const cropRef = useRef<Rect | null>(crop);
@@ -173,12 +192,13 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     if (!baseline || !current) return false;
     return (
       presetRef.current !== baseline.preset ||
+      JSON.stringify(fitRef.current ?? undefined) !== JSON.stringify(initialCrop?.fit) ||
       current.x !== baseline.crop.x ||
       current.y !== baseline.crop.y ||
       current.width !== baseline.crop.width ||
       current.height !== baseline.crop.height
     );
-  }, []);
+  }, [initialCrop]);
 
   const requestClose = useCallback(() => {
     if (isDirty()) {
@@ -201,7 +221,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       const mode = dragRef.current;
-      if (mode.kind === "none" || !imgSize || scale <= 0) return;
+      if (mode.kind === "none" || !imgSize || scale <= 0 || fit.working) return;
       if (mode.kind === "pan") {
         const next = clampPan(
           {
@@ -218,7 +238,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       const visScale = scale * zoom;
       const dxPx = (e.clientX - mode.startX) / visScale;
       const dyPx = (e.clientY - mode.startY) / visScale;
-      const ratio = getPresetRatio(preset);
+      const ratio = lockedRatio;
       let next: Rect = { ...mode.startCrop };
       if (mode.kind === "move") {
         next.x = mode.startCrop.x + dxPx;
@@ -235,7 +255,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       }
       setCrop(clampCrop(next, imgSize.width, imgSize.height));
     },
-    [imgSize, scale, zoom, preset, setPan]
+    [imgSize, scale, zoom, lockedRatio, setPan, fit.working]
   );
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
@@ -316,7 +336,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   };
 
   const startMove = (e: React.PointerEvent) => {
-    if (!crop || isGesturing()) return;
+    if (!crop || isGesturing() || fit.working) return;
     // On touch, don't drag the whole selection from its interior — that caused
     // accidental moves. Touch users resize via the handles and pan/zoom with two
     // fingers; letting this fall through also enables one-finger pan when zoomed.
@@ -334,7 +354,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   };
 
   const startResize = (handle: Handle) => (e: React.PointerEvent) => {
-    if (!crop || spaceDown || isGesturing()) return;
+    if (!crop || spaceDown || isGesturing() || fit.working) return;
     beginDrag(e, {
       kind: "resize",
       handle,
@@ -346,19 +366,20 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
 
   const setPresetAndCrop = useCallback(
     (next: RatioPresetId) => {
+      fit.clear();
       setPreset(next);
       if (!imgSize) return;
       const ratio = getPresetRatio(next);
       setCrop(defaultCropForRatio(imgSize.width, imgSize.height, ratio));
     },
-    [imgSize]
+    [imgSize, fit.clear]
   );
 
   const updateDimension = (which: "width" | "height", raw: string) => {
     if (!crop || !imgSize) return;
     const num = parseInt(raw, 10);
     if (Number.isNaN(num) || num <= 0) return;
-    const ratio = getPresetRatio(preset);
+    const ratio = lockedRatio;
     const adjusted = applyRatio(
       which === "width" ? num : crop.width,
       which === "height" ? num : crop.height,
@@ -384,10 +405,12 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       originalWidth: imgSize.width,
       originalHeight: imgSize.height,
       preset,
+      ...(fit.applied && fitAvailable ? { fit: fit.applied } : {}),
     });
   };
 
   const resetCropSelection = () => {
+    fit.clear();
     if (!imgSize) return;
     const ratio = getPresetRatio(preset);
     setCrop(defaultCropForRatio(imgSize.width, imgSize.height, ratio));
@@ -421,6 +444,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   // canonical ids (suffix === "") that the e2e suite targets.
   const renderAdjustControls = (suffix = "") => (
     <>
+      {fitAvailable && <FitControls fit={fit} suffix={suffix} canApplyToAll={!!onApplyFitToAll} />}
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
           <Label className="text-xs uppercase tracking-wide opacity-70">
@@ -461,8 +485,9 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
               key={p.id}
               type="button"
               size="sm"
-              variant={preset === p.id ? "default" : "outline"}
+              variant={!fit.applied && preset === p.id ? "default" : "outline"}
               onClick={() => setPresetAndCrop(p.id)}
+              disabled={fit.working}
               data-testid={`crop-preset-${p.id}${suffix}`}
             >
               {p.id === "free" ? t("crop.freeRatio") : p.label}
@@ -471,7 +496,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         </div>
       </div>
 
-      <div className="space-y-1">
+      {fit.applied?.mode !== "blur" && <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
           <Label className="text-xs uppercase tracking-wide opacity-70">
             {t("crop.dimensions")}
@@ -481,6 +506,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
             variant="default"
             size="sm"
             onClick={resetCropSelection}
+            disabled={fit.working}
             data-testid={`crop-selection-reset-btn${suffix}`}
           >
             {t("crop.resetSelection")}
@@ -496,6 +522,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
               inputMode="numeric"
               min={1}
               max={imgSize?.width}
+              disabled={fit.working}
               value={crop?.width ?? ""}
               onChange={(e) => updateDimension("width", e.target.value)}
             />
@@ -509,6 +536,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
               inputMode="numeric"
               min={1}
               max={imgSize?.height}
+              disabled={fit.working}
               value={crop?.height ?? ""}
               onChange={(e) => updateDimension("height", e.target.value)}
             />
@@ -524,7 +552,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         )}
       </div>
 
-      <CropShortcutsList surfaceClass={shortcutsSurface} />
+      }
+      {fit.applied?.mode !== "blur" && <CropShortcutsList surfaceClass={shortcutsSurface} />}
 
       {initialCrop && onClearCrop && (
         <Button
@@ -558,6 +587,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         variant="default"
         size="sm"
         onClick={handleSave}
+        disabled={fit.working || (fitAvailable && !!fit.applied && (fit.pending || !fit.previewCurrent || !!fit.error))}
         data-testid={`crop-save-btn${suffix}`}
         className={btnClass}
       >
@@ -613,7 +643,9 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
             ref={previewWrapperRef}
             className="crop-editor-fade-in flex-1 min-h-0 min-w-0 flex items-center justify-center p-3"
           >
-            <div
+            {fit.applied?.mode === "blur" ? (
+              fit.preview && <img src={fit.preview} alt={t("crop.fit.preview")} className="max-h-full max-w-full object-contain rounded-md" data-testid="crop-blur-canvas" />
+            ) : <div
               className="relative"
               style={{
                 width: previewBox ? `${previewBox.width}px` : 0,
@@ -711,18 +743,20 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   </div>
                 </div>
               </div>
-            </div>
+            </div>}
           </div>
 
           {/* Desktop: fixed right-hand control panel */}
           <div
             className={cn(
-              "crop-editor-fade-in hidden 2xl:flex 2xl:w-72 shrink-0 flex-col gap-3 rounded-md border p-3 backdrop-blur-md",
+              "crop-editor-fade-in hidden 2xl:flex 2xl:w-72 shrink-0 flex-col gap-3 rounded-md border p-3 backdrop-blur-md overflow-hidden",
               controlPanelSurface
             )}
             data-testid="crop-side-panel"
           >
-            {renderAdjustControls()}
+            <div className="min-h-0 flex-1 overflow-y-auto space-y-3 pr-1">
+              {renderAdjustControls()}
+            </div>
             <div className="mt-auto pt-2">{renderActionButtons()}</div>
           </div>
 

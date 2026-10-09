@@ -181,6 +181,7 @@ export const fr: TranslationSchema = {
       hint:
         "Conserve les proportions. Les images déjà assez grandes pour la résolution choisie restent inchangées. Les grandes images et les processeurs plus lents demandent plus de temps. Au-delà de 4×, l’agrandissement par IA est suivi d’un redimensionnement classique.",
       unavailableHint: "Le modèle d’agrandissement n’est pas installé.",
+      fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
     },
     fitSize: {
       label: "Ajuster à une taille exacte",
@@ -428,6 +429,15 @@ export const fr: TranslationSchema = {
   },
 
   crop: {
+    fit: {
+      hint: "Choisissez une taille, puis cliquez sur Ajuster automatiquement pour voir et modifier le résultat.",
+      autoFit: "Ajuster automatiquement",
+      applyAll: "Ajuster toutes les images",
+      updateHint: "Cliquez sur Ajuster automatiquement pour actualiser l’aperçu.",
+      output: "Sortie : {{w}} × {{h}} px",
+      preview: "Aperçu du résultat",
+      updating: "Actualisation de l’aperçu…",
+    },
     aspectRatio: "Rapport d'aspect",
     adjust: "Ajuster",
     zoom: "Agrandissement",
@@ -442,7 +452,7 @@ export const fr: TranslationSchema = {
     original: "Image d'origine : {{w}} × {{h}} px",
     removeSavedCrop: "Retirer le recadrage enregistré",
     discard: "Abandonner",
-    saveCrop: "Enregistrer le recadrage",
+    saveCrop: "Enregistrer",
     switchToLight: "Passer au thème clair",
     switchToDark: "Passer au thème sombre",
     confirmDialog: {
@@ -473,8 +483,8 @@ export const fr: TranslationSchema = {
       },
     },
     freeRatio: "Libre",
-    editorTitle: "Éditeur de recadrage",
-    editorDescription: "Ajustez la zone de recadrage, le ratio et l'agrandissement de cette image, puis cliquez sur Enregistrer le recadrage ou Abandonner.",
+    editorTitle: "Recadrer et redimensionner",
+    editorDescription: "Ajustez la zone de recadrage, le ratio et l'agrandissement de cette image, puis cliquez sur Enregistrer ou Abandonner.",
     removeDialog: {
       title: "Retirer le recadrage enregistré ?",
       description: "Cela efface le recadrage enregistré pour ce fichier. Le fichier d'origine restera dans votre liste de conversion.",

@@ -112,16 +112,18 @@ test.describe('Fit to exact size', () => {
   test('is replaced by page presets for PDF and turns off resize width', async ({ page }) => {
     await page.goto('/');
     await setOutputFormatAsync(page, 'JPEG');
-    const fitSwitch = page.getByTestId('fit-size-switch');
+    await uploadAndAssertAsync(page, SKYLINE_PHOTO);
+    await setFitToSizeAsync(page, { preset: 'github-social' });
     const resizeSwitch = page.getByTestId('resize-width-switch');
-
-    await fitSwitch.click();
+    await expect(page.getByTestId('fit-size-switch')).toHaveCount(0);
     await expect(resizeSwitch).toBeDisabled();
     await expect(page.getByTestId('resize-width-fit-hint')).toBeVisible();
 
     await setOutputFormatAsync(page, 'PDF');
-    await expect(fitSwitch).toBeHidden();
     await expect(resizeSwitch).toBeEnabled();
+    await page.getByTestId('dropzone-crop-file-btn').first().click();
+    await expect(page.getByTestId('crop-fit-controls')).toHaveCount(0);
+
   });
 });
 
@@ -142,7 +144,7 @@ async function convertBandCardAsync(page: Page, fit: FitToSizeOptions): Promise<
 async function convertAndDownloadSingleAsync(page: Page, image: ImageFileDto, extension: string): Promise<string> {
   await clickConversionButtonAsync(page);
   await assertZipButtonNotRenderedAsync(page);
-  const links = await assertDownloadLinksAsync(page, [image]);
+  const links = await assertDownloadLinksAsync(page, [image], '_cropped');
   const [downloadedPath] = await downloadFilesAsync(page, links);
   expect(path.extname(downloadedPath).toLowerCase()).toBe(extension);
   return downloadedPath;

@@ -181,6 +181,7 @@ export const ptBR: TranslationSchema = {
       hint:
         "Mantém as proporções. Imagens que já são grandes o bastante para a resolução escolhida ficam como estão. Imagens maiores e CPUs mais lentas levam mais tempo. Acima de 4×, a ampliação com IA é seguida por um redimensionamento convencional.",
       unavailableHint: "O modelo de ampliação não está instalado.",
+      fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
     },
     fitSize: {
       label: "Ajustar ao tamanho exato",
@@ -428,6 +429,15 @@ export const ptBR: TranslationSchema = {
   },
 
   crop: {
+    fit: {
+      hint: "Escolha um tamanho e clique em Ajustar automaticamente para visualizar e editar o resultado.",
+      autoFit: "Ajustar automaticamente",
+      applyAll: "Ajustar todas as imagens",
+      updateHint: "Clique em Ajustar automaticamente para atualizar a prévia.",
+      output: "Saída: {{w}} × {{h}} px",
+      preview: "Prévia da saída",
+      updating: "Atualizando prévia…",
+    },
     aspectRatio: "Proporção",
     adjust: "Ajustar",
     zoom: "Ampliação",
@@ -442,7 +452,7 @@ export const ptBR: TranslationSchema = {
     original: "Imagem original: {{w}} × {{h}} px",
     removeSavedCrop: "Remover corte salvo",
     discard: "Descartar",
-    saveCrop: "Salvar corte",
+    saveCrop: "Salvar",
     switchToLight: "Mudar para tema claro",
     switchToDark: "Mudar para tema escuro",
     confirmDialog: {
@@ -473,8 +483,8 @@ export const ptBR: TranslationSchema = {
       },
     },
     freeRatio: "Livre",
-    editorTitle: "Editor de corte",
-    editorDescription: "Ajuste a região de corte, proporção e zoom desta imagem, depois clique em Salvar corte ou Descartar.",
+    editorTitle: "Recortar e redimensionar",
+    editorDescription: "Ajuste a região de corte, proporção e zoom desta imagem, depois clique em Salvar ou Descartar.",
     removeDialog: {
       title: "Remover corte salvo?",
       description: "Isso limpa o corte salvo para este arquivo. O arquivo original permanecerá na sua lista de conversão.",

@@ -178,6 +178,7 @@ export const en = {
       hint:
         "Keeps the aspect ratio. Images already large enough for a resolution target stay unchanged. Larger images and slower CPUs take longer. Beyond 4×, AI upscaling is followed by standard resizing.",
       unavailableHint: "The upscaling model is not installed.",
+      fitActiveHint: "Not used while Fit to exact size is on.",
     },
     fitSize: {
       label: "Fit to exact size",
@@ -425,6 +426,15 @@ export const en = {
   },
 
   crop: {
+    fit: {
+      hint: "Choose a size, then click Auto fit to preview and adjust the result.",
+      autoFit: "Auto fit",
+      applyAll: "Auto fit all images",
+      updateHint: "Click Auto fit to update the preview.",
+      output: "Output: {{w}} × {{h}} px",
+      preview: "Output preview",
+      updating: "Updating preview…",
+    },
     aspectRatio: "Aspect ratio",
     adjust: "Adjust",
     zoom: "Zoom",
@@ -439,7 +449,7 @@ export const en = {
     original: "Original: {{w}} × {{h}} px",
     removeSavedCrop: "Remove Saved Crop",
     discard: "Discard",
-    saveCrop: "Save Crop",
+    saveCrop: "Save",
     switchToLight: "Switch to light theme",
     switchToDark: "Switch to dark theme",
     confirmDialog: {
@@ -470,8 +480,8 @@ export const en = {
       },
     },
     freeRatio: "Free",
-    editorTitle: "Crop Editor",
-    editorDescription: "Adjust the crop region, ratio, and zoom for this image, then click Save Crop or Discard.",
+    editorTitle: "Crop & resize",
+    editorDescription: "Adjust the crop region, ratio, and zoom for this image, then click Save or Discard.",
     removeDialog: {
       title: "Remove saved crop?",
       description: "This clears the saved crop for this file. The original file will stay in your conversion list.",

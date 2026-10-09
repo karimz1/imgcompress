@@ -7,7 +7,7 @@ import { ImageFileDto } from './ImageFileDto';
 import { DownloadType } from './DownloadType';
 import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
 import type { UpscaleTarget } from '../../../src/lib/upscale';
-import type { FitAnchor, FitMode, FitPreset } from '../../../src/lib/fitToSize';
+import type { FitMode, FitPreset } from '../../../src/lib/fitToSize';
 
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
@@ -38,11 +38,9 @@ const selectors = {
   compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]',
   upscaleSwitch: '[data-testid="upscale-switch"]',
   upscaleTargetSelect: '[data-testid="upscale-target-select"]',
-  fitSizeSwitch: '[data-testid="fit-size-switch"]',
   fitPresetSelect: '[data-testid="fit-preset-select"]',
   fitWidthInput: '[data-testid="fit-width-input"]',
-  fitHeightInput: '[data-testid="fit-height-input"]',
-  fitAnchorSelect: '[data-testid="fit-anchor-select"]'
+  fitHeightInput: '[data-testid="fit-height-input"]'
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
@@ -218,16 +216,12 @@ export interface FitToSizeOptions {
   width?: number;
   height?: number;
   mode?: FitMode;
-  anchor?: FitAnchor;
+  anchor?: 'auto' | 'center' | 'top' | 'bottom' | 'left' | 'right';
 }
 
 export async function setFitToSizeAsync(page: Page, options: FitToSizeOptions): Promise<void> {
-  const toggle = page.locator(selectors.fitSizeSwitch);
-  await expect(toggle).toBeVisible();
-  if ((await toggle.getAttribute('data-state')) !== 'checked') {
-    await toggle.click();
-  }
-
+  await page.getByTestId('dropzone-crop-file-btn').first().click();
+  await expect(page.getByTestId('crop-dialog')).toBeVisible();
   await page.locator(selectors.fitPresetSelect).click();
   await page.getByTestId(`fit-preset-option-${options.preset}`).click();
   await expect(page.locator(selectors.fitPresetSelect)).toBeVisible();
@@ -240,10 +234,29 @@ export async function setFitToSizeAsync(page: Page, options: FitToSizeOptions): 
   const mode = options.mode ?? 'crop';
   await page.getByTestId(`fit-mode-${mode}-btn`).click();
 
-  if (mode === 'crop' && options.anchor) {
-    await page.locator(selectors.fitAnchorSelect).click();
-    await page.getByTestId(`fit-anchor-option-${options.anchor}`).click();
+  await page.getByTestId('crop-auto-fit-btn').click();
+  await expect(page.getByTestId('crop-fit-preview')).toBeVisible();
+  await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
+
+  if (mode === 'crop' && options.anchor && options.anchor !== 'auto') {
+    const selection = page.getByTestId('crop-selection');
+    const box = await selection.boundingBox();
+    const image = await selection.locator('..').boundingBox();
+    if (!box || !image) throw new Error('Crop selection not visible');
+    let x = image.x + (image.width - box.width) / 2;
+    let y = image.y + (image.height - box.height) / 2;
+    if (options.anchor === 'top') y = image.y;
+    if (options.anchor === 'bottom') y = image.y + image.height - box.height;
+    if (options.anchor === 'left') x = image.x;
+    if (options.anchor === 'right') x = image.x + image.width - box.width;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(x + box.width / 2, y + box.height / 2, { steps: 8 });
+    await page.mouse.up();
   }
+  await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
+  await page.getByTestId('crop-save-btn').click();
+  await expect(page.getByTestId('crop-dialog')).toHaveCount(0);
 }
 
 export async function waitForSupportedFormatsCountAsync(page: Page): Promise<number> {

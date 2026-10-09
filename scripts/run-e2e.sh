@@ -30,6 +30,7 @@ trap sync_test_results EXIT
 echo "Running E2E Tests..."
 
 export CI="${CI:-true}"
+export IMGCOMPRESS_DEMO_IMAGES_DIR="$APP_ROOT/images/exact-image-resize"
 
 export SHELL="${SHELL:-/bin/sh}"
 export PNPM_HOME="${PNPM_HOME:-$HOME/.local/share/pnpm}"

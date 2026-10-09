@@ -181,6 +181,7 @@ export const hu: TranslationSchema = {
       hint:
         "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
       unavailableHint: "A felskálázó modell nincs telepítve.",
+      fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
     },
     fitSize: {
       label: "Pontos méretre igazítás",
@@ -429,6 +430,15 @@ export const hu: TranslationSchema = {
   },
 
   crop: {
+    fit: {
+      hint: "Válassz méretet, majd kattints az Automatikus illesztés gombra az eredmény megtekintéséhez és módosításához.",
+      autoFit: "Automatikus illesztés",
+      applyAll: "Minden kép illesztése",
+      updateHint: "Az előnézet frissítéséhez kattints az Automatikus illesztés gombra.",
+      output: "Kimenet: {{w}} × {{h}} px",
+      preview: "Kimeneti előnézet",
+      updating: "Előnézet frissítése…",
+    },
     aspectRatio: "Képarány",
     adjust: "Beállítás",
     zoom: "Nagyítás",
@@ -474,8 +484,8 @@ export const hu: TranslationSchema = {
       },
     },
     freeRatio: "Szabad",
-    editorTitle: "Kép kivágása",
-    editorDescription: "Állítsd be a kivágási területet, az arányt és a nagyítást, majd kattints a Kivágás mentése vagy az Elvetés gombra.",
+    editorTitle: "Vágás és átméretezés",
+    editorDescription: "Állítsd be a kivágási területet, az arányt és a nagyítást, majd kattints a Mentés vagy az Elvetés gombra.",
     removeDialog: {
       title: "Eltávolítod a mentett kivágást?",
       description: "Ez törli a fájlhoz mentett kivágást. Az eredeti fájl az átalakítási listában marad.",

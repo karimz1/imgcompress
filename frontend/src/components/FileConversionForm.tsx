@@ -34,14 +34,6 @@ import {
   UPSCALE_TARGETS, UPSCALE_MODELS, toUpscaleTarget, toUpscaleModel,
   type UpscaleSettings, type UpscaleModelStatus,
 } from "@/lib/upscale";
-import {
-  FIT_ANCHORS,
-  FIT_PRESET_OPTIONS,
-  MAX_FIT_DIMENSION,
-  toFitAnchor,
-  toFitPreset,
-  type FitSettings,
-} from "@/lib/fitToSize";
 import { cn } from "@/lib/utils";
 
 interface FileConversionFormProps {
@@ -58,8 +50,6 @@ interface FileConversionFormProps {
   upscaleModelName: string | null;
   upscaleAvailable: boolean;
   upscaleModels: UpscaleModelStatus[];
-  fit: FitSettings;
-  setFit: (val: FitSettings) => void;
   outputFormat: string;
   setOutputFormat: (val: string) => void;
   formatRequired: boolean;
@@ -124,8 +114,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   upscaleModelName,
   upscaleAvailable,
   upscaleModels,
-  fit,
-  setFit,
   outputFormat,
   setOutputFormat,
   formatRequired,
@@ -181,8 +169,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     quality: t("form.quality.tooltip"),
     resizeWidth: t("form.resizeWidth.tooltip"),
     upscale: t("form.upscale.tooltip", { model: upscaleModelName?.trim() || "Real-ESRGAN" }),
-    fitSize: t("form.fitSize.tooltip"),
-    fitAnchor: t("form.fitSize.anchor.tooltip"),
     targetSize: t("form.targetSize.tooltip"),
     rembg: t("form.rembg.tooltip"),
     webpLossless: t("form.webpLossless.tooltip"),
@@ -215,14 +201,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const supportsBackgroundRemoval =
     outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp";
   const upscaleVisible = outputFormat !== "pdf";
-  const upscaleActive = upscaleVisible && upscale.enabled;
-  const fitAvailable = outputFormat !== "pdf";
-  const fitActive = fitAvailable && fit.enabled;
-  const fitPresetLabelKey: Record<string, string> = {
-    "github-social": "form.fitSize.preset.options.githubSocial",
-    "open-graph": "form.fitSize.preset.options.openGraph",
-    custom: "form.fitSize.preset.options.custom",
-  };
+  const fitActive = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
+  // Fitted images already have their final size, so upscaling them would undo it.
+  const upscaleActive = upscaleVisible && upscale.enabled && !fitActive;
   const renderError = useMemo(
     () =>
       error && (
@@ -253,6 +234,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             const cropable =
               !cropUnsupported && isCropableFile(file, supportedExtensions);
             const savedCrop = crops[file.name];
+            const savedFit = outputFormat !== "pdf" ? savedCrop?.fit : undefined;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
             return (
               <div
@@ -277,7 +259,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           className="inline-flex items-center gap-1 text-xs font-medium rounded-full pl-2 pr-1 py-0.5 bg-green-500/15 text-green-600 dark:text-green-300 border border-green-500/30"
                           data-testid="dropzone-crop-badge"
                         >
-                          {t("form.filesList.croppedBadge", { w: savedCrop.width, h: savedCrop.height })}
+                          {t(savedFit ? "crop.fit.output" : "form.filesList.croppedBadge", {
+                            w: savedFit?.width ?? savedCrop.width,
+                            h: savedFit?.height ?? savedCrop.height,
+                          })}
                           <button
                             type="button"
                             aria-label={t("form.filesList.removeSavedCropAria")}
@@ -316,7 +301,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           data-testid="dropzone-crop-file-btn"
                         >
                           <CropIcon className="h-3.5 w-3.5" />
-                          {savedCrop ? t("form.filesList.editButton") : t("form.filesList.cropButton")}
+                          {savedCrop ? t("form.filesList.editButton") : t("crop.editorTitle")}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent
@@ -384,6 +369,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       setCropForFile,
       supportedExtensions,
       cropUnsupportedExtensions,
+      outputFormat,
       tooltipSurface,
       t,
     ]
@@ -401,6 +387,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       onReportError={onReportCropError}
       isDarkTheme={isDarkTheme}
       disableLogo={disableLogo}
+      fitAvailable={outputFormat !== "pdf"}
+      cropUnsupportedExtensions={cropUnsupportedExtensions}
     />
   );
 
@@ -940,9 +928,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               id="upscaleToggle"
               checked={upscaleActive}
               onCheckedChange={(checked) => setUpscale({ ...upscale, enabled: checked })}
-              disabled={isLoading || !upscaleAvailable}
+              disabled={isLoading || !upscaleAvailable || fitActive}
             />
           </div>
+          {fitActive && (
+            <p className={cn("text-xs", subtleText)} data-testid="upscale-fit-hint">
+              {t("form.upscale.fitActiveHint")}
+            </p>
+          )}
           {!upscaleAvailable && (
             <p className={cn("text-xs", subtleText)} data-testid="upscale-unavailable-hint">
               {t("form.upscale.unavailableHint")}
@@ -1004,177 +997,6 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <p className={cn("text-xs", subtleText)} data-testid="upscale-hint">
                 {t("form.upscale.hint")}
               </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {fitAvailable && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="fitSizeToggle" className="text-sm flex items-center gap-1">
-              {t("form.fitSize.label")}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  className={cn("max-w-80 p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
-                >
-                  <p className="text-sm">{tooltipContent.fitSize}</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <Switch
-              data-testid="fit-size-switch"
-              id="fitSizeToggle"
-              checked={fit.enabled}
-              onCheckedChange={(checked) => setFit({ ...fit, enabled: checked })}
-              disabled={isLoading}
-            />
-          </div>
-
-          {fit.enabled && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="fitPreset" className="text-sm">
-                  {t("form.fitSize.preset.label")}
-                </Label>
-                <Select
-                  value={fit.preset}
-                  onValueChange={(value) => setFit({ ...fit, preset: toFitPreset(value) })}
-                >
-                  <SelectTrigger
-                    id="fitPreset"
-                    data-testid="fit-preset-select"
-                    disabled={isLoading}
-                    className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className={selectSurface}>
-                    {FIT_PRESET_OPTIONS.map((option) => (
-                      <SelectItem key={option} value={option} data-testid={`fit-preset-option-${option}`}>
-                        {t(fitPresetLabelKey[option])}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {fit.preset === "custom" && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="fitWidth" className="text-xs">
-                      {t("form.fitSize.widthLabel")}
-                    </Label>
-                    <Input
-                      data-testid="fit-width-input"
-                      id="fitWidth"
-                      type="number"
-                      inputMode="numeric"
-                      min="1"
-                      max={MAX_FIT_DIMENSION}
-                      step="1"
-                      value={fit.customWidth}
-                      onChange={(e) => setFit({ ...fit, customWidth: e.target.value })}
-                      disabled={isLoading}
-                      className={cn(surfaceInputClass, "disabled:opacity-50 disabled:cursor-not-allowed")}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="fitHeight" className="text-xs">
-                      {t("form.fitSize.heightLabel")}
-                    </Label>
-                    <Input
-                      data-testid="fit-height-input"
-                      id="fitHeight"
-                      type="number"
-                      inputMode="numeric"
-                      min="1"
-                      max={MAX_FIT_DIMENSION}
-                      step="1"
-                      value={fit.customHeight}
-                      onChange={(e) => setFit({ ...fit, customHeight: e.target.value })}
-                      disabled={isLoading}
-                      className={cn(surfaceInputClass, "disabled:opacity-50 disabled:cursor-not-allowed")}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <Label className="text-sm">{t("form.fitSize.mode.label")}</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    variant={fit.mode === "crop" ? "default" : "outline"}
-                    disabled={isLoading}
-                    onClick={() => setFit({ ...fit, mode: "crop" })}
-                    data-testid="fit-mode-crop-btn"
-                  >
-                    {t("form.fitSize.mode.crop")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={fit.mode === "blur" ? "default" : "outline"}
-                    disabled={isLoading}
-                    onClick={() => setFit({ ...fit, mode: "blur" })}
-                    data-testid="fit-mode-blur-btn"
-                  >
-                    {t("form.fitSize.mode.blur")}
-                  </Button>
-                </div>
-                <p className={cn("text-xs", subtleText)}>
-                  {fit.mode === "crop" ? t("form.fitSize.mode.cropHint") : t("form.fitSize.mode.blurHint")}
-                </p>
-              </div>
-
-              {fit.mode === "crop" && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Label htmlFor="fitAnchor" className="text-sm">
-                      {t("form.fitSize.anchor.label")}
-                    </Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="top"
-                        className={cn("max-w-80 p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
-                      >
-                        <p className="text-sm">{tooltipContent.fitAnchor}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <Select
-                    value={fit.anchor}
-                    onValueChange={(value) => setFit({ ...fit, anchor: toFitAnchor(value) })}
-                  >
-                    <SelectTrigger
-                      id="fitAnchor"
-                      data-testid="fit-anchor-select"
-                      disabled={isLoading}
-                      className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className={selectSurface}>
-                      {FIT_ANCHORS.map((anchor) => (
-                        <SelectItem key={anchor} value={anchor} data-testid={`fit-anchor-option-${anchor}`}>
-                          {t(`form.fitSize.anchor.options.${anchor}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
           )}
         </div>

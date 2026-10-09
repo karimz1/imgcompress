@@ -1,3 +1,5 @@
+import type { FitOutput } from "./fitToSize";
+
 export type RatioPresetId = "free" | "1:1" | "16:9" | "4:3";
 
 export interface CropConfig {
@@ -8,6 +10,7 @@ export interface CropConfig {
   originalWidth: number;
   originalHeight: number;
   preset: RatioPresetId;
+  fit?: FitOutput;
 }
 
 export const RATIO_PRESETS: { id: RatioPresetId; label: string; ratio: number | null }[] = [
@@ -258,10 +261,57 @@ export function buildCroppedFilename(name: string, outputMime: string): string {
   return `${base}${ext}`;
 }
 
-export async function applyCropToFile(file: File, crop: CropConfig): Promise<File> {
+function fitForm(bitmap: Blob, fit: FitOutput, crop?: Pick<CropConfig, "x" | "y" | "width" | "height">): FormData {
+  const form = new FormData();
+  form.append("file", bitmap, "editor-bitmap.png");
+  form.append("fit_width", String(fit.width));
+  form.append("fit_height", String(fit.height));
+  form.append("fit_mode", fit.mode);
+  if (crop) {
+    form.append("crop_x", String(crop.x));
+    form.append("crop_y", String(crop.y));
+    form.append("crop_width", String(crop.width));
+    form.append("crop_height", String(crop.height));
+  }
+  return form;
+}
+
+export async function previewFit(
+  imageUrl: string,
+  fit: FitOutput,
+  crop?: Pick<CropConfig, "x" | "y" | "width" | "height">,
+  signal?: AbortSignal
+): Promise<{ crop: CropConfig; preview: string }> {
+  const bitmap = await fetch(imageUrl, { signal }).then((response) => response.blob());
+  const response = await fetch("/api/crop/fit", { method: "POST", body: fitForm(bitmap, fit, crop), signal });
+  if (!response.ok) throw new Error(await readBitmapError(response));
+  return response.json();
+}
+
+export async function autoFitFile(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
+  const image = await loadImageFromFile(file);
+  try {
+    return (await previewFit(image.src, fit, undefined, signal)).crop;
+  } finally {
+    if (image.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
+  }
+}
+
+export async function applyCropToFile(file: File, crop: CropConfig, signal?: AbortSignal): Promise<File> {
   const img = await loadImageFromFile(file);
   try {
     const safe = clampCrop(crop, img.naturalWidth, img.naturalHeight);
+    if (crop.fit) {
+      const bitmap = await fetch(img.src, { signal }).then((response) => response.blob());
+      const form = fitForm(bitmap, crop.fit, safe);
+      form.append("render", "true");
+      const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
+      if (!response.ok) throw new Error(await readBitmapError(response));
+      return new File([await response.blob()], buildCroppedFilename(file.name, "image/png"), {
+        type: "image/png",
+        lastModified: file.lastModified,
+      });
+    }
     const canvas = document.createElement("canvas");
     canvas.width = safe.width;
     canvas.height = safe.height;

@@ -181,6 +181,7 @@ export const de: TranslationSchema = {
       hint:
         "Behält das Seitenverhältnis bei. Bilder, die für die Zielauflösung bereits groß genug sind, bleiben unverändert. Größere Bilder und langsamere CPUs brauchen mehr Zeit. Über 4× folgt auf die KI-Hochskalierung eine normale Größenänderung.",
       unavailableHint: "Das Modell für die Hochskalierung ist nicht installiert.",
+      fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
     },
     fitSize: {
       label: "Auf exakte Größe bringen",
@@ -428,6 +429,15 @@ export const de: TranslationSchema = {
   },
 
   crop: {
+    fit: {
+      hint: "Wähle eine Größe und klicke auf Automatisch einpassen, um das Ergebnis zu sehen und anzupassen.",
+      autoFit: "Automatisch einpassen",
+      applyAll: "Alle Bilder einpassen",
+      updateHint: "Klicke auf Automatisch einpassen, um die Vorschau zu aktualisieren.",
+      output: "Ausgabe: {{w}} × {{h}} px",
+      preview: "Ausgabevorschau",
+      updating: "Vorschau wird aktualisiert…",
+    },
     aspectRatio: "Seitenverhältnis",
     adjust: "Anpassen",
     zoom: "Vergrößerung",
@@ -442,7 +452,7 @@ export const de: TranslationSchema = {
     original: "Ursprünglich: {{w}} × {{h}} px",
     removeSavedCrop: "Gespeicherten Zuschnitt entfernen",
     discard: "Verwerfen",
-    saveCrop: "Zuschnitt speichern",
+    saveCrop: "Speichern",
     switchToLight: "Zum hellen Design wechseln",
     switchToDark: "Zum dunklen Design wechseln",
     confirmDialog: {
@@ -473,8 +483,8 @@ export const de: TranslationSchema = {
       },
     },
     freeRatio: "Frei",
-    editorTitle: "Zuschnitt-Editor",
-    editorDescription: "Passe Zuschnittbereich, Verhältnis und Zoom für dieses Bild an und klicke dann auf Zuschnitt speichern oder Verwerfen.",
+    editorTitle: "Zuschneiden & Größe ändern",
+    editorDescription: "Passe Zuschnittbereich, Verhältnis und Zoom für dieses Bild an und klicke dann auf Speichern oder Verwerfen.",
     removeDialog: {
       title: "Gespeicherten Zuschnitt entfernen?",
       description: "Dadurch wird der gespeicherte Zuschnitt für diese Datei gelöscht. Die Originaldatei bleibt in deiner Konvertierungsliste.",

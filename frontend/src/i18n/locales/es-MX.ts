@@ -181,6 +181,7 @@ export const esMX: TranslationSchema = {
       hint:
         "Conserva las proporciones. Las imágenes que ya son lo bastante grandes para la resolución elegida se quedan igual. Las imágenes más grandes y las CPU más lentas necesitan más tiempo. Más allá de 4×, la ampliación con IA va seguida de un cambio de tamaño convencional.",
       unavailableHint: "El modelo de ampliación no está instalado.",
+      fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
     },
     fitSize: {
       label: "Ajustar a tamaño exacto",
@@ -428,6 +429,15 @@ export const esMX: TranslationSchema = {
   },
 
   crop: {
+    fit: {
+      hint: "Elige un tamaño y pulsa Ajustar automáticamente para ver y editar el resultado.",
+      autoFit: "Ajustar automáticamente",
+      applyAll: "Ajustar todas las imágenes",
+      updateHint: "Pulsa Ajustar automáticamente para actualizar la vista previa.",
+      output: "Salida: {{w}} × {{h}} px",
+      preview: "Vista previa de salida",
+      updating: "Actualizando vista previa…",
+    },
     aspectRatio: "Relación de aspecto",
     adjust: "Ajustar",
     zoom: "Acercamiento",
@@ -442,7 +452,7 @@ export const esMX: TranslationSchema = {
     original: "Imagen original: {{w}} × {{h}} px",
     removeSavedCrop: "Eliminar recorte guardado",
     discard: "Descartar",
-    saveCrop: "Guardar recorte",
+    saveCrop: "Guardar",
     switchToLight: "Cambiar a tema claro",
     switchToDark: "Cambiar a tema oscuro",
     confirmDialog: {
@@ -473,8 +483,8 @@ export const esMX: TranslationSchema = {
       },
     },
     freeRatio: "Libre",
-    editorTitle: "Editor de recorte",
-    editorDescription: "Ajusta la región de recorte, la proporción y el zoom de esta imagen, luego haz clic en Guardar recorte o Descartar.",
+    editorTitle: "Recortar y redimensionar",
+    editorDescription: "Ajusta la región de recorte, la proporción y el zoom de esta imagen, luego haz clic en Guardar o Descartar.",
     removeDialog: {
       title: "¿Eliminar recorte guardado?",
       description: "Esto borra el recorte guardado para este archivo. El archivo original permanecerá en tu lista de conversión.",

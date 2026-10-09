@@ -118,7 +118,7 @@ test('crop badge × button removes the saved crop', async ({ page }) => {
   await expect(page.getByTestId('crop-remove-confirm-dialog')).toBeVisible();
   await page.getByTestId('crop-remove-confirm-btn').click();
   await expect(page.getByTestId('dropzone-crop-badge')).toHaveCount(0);
-  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Crop');
+  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Crop & resize');
 });
 
 test('crop modal: remove saved crop from the editor', async ({ page }) => {
@@ -140,7 +140,7 @@ test('crop modal: remove saved crop from the editor', async ({ page }) => {
 
   await expect(page.getByTestId('crop-dialog')).toHaveCount(0);
   await expect(page.getByTestId('dropzone-crop-badge')).toHaveCount(0);
-  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Crop');
+  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Crop & resize');
 });
 
 test('crop modal: canceling remove saved crop keeps the crop editor open', async ({ page }) => {

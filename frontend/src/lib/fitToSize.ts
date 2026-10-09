@@ -1,8 +1,6 @@
 /**
- * "Fit to exact size" settings. The mode and anchor strings mirror the backend
- * `FitMode` / `FitAnchor` enums (backend/image_converter/domain/fit_to_size.py)
- * and are sent as the `fit_mode` / `fit_anchor` form fields, together with
- * `fit_width` and `fit_height`.
+ * Exact output sizes and modes used by the editor preview and saved exports.
+ * Mode strings mirror the backend FitMode enum.
  */
 export const FIT_PRESETS = {
   "github-social": { width: 1280, height: 640 },
@@ -15,44 +13,33 @@ export const FIT_PRESET_OPTIONS: readonly FitPreset[] = ["github-social", "open-
 export const FIT_MODES = ["crop", "blur"] as const;
 export type FitMode = (typeof FIT_MODES)[number];
 
-export const FIT_ANCHORS = ["auto", "center", "top", "bottom", "left", "right"] as const;
-export type FitAnchor = (typeof FIT_ANCHORS)[number];
+export interface FitOutput {
+  width: number;
+  height: number;
+  mode: FitMode;
+}
 
 /** Same limit as MAX_FIT_DIMENSION in the backend. */
 export const MAX_FIT_DIMENSION = 8192;
 
 export interface FitSettings {
-  enabled: boolean;
   preset: FitPreset;
   customWidth: string;
   customHeight: string;
   mode: FitMode;
-  anchor: FitAnchor;
 }
 
 export const DEFAULT_FIT_SETTINGS: FitSettings = {
-  enabled: false,
   preset: "github-social",
   customWidth: String(FIT_PRESETS["github-social"].width),
   customHeight: String(FIT_PRESETS["github-social"].height),
   mode: "crop",
-  anchor: "auto",
 };
 
 export function toFitPreset(value: string): FitPreset {
   return (FIT_PRESET_OPTIONS as readonly string[]).includes(value)
     ? (value as FitPreset)
     : DEFAULT_FIT_SETTINGS.preset;
-}
-
-export function toFitMode(value: string): FitMode {
-  return (FIT_MODES as readonly string[]).includes(value) ? (value as FitMode) : DEFAULT_FIT_SETTINGS.mode;
-}
-
-export function toFitAnchor(value: string): FitAnchor {
-  return (FIT_ANCHORS as readonly string[]).includes(value)
-    ? (value as FitAnchor)
-    : DEFAULT_FIT_SETTINGS.anchor;
 }
 
 function parseDimension(value: string): number | null {

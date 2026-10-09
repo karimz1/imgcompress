@@ -1,13 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import fs from "fs";
 import path from "path";
-
-const videoDir = path.join(__dirname, "e2e-test-results/");
-
-
-if (fs.existsSync(videoDir))
-  fs.rmSync(videoDir, { recursive: true, force: true });
-fs.mkdirSync(videoDir, { recursive: true });
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -31,5 +23,7 @@ export default defineConfig({
     },
     video: { mode: "on" },
   },
-  outputDir: "e2e-test-results/",
+  // Playwright clears this once per run. Clearing it on config import also
+  // erased earlier image comparisons whenever a worker was restarted.
+  outputDir: path.join(__dirname, "e2e-test-results"),
 });

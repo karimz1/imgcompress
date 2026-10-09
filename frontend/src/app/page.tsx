@@ -42,7 +42,6 @@ import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensio
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
-import { DEFAULT_FIT_SETTINGS, resolveFitSize, type FitSettings } from "@/lib/fitToSize";
 
 
 function HomePageContent() {
@@ -112,7 +111,6 @@ function HomePageContent() {
       if (availableModel) setUpscale((previous) => ({ ...previous, model: availableModel.id }));
     }
   }, [upscaleModels, upscale.model]);
-  const [fit, setFit] = useState<FitSettings>(DEFAULT_FIT_SETTINGS);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
@@ -192,20 +190,13 @@ function HomePageContent() {
     }
   }, [outputFormat, pdfPreset]);
 
-  // Fit to size produces an exact size, so a resize width would only fight it,
-  // and PDF output has its own page presets instead.
+  const hasFittedImages = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
   useEffect(() => {
-    if (fit.enabled && outputFormat !== "pdf") {
+    if (hasFittedImages) {
       setResizeWidthEnabled(false);
       setWidth("");
     }
-  }, [fit.enabled, outputFormat]);
-
-  useEffect(() => {
-    if (outputFormat === "pdf" && fit.enabled) {
-      setFit((prev) => ({ ...prev, enabled: false }));
-    }
-  }, [outputFormat, fit.enabled]);
+  }, [hasFittedImages]);
 
   useEffect(() => {
     // Upscaling decides the output size, so a resize width would contradict it.
@@ -310,13 +301,6 @@ function HomePageContent() {
         }
       }
 
-      const fitSize = fit.enabled && outputFormat !== "pdf" ? resolveFitSize(fit) : null;
-      if (fit.enabled && outputFormat !== "pdf" && !fitSize) {
-        setError({ message: t("page.toast.fitSizeError") });
-        toast.error(t("page.toast.fitSizeError"));
-        return;
-      }
-
       if (hasQualitySettings && compressionMode === "size") {
         const trimmed = (targetSizeMB || "").trim();
         const parsedSize = parseFloat(trimmed);
@@ -331,16 +315,20 @@ function HomePageContent() {
       clearError();
       setConverted([]);
       setDestFolder("");
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       let processedFiles: File[];
       try {
         processedFiles = await Promise.all(
           files.map((file) => {
             const cfg = crops[file.name];
-            return cfg ? applyCropToFile(file, cfg) : Promise.resolve(file);
+            return cfg ? applyCropToFile(file, outputFormat === "pdf" ? { ...cfg, fit: undefined } : cfg, controller.signal) : Promise.resolve(file);
           })
         );
       } catch (cropErr) {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        if (controller.signal.aborted) return;
         const message =
           cropErr instanceof Error ? cropErr.message : "Failed to apply crop.";
         setError({
@@ -352,27 +340,21 @@ function HomePageContent() {
         setIsLoading(false);
         return;
       }
+      if (controller.signal.aborted) return;
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
       if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
-      const upscaleActive = upscale.enabled && outputFormat !== "pdf";
-      if (resizeWidthEnabled && !upscaleActive && !fitSize) {
+      // Fitted images already have their final size, so they are not upscaled.
+      const upscaleActive = upscale.enabled && outputFormat !== "pdf" && !hasFittedImages;
+      if (resizeWidthEnabled && !upscaleActive) {
         formData.append("width", width);
       }
       if (upscaleActive) {
         formData.append("upscale", upscale.target);
         formData.append("upscale_model", upscale.model);
-      }
-      if (fitSize) {
-        formData.append("fit_width", String(fitSize.width));
-        formData.append("fit_height", String(fitSize.height));
-        formData.append("fit_mode", fit.mode);
-        if (fit.mode === "crop") {
-          formData.append("fit_anchor", fit.anchor);
-        }
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -400,9 +382,6 @@ function HomePageContent() {
       }
 
       try {
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-
         const res = await fetch("/api/compress", {
           method: "POST",
           body: formData,
@@ -459,6 +438,7 @@ function HomePageContent() {
         });
         toast.error(t("page.toast.unexpectedError"));
       } finally {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
         setIsLoading(false);
       }
     },
@@ -469,7 +449,7 @@ function HomePageContent() {
       resizeWidthEnabled,
       width,
       upscale,
-      fit,
+      hasFittedImages,
       clearError,
       setError,
       compressionMode,
@@ -633,8 +613,6 @@ function HomePageContent() {
               upscaleModelName={upscaleModelName}
               upscaleAvailable={upscaleAvailable}
               upscaleModels={upscaleModels}
-              fit={fit}
-              setFit={setFit}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}

@@ -181,6 +181,7 @@ export const ja: TranslationSchema = {
       hint:
         "縦横比を維持します。指定した解像度に対してすでに十分大きい画像はそのままです。大きい画像や遅いCPUでは処理に時間がかかります。4倍を超える拡大では、AI処理の後に通常のリサイズを行います。",
       unavailableHint: "アップスケール用のモデルがインストールされていません。",
+      fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
     },
     fitSize: {
       label: "指定サイズに合わせる",
@@ -428,6 +429,15 @@ export const ja: TranslationSchema = {
   },
 
   crop: {
+    fit: {
+      hint: "サイズを選び、「自動調整」を押して結果を確認・調整してください。",
+      autoFit: "自動調整",
+      applyAll: "すべての画像を自動調整",
+      updateHint: "「自動調整」を押してプレビューを更新してください。",
+      output: "出力: {{w}} × {{h}} px",
+      preview: "出力プレビュー",
+      updating: "プレビューを更新中…",
+    },
     aspectRatio: "アスペクト比",
     adjust: "調整",
     zoom: "ズーム",
@@ -442,7 +452,7 @@ export const ja: TranslationSchema = {
     original: "元画像: {{w}} × {{h}} px",
     removeSavedCrop: "保存済み切り抜きを削除",
     discard: "破棄",
-    saveCrop: "切り抜きを保存",
+    saveCrop: "保存",
     switchToLight: "ライトテーマに切り替え",
     switchToDark: "ダークテーマに切り替え",
     confirmDialog: {
@@ -473,8 +483,8 @@ export const ja: TranslationSchema = {
       },
     },
     freeRatio: "自由",
-    editorTitle: "切り抜きエディター",
-    editorDescription: "この画像の切り抜き範囲、比率、ズームを調整し、切り抜きを保存または破棄をクリックしてください。",
+    editorTitle: "切り抜きとサイズ変更",
+    editorDescription: "この画像の切り抜き範囲、比率、ズームを調整し、保存または破棄をクリックしてください。",
     removeDialog: {
       title: "保存済み切り抜きを削除しますか?",
       description: "このファイルの保存済み切り抜きを削除します。元のファイルは変換リストに残ります。",
