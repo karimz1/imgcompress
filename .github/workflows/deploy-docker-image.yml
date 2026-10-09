@@ -57,11 +57,20 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Authenticate to dhi.io for DHI base images
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        # Inline instead of scripts/dockerLoginWithRetry.sh: release builds check
+        # out the tag, and older tags don't have that script.
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if printf '%s' "$REGISTRY_PASSWORD" | docker login dhi.io --username "$REGISTRY_USERNAME" --password-stdin; then
+              exit 0
+            fi
+            echo "Login to dhi.io failed (attempt $attempt/5)" >&2
+            sleep $((attempt * 15))
+          done
+          exit 1
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -93,14 +102,25 @@ jobs:
           echo "::endgroup::"
 
       - name: Build and Push Docker Image
+        id: build-app
+        continue-on-error: true
         uses: docker/build-push-action@v7
-        with:
+        with: &app-build
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha,scope=app-deploy
           cache-to: type=gha,mode=max,scope=app-deploy
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@v7
+        with: *app-build
 
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub

@@ -1,16 +1,13 @@
 name: CI and Auto Merge for imgcompress
 
 on:
+  # Feature branches run through pull_request only. Pushing them here as well
+  # started every PR run twice.
   push:
     branches:
       - main
       - next_rc
-      - feature/*
-      - bugfix/*
-      - enhancements/*
       - release/*
-      - prepare-rc-*
-      - prepair-rc-*
   pull_request:
   workflow_dispatch:
     inputs:
@@ -33,9 +30,10 @@ permissions:
 
 # Cancel superseded runs on the same PR / branch so we don't waste minutes
 # building stale commits and so auto-merge always acts on the latest CI.
+# Every commit on main keeps its run.
 concurrency:
   group: ci-auto-merge-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   lint-python:
@@ -84,21 +82,31 @@ jobs:
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build local application image
+        id: build-app
+        continue-on-error: true
         uses: docker/build-push-action@v7
-        with:
+        with: &app-build-1
           context: .
           platforms: linux/amd64
           load: true
           tags: karimz1/imgcompress:local-scan
           cache-from: type=gha,scope=app-linux/amd64
           cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@v7
+        with: *app-build-1
 
       - name: Run Trivy image scan
         continue-on-error: true
@@ -140,11 +148,10 @@ jobs:
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Dev Container for ${{ matrix.platform }}
         uses: docker/build-push-action@v7
@@ -209,21 +216,31 @@ jobs:
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Application Container for ${{ matrix.platform }}
+        id: build-app
+        continue-on-error: true
         uses: docker/build-push-action@v7
-        with:
+        with: &app-build-2
           context: .
           platforms: ${{ matrix.platform }}
           load: true
           tags: karimz1/imgcompress:local-test
           cache-from: type=gha,scope=app-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=app-${{ matrix.platform }}
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@v7
+        with: *app-build-2
 
       - name: Run Application Container (Host Networking) for ${{ matrix.platform }}
         run: |
@@ -344,14 +361,25 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build Application Container
+        id: build-app
+        continue-on-error: true
         uses: docker/build-push-action@v7
-        with:
+        with: &app-build-3
           context: .
           platforms: linux/amd64
           load: true
           tags: karimz1/imgcompress:local-test
           cache-from: type=gha,scope=app-linux/amd64
           cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@v7
+        with: *app-build-3
 
       - name: Start app — ${{ matrix.scenario }}
         run: |
@@ -469,14 +497,25 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build Application Container
+        id: build-app
+        continue-on-error: true
         uses: docker/build-push-action@v7
-        with:
+        with: &app-build-4
           context: .
           platforms: linux/amd64
           load: true
           tags: karimz1/imgcompress:local-test
           cache-from: type=gha,scope=app-linux/amd64
           cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@v7
+        with: *app-build-4
 
       - name: Run Application Container (Host Networking)
         run: |
