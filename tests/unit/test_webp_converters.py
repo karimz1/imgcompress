@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, ImageCms
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.dtos import CompressionFormData, CompressRequest
@@ -127,6 +127,74 @@ def test_When_ImageExceedsWebpLimit_Expect_ConversionFailsWithClearMessage(tmp_p
 
     assert not result.is_successful
     assert "16383" in result.error
+    assert "Traceback" not in result.error
+
+
+def test_When_Source16BitGrayscale_Expect_ScaledTo8BitNotClipped(logger):
+    ramp = np.linspace(0, 65535, 256, dtype=np.uint16)
+    source = _encode(Image.fromarray(np.tile(ramp, (16, 1))))
+    with Image.open(BytesIO(source)) as src:
+        assert src.mode == "I;16"
+
+    data = WebpConverter(quality=90, logger=logger, lossless=True).encode_to_bytes(source)
+
+    with Image.open(BytesIO(data)) as out:
+        row = np.asarray(out.convert("L"))[0]
+        assert row[0] == 0
+        assert row[-1] == 255
+        assert abs(int(row[128]) - 128) <= 1
+
+
+def test_When_SourceHasRgbIccProfile_Expect_ProfileKept(logger):
+    profile = ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
+    source = _encode(Image.new("RGB", (16, 16), (10, 200, 30)), icc_profile=profile)
+
+    for lossless in (False, True):
+        data = WebpConverter(quality=80, logger=logger, lossless=lossless).encode_to_bytes(source)
+        with Image.open(BytesIO(data)) as out:
+            assert out.info.get("icc_profile") == profile
+
+
+def test_When_CmykSourceHasIccProfile_Expect_ProfileDroppedAfterRgbConversion(logger):
+    profile = bytearray(ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes())
+    profile[16:20] = b"CMYK"  # colour space signature in the ICC header
+    source = _encode(Image.new("CMYK", (16, 16), (0, 255, 255, 0)), "JPEG", icc_profile=bytes(profile))
+
+    data = WebpConverter(quality=80, logger=logger).encode_to_bytes(source)
+
+    with Image.open(BytesIO(data)) as out:
+        assert out.mode == "RGB"
+        assert "icc_profile" not in out.info
+
+
+def test_When_SourceHasExifAndXmp_Expect_MetadataNotWritten(logger):
+    exif = Image.Exif()
+    exif[0x010F] = "Apple"
+    exif[0x8825] = {2: (48.0, 8.0, 0.0), 4: (11.0, 34.0, 0.0)}  # GPS latitude/longitude
+    xmp = b'<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/></x:xmpmeta>'
+    source = _encode(Image.new("RGB", (16, 16)), "WEBP", exif=exif.tobytes(), xmp=xmp)
+    with Image.open(BytesIO(source)) as src:
+        assert "exif" in src.info and "xmp" in src.info
+
+    data = WebpConverter(quality=80, logger=logger).encode_to_bytes(source)
+
+    with Image.open(BytesIO(data)) as out:
+        assert "exif" not in out.info
+        assert "xmp" not in out.info
+        assert len(out.getexif()) == 0
+
+
+def test_When_SourceIsAnimated_Expect_FirstFrameAsStillWebp(logger):
+    frames = [Image.new("RGB", (20, 20), colour) for colour in ((255, 0, 0), (0, 0, 255))]
+    buffer = BytesIO()
+    frames[0].save(buffer, format="GIF", save_all=True, append_images=frames[1:], loop=0)
+
+    data = WebpConverter(quality=90, logger=logger).encode_to_bytes(buffer.getvalue())
+
+    with Image.open(BytesIO(data)) as out:
+        assert getattr(out, "n_frames", 1) == 1
+        red, green, blue = out.convert("RGB").getpixel((10, 10))
+        assert red > 200 and blue < 50
 
 
 def test_When_RembgWebpConverts_Expect_TransparentWebp(logger, monkeypatch):

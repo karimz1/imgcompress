@@ -2,6 +2,7 @@ import traceback
 from io import BytesIO
 from PIL import Image, ImageOps
 from backend.image_converter.application.dtos import ConversionDetails
+from backend.image_converter.core.exceptions import ConversionError
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.interfaces.iconverter import IImageConverter
@@ -39,6 +40,10 @@ class BaseImageConverter(IImageConverter):
                 bytes_written=len(converted_data),
             )
             return Result.success(conversion_details)
+        except ConversionError as e:
+            # Expected failure with a message meant for the user, no traceback.
+            self.logger.log(f"Failed to convert image: {e}", "error")
+            return Result.failure(str(e))
         except Exception:
             error_traceback = traceback.format_exc()
             self.logger.log(f"Failed to convert image: {error_traceback}", "error")
@@ -82,20 +87,28 @@ class BaseImageConverter(IImageConverter):
         Encodes image data to WebP with the specified quality.
         - applies EXIF orientation, since the orientation tag is not carried over
         - keeps the alpha channel when the source has one
+        - keeps an RGB ICC profile (e.g. Display P3 from iPhone photos), like AVIF and PNG.
+          EXIF and XMP are not written, so camera and GPS data are dropped.
+        - scales 16-bit grayscale down to 8 bit instead of clipping it to white
         - in lossless mode libwebp reads quality as compression effort, not fidelity,
           so the pixels are identical at any value
         """
         with Image.open(BytesIO(image_data)) as img:
             if max(img.size) > WEBP_MAX_DIMENSION:
-                raise ValueError(
+                raise ConversionError(
                     f"WebP supports at most {WEBP_MAX_DIMENSION}x{WEBP_MAX_DIMENSION} pixels, "
                     f"this image is {img.width}x{img.height}. Resize it to a smaller width first."
                 )
+
+            icc_profile = img.info.get("icc_profile")
 
             try:
                 img = ImageOps.exif_transpose(img)
             except Exception:
                 pass
+
+            if img.mode.startswith("I;16") or (img.mode == "I" and img.getextrema()[1] > 255):
+                img = img.convert("I").point(lambda value: value / 256).convert("L")
 
             has_alpha = img.mode in ("RGBA", "LA", "PA") or (
                 img.mode == "P" and "transparency" in img.info
@@ -104,9 +117,18 @@ class BaseImageConverter(IImageConverter):
             if img.mode != target_mode:
                 img = img.convert(target_mode)
 
+            # A CMYK or grayscale profile no longer matches once the pixels are RGB.
+            if not _is_rgb_icc_profile(icc_profile):
+                icc_profile = None
+
             buffer = BytesIO()
             if lossless:
-                img.save(buffer, format="WEBP", lossless=True)
+                img.save(buffer, format="WEBP", lossless=True, icc_profile=icc_profile)
             else:
-                img.save(buffer, format="WEBP", quality=quality)
+                img.save(buffer, format="WEBP", quality=quality, icc_profile=icc_profile)
             return buffer.getvalue()
+
+
+def _is_rgb_icc_profile(icc_profile) -> bool:
+    # Bytes 16-19 of an ICC header hold the colour space signature.
+    return isinstance(icc_profile, bytes) and icc_profile[16:20] == b"RGB "
