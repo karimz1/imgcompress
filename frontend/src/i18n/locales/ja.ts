@@ -290,6 +290,23 @@ export const ja: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "ビルド情報",
+      description: "このデバイスで実行中のビルドです。",
+      built: "ビルド日時",
+      commit: "ソースのコミット",
+      buildId: "ビルドID",
+      open: "ビルド情報を表示",
+      copy: "情報をコピー",
+      copied: "コピーしました",
+      copyFailed: "コピーできませんでした。上のビルドIDを選択できます。",
+      channels: {
+        nightly: "ナイトリー",
+        rc: "リリース候補",
+        stable: "安定版",
+        local: "ローカルビルド",
+      },
+    },
     updateAvailable: "更新があります: {{version}}",
     whatsNew: "新着情報",
     version: "バージョン {{version}}",

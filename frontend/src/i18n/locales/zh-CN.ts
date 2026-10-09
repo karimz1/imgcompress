@@ -289,6 +289,23 @@ export const zhCN: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "构建详情",
+      description: "此设备上正在运行的构建。",
+      built: "构建时间",
+      commit: "源代码提交",
+      buildId: "构建编号",
+      open: "查看构建详情",
+      copy: "复制详情",
+      copied: "已复制",
+      copyFailed: "复制失败。可以选中上方的构建编号。",
+      channels: {
+        nightly: "每日构建",
+        rc: "候选版本",
+        stable: "稳定版",
+        local: "本地构建",
+      },
+    },
     updateAvailable: "有可用更新：{{version}}",
     whatsNew: "新增内容",
     version: "版本 {{version}}",

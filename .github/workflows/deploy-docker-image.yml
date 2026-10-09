@@ -56,6 +56,12 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Record source commit and build time
+        id: build-info
+        run: |
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+
       - name: Authenticate to dhi.io for DHI base images
         env:
           REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
@@ -123,6 +129,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            BUILD_COMMIT=${{ steps.build-info.outputs.commit }}
+            BUILD_DATE=${{ steps.build-info.outputs.date }}
+            BUILD_REF=${{ github.event.release.tag_name || github.event.client_payload.ref || github.ref }}
+            BUILD_VERSION=${{ env.VERSION }}
+            BUILD_PRERELEASE=${{ github.event.release.prerelease || false }}
           cache-from: type=gha,scope=app-deploy
           cache-to: type=gha,mode=max,scope=app-deploy
 

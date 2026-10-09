@@ -22,7 +22,15 @@ WORKDIR /app/frontend
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm config set store-dir /pnpm/store && \
     CI=true pnpm install --frozen-lockfile
-RUN pnpm run build
+# Metadata changes only the final frontend layer, keeping dependency caches warm.
+ARG BUILD_COMMIT=""
+ARG BUILD_DATE=""
+ARG BUILD_REF=""
+ARG BUILD_VERSION=""
+ARG BUILD_PRERELEASE="false"
+RUN BUILD_COMMIT="$BUILD_COMMIT" BUILD_DATE="$BUILD_DATE" BUILD_REF="$BUILD_REF" \
+    BUILD_VERSION="$BUILD_VERSION" BUILD_PRERELEASE="$BUILD_PRERELEASE" \
+    node scripts/write-build-info.mjs && pnpm run build
 
 # The built static files are in /app/frontend/out/
 

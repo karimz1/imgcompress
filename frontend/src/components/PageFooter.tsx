@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ExternalLink, Heart, ArrowUpCircle } from "lucide-react";
 import { useVersionCheck } from "@/hooks/useVersionCheck";
 import { APP_CONFIG } from "@/lib/config";
+import { BuildDetails } from "@/components/BuildDetails";
 
 const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const { t } = useTranslation();
@@ -60,9 +61,8 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
             );
           })}
         </div>
-        {currentVersion && (
           <div className="text-xs text-muted-foreground/50 space-x-2">
-            <span>{t("footer.version", { version: currentVersion })}</span>
+            <BuildDetails currentVersion={currentVersion} />
             <span className="text-muted-foreground/30">•</span>
             <a
               href={APP_CONFIG.DOCS_RELEASE_NOTES_URL}
@@ -73,7 +73,6 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
               {t("footer.releaseNotes")}
             </a>
           </div>
-        )}
       </div>
     </footer>
   );
