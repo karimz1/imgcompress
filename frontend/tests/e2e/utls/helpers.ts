@@ -173,6 +173,15 @@ export async function uploadFilesToDropzoneAsync(page: Page, fileNames: ImageFil
     await dropzoneInput.setInputFiles(filePaths);
 }
 
+/** Uploads files generated in the test itself, so no extra fixture has to be committed. */
+export async function uploadBuffersToDropzoneAsync(
+  page: Page,
+  files: { name: string; mimeType: string; buffer: Buffer }[]
+): Promise<void> {
+  await waitForSupportedFormatsCountAsync(page);
+  await page.locator(selectors.dropzoneInput).setInputFiles(files);
+}
+
 export async function waitForSupportedFormatsCountAsync(page: Page): Promise<number> {
     await expect.poll(async () => {
         const countLocator = page.locator(selectors.supportedFormatsCount);

@@ -16,6 +16,7 @@ import {
   setResizeWidthAsync,
   setWebpLosslessEnabledAsync,
   switchCompressionModeAsync,
+  uploadBuffersToDropzoneAsync,
   uploadFilesToDropzoneAsync,
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
@@ -23,6 +24,7 @@ import { ImageFileDto } from './utls/ImageFileDto';
 
 const PHOTO = new ImageFileDto('pexels-willianjusten-29944187.jpg');
 const TRANSPARENT_PNG = new ImageFileDto('ico-datei.png');
+const IPHONE_HEIC = new ImageFileDto('IMG_0935.heic');
 
 test.describe('WebP export', () => {
   test.beforeEach(async ({ request }) => {
@@ -32,6 +34,7 @@ test.describe('WebP export', () => {
   test('converts a photo to lossy WebP at the requested width', async ({ page }) => {
     await page.goto('/');
     await setOutputFormatAsync(page, 'WebP');
+    await expect(page.getByText('WebP settings mode')).toBeVisible();
     await uploadAndAssertAsync(page, PHOTO);
     await setResizeWidthAsync(page, 800);
 
@@ -99,6 +102,68 @@ test.describe('WebP export', () => {
     expect(metadata.format).toBe('webp');
     expect(metadata.hasAlpha).toBeTruthy();
     await AssertImageHasTransparentPixels(webpPath);
+  });
+
+  test('keeps the Display P3 profile of an iPhone HEIC', async ({ page }) => {
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'WebP');
+    await uploadAndAssertAsync(page, IPHONE_HEIC);
+    await setResizeWidthAsync(page, 800);
+
+    const webpPath = await convertAndDownloadSingleAsync(page, IPHONE_HEIC);
+
+    const metadata = await sharp(webpPath).metadata();
+    expect(metadata.format).toBe('webp');
+    expect(metadata.width).toBe(800);
+    expect(metadata.icc, 'ICC profile missing in the WebP').toBeDefined();
+    // ICC v4 stores the profile description as UTF-16BE.
+    expect(metadata.icc!.includes(Buffer.from('Display P3', 'utf16le').swap16())).toBeTruthy();
+  });
+
+  test('a rotated phone photo comes out upright at the requested width', async ({ page }) => {
+    // Stored as 600 x 300, EXIF orientation 6 shows it as 300 x 600.
+    const rotated = await sharp({
+      create: { width: 600, height: 300, channels: 3, background: { r: 200, g: 60, b: 40 } },
+    })
+      .jpeg()
+      .withMetadata({ orientation: 6 })
+      .toBuffer();
+    const image = new ImageFileDto('rotated-phone-photo.jpg');
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'WebP');
+    await uploadBuffersToDropzoneAsync(page, [
+      { name: image.fileName, mimeType: 'image/jpeg', buffer: rotated },
+    ]);
+    await assertFilesPresentInDropzoneAsync(page, [image]);
+    await setResizeWidthAsync(page, 150);
+
+    const webpPath = await convertAndDownloadSingleAsync(page, image);
+
+    const metadata = await sharp(webpPath).metadata();
+    expect(metadata.width).toBe(150);
+    expect(metadata.height).toBe(300);
+    expect(metadata.orientation).toBeUndefined();
+  });
+
+  test('an image wider than 16383 px fails with a readable message', async ({ page }) => {
+    const tooWide = await sharp({
+      create: { width: 16384, height: 8, channels: 3, background: { r: 255, g: 255, b: 255 } },
+    })
+      .png()
+      .toBuffer();
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'WebP');
+    await uploadBuffersToDropzoneAsync(page, [
+      { name: 'too-wide.png', mimeType: 'image/png', buffer: tooWide },
+    ]);
+    await assertFilesPresentInDropzoneAsync(page, [new ImageFileDto('too-wide.png')]);
+
+    await clickConversionButtonAsync(page);
+
+    await expect(page.getByTestId('error-message-holder')).toContainText(
+      'WebP supports at most 16383x16383 pixels'
+    );
+    await expect(page.getByTestId('error-holder')).not.toContainText('Traceback');
   });
 });
 
