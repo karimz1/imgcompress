@@ -107,9 +107,12 @@ Stop uploading personal or client photos to cloud-based removers. ImgCompress sh
 
 Enlarge images with local AI while preserving their aspect ratio. Choose **General** (`realesr-general-x4v3`) for photos and mixed content, or **Anime** (`realesr-animevideov3`) for drawn images. Both models run on the CPU and work offline.
 
-<img src="images/ai-upscaler-examples/models/realesr-general-x4v3/example_nails_anime.webp" width="100%" alt="Anime nail detail comparison: pixelated original on the left and smoother AI-upscaled detail on the right, using realesr-general-x4v3" />
+| Original | AI-upscaled |
+|:---:|:---:|
+| <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/anime-nails-original.webp" width="380" alt="Small anime drawing of a hand with turquoise nails, enlarged 4x with plain bicubic resizing"/> | <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/anime-nails-upscaled.webp" width="380" alt="Same drawing upscaled 4x by the local AI model, with sharper outlines"/> |
+| <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/pagoda-photo-original.webp" width="380" alt="Small photo of a lit pagoda, enlarged 4x with plain bicubic resizing"/> | <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/pagoda-photo-upscaled.webp" width="380" alt="Same photo upscaled 4x by the local AI model, with crisper edges on the roofs"/> |
 
-Left: original detail. Right: AI-upscaled detail using `realesr-general-x4v3` in ImgCompress.
+Both rows start from a small image (about 120 px wide) taken to 4x. Left is a normal bicubic resize, right is the General model in ImgCompress.
 
 ---
 
