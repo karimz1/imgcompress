@@ -29,3 +29,14 @@ def test_When_InvalidResizeWidthProvided_Expect_ValueError(sample_png_bytes):
     with pytest.raises(ValueError):
                                              
         resizer.resize_image(sample_png_bytes, 0)
+
+def test_When_JpegHasExifRotation_Expect_ResizedUprightToTargetWidth():
+    buf = BytesIO()
+    exif = Image.Exif()
+    exif[0x0112] = 6  # stored landscape, displayed portrait
+    Image.new("RGB", (400, 200), (255, 0, 0)).save(buf, format="JPEG", exif=exif.tobytes())
+
+    resized_bytes = ImageResizer().resize_image(buf.getvalue(), 100)
+
+    with Image.open(BytesIO(resized_bytes)) as img:
+        assert img.size == (100, 200)
