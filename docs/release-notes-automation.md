@@ -1,31 +1,35 @@
 # App release notes
 
-The tag-to-draft workflow creates the GitHub release text. Once a stable release
+The tag-to-draft workflow writes the GitHub release text. When a stable release
 is published, **Sync published release notes** copies that approved text into
-`frontend/public/release-notes.md` on `main`. It also runs when a published
-release is edited, replaces the matching entry on retries, and preserves the
-archive. Older maintenance releases are inserted below newer stable versions.
+`frontend/public/release-notes.md` on `main`. It runs again when a published
+release is edited and replaces the entry for that version, so retries never add
+a duplicate. Older entries stay as they are; a backport is inserted below newer
+stable versions.
 
 The workflow uses the repository's `GITHUB_TOKEN` with `contents: write` and
-commits as `github-actions[bot]`. No additional secret is needed. The repository
-must permit that token to push to `main`; if branch protection is added later,
-the sync will need an allowed bot or a pull-request path. The automatic commit
-does not trigger more workflows because it uses `GITHUB_TOKEN`.
+commits as `github-actions[bot]`, no extra secret needed. Runs are queued, so a
+publish and a quick edit don't race each other. The token must be allowed to push
+to `main`; if branch protection is added later, the sync needs an allowed bot or
+a PR instead. Commits made with `GITHUB_TOKEN` don't trigger other workflows, so
+this does not start a nightly build.
 
-The Docker release workflow overlays the same approved notes into the checkout
-of the release tag before building. That is necessary because the tag was
-created before the draft was reviewed. The tag itself is unchanged. The app
-shows the first release entry as its installed version.
+The tag is created before the draft is reviewed, so the Docker release workflow
+writes the same approved notes into its checkout of the tag before building. The
+tag itself is not changed. The app treats the first entry as the installed
+version.
 
-RC notes are included in their versioned images, but are not committed to the
-stable archive on `main`. The footer and release-notes viewer recognize versions
-such as `0.10.0-rc.1`. Once `0.10.0` is published, an RC installation can offer
-the stable update. Stable users only check GitHub's latest stable release.
+RC notes go into the RC image only, never into the archive on `main`. The footer
+understands versions like `0.10.0-rc.1`, and an RC install shows the update
+notice once `0.10.0` is out. Stable installs only compare against GitHub's latest
+stable release.
 
-Edits after publication update the file on `main`; already-published Docker
-images retain the notes from their build. Rerun the original deployment if the
-image also needs the updated text. Both release-automation PRs must be merged
-before creating the first tag that uses this flow.
+Editing a release later updates `main`, but images that were already pushed keep
+the notes they were built with. Rerun the deployment if the image needs the new
+text too.
 
-Run `node --test tests/release-notes/*.test.mjs` with Node 24 to check the notes
-sync, retries, archive ordering, and RC headers.
+Needs #914 merged first: without it, deployment still runs on tag pushes and the
+image step here never runs.
+
+`node --test tests/release-notes/*.test.mjs` (Node 24) covers the sync, retries,
+archive order and RC headers.
