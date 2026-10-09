@@ -1,23 +1,7 @@
 # Identifying a build
 
-Nightly images show the latest stable base version, a **Nightly** badge, build
-date, and short source commit in the footer. Click the label for the precise
-build time, source link, and build ID. **Copy details** includes those values in
-a bug report. Release candidates show their own version with a candidate badge;
-stable releases keep a quiet version label.
-
-The metadata is generated as `frontend/public/build-info.json` during the Docker
-frontend build. CI passes the commit resolved from the actual checkout, the
-UTC build timestamp, the ref, and the release version. The date displayed in the
-UI uses the user's locale and timezone. No network request to GitHub is needed
-to identify the installed image. This works even if a tag such as `nightly` has
-since moved to another build.
-
-Local builds without the CI build arguments are labeled as local builds. Older
-images and dev servers without the metadata file keep the existing footer
-version. Passing `BUILD_COMMIT` to a local build marks it as nightly, so leave it
-out unless you are reproducing a nightly. The generated file is not committed.
-
-Run `node --test tests/build-info/*.test.mjs` with Node 24 for the metadata checks.
-The Playwright `buildDetails_Test.spec.ts` covers desktop/mobile layout, RCs,
-source links, and the missing-file fallback.
+- The footer shows the version. Nightly images add a **Nightly** badge, build date and short commit; RCs get a candidate badge.
+- Click the label for build time, source link and build ID. **Copy details** puts them into a bug report.
+- `frontend/public/build-info.json` is generated during the Docker build from the CI build args (`BUILD_COMMIT`, `BUILD_DATE`, `BUILD_REF`, `BUILD_VERSION`, `BUILD_PRERELEASE`). It is not committed.
+- Builds without these args are labelled local. Don't pass `BUILD_COMMIT` locally, it marks the build as nightly.
+- Tests: `node --test tests/build-info/*.test.mjs`
