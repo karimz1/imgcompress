@@ -153,7 +153,10 @@ test.describe('AI upscaling', () => {
 
   test('is disabled when the server has no model', async ({ page }) => {
     await page.route('**/api/upscale_model', (route) =>
-      route.fulfill({ json: { model_name: 'realesr-general-x4v3', available: false } })
+      route.fulfill({ json: { models: [
+        { id: 'general', model_name: 'realesr-general-x4v3', available: false },
+        { id: 'anime', model_name: 'realesr-animevideov3', available: false },
+      ] } })
     );
 
     await page.goto('/');
@@ -195,7 +198,6 @@ test.describe('AI upscaling', () => {
 
   test('marks an uninstalled anime model unavailable', async ({ page }) => {
     await page.route('**/api/upscale_model', (route) => route.fulfill({ json: {
-      model_name: 'realesr-general-x4v3', available: true,
       models: [
         { id: 'general', model_name: 'realesr-general-x4v3', available: true },
         { id: 'anime', model_name: 'realesr-animevideov3', available: false },

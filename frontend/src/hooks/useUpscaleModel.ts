@@ -21,9 +21,7 @@ export function useUpscaleModel(): UseUpscaleModelResult {
           throw new Error("Failed to load upscaling model status");
         }
         const data = await res.json();
-        const statuses = Array.isArray(data.models)
-          ? data.models
-          : [{ id: "general", model_name: data.model_name, available: data.available }];
+        const statuses = Array.isArray(data.models) ? data.models : [];
         setModels(UPSCALE_MODELS.map((id) => {
           const status = statuses.find((item: { id?: unknown } | null) => item?.id === id);
           return {

@@ -29,7 +29,6 @@ from pathlib import Path
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.domain.upscaling import UpscaleModel
 
-MODEL_NAME = UpscaleModel.GENERAL.model_name
 MODEL_FILENAME = UpscaleModel.GENERAL.filename
 # Written by scripts/build_upscale_model.py in sha256sum format.
 CHECKSUM_SUFFIX = ".sha256"

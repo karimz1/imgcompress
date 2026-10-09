@@ -2,7 +2,7 @@ from typing import Callable
 
 from backend.image_converter.core.internals.utilities import Result, supported_extensions
 from backend.image_converter.domain.upscaling import UpscaleModel
-from backend.image_converter.infrastructure.upscale_model import MODEL_NAME, locate_model
+from backend.image_converter.infrastructure.upscale_model import locate_model
 
 
 class ConfigurationService:
@@ -33,14 +33,14 @@ class ConfigurationService:
         return self._rembg_model_name
 
     def get_upscale_model_status(self) -> dict:
-        """Bundled models and their availability (checked on disk only)."""
-        models = [
-            {
-                "id": model.value,
-                "model_name": model.model_name,
-                "available": self._locate_upscale_model(model.filename).is_successful,
-            }
-            for model in UpscaleModel
-        ]
-        # Keep the original fields for clients that only support the default.
-        return {"model_name": MODEL_NAME, "available": models[0]["available"], "models": models}
+        """Bundled upscaling models and whether each one is installed (checked on disk only)."""
+        return {
+            "models": [
+                {
+                    "id": model.value,
+                    "model_name": model.model_name,
+                    "available": self._locate_upscale_model(model.filename).is_successful,
+                }
+                for model in UpscaleModel
+            ]
+        }

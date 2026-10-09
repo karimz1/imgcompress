@@ -363,10 +363,11 @@ def test_When_AskingForModelStatus_Expect_NameAndAvailability():
     missing = ConfigurationService("u2net", locate_upscale_model=lambda filename: Result.failure("missing"))
 
     assert available.get_upscale_model_status() == {
-        "model_name": "realesr-general-x4v3", "available": True,
-        "models": [{"id": model.value, "model_name": model.model_name, "available": True} for model in UpscaleModel],
+        "models": [
+            {"id": "general", "model_name": "realesr-general-x4v3", "available": True},
+            {"id": "anime", "model_name": "realesr-animevideov3", "available": True},
+        ],
     }
-    assert missing.get_upscale_model_status()["available"] is False
     assert all(not model["available"] for model in missing.get_upscale_model_status()["models"])
 
 
