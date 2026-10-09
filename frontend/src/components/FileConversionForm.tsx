@@ -181,6 +181,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     outputFormat === "jpeg" ||
     outputFormat === "avif" ||
     (outputFormat === "webp" && !webpLossless);
+  // "WebP" is written in mixed case everywhere else in the UI.
+  const outputFormatLabel = outputFormat === "webp" ? "WebP" : outputFormat.toUpperCase();
   const supportsBackgroundRemoval =
     outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp";
   const renderError = useMemo(
@@ -704,7 +706,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
       {hasQualitySettings && (
         <div className="space-y-2">
-          <Label className="text-sm">{t("form.compressionMode.label", { format: outputFormat.toUpperCase() })}</Label>
+          <Label className="text-sm">{t("form.compressionMode.label", { format: outputFormatLabel })}</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -871,7 +873,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </div>
 
           <p className={cn("text-xs", subtleText)}>
-            {t("form.targetSize.hint", { format: outputFormat.toUpperCase() })}
+            {t("form.targetSize.hint", { format: outputFormatLabel })}
           </p>
         </div>
       )}
