@@ -184,9 +184,6 @@ export const ptBR: TranslationSchema = {
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
     },
     fitSize: {
-      label: "Ajustar ao tamanho exato",
-      tooltip:
-        "Gera cada imagem exatamente neste tamanho, por exemplo para uma prévia social do GitHub. Se a proporção for diferente, a imagem é recortada ou colocada sobre uma cópia desfocada dela mesma.",
       preset: {
         label: "Tamanho",
         options: {
@@ -198,24 +195,10 @@ export const ptBR: TranslationSchema = {
       widthLabel: "Largura (px)",
       heightLabel: "Altura (px)",
       mode: {
-        label: "Se a proporção for diferente",
         crop: "Recortar para preencher",
         blur: "Fundo desfocado",
         cropHint: "Preenche todo o quadro. Partes da imagem são cortadas.",
         blurHint: "Mantém a imagem inteira. As laterais vazias mostram uma cópia desfocada e um pouco mais escura.",
-      },
-      anchor: {
-        label: "Manter",
-        tooltip:
-          "O modo automático procura texto, rostos e outros detalhes e mantém o máximo possível sem cortá-los. Escolha um lado para decidir você mesmo.",
-        options: {
-          auto: "Conteúdo importante (automático)",
-          center: "Centro",
-          top: "Topo",
-          bottom: "Base",
-          left: "Esquerda",
-          right: "Direita",
-        },
       },
     },
     resizeWidth: {

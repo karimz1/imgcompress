@@ -184,9 +184,6 @@ export const fr: TranslationSchema = {
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
     },
     fitSize: {
-      label: "Ajuster à une taille exacte",
-      tooltip:
-        "Produit chaque image exactement à cette taille, par exemple pour un aperçu social GitHub. Si le format est différent, l'image est soit recadrée, soit placée sur une copie floutée d'elle-même.",
       preset: {
         label: "Taille",
         options: {
@@ -198,24 +195,10 @@ export const fr: TranslationSchema = {
       widthLabel: "Largeur (px)",
       heightLabel: "Hauteur (px)",
       mode: {
-        label: "Si le format est différent",
         crop: "Recadrer pour remplir",
         blur: "Arrière-plan flou",
         cropHint: "Remplit tout le cadre. Des parties de l'image sont coupées.",
         blurHint: "Conserve l'image entière. Les côtés vides affichent une copie floutée et légèrement assombrie.",
-      },
-      anchor: {
-        label: "Conserver",
-        tooltip:
-          "Le mode automatique repère le texte, les visages et les autres détails et en garde le plus possible sans les couper. Choisissez un côté pour décider vous-même.",
-        options: {
-          auto: "Contenu important (automatique)",
-          center: "Centre",
-          top: "Haut",
-          bottom: "Bas",
-          left: "Gauche",
-          right: "Droite",
-        },
       },
     },
     resizeWidth: {

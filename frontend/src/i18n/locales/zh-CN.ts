@@ -184,9 +184,6 @@ export const zhCN: TranslationSchema = {
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
     },
     fitSize: {
-      label: "调整为精确尺寸",
-      tooltip:
-        "将每张图片输出为正好这个尺寸，例如用于 GitHub 社交预览图。如果宽高比不同，图片会被裁剪，或放在其自身的模糊副本之上。",
       preset: {
         label: "尺寸",
         options: {
@@ -198,24 +195,10 @@ export const zhCN: TranslationSchema = {
       widthLabel: "宽度 (px)",
       heightLabel: "高度 (px)",
       mode: {
-        label: "宽高比不同时",
         crop: "裁剪填充",
         blur: "模糊背景",
         cropHint: "填满整个画面，图片的部分内容会被裁掉。",
         blurHint: "保留完整图片，空白两侧显示该图片模糊并略微变暗的副本。",
-      },
-      anchor: {
-        label: "保留",
-        tooltip:
-          "自动模式会寻找文字、人脸和其他细节，并在不切断它们的前提下尽量保留。也可以手动选择保留的一侧。",
-        options: {
-          auto: "重要内容（自动）",
-          center: "居中",
-          top: "顶部",
-          bottom: "底部",
-          left: "左侧",
-          right: "右侧",
-        },
       },
     },
     resizeWidth: {

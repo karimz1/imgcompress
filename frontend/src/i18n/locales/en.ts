@@ -181,9 +181,6 @@ export const en = {
       fitActiveHint: "Not used while Fit to exact size is on.",
     },
     fitSize: {
-      label: "Fit to exact size",
-      tooltip:
-        "Outputs every image at exactly this size, for example for a GitHub social preview. If the aspect ratio is different, the image is either cropped or placed on a blurred copy of itself.",
       preset: {
         label: "Size",
         options: {
@@ -195,24 +192,10 @@ export const en = {
       widthLabel: "Width (px)",
       heightLabel: "Height (px)",
       mode: {
-        label: "If the aspect ratio is different",
         crop: "Crop to fill",
         blur: "Blurred background",
         cropHint: "Fills the whole frame. Parts of the image are cut off.",
         blurHint: "Keeps the whole image. The empty sides show a blurred, slightly darker copy of it.",
-      },
-      anchor: {
-        label: "Keep",
-        tooltip:
-          "Automatic looks for text, faces, and other detail and keeps as much of it as possible without cutting through it. Pick a side to choose yourself.",
-        options: {
-          auto: "Important content (automatic)",
-          center: "Center",
-          top: "Top",
-          bottom: "Bottom",
-          left: "Left",
-          right: "Right",
-        },
       },
     },
     resizeWidth: {

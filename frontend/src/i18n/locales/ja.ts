@@ -184,9 +184,6 @@ export const ja: TranslationSchema = {
       fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
     },
     fitSize: {
-      label: "指定サイズに合わせる",
-      tooltip:
-        "すべての画像をこのサイズちょうどで出力します (例: GitHub のソーシャルプレビュー)。縦横比が異なる場合は、画像を切り抜くか、画像自身をぼかしたコピーの上に配置します。",
       preset: {
         label: "サイズ",
         options: {
@@ -198,24 +195,10 @@ export const ja: TranslationSchema = {
       widthLabel: "幅 (px)",
       heightLabel: "高さ (px)",
       mode: {
-        label: "縦横比が異なる場合",
         crop: "切り抜いて埋める",
         blur: "ぼかし背景",
         cropHint: "枠全体を埋めます。画像の一部は切り取られます。",
         blurHint: "画像全体を残します。空いた部分には、画像をぼかして少し暗くしたコピーが表示されます。",
-      },
-      anchor: {
-        label: "残す部分",
-        tooltip:
-          "自動では文字、顔、その他の細部を探し、それらを途中で切らずにできるだけ多く残します。自分で選ぶ場合は位置を指定してください。",
-        options: {
-          auto: "重要な内容 (自動)",
-          center: "中央",
-          top: "上",
-          bottom: "下",
-          left: "左",
-          right: "右",
-        },
       },
     },
     resizeWidth: {

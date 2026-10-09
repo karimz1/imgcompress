@@ -184,9 +184,6 @@ export const esMX: TranslationSchema = {
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
     },
     fitSize: {
-      label: "Ajustar a tamaño exacto",
-      tooltip:
-        "Genera cada imagen exactamente con este tamaño, por ejemplo para una vista previa social de GitHub. Si la relación de aspecto es distinta, la imagen se recorta o se coloca sobre una copia desenfocada de sí misma.",
       preset: {
         label: "Tamaño",
         options: {
@@ -198,24 +195,10 @@ export const esMX: TranslationSchema = {
       widthLabel: "Ancho (px)",
       heightLabel: "Alto (px)",
       mode: {
-        label: "Si la relación de aspecto es distinta",
         crop: "Recortar para llenar",
         blur: "Fondo desenfocado",
         cropHint: "Llena todo el marco. Se recortan partes de la imagen.",
         blurHint: "Conserva la imagen completa. Los lados vacíos muestran una copia desenfocada y un poco más oscura.",
-      },
-      anchor: {
-        label: "Conservar",
-        tooltip:
-          "El modo automático busca texto, rostros y otros detalles y conserva todo lo posible sin cortarlos. Elige un lado para decidir tú.",
-        options: {
-          auto: "Contenido importante (automático)",
-          center: "Centro",
-          top: "Arriba",
-          bottom: "Abajo",
-          left: "Izquierda",
-          right: "Derecha",
-        },
       },
     },
     resizeWidth: {

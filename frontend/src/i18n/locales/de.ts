@@ -184,9 +184,6 @@ export const de: TranslationSchema = {
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
     },
     fitSize: {
-      label: "Auf exakte Größe bringen",
-      tooltip:
-        "Gibt jedes Bild in genau dieser Größe aus, zum Beispiel für eine GitHub-Social-Preview. Wenn das Seitenverhältnis abweicht, wird das Bild entweder zugeschnitten oder auf eine unscharfe Kopie von sich selbst gesetzt.",
       preset: {
         label: "Größe",
         options: {
@@ -198,24 +195,10 @@ export const de: TranslationSchema = {
       widthLabel: "Breite (px)",
       heightLabel: "Höhe (px)",
       mode: {
-        label: "Wenn das Seitenverhältnis abweicht",
         crop: "Zuschneiden",
         blur: "Unscharfer Hintergrund",
         cropHint: "Füllt den ganzen Rahmen. Teile des Bildes werden abgeschnitten.",
         blurHint: "Behält das ganze Bild. Die freien Seiten zeigen eine unscharfe, etwas dunklere Kopie davon.",
-      },
-      anchor: {
-        label: "Behalten",
-        tooltip:
-          "Automatisch sucht nach Text, Gesichtern und anderen Details und behält so viel davon wie möglich, ohne sie zu zerschneiden. Wähle eine Seite, um selbst zu entscheiden.",
-        options: {
-          auto: "Wichtiger Inhalt (automatisch)",
-          center: "Mitte",
-          top: "Oben",
-          bottom: "Unten",
-          left: "Links",
-          right: "Rechts",
-        },
       },
     },
     resizeWidth: {
