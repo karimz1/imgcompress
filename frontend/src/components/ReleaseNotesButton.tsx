@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Megaphone } from "lucide-react"
+import { RELEASE_VERSION_PATTERN } from "@/lib/release-version"
 
 interface ReleaseEntry {
   version: string
@@ -102,7 +103,7 @@ const LinkText = ({ text }: { text: string }) => {
   )
 }
 
-const versionPattern = '\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?'
+const versionPattern = RELEASE_VERSION_PATTERN
 
 const isVersionHeader = (line: string) => {
   const regex = new RegExp(`^##\\s+v?${versionPattern}\\s+[—-]\\s+\\d{4}-\\d{2}-\\d{2}\\s*$`)
@@ -147,6 +148,9 @@ const collectBulletNotes = (lines: string[], startIndex: number) => {
       }
 
       notes.push(noteText.trim())
+    } else if (/^\*\*Full Changelog\*\*:/.test(currentLine)) {
+      notes.push(currentLine.replace('**Full Changelog**:', 'Full Changelog:'))
+      i++
     } else {
       i++
     }
