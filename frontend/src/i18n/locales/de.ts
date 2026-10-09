@@ -429,11 +429,15 @@ export const de: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Zuschneiden",
+      fit: "Einpassen",
+    },
     fit: {
-      hint: "Wähle eine Größe und klicke auf Automatisch einpassen, um das Ergebnis zu sehen und anzupassen.",
+      hint: "Wähle Größe und Modus. Die Vorschau wird automatisch aktualisiert.",
+      selection: "Zuschnitt anpassen",
       autoFit: "Automatisch einpassen",
       applyAll: "Alle Bilder einpassen",
-      updateHint: "Klicke auf Automatisch einpassen, um die Vorschau zu aktualisieren.",
       output: "Ausgabe: {{w}} × {{h}} px",
       preview: "Ausgabevorschau",
       updating: "Vorschau wird aktualisiert…",

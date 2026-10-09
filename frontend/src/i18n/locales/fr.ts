@@ -429,11 +429,15 @@ export const fr: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Recadrer",
+      fit: "Ajuster la taille",
+    },
     fit: {
-      hint: "Choisissez une taille, puis cliquez sur Ajuster automatiquement pour voir et modifier le résultat.",
+      hint: "Choisissez la taille et le mode. L’aperçu se met à jour automatiquement.",
+      selection: "Ajuster le recadrage",
       autoFit: "Ajuster automatiquement",
       applyAll: "Ajuster toutes les images",
-      updateHint: "Cliquez sur Ajuster automatiquement pour actualiser l’aperçu.",
       output: "Sortie : {{w}} × {{h}} px",
       preview: "Aperçu du résultat",
       updating: "Actualisation de l’aperçu…",

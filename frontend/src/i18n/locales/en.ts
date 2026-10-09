@@ -426,11 +426,15 @@ export const en = {
   },
 
   crop: {
+    tabs: {
+      crop: "Crop",
+      fit: "Fit to size",
+    },
     fit: {
-      hint: "Choose a size, then click Auto fit to preview and adjust the result.",
+      hint: "Choose a size and mode. The preview updates automatically.",
+      selection: "Adjust crop",
       autoFit: "Auto fit",
       applyAll: "Auto fit all images",
-      updateHint: "Click Auto fit to update the preview.",
       output: "Output: {{w}} × {{h}} px",
       preview: "Output preview",
       updating: "Updating preview…",

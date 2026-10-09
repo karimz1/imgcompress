@@ -430,11 +430,15 @@ export const hu: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Kivágás",
+      fit: "Méretre illesztés",
+    },
     fit: {
-      hint: "Válassz méretet, majd kattints az Automatikus illesztés gombra az eredmény megtekintéséhez és módosításához.",
+      hint: "Válassz méretet és módot. Az előnézet automatikusan frissül.",
+      selection: "Kivágás módosítása",
       autoFit: "Automatikus illesztés",
       applyAll: "Minden kép illesztése",
-      updateHint: "Az előnézet frissítéséhez kattints az Automatikus illesztés gombra.",
       output: "Kimenet: {{w}} × {{h}} px",
       preview: "Kimeneti előnézet",
       updating: "Előnézet frissítése…",

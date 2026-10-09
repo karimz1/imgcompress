@@ -35,22 +35,24 @@ export function FitControls({
     custom: "custom",
   };
   return (
-    <div
-      className="space-y-2 border-b border-current/10 pb-3"
-      data-testid={`crop-fit-controls${suffix}`}
-    >
-      <Label className="text-xs uppercase tracking-wide opacity-70">
-        {t("form.fitSize.label")}
-      </Label>
+    <div className="space-y-3" data-testid={`crop-fit-controls${suffix}`}>
       <p className="text-xs opacity-70">{t("crop.fit.hint")}</p>
+      <Label
+        htmlFor={`fit-preset${suffix}`}
+        className="text-xs uppercase tracking-wide opacity-70"
+      >
+        {t("form.fitSize.preset.label")}
+      </Label>
       <Select
         value={fit.settings.preset}
         onValueChange={(value) =>
           fit.setSettings({ ...fit.settings, preset: toFitPreset(value) })
         }
-        disabled={fit.working}
+        disabled={fit.batchWorking}
       >
         <SelectTrigger
+          id={`fit-preset${suffix}`}
+          className="h-auto min-h-10 text-left [&>span]:line-clamp-none [&>span]:whitespace-normal"
           data-testid={`fit-preset-select${suffix}`}
           aria-label={t("form.fitSize.preset.label")}
         >
@@ -87,7 +89,7 @@ export function FitControls({
                   min={1}
                   max={MAX_FIT_DIMENSION}
                   step={1}
-                  disabled={fit.working}
+                  disabled={fit.batchWorking}
                   value={fit.settings[key]}
                   onChange={(e) =>
                     fit.setSettings({ ...fit.settings, [key]: e.target.value })
@@ -106,7 +108,7 @@ export function FitControls({
             size="sm"
             className="h-auto min-h-9 whitespace-normal"
             variant={fit.settings.mode === mode ? "default" : "outline"}
-            disabled={fit.working}
+            disabled={fit.batchWorking}
             onClick={() => fit.setSettings({ ...fit.settings, mode })}
             data-testid={`fit-mode-${mode}-btn${suffix}`}
           >
@@ -114,31 +116,48 @@ export function FitControls({
           </Button>
         ))}
       </div>
-      <Button
-        type="button"
-        size="sm"
-        className="w-full gap-2"
-        disabled={!fit.size || fit.working}
-        onClick={() => void fit.autoFit()}
-        data-testid={`crop-auto-fit-btn${suffix}`}
-      >
-        {fit.working ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <WandSparkles className="h-4 w-4" />
-        )}
-        {t("crop.fit.autoFit")}
-      </Button>
+      <p className="text-xs opacity-70">
+        {t(`form.fitSize.mode.${fit.settings.mode}Hint`)}
+      </p>
+      {fit.canRefit && !fit.pending && !fit.error && (
+        <Button
+          type="button"
+          size="sm"
+          className="w-full gap-2"
+          variant="outline"
+          disabled={!fit.size || fit.working}
+          onClick={() => void fit.autoFit()}
+          data-testid={`crop-auto-fit-btn${suffix}`}
+        >
+          {fit.working ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <WandSparkles className="h-4 w-4" />
+          )}
+          {t("crop.fit.autoFit")}
+        </Button>
+      )}
       {!fit.size && (
         <p role="alert" className="text-xs text-red-500">
           {t("page.toast.fitSizeError")}
         </p>
       )}
-      {fit.pending && (
-        <p className="text-xs opacity-70">{t("crop.fit.updateHint")}</p>
-      )}
+      {(!fit.applied || fit.pending || fit.working) &&
+        fit.size &&
+        !fit.error && (
+          <p
+            role="status"
+            className="flex items-center gap-2 text-xs opacity-70"
+          >
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+            {t("crop.fit.updating")}
+          </p>
+        )}
       {fit.applied && (
-        <div className="space-y-2">
+        <div
+          className="space-y-2"
+          aria-busy={fit.working || fit.pending || fit.loadingPreview}
+        >
           <p className="text-xs" data-testid={`crop-fit-output-size${suffix}`}>
             {t("crop.fit.output", {
               w: fit.applied.width,
@@ -149,15 +168,18 @@ export function FitControls({
             <img
               src={fit.preview}
               alt={t("crop.fit.preview")}
-              className="w-full rounded border"
+              className={`w-full rounded border transition-opacity ${fit.working || fit.pending ? "opacity-50" : ""}`}
               data-testid={`crop-fit-preview${suffix}`}
             />
           )}
-          {(fit.loadingPreview || !fit.previewCurrent) && !fit.error && (
-            <p role="status" className="text-xs opacity-70">
-              {t("crop.fit.updating")}
-            </p>
-          )}
+          {!fit.pending &&
+            !fit.working &&
+            (fit.loadingPreview || !fit.previewCurrent) &&
+            !fit.error && (
+              <p role="status" className="text-xs opacity-70">
+                {t("crop.fit.updating")}
+              </p>
+            )}
           {canApplyToAll && (
             <Button
               type="button"
@@ -176,13 +198,26 @@ export function FitControls({
         </div>
       )}
       {fit.error && (
-        <p
-          role="alert"
-          className="text-xs text-red-500"
-          data-testid={`crop-fit-error${suffix}`}
-        >
-          {fit.error}
-        </p>
+        <div className="space-y-2">
+          <p
+            role="alert"
+            className="text-xs text-red-500"
+            data-testid={`crop-fit-error${suffix}`}
+          >
+            {fit.error}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full"
+            disabled={!fit.size || fit.working}
+            onClick={fit.retryPreview}
+            data-testid={`crop-fit-retry-btn${suffix}`}
+          >
+            {t("runtimeError.tryAgain")}
+          </Button>
+        </div>
       )}
     </div>
   );

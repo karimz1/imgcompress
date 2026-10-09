@@ -429,11 +429,15 @@ export const ja: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "切り抜き",
+      fit: "サイズに合わせる",
+    },
     fit: {
-      hint: "サイズを選び、「自動調整」を押して結果を確認・調整してください。",
+      hint: "サイズとモードを選ぶと、プレビューが自動で更新されます。",
+      selection: "切り抜きを調整",
       autoFit: "自動調整",
       applyAll: "すべての画像を自動調整",
-      updateHint: "「自動調整」を押してプレビューを更新してください。",
       output: "出力: {{w}} × {{h}} px",
       preview: "出力プレビュー",
       updating: "プレビューを更新中…",

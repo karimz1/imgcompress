@@ -428,11 +428,15 @@ export const zhCN: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "裁剪",
+      fit: "适配尺寸",
+    },
     fit: {
-      hint: "选择尺寸，然后点击“自动适配”来预览和调整结果。",
+      hint: "选择尺寸和模式，预览会自动更新。",
+      selection: "调整裁剪",
       autoFit: "自动适配",
       applyAll: "自动适配所有图片",
-      updateHint: "点击“自动适配”更新预览。",
       output: "输出：{{w}} × {{h}} 像素",
       preview: "输出预览",
       updating: "正在更新预览…",

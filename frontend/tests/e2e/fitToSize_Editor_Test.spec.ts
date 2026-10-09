@@ -31,8 +31,8 @@ for (const [mode, reference] of [
     await page.getByTestId("dropzone-crop-file-btn").click();
     await expect(page.getByTestId("crop-selection")).toBeVisible();
     await expect(page.getByTestId("crop-fit-preview")).toHaveCount(0);
+    await page.getByTestId("crop-tab-fit").click();
     await page.getByTestId(`fit-mode-${mode}-btn`).click();
-    await page.getByTestId("crop-auto-fit-btn").click();
     await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
     const preview = await readPreview(page);
     await expect(page.getByTestId("crop-fit-output-size")).toContainText(
@@ -90,7 +90,7 @@ test("a manual adjustment updates the preview and survives export", async ({
 }) => {
   await page.getByTestId("dropzone-input").setInputFiles(original);
   await page.getByTestId("dropzone-crop-file-btn").click();
-  await page.getByTestId("crop-auto-fit-btn").click();
+  await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
   const automatic = await readPreview(page);
   const changed = page.waitForResponse(
@@ -98,6 +98,7 @@ test("a manual adjustment updates the preview and survives export", async ({
       response.url().endsWith("/api/crop/fit") &&
       response.request().method() === "POST",
   );
+  await page.getByTestId("crop-fit-adjust-selection").click();
   await page.getByTestId("crop-width-input").fill("1000");
   await changed;
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
@@ -125,8 +126,8 @@ test("Auto fit all prepares each source separately and each export keeps its own
     { name: "portrait.png", mimeType: "image/png", buffer: portrait },
   ]);
   await page.getByTestId("dropzone-crop-file-btn").first().click();
+  await page.getByTestId("crop-tab-fit").click();
   await page.getByTestId("fit-mode-blur-btn").click();
-  await page.getByTestId("crop-auto-fit-btn").click();
   await expect(page.getByTestId("crop-auto-fit-all-btn")).toBeEnabled();
   await page.getByTestId("crop-auto-fit-all-btn").click();
   await expect(page.getByTestId("crop-dialog")).toHaveCount(0);
@@ -160,14 +161,12 @@ test("invalid dimensions and preview failures cannot save a new fit", async ({
 }) => {
   await page.getByTestId("dropzone-input").setInputFiles(original);
   await page.getByTestId("dropzone-crop-file-btn").click();
-  await page.getByTestId("crop-auto-fit-btn").click();
+  await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
   await page.getByTestId("fit-preset-select").click();
   await page.getByTestId("fit-preset-option-custom").click();
   await page.getByTestId("fit-width-input").fill("8193");
-  await expect(page.getByTestId("crop-auto-fit-btn")).toBeDisabled();
   await expect(page.getByTestId("crop-save-btn")).toBeDisabled();
-  await page.getByTestId("fit-width-input").fill("1000");
   await page.route("**/api/crop/fit", (route) =>
     route.fulfill({
       status: 500,
@@ -175,25 +174,32 @@ test("invalid dimensions and preview failures cannot save a new fit", async ({
       body: '{"error":"Preview unavailable"}',
     }),
   );
-  await page.getByTestId("crop-auto-fit-btn").click();
+  await page.getByTestId("fit-width-input").fill("1000");
   await expect(page.getByTestId("crop-fit-error")).toContainText(
     "Preview unavailable",
   );
   await expect(page.getByTestId("crop-save-btn")).toBeDisabled();
 });
 
-test("mobile editor exposes Auto fit and shows the blurred canvas before saving", async ({
+test("mobile editor fits automatically and saves directly from its settings", async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByTestId("dropzone-input").setInputFiles(original);
   await page.getByTestId("dropzone-crop-file-btn").click();
   await page.getByTestId("crop-adjust-trigger").click();
+  await page.getByTestId("crop-tab-fit-mobile").click();
   await page.getByTestId("fit-mode-blur-btn-mobile").click();
-  await page.getByTestId("crop-auto-fit-btn-mobile").click();
   await expect(page.getByTestId("crop-fit-preview-mobile")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("crop-adjust-drawer")).toHaveCount(0);
+  await expect(page.getByTestId("crop-save-btn-mobile")).toBeEnabled();
+  await page.screenshot({
+    path: testInfo.outputPath("mobile-fit-settings.png"),
+  });
+  await expect(page.getByTestId("crop-save-btn-mobile-drawer")).toBeInViewport();
+  await page.getByTestId("crop-save-btn-mobile-drawer").click();
+  await expect(page.getByTestId("crop-dialog")).toHaveCount(0);
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await expect(page.getByTestId("crop-save-btn-mobile")).toBeEnabled();
   await expect(page.getByTestId("crop-blur-canvas")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("mobile-editor.png") });
   await page.getByTestId("crop-save-btn-mobile").click();
@@ -213,7 +219,7 @@ test("a failed batch keeps every previously saved edit", async ({ page }) => {
   await page.getByTestId("crop-save-btn").click();
   const previous = await page.getByTestId("dropzone-crop-badge").textContent();
   await page.getByTestId("dropzone-crop-file-btn").first().click();
-  await page.getByTestId("crop-auto-fit-btn").click();
+  await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-auto-fit-all-btn")).toBeEnabled();
   let requests = 0;
   await page.route("**/api/crop/fit", (route) => {
@@ -243,7 +249,7 @@ test("conversion can be cancelled while rendering the saved fit", async ({
 }) => {
   await page.getByTestId("dropzone-input").setInputFiles(original);
   await page.getByTestId("dropzone-crop-file-btn").click();
-  await page.getByTestId("crop-auto-fit-btn").click();
+  await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
   await page.getByTestId("crop-save-btn").click();
   let release!: () => void;
@@ -279,6 +285,147 @@ async function readPreview(page: Page): Promise<Buffer> {
   if (!url) throw new Error("No output preview");
   return Buffer.from(url.split(",")[1], "base64");
 }
+
+test("Crop and Fit tabs keep separate drafts, and Save uses the selected tab", async ({
+  page,
+}, testInfo) => {
+  await page.getByTestId("dropzone-input").setInputFiles(original);
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await expect(page.getByTestId("crop-tab-crop")).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(page.getByTestId("crop-fit-controls")).toHaveCount(0);
+  await page.getByTestId("crop-width-input").fill("1000");
+  await page.getByTestId("crop-widget").evaluate(async (element) => {
+    await Promise.all(
+      element
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished),
+    );
+  });
+  await page.screenshot({ path: testInfo.outputPath("manual-crop-tab.png") });
+
+  // Keyboard navigation also starts the initial preview without an Auto fit click.
+  await page.getByTestId("crop-tab-crop").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByTestId("crop-tab-fit")).toBeFocused();
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await expect(page.getByTestId("crop-preset-1:1")).toHaveCount(0);
+  await page.getByTestId("crop-fit-adjust-selection").click();
+  await page.getByTestId("crop-width-input").fill("1200");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  const fitted = await readPreview(page);
+  await page.getByTestId("crop-tab-crop").click();
+  await expect(page.getByTestId("crop-width-input")).toHaveValue("1000");
+  await expect(page.getByTestId("crop-height-input")).toHaveValue("1024");
+  await page.getByTestId("crop-tab-fit").click();
+  await expect(page.getByTestId("crop-width-input")).toHaveValue("1200");
+  await expect(page.getByTestId("crop-height-input")).toHaveValue("600");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  expect(await readPreview(page)).toEqual(fitted);
+  await page.getByTestId("crop-save-btn").click();
+
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await expect(page.getByTestId("crop-tab-fit")).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  expect(await readPreview(page)).toEqual(fitted);
+  await page.getByTestId("crop-tab-crop").click();
+  await page.getByTestId("crop-save-btn").click();
+  await expect(page.getByTestId("dropzone-crop-badge")).toContainText(
+    "1200 × 600",
+  );
+  const exported = await convert(page);
+  const metadata = await sharp(exported).metadata();
+  expect([metadata.width, metadata.height]).toEqual([1200, 600]);
+});
+
+test("preset, custom dimensions, and mode changes refresh automatically", async ({
+  page,
+}) => {
+  await page.getByTestId("dropzone-input").setInputFiles(original);
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await page.getByTestId("crop-tab-fit").click();
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await page.getByTestId("fit-preset-select").click();
+  await page.getByTestId("fit-preset-option-open-graph").click();
+  await expect(page.getByTestId("crop-fit-output-size")).toContainText(
+    "1200 × 630",
+  );
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await page.getByTestId("fit-preset-select").click();
+  await page.getByTestId("fit-preset-option-custom").click();
+  await page.getByTestId("fit-width-input").fill("800");
+  await page.getByTestId("fit-height-input").fill("400");
+  await page.getByTestId("fit-width-input").fill("320");
+  await page.getByTestId("fit-height-input").fill("200");
+  await page.getByTestId("fit-mode-blur-btn").click();
+  await expect(page.getByTestId("crop-fit-output-size")).toContainText(
+    "320 × 200",
+  );
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  const preview = await readPreview(page);
+  await expect(page.getByTestId("crop-blur-canvas")).toBeVisible();
+  await page.getByTestId("crop-save-btn").click();
+  const exported = await convert(page);
+  const metadata = await sharp(exported).metadata();
+  expect([metadata.width, metadata.height]).toEqual([320, 200]);
+  expect(await pixelDifference(fs.readFileSync(exported), preview)).toBe(0);
+});
+
+test("preview retry keeps an adjusted crop instead of automatically reframing it", async ({
+  page,
+}) => {
+  await page.getByTestId("dropzone-input").setInputFiles(original);
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await page.getByTestId("crop-tab-fit").click();
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await expect(page.getByTestId("crop-auto-fit-btn")).toHaveCount(0);
+  await page.route("**/api/crop/fit", (route) =>
+    route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: '{"error":"Temporary preview failure"}',
+    }),
+  );
+  await page.getByTestId("crop-fit-adjust-selection").click();
+  await page.getByTestId("crop-width-input").fill("1000");
+  await expect(page.getByTestId("crop-fit-error")).toContainText(
+    "Temporary preview failure",
+  );
+  await page.unroute("**/api/crop/fit");
+  await page.getByTestId("crop-fit-retry-btn").click();
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await expect(page.getByTestId("crop-width-input")).toHaveValue("1000");
+  await expect(page.getByTestId("crop-height-input")).toHaveValue("500");
+  const adjusted = await readPreview(page);
+  await expect(page.getByTestId("crop-auto-fit-btn")).toBeVisible();
+  await page.getByTestId("crop-auto-fit-btn").click();
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await expect(page.getByTestId("crop-width-input")).toHaveValue("1536");
+  await expect(page.getByTestId("crop-auto-fit-btn")).toHaveCount(0);
+  expect(
+    await pixelDifference(adjusted, await readPreview(page)),
+  ).toBeGreaterThan(20);
+});
+
+test("laptop layout keeps tabs, preview and Save visible in the side panel", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.getByTestId("dropzone-input").setInputFiles(original);
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await expect(page.getByTestId("crop-side-panel")).toBeVisible();
+  await expect(page.getByTestId("crop-mobile-bar")).toBeHidden();
+  await page.getByTestId("crop-tab-fit").click();
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await expect(page.getByTestId("crop-fit-preview")).toBeInViewport();
+  await expect(page.getByTestId("crop-save-btn")).toBeInViewport();
+  await page.screenshot({ path: testInfo.outputPath("laptop-fit-tab.png") });
+});
 
 async function convert(page: Page): Promise<string> {
   await clickConversionButtonAsync(page);

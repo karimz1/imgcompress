@@ -28,12 +28,14 @@ export function useEditorFit({
   initialCrop,
   onSelection,
   onApplyToAll,
+  active,
 }: {
   imgUrl: string | null;
   crop: Rect | null;
   initialCrop: CropConfig | null;
   onSelection: (crop: Rect) => void;
   onApplyToAll?: (fit: FitOutput, signal: AbortSignal) => Promise<void>;
+  active: boolean;
 }) {
   const [settings, setSettings] = useState<FitSettings>(() => {
     const fit = initialCrop?.fit;
@@ -53,12 +55,19 @@ export function useEditorFit({
     initialCrop?.fit ?? null,
   );
   const [preview, setPreview] = useState<string | null>(null);
+  const [automaticCrop, setAutomaticCrop] = useState<Rect | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
+  const [batchWorking, setBatchWorking] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const lastPreviewKey = useRef<string | null>(null);
   const actionController = useRef<AbortController | null>(null);
   const size = resolveFitSize(settings);
+  const targetWidth = size?.width;
+  const targetHeight = size?.height;
+  const appliedRef = useRef(applied);
+  appliedRef.current = applied;
   const pending =
     !!applied &&
     (!size ||
@@ -70,13 +79,25 @@ export function useEditorFit({
     !!crop &&
     !!preview &&
     lastPreviewKey.current === previewKey(applied, crop);
+  const canRefit =
+    !!applied &&
+    applied.mode === "crop" &&
+    !!crop &&
+    (!automaticCrop ||
+      previewKey(applied, crop) !== previewKey(applied, automaticCrop));
 
   useEffect(() => () => actionController.current?.abort(), []);
 
   useEffect(() => {
-    if (!imgUrl || !applied || !crop) return;
+    if (!active || !imgUrl || !applied || !crop || pending || working) {
+      setLoadingPreview(false);
+      return;
+    }
     const key = previewKey(applied, crop);
-    if (lastPreviewKey.current === key) return;
+    if (lastPreviewKey.current === key) {
+      setLoadingPreview(false);
+      return;
+    }
     const controller = new AbortController();
     setLoadingPreview(true);
     setError(null);
@@ -98,16 +119,20 @@ export function useEditorFit({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [imgUrl, applied, crop]);
+  }, [active, imgUrl, applied, crop, pending, working, retryCount]);
 
-  const autoFit = async () => {
-    if (!imgUrl || !size) return;
+  const autoFit = useCallback(async () => {
+    if (!active || !imgUrl || !targetWidth || !targetHeight) return;
     actionController.current?.abort();
     const controller = new AbortController();
     actionController.current = controller;
     setWorking(true);
     setError(null);
-    const fit = { ...size, mode: settings.mode };
+    const fit = {
+      width: targetWidth,
+      height: targetHeight,
+      mode: settings.mode,
+    };
     try {
       const result = await previewFit(
         imgUrl,
@@ -118,6 +143,7 @@ export function useEditorFit({
       if (controller.signal.aborted) return;
       lastPreviewKey.current = previewKey(fit, result.crop);
       setApplied(fit);
+      setAutomaticCrop(result.crop);
       onSelection(result.crop);
       setPreview(result.preview);
       setLoadingPreview(false);
@@ -125,8 +151,45 @@ export function useEditorFit({
       if (!controller.signal.aborted)
         setError(err instanceof Error ? err.message : String(err));
     } finally {
-      if (!controller.signal.aborted) setWorking(false);
+      if (actionController.current === controller) setWorking(false);
     }
+  }, [active, imgUrl, targetWidth, targetHeight, settings.mode, onSelection]);
+
+  // Selecting the Fit tab or changing a target produces the preview. Reopening
+  // a saved fit keeps its explicit selection instead of finding a new crop.
+  useEffect(() => {
+    const current = appliedRef.current;
+    if (
+      active &&
+      imgUrl &&
+      targetWidth &&
+      targetHeight &&
+      (!current ||
+        current.width !== targetWidth ||
+        current.height !== targetHeight ||
+        current.mode !== settings.mode)
+    ) {
+      const timer = window.setTimeout(() => void autoFit(), 250);
+      return () => {
+        window.clearTimeout(timer);
+        actionController.current?.abort();
+        setWorking(false);
+      };
+    }
+    if (!active || !targetWidth || !targetHeight) {
+      actionController.current?.abort();
+      setWorking(false);
+    }
+  }, [active, imgUrl, targetWidth, targetHeight, settings.mode, autoFit]);
+
+  const retryPreview = () => {
+    if (!applied || pending) {
+      void autoFit();
+      return;
+    }
+    setError(null);
+    lastPreviewKey.current = null;
+    setRetryCount((value) => value + 1);
   };
 
   const applyToAll = async () => {
@@ -134,6 +197,7 @@ export function useEditorFit({
     const controller = new AbortController();
     actionController.current = controller;
     setWorking(true);
+    setBatchWorking(true);
     setError(null);
     try {
       await onApplyToAll(applied, controller.signal);
@@ -141,19 +205,12 @@ export function useEditorFit({
       if (!controller.signal.aborted)
         setError(err instanceof Error ? err.message : String(err));
     } finally {
-      if (!controller.signal.aborted) setWorking(false);
+      if (actionController.current === controller) {
+        setWorking(false);
+        setBatchWorking(false);
+      }
     }
   };
-
-  const clear = useCallback(() => {
-    actionController.current?.abort();
-    setWorking(false);
-    setApplied(null);
-    setPreview(null);
-    setError(null);
-    setLoadingPreview(false);
-    lastPreviewKey.current = null;
-  }, []);
 
   return {
     settings,
@@ -162,12 +219,14 @@ export function useEditorFit({
     preview,
     error,
     working,
+    batchWorking,
     loadingPreview,
     size,
     pending,
     previewCurrent,
+    canRefit,
     autoFit,
+    retryPreview,
     applyToAll,
-    clear,
   };
 }

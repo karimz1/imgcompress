@@ -429,11 +429,15 @@ export const esMX: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Recortar",
+      fit: "Ajustar tamaño",
+    },
     fit: {
-      hint: "Elige un tamaño y pulsa Ajustar automáticamente para ver y editar el resultado.",
+      hint: "Elige tamaño y modo. La vista previa se actualiza automáticamente.",
+      selection: "Ajustar recorte",
       autoFit: "Ajustar automáticamente",
       applyAll: "Ajustar todas las imágenes",
-      updateHint: "Pulsa Ajustar automáticamente para actualizar la vista previa.",
       output: "Salida: {{w}} × {{h}} px",
       preview: "Vista previa de salida",
       updating: "Actualizando vista previa…",

@@ -39,6 +39,7 @@ import {
   Drawer,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -62,6 +63,10 @@ import { useFitPreviewBox } from "@/components/crop/useFitPreviewBox";
 import { useCropPanZoom } from "@/components/crop/useCropPanZoom";
 import { useEditorFit } from "@/components/crop/useEditorFit";
 import { FitControls } from "@/components/crop/FitControls";
+import {
+  CropEditorTabs,
+  type EditorTab,
+} from "@/components/crop/CropEditorTabs";
 import type { FitOutput } from "@/lib/fitToSize";
 
 export interface CropWidgetHandle {
@@ -111,7 +116,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     fitAvailable = true,
     onApplyFitToAll,
   },
-  ref
+  ref,
 ) {
   const { t } = useTranslation();
   const { imgUrl, imgSize, loadError, loadErrorDetails, loadingVariant } =
@@ -121,8 +126,13 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   const resolvedThemeMode = theme === "system" ? systemTheme : theme;
   const isDarkResolved = resolvedThemeMode === "dark";
 
-  const [preset, setPreset] = useState<RatioPresetId>(initialCrop?.preset ?? "free");
-  const [crop, setCrop] = useState<Rect | null>(
+  const [preset, setPreset] = useState<RatioPresetId>(
+    initialCrop?.preset ?? "free",
+  );
+  const [activeTab, setActiveTab] = useState<EditorTab>(
+    fitAvailable && initialCrop?.fit ? "fit" : "crop",
+  );
+  const [manualCrop, setManualCrop] = useState<Rect | null>(
     initialCrop
       ? {
           x: initialCrop.x,
@@ -130,60 +140,91 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           width: initialCrop.width,
           height: initialCrop.height,
         }
-      : null
+      : null,
   );
-  const fit = useEditorFit({
-    imgUrl,
-    crop,
-    initialCrop,
-    onSelection: (selection) => { setPreset("free"); setCrop(selection); resetView(); },
-    onApplyToAll: onApplyFitToAll,
-  });
-  const fitRef = useRef<FitOutput | null>(fit.applied);
-  fitRef.current = fit.applied;
-  const lockedRatio = fit.applied?.mode === "crop"
-    ? fit.applied.width / fit.applied.height
-    : getPresetRatio(preset);
+  const [fitCrop, setFitCrop] = useState<Rect | null>(manualCrop);
+  const fitting = fitAvailable && activeTab === "fit";
+  const crop = fitting ? fitCrop : manualCrop;
+  const setCrop = fitting ? setFitCrop : setManualCrop;
   const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
-  const initialStateRef = useRef<{ crop: Rect; preset: RatioPresetId } | null>(null);
+  const initialStateRef = useRef<{
+    crop: Rect;
+    preset: RatioPresetId;
+  } | null>(null);
   const cropRef = useRef<Rect | null>(crop);
   const presetRef = useRef<RatioPresetId>(preset);
   cropRef.current = crop;
-  presetRef.current = preset;
+  presetRef.current = fitting ? "free" : preset;
 
   const previewWrapperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragMode>({ kind: "none" });
   // Multi-touch state: one finger moves/resizes the crop, two fingers pan + pinch-zoom.
-  const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const pinchRef = useRef<
-    { startDist: number; startZoom: number; p0x: number; p0y: number } | null
-  >(null);
+  const activePointers = useRef<Map<number, { x: number; y: number }>>(
+    new Map(),
+  );
+  const pinchRef = useRef<{
+    startDist: number;
+    startZoom: number;
+    p0x: number;
+    p0y: number;
+  } | null>(null);
 
   const ready = !!imgUrl && !!imgSize && !!crop;
-  const previewBox = useFitPreviewBox(previewWrapperRef, { enabled: ready, imgSize });
+  const previewBox = useFitPreviewBox(previewWrapperRef, {
+    enabled: ready,
+    imgSize,
+  });
 
   const scale = imgSize && previewBox ? previewBox.width / imgSize.width : 1;
 
-  const { zoom, setZoom, pan, setPan, spaceDown, resetView } = useCropPanZoom({
-    containerRef,
-    scale,
-    imgSize,
-    enabled: ready,
+  const { zoom, setZoom, pan, setPan, spaceDown, resetView } = useCropPanZoom(
+    {
+      containerRef,
+      scale,
+      imgSize,
+      enabled: ready,
+    },
+  );
+
+  const onFitSelection = useCallback(
+    (selection: Rect) => {
+      setFitCrop(selection);
+      resetView();
+    },
+    [resetView],
+  );
+  const fit = useEditorFit({
+    imgUrl,
+    crop: fitCrop,
+    initialCrop,
+    active: fitting,
+    onSelection: onFitSelection,
+    onApplyToAll: onApplyFitToAll,
   });
+  const activeFit = fitting ? fit.applied : null;
+  const editorBusy = fitting && (fit.working || fit.pending || !fit.applied);
+  const fitRef = useRef<FitOutput | null>(activeFit);
+  fitRef.current = activeFit;
+  const lockedRatio =
+    activeFit?.mode === "crop"
+      ? activeFit.width / activeFit.height
+      : getPresetRatio(preset);
 
   useEffect(() => {
     if (!imgSize) return;
-    if (crop) return;
     const ratio = getPresetRatio(preset);
     const next = defaultCropForRatio(imgSize.width, imgSize.height, ratio);
-    initialStateRef.current = { crop: next, preset };
-    setCrop(next);
-  }, [imgSize, preset, crop]);
+    setManualCrop((current) => current ?? next);
+    setFitCrop((current) => current ?? next);
+  }, [imgSize, preset]);
 
   useEffect(() => {
     if (!imgSize || !crop || initialStateRef.current) return;
-    initialStateRef.current = { crop: { ...crop }, preset };
+    initialStateRef.current = {
+      crop: { ...crop },
+      preset: fitting ? "free" : preset,
+    };
   }, [imgSize, crop, preset]);
 
   const isDirty = useCallback(() => {
@@ -192,7 +233,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     if (!baseline || !current) return false;
     return (
       presetRef.current !== baseline.preset ||
-      JSON.stringify(fitRef.current ?? undefined) !== JSON.stringify(initialCrop?.fit) ||
+      JSON.stringify(fitRef.current ?? undefined) !==
+        JSON.stringify(initialCrop?.fit) ||
       current.x !== baseline.crop.x ||
       current.y !== baseline.crop.y ||
       current.width !== baseline.crop.width ||
@@ -221,7 +263,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       const mode = dragRef.current;
-      if (mode.kind === "none" || !imgSize || scale <= 0 || fit.working) return;
+      if (mode.kind === "none" || !imgSize || scale <= 0 || editorBusy)
+        return;
       if (mode.kind === "pan") {
         const next = clampPan(
           {
@@ -230,7 +273,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           },
           scale,
           imgSize,
-          zoom
+          zoom,
         );
         setPan(next);
         return;
@@ -250,12 +293,12 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           dxPx,
           dyPx,
           ratio,
-          e.altKey
+          e.altKey,
         );
       }
       setCrop(clampCrop(next, imgSize.width, imgSize.height));
     },
-    [imgSize, scale, zoom, lockedRatio, setPan, fit.working]
+    [imgSize, scale, zoom, lockedRatio, setPan, setCrop, editorBusy],
   );
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
@@ -336,7 +379,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   };
 
   const startMove = (e: React.PointerEvent) => {
-    if (!crop || isGesturing() || fit.working) return;
+    if (!crop || isGesturing() || editorBusy) return;
     // On touch, don't drag the whole selection from its interior — that caused
     // accidental moves. Touch users resize via the handles and pan/zoom with two
     // fingers; letting this fall through also enables one-finger pan when zoomed.
@@ -354,7 +397,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   };
 
   const startResize = (handle: Handle) => (e: React.PointerEvent) => {
-    if (!crop || spaceDown || isGesturing() || fit.working) return;
+    if (!crop || spaceDown || isGesturing() || editorBusy) return;
     beginDrag(e, {
       kind: "resize",
       handle,
@@ -366,13 +409,12 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
 
   const setPresetAndCrop = useCallback(
     (next: RatioPresetId) => {
-      fit.clear();
       setPreset(next);
       if (!imgSize) return;
       const ratio = getPresetRatio(next);
       setCrop(defaultCropForRatio(imgSize.width, imgSize.height, ratio));
     },
-    [imgSize, fit.clear]
+    [imgSize, setCrop],
   );
 
   const updateDimension = (which: "width" | "height", raw: string) => {
@@ -384,7 +426,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       which === "width" ? num : crop.width,
       which === "height" ? num : crop.height,
       ratio,
-      which
+      which,
     );
     const next: Rect = {
       x: crop.x,
@@ -404,13 +446,12 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       height: crop.height,
       originalWidth: imgSize.width,
       originalHeight: imgSize.height,
-      preset,
-      ...(fit.applied && fitAvailable ? { fit: fit.applied } : {}),
+      preset: fitting ? "free" : preset,
+      ...(activeFit ? { fit: activeFit } : {}),
     });
   };
 
   const resetCropSelection = () => {
-    fit.clear();
     if (!imgSize) return;
     const ratio = getPresetRatio(preset);
     setCrop(defaultCropForRatio(imgSize.width, imgSize.height, ratio));
@@ -419,7 +460,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
 
   const dimsLabel = useMemo(
     () => (crop ? `${crop.width} × ${crop.height} px` : ""),
-    [crop]
+    [crop],
   );
 
   const canPan = zoom > 1 || spaceDown;
@@ -429,7 +470,9 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   const gridPx = 1 / zoom;
 
   const textClass = isDarkTheme ? "text-gray-100" : "text-slate-900";
-  const subtleBorder = isDarkTheme ? "border-white/10" : "border-slate-200/70";
+  const subtleBorder = isDarkTheme
+    ? "border-white/10"
+    : "border-slate-200/70";
   const transparencySurface = isDarkTheme ? "bg-slate-950" : "bg-slate-50";
   const controlPanelSurface = isDarkTheme
     ? "border-white/10 bg-white/[0.045] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
@@ -438,123 +481,199 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     ? "border-white/10 bg-white/[0.05]"
     : "border-white/70 bg-white/55";
 
-  // Rendered in two places (desktop side panel + mobile drawer/bar). Both trees
-  // stay mounted for responsive `hidden`/`lg:hidden` toggling, so the mobile copy
-  // takes a `suffix` to keep test ids and DOM ids unique. Desktop keeps the
-  // canonical ids (suffix === "") that the e2e suite targets.
-  const renderAdjustControls = (suffix = "") => (
-    <>
-      {fitAvailable && <FitControls fit={fit} suffix={suffix} canApplyToAll={!!onApplyFitToAll} />}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <Label className="text-xs uppercase tracking-wide opacity-70">
-            {t("crop.aspectRatio")}
-          </Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-8 w-8 p-0 rounded-full shrink-0",
-              "border shadow-sm transition-all",
-              "hover:scale-105 hover:shadow-md active:scale-95",
-              "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-              isDarkResolved
-                ? "border-white/15 bg-white/10 text-slate-100 hover:bg-white/15 focus-visible:ring-offset-slate-950"
-                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:ring-offset-white"
-            )}
-            onClick={() => setTheme(isDarkResolved ? "light" : "dark")}
-            aria-label={
-              isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
-            }
-            title={
-              isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
-            }
-            data-testid={`crop-theme-toggle${suffix}`}
-          >
-            {isDarkResolved ? (
-              <Moon className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <Sun className="h-4 w-4" aria-hidden="true" />
-            )}
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {RATIO_PRESETS.map((p) => (
-            <Button
-              key={p.id}
-              type="button"
-              size="sm"
-              variant={!fit.applied && preset === p.id ? "default" : "outline"}
-              onClick={() => setPresetAndCrop(p.id)}
-              disabled={fit.working}
-              data-testid={`crop-preset-${p.id}${suffix}`}
-            >
-              {p.id === "free" ? t("crop.freeRatio") : p.label}
-            </Button>
-          ))}
-        </div>
+  const renderControlsHeader = (suffix = "") => (
+    <div className="flex shrink-0 items-center gap-2">
+      {fitAvailable && (
+        <CropEditorTabs
+          value={activeTab}
+          onChange={(tab) => {
+            setActiveTab(tab);
+            resetView();
+          }}
+          suffix={suffix}
+          disabled={fit.batchWorking}
+        />
+      )}
+      <div className="ml-auto shrink-0">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "h-8 w-8 p-0 rounded-full shrink-0",
+            "border shadow-sm transition-all",
+            "hover:scale-105 hover:shadow-md active:scale-95",
+            "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+            isDarkResolved
+              ? "border-white/15 bg-white/10 text-slate-100 hover:bg-white/15 focus-visible:ring-offset-slate-950"
+              : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:ring-offset-white",
+          )}
+          onClick={() => setTheme(isDarkResolved ? "light" : "dark")}
+          aria-label={
+            isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
+          }
+          title={
+            isDarkResolved ? t("crop.switchToLight") : t("crop.switchToDark")
+          }
+          data-testid={`crop-theme-toggle${suffix}`}
+        >
+          {isDarkResolved ? (
+            <Moon className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <Sun className="h-4 w-4" aria-hidden="true" />
+          )}
+        </Button>
       </div>
+    </div>
+  );
 
-      {fit.applied?.mode !== "blur" && <div className="space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <Label className="text-xs uppercase tracking-wide opacity-70">
-            {t("crop.dimensions")}
-          </Label>
+  const renderCropDimensions = (suffix = "") => (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-xs uppercase tracking-wide opacity-70">
+          {t("crop.dimensions")}
+        </Label>
+        {!fitting && (
           <Button
             type="button"
             variant="default"
             size="sm"
             onClick={resetCropSelection}
-            disabled={fit.working}
+            disabled={editorBusy}
             data-testid={`crop-selection-reset-btn${suffix}`}
           >
             {t("crop.resetSelection")}
           </Button>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <Label htmlFor={`crop-width${suffix}`} className="text-xs opacity-80">{t("crop.width")}</Label>
-            <Input
-              id={`crop-width${suffix}`}
-              data-testid={`crop-width-input${suffix}`}
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={imgSize?.width}
-              disabled={fit.working}
-              value={crop?.width ?? ""}
-              onChange={(e) => updateDimension("width", e.target.value)}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor={`crop-height${suffix}`} className="text-xs opacity-80">{t("crop.height")}</Label>
-            <Input
-              id={`crop-height${suffix}`}
-              data-testid={`crop-height-input${suffix}`}
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={imgSize?.height}
-              disabled={fit.working}
-              value={crop?.height ?? ""}
-              onChange={(e) => updateDimension("height", e.target.value)}
-            />
-          </div>
-        </div>
-        <p className="text-xs opacity-70" data-testid={`crop-dims-label${suffix}`}>
-          {dimsLabel}
-        </p>
-        {imgSize && (
-          <p className="text-xs opacity-50">
-            {t("crop.original", { w: imgSize.width, h: imgSize.height })}
-          </p>
         )}
       </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1">
+          <Label
+            htmlFor={`crop-width${suffix}`}
+            className="text-xs opacity-80"
+          >
+            {t("crop.width")}
+          </Label>
+          <Input
+            id={`crop-width${suffix}`}
+            data-testid={`crop-width-input${suffix}`}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={imgSize?.width}
+            disabled={editorBusy}
+            value={crop?.width ?? ""}
+            onChange={(e) => updateDimension("width", e.target.value)}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label
+            htmlFor={`crop-height${suffix}`}
+            className="text-xs opacity-80"
+          >
+            {t("crop.height")}
+          </Label>
+          <Input
+            id={`crop-height${suffix}`}
+            data-testid={`crop-height-input${suffix}`}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={imgSize?.height}
+            disabled={editorBusy}
+            value={crop?.height ?? ""}
+            onChange={(e) => updateDimension("height", e.target.value)}
+          />
+        </div>
+      </div>
+      <p
+        className="text-xs opacity-70"
+        data-testid={`crop-dims-label${suffix}`}
+      >
+        {dimsLabel}
+      </p>
+      {imgSize && (
+        <p className="text-xs opacity-50">
+          {t("crop.original", { w: imgSize.width, h: imgSize.height })}
+        </p>
+      )}
+    </div>
+  );
 
-      }
-      {fit.applied?.mode !== "blur" && <CropShortcutsList surfaceClass={shortcutsSurface} />}
+  // Both responsive layouts use the same tab and draft state. Each tree has
+  // unique ids so tabs always point to their own controls.
+  const renderAdjustControls = (suffix = "") => (
+    <div className="space-y-4">
+      <div
+        role={fitAvailable ? "tabpanel" : undefined}
+        id={`crop-editor-panel-crop${suffix}`}
+        aria-labelledby={fitAvailable ? `crop-editor-tab-crop${suffix}` : undefined}
+        hidden={fitting}
+        className="space-y-4"
+      >
+        {!fitting && (
+          <>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs uppercase tracking-wide opacity-70">
+                  {t("crop.aspectRatio")}
+                </Label>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {RATIO_PRESETS.map((p) => (
+                  <Button
+                    key={p.id}
+                    type="button"
+                    size="sm"
+                    variant={preset === p.id ? "default" : "outline"}
+                    onClick={() => setPresetAndCrop(p.id)}
+                    disabled={editorBusy}
+                    data-testid={`crop-preset-${p.id}${suffix}`}
+                  >
+                    {p.id === "free" ? t("crop.freeRatio") : p.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
 
+            {renderCropDimensions(suffix)}
+            <CropShortcutsList surfaceClass={shortcutsSurface} />
+          </>
+        )}
+      </div>
+      {fitAvailable && (
+        <div
+          role="tabpanel"
+          id={`crop-editor-panel-fit${suffix}`}
+          aria-labelledby={`crop-editor-tab-fit${suffix}`}
+          hidden={!fitting}
+          className="space-y-4"
+        >
+          {fitting && (
+            <>
+              <FitControls
+                fit={fit}
+                suffix={suffix}
+                canApplyToAll={!!onApplyFitToAll}
+              />
+              {activeFit?.mode === "crop" && (
+                <details
+                  className="rounded-md border border-current/10 p-3"
+                  data-testid={`crop-fit-selection-settings${suffix}`}
+                >
+                  <summary
+                    className="cursor-pointer text-sm font-medium"
+                    data-testid={`crop-fit-adjust-selection${suffix}`}
+                  >
+                    {t("crop.fit.selection")}
+                  </summary>
+                  <div className="pt-3">{renderCropDimensions(suffix)}</div>
+                </details>
+              )}
+            </>
+          )}
+        </div>
+      )}
       {initialCrop && onClearCrop && (
         <Button
           type="button"
@@ -567,7 +686,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           {t("crop.removeSavedCrop")}
         </Button>
       )}
-    </>
+    </div>
   );
 
   const renderActionButtons = (suffix = "", btnClass = "") => (
@@ -587,7 +706,9 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         variant="default"
         size="sm"
         onClick={handleSave}
-        disabled={fit.working || (fitAvailable && !!fit.applied && (fit.pending || !fit.previewCurrent || !!fit.error))}
+        disabled={
+          editorBusy || (fitting && (!fit.previewCurrent || !!fit.error))
+        }
         data-testid={`crop-save-btn${suffix}`}
         className={btnClass}
       >
@@ -599,8 +720,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   return (
     <div
       className={cn(
-        "transition-colors flex-1 min-h-0 flex flex-col 2xl:flex-row gap-3",
-        textClass
+        "transition-colors flex-1 min-h-0 flex flex-col lg:flex-row gap-3",
+        textClass,
       )}
       data-testid="crop-widget"
     >
@@ -643,7 +764,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
             ref={previewWrapperRef}
             className="crop-editor-fade-in flex-1 min-h-0 min-w-0 flex items-center justify-center p-3"
           >
-            {fit.applied?.mode === "blur" ? (
+            {activeFit?.mode === "blur" ? (
               fit.preview && <img src={fit.preview} alt={t("crop.fit.preview")} className="max-h-full max-w-full object-contain rounded-md" data-testid="crop-blur-canvas" />
             ) : <div
               className="relative"
@@ -749,11 +870,12 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           {/* Desktop: fixed right-hand control panel */}
           <div
             className={cn(
-              "crop-editor-fade-in hidden 2xl:flex 2xl:w-72 shrink-0 flex-col gap-3 rounded-md border p-3 backdrop-blur-md overflow-hidden",
-              controlPanelSurface
+              "crop-editor-fade-in hidden lg:flex lg:w-80 shrink-0 flex-col gap-3 rounded-md border p-3 backdrop-blur-md overflow-hidden",
+              controlPanelSurface,
             )}
             data-testid="crop-side-panel"
           >
+            {renderControlsHeader()}
             <div className="min-h-0 flex-1 overflow-y-auto space-y-3 pr-1">
               {renderAdjustControls()}
             </div>
@@ -763,8 +885,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           {/* Mobile: slim always-visible action bar; settings live in a bottom drawer */}
           <div
             className={cn(
-              "crop-editor-fade-in 2xl:hidden shrink-0 flex items-stretch gap-2 rounded-md border p-2 backdrop-blur-md",
-              controlPanelSurface
+              "crop-editor-fade-in lg:hidden shrink-0 flex items-stretch gap-2 rounded-md border p-2 backdrop-blur-md",
+              controlPanelSurface,
             )}
             data-testid="crop-mobile-bar"
           >
@@ -780,25 +902,33 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   title={t("crop.adjust")}
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t("crop.adjust")}</span>
+                  <span>{t("crop.adjust")}</span>
                 </Button>
               </DrawerTrigger>
-              <DrawerContent data-testid="crop-adjust-drawer">
-                <DrawerHeader className="pb-2">
-                  <DrawerTitle className="text-base">{t("crop.adjust")}</DrawerTitle>
+              <DrawerContent className="max-h-[90dvh]" data-testid="crop-adjust-drawer">
+                <DrawerHeader className="shrink-0 pb-2">
+                  <DrawerTitle className="text-base">
+                    {t("crop.adjust")}
+                  </DrawerTitle>
                   <DrawerDescription className="sr-only">
                     {t("crop.aspectRatio")}
                   </DrawerDescription>
                 </DrawerHeader>
-                <div className="flex flex-col gap-3 overflow-y-auto px-4 pb-6 max-h-[70vh]">
+                <div className="shrink-0 px-4 pb-3">
+                  {renderControlsHeader("-mobile")}
+                </div>
+                <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-4">
                   {renderAdjustControls("-mobile")}
                 </div>
+                <DrawerFooter className="shrink-0 border-t border-current/10 pt-3">
+                  {renderActionButtons("-mobile-drawer")}
+                </DrawerFooter>
               </DrawerContent>
             </Drawer>
             <div className="flex-1 min-w-0">
               {renderActionButtons(
                 "-mobile",
-                "h-auto min-h-9 whitespace-normal leading-tight px-3 py-1.5 text-center"
+                "h-auto min-h-9 whitespace-normal leading-tight px-3 py-1.5 text-center",
               )}
             </div>
           </div>

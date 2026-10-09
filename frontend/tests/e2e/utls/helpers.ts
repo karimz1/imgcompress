@@ -222,6 +222,7 @@ export interface FitToSizeOptions {
 export async function setFitToSizeAsync(page: Page, options: FitToSizeOptions): Promise<void> {
   await page.getByTestId('dropzone-crop-file-btn').first().click();
   await expect(page.getByTestId('crop-dialog')).toBeVisible();
+  await page.getByTestId('crop-tab-fit').click();
   await page.locator(selectors.fitPresetSelect).click();
   await page.getByTestId(`fit-preset-option-${options.preset}`).click();
   await expect(page.locator(selectors.fitPresetSelect)).toBeVisible();
@@ -234,7 +235,6 @@ export async function setFitToSizeAsync(page: Page, options: FitToSizeOptions): 
   const mode = options.mode ?? 'crop';
   await page.getByTestId(`fit-mode-${mode}-btn`).click();
 
-  await page.getByTestId('crop-auto-fit-btn').click();
   await expect(page.getByTestId('crop-fit-preview')).toBeVisible();
   await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
 

@@ -84,7 +84,7 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 | **70+ Image Formats** | HEIC, HEIF, PSD, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60+ more |
 | **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
 | **Local AI Upscaling** | Choose General or Anime. Real-ESRGAN enlarges images 2x, 4x, 8x, or to Full HD / 4K / 6K / 8K / 16K on your CPU, preserving the aspect ratio. Both models ship in the image; nothing is downloaded at runtime |
-| **Fit to Exact Size** | GitHub social preview (1280 × 640), Open Graph (1200 × 630), or any size. Auto fit in the crop editor, with an adjustable crop and output preview, or a blurred background |
+| **Fit to Exact Size** | GitHub social preview (1280 × 640), Open Graph (1200 × 630), or any size. A dedicated editor tab with automatic previews, an adjustable crop, or a blurred background |
 | **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, image batches to paginated PDF, and more |
 | **Per-File Cropping** | Crop each upload before conversion with ratio presets (Free, 1:1, 16:9, 4:3) or custom pixel dimensions |
@@ -119,7 +119,7 @@ Both rows start from a small image (about 120 px wide) taken to 4x. Left is a no
 
 ## Fit to Exact Size (since v1.0.0)
 
-Open the **Crop & resize** editor to create images at exact pixel dimensions for **GitHub social previews (1280 × 640)**, **Open Graph link previews (1200 × 630)**, or a custom size. Choose a mode and click **Auto fit** to see the result before saving:
+Open the **Crop & resize** editor and select the **Fit to size** tab to create images at exact pixel dimensions for **GitHub social previews (1280 × 640)**, **Open Graph link previews (1200 × 630)**, or a custom size. A preview appears automatically and updates when you change the size or mode:
 
 - **Crop to fill:** Places a visible crop box automatically, looking for text, faces, and other detail. Move or resize the box to adjust the result; the output preview updates with your selection.
 - **Blurred background:** Keeps the whole image and fills the empty space with a blurred, slightly darker copy.
@@ -142,11 +142,13 @@ Both examples below use the same **1536 × 1024** original and produce a **1280 
 
 1. Upload your image and choose an image output format.
 2. Click **Crop & resize** on the file.
-3. Select **GitHub social preview (1280 × 640)**, **Open Graph link preview (1200 × 630)**, or **Custom size**, then choose **Crop to fill** or **Blurred background**.
-4. Click **Auto fit**, inspect the preview, and adjust the crop if needed.
+3. Open **Fit to size** and select **GitHub social preview (1280 × 640)**, **Open Graph link preview (1200 × 630)**, or **Custom size**, then choose **Crop to fill** or **Blurred background**.
+4. Inspect the automatic preview. Move or resize the crop box if needed; **Adjust crop** also offers pixel dimensions. After a manual adjustment, **Auto fit** resets the framing.
 5. Click **Save**, then convert and download. The saved selection and output size are used during conversion.
 
 For a batch, **Auto fit all images** prepares a separate automatic result for every file using the selected size and mode. Open any file's editor to review or adjust it before converting.
+
+Use the **Crop** tab for a manual crop without a fixed output size. Switching tabs keeps both drafts while the editor is open; **Save** applies the active tab. Saved fits reopen in **Fit to size** with their framing intact.
 
 ---
 

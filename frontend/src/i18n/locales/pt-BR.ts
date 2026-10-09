@@ -429,11 +429,15 @@ export const ptBR: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Cortar",
+      fit: "Ajustar tamanho",
+    },
     fit: {
-      hint: "Escolha um tamanho e clique em Ajustar automaticamente para visualizar e editar o resultado.",
+      hint: "Escolha o tamanho e o modo. A prévia é atualizada automaticamente.",
+      selection: "Ajustar corte",
       autoFit: "Ajustar automaticamente",
       applyAll: "Ajustar todas as imagens",
-      updateHint: "Clique em Ajustar automaticamente para atualizar a prévia.",
       output: "Saída: {{w}} × {{h}} px",
       preview: "Prévia da saída",
       updating: "Atualizando prévia…",
