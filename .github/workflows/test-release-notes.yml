@@ -9,7 +9,6 @@ on:
       - 'scripts/sync-release-notes.mjs'
       - 'frontend/src/lib/release-version.ts'
       - 'frontend/src/hooks/useVersionCheck.ts'
-      - 'frontend/src/components/ReleaseNotesButton.tsx'
       - 'tests/release-notes/**'
   push:
     branches: [main]
@@ -20,7 +19,6 @@ on:
       - 'scripts/sync-release-notes.mjs'
       - 'frontend/src/lib/release-version.ts'
       - 'frontend/src/hooks/useVersionCheck.ts'
-      - 'frontend/src/components/ReleaseNotesButton.tsx'
       - 'tests/release-notes/**'
 
 permissions:
@@ -29,11 +27,18 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out code
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: node --test tests/release-notes/*.test.mjs
+
+      - name: Run release notes tests
+        run: node --test tests/release-notes/*.test.mjs

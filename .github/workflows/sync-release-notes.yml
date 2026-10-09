@@ -5,7 +5,12 @@ on:
     types: [published, edited]
 
 permissions:
-  contents: write
+  contents: read
+
+# published and edited can arrive together; let them commit one after another.
+concurrency:
+  group: sync-release-notes
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -14,13 +19,21 @@ jobs:
       startsWith(github.event.release.tag_name, 'release_') &&
       !contains(github.event.release.tag_name, '-')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # push the notes commit to main
     steps:
-      - uses: actions/checkout@v7
+      # Keeps the token in the git config, the push below needs it. Only main's
+      # own script runs here, nothing from the release tag.
+      - name: Check out main
+        uses: actions/checkout@v7
         with:
           ref: main
-      - uses: actions/setup-node@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
+
       - name: Copy approved notes to main
         env:
           GH_TOKEN: ${{ github.token }}
@@ -45,6 +58,8 @@ jobs:
             if git push origin HEAD:main; then
               exit 0
             fi
+            echo "Push attempt ${attempt} failed, retrying."
+            sleep $((attempt * 5))
           done
           echo 'Could not sync release notes after three attempts.' >&2
           exit 1
