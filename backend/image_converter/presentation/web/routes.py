@@ -188,12 +188,17 @@ def crop_unsupported_formats():
 @api_blueprint.route("/crop/fit", methods=["POST"])
 def fit_editor_bitmap():
     render = request.form.get("render") == "true"
-    result = fit_preview_service.build(request.files.get("file"), request.form, full_size=render)
+    with_preview = request.form.get("preview") != "false"
+    result = fit_preview_service.build(
+        request.files.get("file"), request.form, full_size=render, with_image=render or with_preview
+    )
     if not result.is_successful:
         return jsonify({"error": result.error}), 400
     crop, png = result.value
     if render:
         return send_file(BytesIO(png), mimetype="image/png")
+    if not with_preview:
+        return jsonify({"crop": crop})
     return jsonify({"crop": crop, "preview": "data:image/png;base64," + base64.b64encode(png).decode("ascii")})
 
 

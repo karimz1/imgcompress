@@ -17,7 +17,12 @@ PREVIEW_MAX_SIDE = 2048
 class FitPreviewService:
     """Fit a decoded editor bitmap, using explicit crop bounds after Auto fit."""
 
-    def build(self, upload, form, full_size: bool = False):
+    def build(self, upload, form, full_size: bool = False, with_image: bool = True):
+        """
+        Returns the selection in source pixels and the fitted PNG. With
+        ``with_image`` False only the selection is computed (PNG is None), which
+        is all "Auto fit all images" needs for each file.
+        """
         fit_result = FitToSize.from_strings_result(
             form.get("fit_width"),
             form.get("fit_height"),
@@ -48,14 +53,17 @@ class FitPreviewService:
                         "Crop bounds must be whole pixels inside the image."
                     )
                 x, y, width, height = crop
-                selected = img.crop((x, y, x + width, y + height))
-                fitted = ImageResizer.fit_image(selected, fit)
-                if not full_size:
-                    fitted.thumbnail(
-                        (PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.Resampling.LANCZOS
-                    )
-                png = BytesIO()
-                fitted.save(png, format="PNG", icc_profile=icc_profile)
+                png = None
+                if with_image:
+                    selected = img.crop((x, y, x + width, y + height))
+                    fitted = ImageResizer.fit_image(selected, fit)
+                    if not full_size:
+                        fitted.thumbnail(
+                            (PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.Resampling.LANCZOS
+                        )
+                    buffer = BytesIO()
+                    fitted.save(buffer, format="PNG", icc_profile=icc_profile)
+                    png = buffer.getvalue()
                 return Result.success(
                     (
                         {
@@ -72,7 +80,7 @@ class FitPreviewService:
                                 "mode": fit.mode.value,
                             },
                         },
-                        png.getvalue(),
+                        png,
                     )
                 )
         except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):

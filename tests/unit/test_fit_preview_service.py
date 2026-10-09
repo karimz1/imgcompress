@@ -157,3 +157,22 @@ def test_colour_profile_is_kept_for_rgb_and_dropped_after_cmyk_conversion():
         )
         assert result.is_successful
         assert Image.open(BytesIO(result.value[1])).info.get("icc_profile") == expected
+
+
+def test_selection_only_request_skips_the_preview():
+    from backend.image_converter.presentation.web.server import app
+
+    bitmap = BytesIO()
+    Image.new("RGB", (600, 400), "white").save(bitmap, format="PNG")
+    response = app.test_client().post(
+        "/api/crop/fit",
+        data={
+            "fit_width": "400",
+            "fit_height": "200",
+            "preview": "false",
+            "file": (BytesIO(bitmap.getvalue()), "image.png"),
+        },
+    )
+    assert response.status_code == 200
+    assert "preview" not in response.json
+    assert (response.json["crop"]["width"], response.json["crop"]["height"]) == (600, 300)

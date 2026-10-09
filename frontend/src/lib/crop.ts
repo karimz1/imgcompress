@@ -291,7 +291,13 @@ export async function previewFit(
 export async function autoFitFile(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
   const image = await loadImageFromFile(file);
   try {
-    return (await previewFit(image.src, fit, undefined, signal)).crop;
+    // Only the selection is needed here; each editor renders its own preview when opened.
+    const bitmap = await fetch(image.src, { signal }).then((response) => response.blob());
+    const form = fitForm(bitmap, fit);
+    form.append("preview", "false");
+    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
+    if (!response.ok) throw new Error(await readBitmapError(response));
+    return (await response.json()).crop;
   } finally {
     if (image.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
   }
