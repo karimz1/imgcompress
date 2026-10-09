@@ -70,3 +70,37 @@ test('copy details includes the installed build and its source link', async ({ p
   expect(copied).toContain(metadata.builtAt);
   expect(copied).toContain(`https://github.com/karimz1/imgcompress/commit/${commit}`);
 });
+
+test('a stable release keeps the quiet version label', async ({ page }) => {
+  await page.route('**/build-info.json', (route) => route.fulfill({ json: {
+    ...metadata, channel: 'stable', buildId: '0.9.0-stable.20261009110000+9db1e75', ref: 'release_0.9.0',
+  } }));
+  await page.goto('/');
+  const trigger = page.getByTestId('build-details-trigger');
+  await expect(trigger).toContainText('Version 0.9.0');
+  await expect(trigger).not.toContainText('9db1e75');
+  await expect(trigger).not.toContainText('Stable');
+  await trigger.click();
+  await expect(page.getByTestId('build-details-dialog')).toContainText('Stable');
+});
+
+test('a local build without a commit shows no source link', async ({ page }) => {
+  await page.route('**/build-info.json', (route) => route.fulfill({ json: {
+    ...metadata, channel: 'local', commit: null, ref: null, buildId: '0.9.0-local.20261009110000',
+  } }));
+  await page.goto('/');
+  await page.getByTestId('build-details-trigger').click();
+  const dialog = page.getByTestId('build-details-dialog');
+  await expect(dialog).toContainText('Local build');
+  await expect(dialog.getByRole('link')).toHaveCount(0);
+});
+
+test('without notes or metadata the version row stays hidden', async ({ page }) => {
+  await page.route('**/release-notes.md', (route) => route.fulfill({ status: 404, body: '' }));
+  await page.route('**/build-info.json', (route) => route.fulfill({ status: 404, body: '' }));
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  await expect(page.locator('footer').getByRole('link', { name: 'Docs' })).toBeVisible();
+  await expect(page.locator('footer').getByText(/Version/)).toHaveCount(0);
+  await expect(page.locator('footer').getByRole('link', { name: 'Release Notes' })).toHaveCount(0);
+});
