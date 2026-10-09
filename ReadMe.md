@@ -259,36 +259,10 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 - Read the **[Contributing Guide](contributing.md)** before opening a PR
 - Browse [`good-first-issue`](https://github.com/karimz1/imgcompress/labels/good-first-issue) labels for a starting point
 - Every change is verified by a Playwright E2E suite that covers all supported formats
+- Maintainers: [how releases work](docs/releasing.md)
 
 > [!NOTE]
 > **Meet [imgcompress-chan](https://imgcompress.karimzouine.com/docs/imgcompress-chan)**, the repo's custom helper bot. She auto-merges Dependabot PRs once CI passes, and if a frontend dependency update leaves a broken `pnpm-lock.yaml`.
-
-### Preparing a release
-
-Push a tag for the commit you want to ship:
-
-```bash
-git tag release_0.10.0-rc.1
-git push origin release_0.10.0-rc.1
-# stable: release_0.10.0
-```
-
-The **Prepare release draft** workflow creates a draft with GitHub's generated
-change list, new contributors and the full changelog link. It compares against
-the previous stable release on the tag's history, so a stable release also lists
-everything that went into its RCs. Each PR line gets the tickets it closes, so use
-`Closes #123` in PR descriptions. Labels group the changes; `skip-release-notes`
-leaves a PR out.
-
-Review the draft under **Releases**, adjust the wording and click **Publish
-release**. Publishing builds the tagged commit for Docker Hub and GHCR. RCs are
-prereleases and only get their version tag, e.g. `karimz1/imgcompress:0.10.0-rc.1`.
-A stable release also moves `latest`, unless a newer stable release already
-exists (backports). Main keeps publishing `nightly`.
-
-If a draft is missing, run `make release-draft RELEASE_TAG=release_0.10.0-rc.1`
-or start the workflow by hand. Existing drafts and published releases are never
-changed. `make release-tests` runs the checks locally (Node 24).
 
 ---
 
