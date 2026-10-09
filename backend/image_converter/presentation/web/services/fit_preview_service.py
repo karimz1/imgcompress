@@ -3,9 +3,9 @@ from io import BytesIO
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from backend.image_converter.core.internals.utilities import Result
-from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
+from backend.image_converter.domain.fit_to_size import FitAnchor, FitMode, FitToSize
 from backend.image_converter.domain.image_resizer import ImageResizer
-from backend.image_converter.domain.smart_crop import find_crop_offset, to_8bit
+from backend.image_converter.domain.smart_crop import to_8bit
 
 
 class FitPreviewService:
@@ -86,12 +86,11 @@ class FitPreviewService:
 
         # Expose the automatic selection in source pixels so it can be edited
         # and saved without rerunning automatic placement at conversion time.
-        covering = ImageResizer._resize_to_cover(img, fit.width, fit.height)
-        left, top = find_crop_offset(covering, fit.width, fit.height)
-        width = min(img.width, max(1, round(fit.width * img.width / covering.width)))
-        height = min(
-            img.height, max(1, round(fit.height * img.height / covering.height))
+        left, top, right, bottom = ImageResizer.fit_crop_box(
+            img, fit.width, fit.height, FitAnchor.AUTO
         )
-        x = min(img.width - width, round(left * img.width / covering.width))
-        y = min(img.height - height, round(top * img.height / covering.height))
+        width = min(img.width, max(1, round(right - left)))
+        height = min(img.height, max(1, round(bottom - top)))
+        x = max(0, min(img.width - width, round(left)))
+        y = max(0, min(img.height - height, round(top)))
         return x, y, width, height

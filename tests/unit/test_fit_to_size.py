@@ -255,6 +255,41 @@ def test_When_CroppingTransparentImage_Expect_AlphaKept():
     assert out.getpixel((150, 150))[3] == 255
 
 
+@pytest.mark.parametrize("mode", list(FitMode))
+@pytest.mark.parametrize("source_size", [(2, 3000), (3000, 2)])
+def test_When_SourceIsThinStrip_Expect_NoResizeBeyondTargetSize(monkeypatch, mode, source_size):
+    # Scaling a 2 x 3000 strip to cover 4096 x 4096 first would mean a
+    # 4096 x 6 million pixel intermediate image. Only the part that ends up in
+    # the output may be resampled.
+    sizes = []
+    original_resize = Image.Image.resize
+
+    def spy(self, size, *args, **kwargs):
+        sizes.append(tuple(size))
+        return original_resize(self, size, *args, **kwargs)
+
+    monkeypatch.setattr(Image.Image, "resize", spy)
+    data = _encode(_stripes(source_size, vertical=source_size[0] > source_size[1]))
+
+    out = _decode(ImageResizer().fit_to_size(data, FitToSize(4096, 4096, mode)))
+
+    assert out.size == (4096, 4096)
+    assert max(width * height for width, height in sizes) <= 4096 * 4096
+
+
+@pytest.mark.parametrize("anchor", list(FitAnchor))
+@pytest.mark.parametrize("source_size", [(1536, 1024), (640, 1280), (7, 3), (1280, 640)])
+def test_When_ComputingCropBox_Expect_TargetAspectInsideImage(anchor, source_size):
+    img = _stripes(source_size, vertical=True)
+
+    left, top, right, bottom = ImageResizer.fit_crop_box(img, 1280, 640, anchor)
+
+    assert 0 <= left <= right <= img.width
+    assert 0 <= top <= bottom <= img.height
+    assert (right - left) / (bottom - top) == pytest.approx(2.0)
+    assert (right - left) == pytest.approx(img.width) or (bottom - top) == pytest.approx(img.height)
+
+
 def test_When_SourceHasExifRotation_Expect_FitAppliedToUprightImage():
     # Stored landscape, EXIF says rotate 90 degrees: the upright image is portrait.
     source = _stripes((300, 100), vertical=True)

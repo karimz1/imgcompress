@@ -122,14 +122,7 @@ class ImageResizer:
             except Exception:
                 pass
             icc_profile = img.info.get("icc_profile")
-
-            if img.mode in ("P", "PA"):
-                img = img.convert("RGBA" if self._has_alpha(img) else "RGB")
-
-            if fit.mode == FitMode.BLUR:
-                result = self._fit_on_blurred_background(img, fit.width, fit.height)
-            else:
-                result = self._fit_by_cropping(img, fit.width, fit.height, fit.anchor)
+            result = self.fit_image(img, fit)
 
             buffer = BytesIO()
             result.save(
@@ -141,20 +134,45 @@ class ImageResizer:
             return buffer.getvalue()
 
     @classmethod
-    def _fit_by_cropping(
-        cls, img: Image.Image, width: int, height: int, anchor: FitAnchor
-    ) -> Image.Image:
-        covering = cls._resize_to_cover(img, width, height)
-        free_x = covering.width - width
-        free_y = covering.height - height
+    def fit_image(cls, img: Image.Image, fit: FitToSize) -> Image.Image:
+        """
+        Same as ``fit_to_size`` for an image that is already decoded and upright.
+        The editor preview uses this directly so it does not have to encode and
+        decode the full-resolution selection in between.
+        """
+        if img.mode in ("P", "PA"):
+            img = img.convert("RGBA" if cls._has_alpha(img) else "RGB")
+        if fit.mode == FitMode.BLUR:
+            return cls._fit_on_blurred_background(img, fit.width, fit.height)
+        box = cls.fit_crop_box(img, fit.width, fit.height, fit.anchor)
+        return img.resize((fit.width, fit.height), Image.Resampling.LANCZOS, box=box)
+
+    @staticmethod
+    def fit_crop_box(
+        img: Image.Image, width: int, height: int, anchor: FitAnchor
+    ) -> tuple[float, float, float, float]:
+        """
+        The part of ``img``, in its own pixels, that crop mode scales to
+        ``width`` x ``height``. Working in source pixels means only that part is
+        resampled. Scaling the whole image to cover the target first would need
+        width x (height * aspect ratio) pixels, which for a thin strip runs into
+        gigabytes.
+        """
+        scale = max(width / img.width, height / img.height)
+        box_width = min(float(img.width), width / scale)
+        box_height = min(float(img.height), height / scale)
+        free_x = img.width - box_width
+        free_y = img.height - box_height
 
         if anchor == FitAnchor.AUTO:
-            left, top = find_crop_offset(covering, width, height)
+            left, top = find_crop_offset(
+                img, max(1, round(box_width)), max(1, round(box_height))
+            )
+            left, top = min(float(left), free_x), min(float(top), free_y)
         else:
-            left = {FitAnchor.LEFT: 0, FitAnchor.RIGHT: free_x}.get(anchor, free_x // 2)
-            top = {FitAnchor.TOP: 0, FitAnchor.BOTTOM: free_y}.get(anchor, free_y // 2)
-
-        return covering.crop((left, top, left + width, top + height))
+            left = {FitAnchor.LEFT: 0.0, FitAnchor.RIGHT: free_x}.get(anchor, free_x / 2)
+            top = {FitAnchor.TOP: 0.0, FitAnchor.BOTTOM: free_y}.get(anchor, free_y / 2)
+        return left, top, left + box_width, top + box_height
 
     @classmethod
     def _fit_on_blurred_background(cls, img: Image.Image, width: int, height: int) -> Image.Image:
@@ -170,10 +188,8 @@ class ImageResizer:
             rgba = None
             flat = img.convert("RGB")
 
-        background = cls._resize_to_cover(flat, width, height)
-        left = (background.width - width) // 2
-        top = (background.height - height) // 2
-        background = background.crop((left, top, left + width, top + height))
+        box = cls.fit_crop_box(flat, width, height, FitAnchor.CENTER)
+        background = flat.resize((width, height), Image.Resampling.LANCZOS, box=box)
         radius = max(2.0, max(width, height) * _BLUR_RADIUS_SHARE)
         background = background.filter(ImageFilter.GaussianBlur(radius))
         background = ImageEnhance.Brightness(background).enhance(_BLUR_BRIGHTNESS)
@@ -187,12 +203,6 @@ class ImageResizer:
         else:
             background.paste(flat.resize(size, Image.Resampling.LANCZOS), offset)
         return background
-
-    @staticmethod
-    def _resize_to_cover(img: Image.Image, width: int, height: int) -> Image.Image:
-        ratio = max(width / img.width, height / img.height)
-        size = (max(width, round(img.width * ratio)), max(height, round(img.height * ratio)))
-        return img.resize(size, Image.Resampling.LANCZOS)
 
     @staticmethod
     def _has_alpha(img: Image.Image) -> bool:
