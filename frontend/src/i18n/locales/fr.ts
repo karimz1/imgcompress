@@ -301,9 +301,9 @@ export const fr: TranslationSchema = {
       copied: "Copié",
       copyFailed: "Impossible de copier. Vous pouvez sélectionner l’identifiant ci-dessus.",
       channels: {
-        nightly: "Nightly",
+        nightly: "Build nightly",
         rc: "Version candidate",
-        stable: "Stable",
+        stable: "Version stable",
         local: "Compilation locale",
       },
     },

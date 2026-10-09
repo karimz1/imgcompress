@@ -301,7 +301,7 @@ export const de: TranslationSchema = {
       copied: "Kopiert",
       copyFailed: "Kopieren fehlgeschlagen. Du kannst die Build-ID oben markieren.",
       channels: {
-        nightly: "Nightly",
+        nightly: "Nightly-Build",
         rc: "Release-Kandidat",
         stable: "Stabil",
         local: "Lokaler Build",
