@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { UPSCALE_MODELS, UPSCALE_MODEL_NAMES, type UpscaleModelStatus } from "@/lib/upscale";
 
 interface UseUpscaleModelResult {
-  modelName: string | null;
-  available: boolean;
+  models: UpscaleModelStatus[];
   isLoading: boolean;
 }
 
-/** Name of the bundled upscaling model and whether the server has it installed. */
+/** Bundled upscaling models and whether each one is installed. */
 export function useUpscaleModel(): UseUpscaleModelResult {
-  const [modelName, setModelName] = useState<string | null>(null);
-  const [available, setAvailable] = useState(false);
+  const [models, setModels] = useState<UpscaleModelStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,11 +21,20 @@ export function useUpscaleModel(): UseUpscaleModelResult {
           throw new Error("Failed to load upscaling model status");
         }
         const data = await res.json();
-        setModelName(typeof data.model_name === "string" ? data.model_name : null);
-        setAvailable(data.available === true);
+        const statuses = Array.isArray(data.models)
+          ? data.models
+          : [{ id: "general", model_name: data.model_name, available: data.available }];
+        setModels(UPSCALE_MODELS.map((id) => {
+          const status = statuses.find((item: { id?: unknown } | null) => item?.id === id);
+          return {
+            id,
+            modelName: typeof status?.model_name === "string" ? status.model_name : UPSCALE_MODEL_NAMES[id],
+            available: status?.available === true,
+          };
+        }));
       } catch (err) {
         console.error("Error fetching upscaling model status:", err);
-        setAvailable(false);
+        setModels([]);
       } finally {
         setIsLoading(false);
       }
@@ -35,5 +43,5 @@ export function useUpscaleModel(): UseUpscaleModelResult {
     fetchStatus();
   }, []);
 
-  return { modelName, available, isLoading };
+  return { models, isLoading };
 }

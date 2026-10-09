@@ -158,19 +158,28 @@ export const hu: TranslationSchema = {
         "Opcionális maximális kimeneti méret (MB-ban). JPEG, AVIF és WebP kimenethez érvényes.",
     },
     upscale: {
+      modelLabel: "MI-modell",
+      models: {
+        general: "Általános (fényképek)",
+        anime: "Anime (rajzolt képek)",
+      },
       label: "MI-felskálázás",
       tooltip:
-        "Helyi MI-modellel ({{model}}) nagyítja a képeket, amely újraépíti az éleket és a finom részleteket ahelyett, hogy csak széthúzná a pixeleket. Ennek a szervernek a processzorán fut, semmi nem kerül máshová.",
+        "A helyi MI ({{model}}) nagyítja a képeket, és rekonstruálja az éleket és a finom részleteket. Nem igényel internetet.\nA processzoron lassabb a feldolgozás; apró képhibák jelenhetnek meg, különösen az arcokon.",
       targetLabel: "Felskálázás erre",
       options: {
         "2x": "2× nagyobb",
         "4x": "4× nagyobb",
+        "8x": "8× nagyobb",
         "1080p": "Full HD (belefér: 1920 × 1080)",
         "4k": "4K (belefér: 3840 × 2160)",
+        "6k": "6K (belefér: 5760 × 3240)",
+        "8k": "8K (belefér: 7680 × 4320)",
+        "16k": "16K (belefér: 15360 × 8640)",
       },
       hint:
-        "A processzoron fut, ezért eltart egy ideig: egy 720p-s kép 4K-ra gépenként nagyjából 10–40 másodperc. A már elég nagy képek változatlanok maradnak.",
-      unavailableHint: "A felskálázó modell nincs telepítve ezen a szerveren.",
+        "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
+      unavailableHint: "A felskálázó modell nincs telepítve.",
     },
     resizeWidth: {
       label: "Átméretezés szélesség alapján",

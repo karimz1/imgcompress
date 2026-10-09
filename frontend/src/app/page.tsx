@@ -37,7 +37,7 @@ import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 import { useRembgModel } from "@/hooks/useRembgModel";
 import { useUpscaleModel } from "@/hooks/useUpscaleModel";
-import { DEFAULT_UPSCALE_SETTINGS, type UpscaleSettings } from "@/lib/upscale";
+import { DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, type UpscaleSettings } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
@@ -85,7 +85,7 @@ function HomePageContent() {
     unsupportedExtensions: cropUnsupportedExtensions,
   } = useCropUnsupportedExtensions();
   const { modelName: rembgModelName } = useRembgModel();
-  const { modelName: upscaleModelName, available: upscaleAvailable } = useUpscaleModel();
+  const { models: upscaleModels } = useUpscaleModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -101,6 +101,16 @@ function HomePageContent() {
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
   const [upscale, setUpscale] = useState<UpscaleSettings>(DEFAULT_UPSCALE_SETTINGS);
+  const selectedUpscaleModel = upscaleModels.find((model) => model.id === upscale.model);
+  const upscaleModelName = selectedUpscaleModel?.modelName || UPSCALE_MODEL_NAMES[upscale.model];
+  const upscaleAvailable = selectedUpscaleModel?.available === true;
+
+  useEffect(() => {
+    if (!upscaleModels.some((model) => model.id === upscale.model && model.available)) {
+      const availableModel = upscaleModels.find((model) => model.available);
+      if (availableModel) setUpscale((previous) => ({ ...previous, model: availableModel.id }));
+    }
+  }, [upscaleModels, upscale.model]);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
@@ -330,6 +340,7 @@ function HomePageContent() {
       }
       if (upscaleActive) {
         formData.append("upscale", upscale.target);
+        formData.append("upscale_model", upscale.model);
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -588,6 +599,7 @@ function HomePageContent() {
               setUpscale={setUpscale}
               upscaleModelName={upscaleModelName}
               upscaleAvailable={upscaleAvailable}
+              upscaleModels={upscaleModels}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}

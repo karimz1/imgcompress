@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Callable, Optional, Tuple, TypeVar
 
 from backend.image_converter.config.app_config import (
+    DEFAULT_MAX_OUTPUT_MEGAPIXELS,
     AppConfig,
     CropPreviewConfig,
     FeaturesConfig,
@@ -116,7 +117,7 @@ def load_from_file(path: Path) -> AppConfig:
     upscaling = UpscalingConfig(
         threads=reader.optional_thread_count(("upscaling", "threads")),
         max_output_megapixels=reader.optional_int(
-            ("upscaling", "max_output_megapixels"), default=36, minimum=1, maximum=1000
+            ("upscaling", "max_output_megapixels"), default=DEFAULT_MAX_OUTPUT_MEGAPIXELS, minimum=1, maximum=1000
         ),
     )
 

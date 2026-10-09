@@ -22,7 +22,7 @@ from backend.image_converter.domain.pdf_presets import (
 )
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize, to_bytes
-from backend.image_converter.domain.upscaling import UpscaleTarget
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 
 
 class CompressionService:
@@ -87,6 +87,9 @@ class CompressionService:
         upscale = upscale_res.value
         if upscale and fmt == ImageFormat.PDF:
             return Result.failure("AI upscaling is not available for PDF output.")
+        model_res = UpscaleModel.from_string_result(form_data.upscale_model)
+        if not model_res.is_successful:
+            return Result.failure(model_res.error)
 
         src: Optional[str] = None
         dst: Optional[str] = None
@@ -122,6 +125,7 @@ class CompressionService:
                 pdf_quality=pdf_quality,
                 webp_lossless=webp_lossless,
                 upscale=upscale,
+                upscale_model=model_res.value,
             )
 
             result = self.use_case.execute(req)

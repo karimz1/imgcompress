@@ -4,7 +4,7 @@ from backend.image_converter.presentation.cli.argument_parser import parse_argum
 from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.domain.pdf_quality import PdfQuality
-from backend.image_converter.domain.upscaling import UpscaleTarget
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 from backend.image_converter.infrastructure.logger import Logger
 
 def main(argv=None):
@@ -44,6 +44,7 @@ def main(argv=None):
             quality=args.quality,
             width=None if upscale else args.width,
             upscale=upscale,
+            upscale_model=UpscaleModel(args.upscale_model),
             pdf_preset=pdf_preset,
             pdf_scale=pdf_scale,
             pdf_margin_mm=pdf_margin_mm,

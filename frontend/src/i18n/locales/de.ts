@@ -158,19 +158,28 @@ export const de: TranslationSchema = {
         "Lege eine optionale maximale Ausgabegröße (in MB) fest. Gilt für JPEG-, AVIF- und WebP-Ausgaben.",
     },
     upscale: {
+      modelLabel: "KI-Modell",
+      models: {
+        general: "Allgemein (Fotos)",
+        anime: "Anime (gezeichnete Bilder)",
+      },
       label: "KI-Hochskalierung",
       tooltip:
-        "Vergrößert Bilder mit einem lokalen KI-Modell ({{model}}), das Kanten und feine Details neu aufbaut, statt nur Pixel zu strecken. Es läuft auf der CPU dieses Servers, es wird nichts nach außen gesendet.",
+        "Vergrößert Bilder mit lokaler KI ({{model}}), die Kanten und feine Details rekonstruiert. Kein Internet erforderlich.\nLangsamere Verarbeitung auf der CPU; kleine Artefakte können auftreten, besonders bei Gesichtern.",
       targetLabel: "Hochskalieren auf",
       options: {
         "2x": "2× größer",
         "4x": "4× größer",
+        "8x": "8× größer",
         "1080p": "Full HD (passt in 1920 × 1080)",
         "4k": "4K (passt in 3840 × 2160)",
+        "6k": "6K (passt in 5760 × 3240)",
+        "8k": "8K (passt in 7680 × 4320)",
+        "16k": "16K (passt in 15360 × 8640)",
       },
       hint:
-        "Läuft auf der CPU und dauert daher etwas: Ein 720p-Bild auf 4K braucht je nach Rechner etwa 10 bis 40 Sekunden. Bilder, die schon groß genug sind, bleiben unverändert.",
-      unavailableHint: "Das Modell für die Hochskalierung ist auf diesem Server nicht installiert.",
+        "Behält das Seitenverhältnis bei. Bilder, die für die Zielauflösung bereits groß genug sind, bleiben unverändert. Größere Bilder und langsamere CPUs brauchen mehr Zeit. Über 4× folgt auf die KI-Hochskalierung eine normale Größenänderung.",
+      unavailableHint: "Das Modell für die Hochskalierung ist nicht installiert.",
     },
     resizeWidth: {
       label: "Breite ändern",

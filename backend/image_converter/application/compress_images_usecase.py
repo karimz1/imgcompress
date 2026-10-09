@@ -69,7 +69,7 @@ class CompressImagesUseCase:
                     if pdf_preset and req.image_format == ImageFormat.PDF:
                         data = payload.data
                     elif req.upscale:
-                        upscaled_data = self._get_upscaler().upscale(payload.data, req.upscale)
+                        upscaled_data = self._get_upscaler().upscale(payload.data, req.upscale, req.upscale_model)
                         upscaled = upscaled_data is not None
                         data = upscaled_data if upscaled else payload.data
                     else:

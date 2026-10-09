@@ -85,6 +85,17 @@ def test_extract_form_data_falls_back_to_defaults():
     assert form_data.target_size_kb is None
     assert form_data.use_rembg is False
     assert form_data.pdf_paginate is False
+    assert form_data.upscale_model == "general"
+
+
+def test_extract_form_data_preserves_upscale_model_selection():
+    request = _build_request(
+        {"format": "png", "upscale": "4x", "upscale_model": "anime"},
+        {"files[]": (b"x", "image.png")},
+    )
+    result = extract_form_data(request, _Logger())
+    assert result.is_successful
+    assert result.value.upscale_model == "anime"
 
 
 def test_extract_form_data_clamps_pdf_margin():

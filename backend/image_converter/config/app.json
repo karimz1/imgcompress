@@ -44,6 +44,6 @@
   },
   "upscaling": {
     "threads": "auto",
-    "max_output_megapixels": 36
+    "max_output_megapixels": 144
   }
 }

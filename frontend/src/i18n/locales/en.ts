@@ -155,19 +155,28 @@ export const en = {
         "Set an optional maximum output size (in MB). Applies to JPEG, AVIF, and WebP output.",
     },
     upscale: {
+      modelLabel: "AI model",
+      models: {
+        general: "General (photos)",
+        anime: "Anime (drawn images)",
+      },
       label: "AI upscaling",
       tooltip:
-        "Enlarges images with a local AI model ({{model}}) that rebuilds edges and fine detail instead of just stretching pixels. It runs on this server's CPU and nothing is sent anywhere.",
+        "Local AI ({{model}}) enlarges images and reconstructs edges and fine detail. No internet required.\nSlower processing on the CPU; small artifacts may appear, especially in faces.",
       targetLabel: "Upscale to",
       options: {
         "2x": "2× larger",
         "4x": "4× larger",
+        "8x": "8× larger",
         "1080p": "Full HD (fits 1920 × 1080)",
         "4k": "4K (fits 3840 × 2160)",
+        "6k": "6K (fits 5760 × 3240)",
+        "8k": "8K (fits 7680 × 4320)",
+        "16k": "16K (fits 15360 × 8640)",
       },
       hint:
-        "Runs on the CPU, so it takes a while: a 720p image to 4K needs roughly 10 to 40 seconds depending on the machine. Images that are already big enough stay as they are.",
-      unavailableHint: "The upscaling model is not installed on this server.",
+        "Keeps the aspect ratio. Images already large enough for a resolution target stay unchanged. Larger images and slower CPUs take longer. Beyond 4×, AI upscaling is followed by standard resizing.",
+      unavailableHint: "The upscaling model is not installed.",
     },
     resizeWidth: {
       label: "Resize Width",

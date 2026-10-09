@@ -63,6 +63,11 @@ class RembgConfig:
     model_name: str
 
 
+# Enough for a 16K UHD frame (15360x8640), with a little room for other ratios.
+# This caps output allocation; tiling only bounds the model's working memory.
+DEFAULT_MAX_OUTPUT_MEGAPIXELS = 144
+
+
 @dataclass(frozen=True)
 class UpscalingConfig:
     # None means "auto": the CPUs available to the container, capped at 8.

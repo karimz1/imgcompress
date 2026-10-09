@@ -7,7 +7,7 @@ from backend.image_converter.core.internals.file_manager import FileManager
 from backend.image_converter.core.internals.image_loader import ImageLoader
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.domain.pdf_quality import PdfQuality
-from backend.image_converter.domain.upscaling import UpscaleTarget
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.enums.conversion_error import ConversionError
@@ -46,7 +46,8 @@ class ImageConversionProcessor:
         webp_lossless: bool = False,
         use_rembg: bool = False,
         debug: bool = False,
-        json_output: bool = False
+        json_output: bool = False,
+        upscale_model: UpscaleModel = UpscaleModel.GENERAL,
     ):
         self.source = source
         self.destination = destination
@@ -54,6 +55,7 @@ class ImageConversionProcessor:
         self.quality = quality
         self.width = width
         self.upscale = upscale
+        self.upscale_model = upscale_model
         self._upscaler = None
         self.pdf_preset = pdf_preset
         self.pdf_scale = pdf_scale
@@ -183,7 +185,7 @@ class ImageConversionProcessor:
             if self.image_format == ImageFormat.PDF and self.pdf_preset_config:
                 data = payload.data
             elif self.upscale:
-                upscaled = self._get_upscaler().upscale(payload.data, self.upscale)
+                upscaled = self._get_upscaler().upscale(payload.data, self.upscale, self.upscale_model)
                 if upscaled is not None:
                     data = upscaled
                     with Image.open(BytesIO(data)) as upscaled_img:

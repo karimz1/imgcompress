@@ -166,7 +166,7 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
 # Stage 2b: AI UPSCALING MODEL BUILD
 # ------------------------------------------------------------------------------------------
-# Intent: Build the ONNX model for AI upscaling from the official Real-ESRGAN weights in
+# Intent: Build the general and anime ONNX models from the official Real-ESRGAN weights in
 # a stage of its own. The .pth weights are a Python pickle, so they are SHA-256 checked
 # against the official release before anything loads them, then loaded with
 # torch.load(weights_only=True) and exported to ONNX (graph and weights, no code).

@@ -8,6 +8,9 @@ when the model is installed (it is in the Docker image) and are skipped otherwis
 import hashlib
 import importlib.util
 import json
+import threading
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from pathlib import Path
 from io import BytesIO
 from types import SimpleNamespace
@@ -21,7 +24,7 @@ from backend.image_converter.application.dtos import CompressionFormData
 from backend.image_converter.config import settings
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
-from backend.image_converter.domain.upscaling import UpscalePlan, UpscaleTarget, plan_upscale
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscalePlan, UpscaleTarget, plan_upscale
 from backend.image_converter.infrastructure import ai_upscaler, upscale_model
 from backend.image_converter.infrastructure.ai_upscaler import (
     AiUpscaler,
@@ -78,27 +81,68 @@ def _random_rgb(width: int, height: int, seed: int = 0) -> Image.Image:
     [
         ((640, 360), UpscaleTarget.X2, (1280, 720)),
         ((640, 360), UpscaleTarget.X4, (2560, 1440)),
+        ((640, 360), UpscaleTarget.X8, (5120, 2880)),
         ((1280, 720), UpscaleTarget.UHD_4K, (3840, 2160)),
         ((1280, 720), UpscaleTarget.FULL_HD, (1920, 1080)),
         ((720, 1280), UpscaleTarget.UHD_4K, (2160, 3840)),
         ((1000, 1000), UpscaleTarget.UHD_4K, (2160, 2160)),
         ((800, 200), UpscaleTarget.FULL_HD, (1920, 480)),
+        ((1280, 720), UpscaleTarget.UHD_6K, (5760, 3240)),
+        ((1280, 720), UpscaleTarget.UHD_8K, (7680, 4320)),
+        ((3840, 2160), UpscaleTarget.UHD_16K, (15360, 8640)),
+        ((3840, 2160), UpscaleTarget.X4, (15360, 8640)),
+        ((1920, 1080), UpscaleTarget.X8, (15360, 8640)),
+        ((2160, 3840), UpscaleTarget.UHD_16K, (8640, 15360)),
     ],
 )
 def test_When_PlanningUpscale_Expect_OutputSizeForTarget(size, target, expected):
-    plan = plan_upscale(*size, target, max_output_pixels=36_000_000)
+    upscaler = AiUpscaler(_Logger())
+    plan = plan_upscale(*size, target, max_output_pixels=upscaler.max_output_pixels)
 
     assert plan.is_successful
     assert plan.value == UpscalePlan(size, expected)
     assert not plan.value.is_noop
 
 
-@pytest.mark.parametrize(("size", "target"), [((3840, 2160), UpscaleTarget.UHD_4K), ((2000, 1200), UpscaleTarget.FULL_HD)])
+@pytest.mark.parametrize(
+    ("size", "target"),
+    [
+        ((3840, 2160), UpscaleTarget.UHD_4K),
+        ((2000, 1200), UpscaleTarget.FULL_HD),
+        ((5760, 3240), UpscaleTarget.UHD_6K),
+        ((4320, 7680), UpscaleTarget.UHD_8K),
+        ((15360, 8640), UpscaleTarget.UHD_16K),
+        ((16000, 9000), UpscaleTarget.UHD_16K),
+    ],
+)
 def test_When_ImageAlreadyMeetsFrame_Expect_NoopNotShrunk(size, target):
     plan = plan_upscale(*size, target, max_output_pixels=36_000_000)
 
     assert plan.value.is_noop
     assert plan.value.output_size == size
+
+
+@pytest.mark.parametrize(
+    ("target", "frame"),
+    [
+        (UpscaleTarget.FULL_HD, (1920, 1080)),
+        (UpscaleTarget.UHD_4K, (3840, 2160)),
+        (UpscaleTarget.UHD_6K, (5760, 3240)),
+        (UpscaleTarget.UHD_8K, (7680, 4320)),
+        (UpscaleTarget.UHD_16K, (15360, 8640)),
+    ],
+)
+@pytest.mark.parametrize("size", [(640, 480), (480, 640), (100, 100), (800, 200), (200, 800), (321, 227)])
+def test_When_FittingFrame_Expect_NoStretchOrCrop(size, target, frame):
+    plan = plan_upscale(*size, target, max_output_pixels=144_000_000)
+
+    assert plan.is_successful
+    width, height = plan.value.output_size
+    assert max(width, height) <= frame[0]
+    assert min(width, height) <= frame[1]
+    assert max(width, height) == frame[0] or min(width, height) == frame[1]
+    # A single scale factor, allowing only half-pixel rounding on either side.
+    assert abs(width * size[1] - height * size[0]) <= max(size) / 2
 
 
 def test_When_OutputWouldExceedLimit_Expect_FailureWithSizes():
@@ -109,7 +153,20 @@ def test_When_OutputWouldExceedLimit_Expect_FailureWithSizes():
     assert "36 MP limit" in plan.error
 
 
-@pytest.mark.parametrize(("raw", "expected"), [("", None), ("  ", None), (None, None), ("4X", UpscaleTarget.X4), ("4k", UpscaleTarget.UHD_4K)])
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("", None),
+        ("  ", None),
+        (None, None),
+        ("4X", UpscaleTarget.X4),
+        ("4k", UpscaleTarget.UHD_4K),
+        ("8X", UpscaleTarget.X8),
+        ("6K", UpscaleTarget.UHD_6K),
+        (" 8k ", UpscaleTarget.UHD_8K),
+        ("16k", UpscaleTarget.UHD_16K),
+    ],
+)
 def test_When_ParsingUpscaleOption_Expect_TargetOrOff(raw, expected):
     result = UpscaleTarget.from_string_result(raw)
 
@@ -118,14 +175,28 @@ def test_When_ParsingUpscaleOption_Expect_TargetOrOff(raw, expected):
 
 
 def test_When_UpscaleOptionUnknown_Expect_FailureListingOptions():
-    result = UpscaleTarget.from_string_result("8x")
+    result = UpscaleTarget.from_string_result("16x")
 
     assert not result.is_successful
-    assert "'8x'" in result.error
-    assert "2x, 4x, 1080p, 4k" in result.error
+    assert "'16x'" in result.error
+    assert "2x, 4x, 8x, 1080p, 4k, 6k, 8k, 16k" in result.error
 
 
 # --- Bundled model file -----------------------------------------------------------------
+
+
+@pytest.mark.parametrize(("raw", "expected"), [(None, UpscaleModel.GENERAL), ("", UpscaleModel.GENERAL),
+                                               ("general", UpscaleModel.GENERAL), (" ANIME ", UpscaleModel.ANIME)])
+def test_When_ParsingUpscaleModel_Expect_DefaultOrSelectedModel(raw, expected):
+    result = UpscaleModel.from_string_result(raw)
+    assert result.is_successful
+    assert result.value == expected
+
+
+def test_When_UpscaleModelUnknown_Expect_Rejected():
+    result = UpscaleModel.from_string_result("../custom")
+    assert not result.is_successful
+    assert "Unsupported upscale model" in result.error
 
 
 def _install(directory: Path, content: bytes, checksum_of: bytes | None = None) -> Path:
@@ -209,6 +280,9 @@ def test_When_BuildScriptAndAppNameFiles_Expect_SameNames(build_script):
     assert build_script.ONNX_FILENAME == MODEL_FILENAME
     assert build_script.CHECKSUM_SUFFIX == CHECKSUM_SUFFIX
     assert build_script.WEIGHTS_URL.startswith("https://github.com/xinntao/Real-ESRGAN/releases/download/")
+    for model in UpscaleModel:
+        assert build_script.MODEL_SPECS[model.value]["name"] == model.model_name
+    assert build_script.MODEL_SPECS["anime"]["num_conv"] == 16
 
 
 def test_When_WeightsMatchPinnedChecksum_Expect_FileKept(build_script, tmp_path, monkeypatch):
@@ -220,14 +294,15 @@ def test_When_WeightsMatchPinnedChecksum_Expect_FileKept(build_script, tmp_path,
     assert [p.name for p in tmp_path.iterdir()] == [build_script.WEIGHTS_FILENAME]
 
 
-def test_When_WeightsChecksumWrong_Expect_ErrorAndNothingLeftToLoad(build_script, tmp_path, monkeypatch):
+@pytest.mark.parametrize("model", list(UpscaleModel))
+def test_When_WeightsChecksumWrong_Expect_ErrorAndNothingLeftToLoad(build_script, tmp_path, monkeypatch, model):
     monkeypatch.setattr(build_script.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"tampered"))
     monkeypatch.setattr(
         build_script, "build_reference_model", lambda weights: pytest.fail("must not load unverified weights")
     )
 
     with pytest.raises(RuntimeError, match="Checksum mismatch"):
-        build_script.build(tmp_path / "out", tmp_path / "cache")
+        build_script.build(tmp_path / "out", tmp_path / "cache", model.value)
 
     assert list((tmp_path / "cache").iterdir()) == []
     assert not (tmp_path / "out").exists()
@@ -283,11 +358,33 @@ def test_When_GraphHasUnexpectedOp_Expect_Rejected(build_script, op_type, domain
 
 
 def test_When_AskingForModelStatus_Expect_NameAndAvailability():
-    available = ConfigurationService("u2net", locate_upscale_model=lambda: Result.success("model.onnx"))
-    missing = ConfigurationService("u2net", locate_upscale_model=lambda: Result.failure("missing"))
+    available = ConfigurationService("u2net", locate_upscale_model=lambda filename: Result.success(filename))
+    missing = ConfigurationService("u2net", locate_upscale_model=lambda filename: Result.failure("missing"))
 
-    assert available.get_upscale_model_status() == {"model_name": "realesr-general-x4v3", "available": True}
+    assert available.get_upscale_model_status() == {
+        "model_name": "realesr-general-x4v3", "available": True,
+        "models": [{"id": model.value, "model_name": model.model_name, "available": True} for model in UpscaleModel],
+    }
     assert missing.get_upscale_model_status()["available"] is False
+    assert all(not model["available"] for model in missing.get_upscale_model_status()["models"])
+
+
+def test_When_OnlyGeneralInstalled_Expect_AnimeUnavailable():
+    service = ConfigurationService("u2net", locate_upscale_model=lambda filename:
+                                   Result.success(filename) if filename == UpscaleModel.GENERAL.filename
+                                   else Result.failure("missing"))
+    assert [model["available"] for model in service.get_upscale_model_status()["models"]] == [True, False]
+
+
+def test_When_SelectingModel_Expect_OnlyThatCheckpointLoaded(monkeypatch):
+    selected = []
+    monkeypatch.setattr(ai_upscaler, "locate_model", lambda filename: selected.append(filename) or Result.success(Path(filename)))
+    monkeypatch.setattr(ai_upscaler._OrtSession, "get", lambda *args: SimpleNamespace(run=_nearest_4x))
+    upscaler = AiUpscaler(_Logger())
+    for model in [UpscaleModel.GENERAL, UpscaleModel.ANIME, UpscaleModel.GENERAL]:
+        result = _decode(upscaler.upscale(_encode(_random_rgb(8, 6)), UpscaleTarget.X4, model))
+        assert result.size == (32, 24)
+    assert selected == [UpscaleModel.GENERAL.filename, UpscaleModel.ANIME.filename, UpscaleModel.GENERAL.filename]
 
 
 # --- Upscaler with a fake model -----------------------------------------------------------
@@ -317,6 +414,106 @@ def test_When_UpscalingToOtherSize_Expect_TilesMatchSinglePass(output):
     # Float box edges round slightly differently per tile; invisible, but not bit-exact.
     assert diff.max() <= 2
     assert diff.mean() < 0.05
+
+
+def test_When_Upscaling8x_Expect_OneModelPassPerTileAndNoSeams(monkeypatch):
+    monkeypatch.setattr(ai_upscaler, "_TILE", 32)
+    source = _random_rgb(63, 37).filter(ImageFilter.GaussianBlur(2))
+    calls = []
+
+    def _model(tile):
+        calls.append(tile.shape)
+        return _nearest_4x(tile)
+
+    upscaler = AiUpscaler(_Logger(), run_model=_model)
+    result = _decode(upscaler.upscale(_encode(source), UpscaleTarget.X8))
+    whole = Image.fromarray(np.asarray(source).repeat(4, axis=0).repeat(4, axis=1))
+    expected = whole.resize((504, 296), Image.Resampling.LANCZOS)
+
+    assert result.size == (504, 296)
+    assert len(calls) == 4
+    assert np.abs(np.asarray(result).astype(int) - np.asarray(expected).astype(int)).max() <= 2
+
+
+def test_When_TinyImageFillsLargeOutput_Expect_BoundedResizingWithoutSeams(monkeypatch):
+    monkeypatch.setattr(ai_upscaler, "_OUTPUT_TILE", 128)
+    source = _random_rgb(17, 11).filter(ImageFilter.GaussianBlur(2))
+    output_size = (1501, 971)
+    sizes = []
+    original_resize = Image.Image.resize
+
+    def _resize(image, size, *args, **kwargs):
+        sizes.append(size)
+        return original_resize(image, size, *args, **kwargs)
+
+    monkeypatch.setattr(Image.Image, "resize", _resize)
+    result = AiUpscaler(_Logger(), run_model=_nearest_4x).upscale_image(source, UpscalePlan(source.size, output_size))
+    whole = Image.fromarray(np.asarray(source).repeat(4, axis=0).repeat(4, axis=1))
+    expected = original_resize(whole, output_size, Image.Resampling.LANCZOS)
+
+    assert len(sizes) > 1
+    assert all(max(size) <= 128 for size in sizes)
+    diff = np.abs(np.asarray(result).astype(int) - np.asarray(expected).astype(int))
+    assert diff.max() <= 2
+    assert diff.mean() < 0.05
+
+
+def test_When_ConcurrentUpscales_Expect_DecodeWaitsUntilPreviousEncodingFinishes(monkeypatch):
+    image_data = _encode(_random_rgb(20, 10))
+    upscaler = AiUpscaler(_Logger(), run_model=_nearest_4x)
+    encoding = threading.Event()
+    second_waiting = threading.Event()
+    release = threading.Event()
+    decoded = []
+    original_open = Image.open
+    original_save = Image.Image.save
+    original_exclusive = ai_upscaler._exclusive_inference
+
+    def _open(*args, **kwargs):
+        decoded.append(threading.current_thread().name)
+        return original_open(*args, **kwargs)
+
+    def _save(image, *args, **kwargs):
+        if threading.current_thread().name == "first" and kwargs.get("format") == "TIFF":
+            encoding.set()
+            assert release.wait(5), "test did not release encoding"
+        return original_save(image, *args, **kwargs)
+
+    @contextmanager
+    def _exclusive():
+        if threading.current_thread().name == "second":
+            second_waiting.set()
+        with original_exclusive():
+            yield
+
+    def _run(name):
+        threading.current_thread().name = name
+        return upscaler.upscale(image_data, UpscaleTarget.X4)
+
+    monkeypatch.setattr(Image, "open", _open)
+    monkeypatch.setattr(Image.Image, "save", _save)
+    monkeypatch.setattr(ai_upscaler, "_exclusive_inference", _exclusive)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            first = pool.submit(_run, "first")
+            assert encoding.wait(5)
+            second = pool.submit(_run, "second")
+            assert second_waiting.wait(5)
+            assert decoded == ["first"]
+        finally:
+            release.set()
+        assert first.result(timeout=5)
+        assert second.result(timeout=5)
+    assert decoded == ["first", "second"]
+
+
+def test_When_UpscalingImageWithColourProfile_Expect_ProfilePreserved():
+    profile = b"sample ICC profile"
+    image_data = _encode(_random_rgb(20, 10), icc_profile=profile)
+
+    result = _decode(AiUpscaler(_Logger(), run_model=_nearest_4x).upscale(image_data, UpscaleTarget.X4))
+
+    assert result.info["icc_profile"] == profile
 
 
 def test_When_ModelOutputLeavesRange_Expect_Clamped():
@@ -357,6 +554,23 @@ def test_When_OutputAboveConfiguredLimit_Expect_ValueErrorBeforeModelRuns():
 
     with pytest.raises(ValueError, match="1 MP limit"):
         upscaler.upscale(_encode(_random_rgb(400, 300)), UpscaleTarget.X4)
+
+
+def test_When_OutputAboveDefaultLimit_Expect_FailureBeforeModelLoads(monkeypatch):
+    upscaler = AiUpscaler(_Logger())
+    monkeypatch.setattr(upscaler, "_load_model", lambda: pytest.fail("must refuse before loading model"))
+
+    # 16K by 9K = 144 MP is the default ceiling; 16004x9000 is just above it.
+    with pytest.raises(ValueError, match="144 MP limit"):
+        upscaler.upscale(_encode(Image.new("RGB", (4001, 2250))), UpscaleTarget.X4)
+
+
+def test_When_OutputAtConfiguredLimit_Expect_UpscaleAllowed():
+    upscaler = AiUpscaler(_Logger(), max_output_megapixels=1, run_model=_nearest_4x)
+
+    result = _decode(upscaler.upscale(_encode(Image.new("RGB", (500, 500))), UpscaleTarget.X2))
+
+    assert result.size == (1000, 1000)
 
 
 def test_When_ModelNotInstalled_Expect_ValueErrorWithReason(tmp_path, monkeypatch):
@@ -472,6 +686,23 @@ def test_When_OnlyCpuAvailable_Expect_CpuSession(monkeypatch, tmp_path):
     assert session.providers == ["CPUExecutionProvider"]
 
 
+def test_When_SwitchingCachedModels_Expect_SessionUsesSelectedCheckpoint(monkeypatch, tmp_path):
+    created = []
+    def _create(path, options, providers):
+        created.append(Path(path).name)
+        return _FakeSession(providers)
+    monkeypatch.setitem(__import__("sys").modules, "onnxruntime", _fake_ort(["CPUExecutionProvider"], _create))
+    monkeypatch.setattr(ai_upscaler._OrtSession, "_instance", None)
+    general = tmp_path / UpscaleModel.GENERAL.filename
+    anime = tmp_path / UpscaleModel.ANIME.filename
+    first = ai_upscaler._OrtSession.get(general, 2, _Logger())
+    assert ai_upscaler._OrtSession.get(general, 2, _Logger()) is first
+    ai_upscaler._OrtSession.get(anime, 2, _Logger())
+    final = ai_upscaler._OrtSession.get(general, 2, _Logger())
+    assert final is not first
+    assert created == [general.name, anime.name, general.name]
+
+
 def test_When_GpuSessionCannotBeCreated_Expect_CpuFallback(monkeypatch, tmp_path):
     def _create(path, options, providers):
         if "CUDAExecutionProvider" in providers:
@@ -518,11 +749,22 @@ def _load_config(tmp_path, upscaling=None):
     return load_from_file(path)
 
 
-def test_When_UpscalingBlockMissing_Expect_AutoThreadsAnd36Megapixels(tmp_path):
+def test_When_UpscalingBlockMissing_Expect_AutoThreadsAnd144Megapixels(tmp_path):
     config = _load_config(tmp_path)
 
     assert config.upscaling.threads is None
-    assert config.upscaling.max_output_megapixels == 36
+    assert config.upscaling.max_output_megapixels == 144
+
+
+def test_When_DefaultConfigLoaded_Expect_16KUpscaleAllowed():
+    config = settings.get()
+    upscaler = AiUpscaler(_Logger(), max_output_megapixels=config.upscaling.max_output_megapixels)
+
+    plan = plan_upscale(3840, 2160, UpscaleTarget.UHD_16K, upscaler.max_output_pixels)
+
+    assert plan.is_successful
+    assert plan.value.output_size == (15360, 8640)
+    assert upscaler.max_output_pixels == 144_000_000
 
 
 def test_When_UpscalingConfigured_Expect_Values(tmp_path):
@@ -601,13 +843,29 @@ def test_When_CompressingWithUnknownUpscale_Expect_Rejected():
     assert "Unsupported upscale option" in result.error
 
 
-def test_When_CompressingWithUpscale_Expect_TargetPassedAndWidthDropped(tmp_path):
+def test_When_CompressingWithUnknownModel_Expect_RejectedBeforeProcessing():
+    service = CompressionService(DummyLogger(), use_case=None, temp_folder_service=None)
+    result = service.compress(_form_data(ImageFormat.JPEG, upscale="4x", upscale_model="unknown"))
+    assert not result.is_successful
+    assert "Unsupported upscale model" in result.error
+
+
+@pytest.mark.parametrize("model", list(UpscaleModel))
+def test_When_CompressingWithSelectedModel_Expect_ModelPassed(tmp_path, model):
+    use_case = _CapturingUseCase()
+    service = CompressionService(DummyLogger(), use_case=use_case, temp_folder_service=_TempFolders(tmp_path))
+    service.compress(_form_data(ImageFormat.JPEG, upscale="4x", upscale_model=model.value))
+    assert use_case.request.upscale_model == model
+
+
+@pytest.mark.parametrize("target", list(UpscaleTarget))
+def test_When_CompressingWithUpscale_Expect_TargetPassedAndWidthDropped(tmp_path, target):
     use_case = _CapturingUseCase()
     service = CompressionService(DummyLogger(), use_case=use_case, temp_folder_service=_TempFolders(tmp_path))
 
-    service.compress(_form_data(ImageFormat.PNG, upscale="4k"))
+    service.compress(_form_data(ImageFormat.PNG, upscale=target.value))
 
-    assert use_case.request.upscale == UpscaleTarget.UHD_4K
+    assert use_case.request.upscale == target
     assert use_case.request.width is None
 
 
@@ -655,7 +913,8 @@ def test_When_CliProcessorUpscales_Expect_OutputAtPlannedSize(tmp_path, monkeypa
     assert processor.results[0].resized_width == 256
 
 
-def test_When_CliGetsUpscale_Expect_ProcessorReceivesTargetAndNoWidth(monkeypatch):
+@pytest.mark.parametrize("target", list(UpscaleTarget))
+def test_When_CliGetsUpscale_Expect_ProcessorReceivesTargetAndNoWidth(monkeypatch, target):
     from backend.image_converter.presentation.cli import app
 
     captured = {}
@@ -669,10 +928,24 @@ def test_When_CliGetsUpscale_Expect_ProcessorReceivesTargetAndNoWidth(monkeypatc
 
     monkeypatch.setattr(app, "ImageConversionProcessor", _Processor)
 
-    app.main(["in", "out", "--width", "300", "--upscale", "4k"])
+    app.main(["in", "out", "--width", "300", "--upscale", target.value])
 
-    assert captured["upscale"] == UpscaleTarget.UHD_4K
+    assert captured["upscale"] == target
     assert captured["width"] is None
+    assert captured["upscale_model"] == UpscaleModel.GENERAL
+
+
+def test_When_CliSelectsAnime_Expect_ProcessorReceivesModel(monkeypatch):
+    from backend.image_converter.presentation.cli import app
+    captured = {}
+    class _Processor:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+        def run(self):
+            pass
+    monkeypatch.setattr(app, "ImageConversionProcessor", _Processor)
+    app.main(["in", "out", "--upscale", "4x", "--upscale-model", "anime"])
+    assert captured["upscale_model"] == UpscaleModel.ANIME
 
 
 @pytest.mark.parametrize("argv", [["in", "out", "--upscale", "4k", "--format", "pdf"]])
@@ -715,11 +988,14 @@ def _psnr(a: Image.Image, b: Image.Image) -> float:
 
 
 @_needs_model
-def test_When_RealModelUpscales4x_Expect_SharperThanBicubicAndFaithful():
+@pytest.mark.parametrize("model", list(UpscaleModel))
+def test_When_RealModelUpscales4x_Expect_SharperThanBicubicAndFaithful(model):
+    if not locate_model(model.filename).is_successful:
+        pytest.skip(f"{model.model_name} not installed")
     source = _test_card(160, 90)
     upscaler = AiUpscaler(_Logger(), threads=2)
 
-    ai = _decode(upscaler.upscale(_encode(source), UpscaleTarget.X4))
+    ai = _decode(upscaler.upscale(_encode(source), UpscaleTarget.X4, model))
     bicubic = source.resize(ai.size, Image.Resampling.BICUBIC)
 
     assert ai.size == (640, 360)
@@ -729,13 +1005,16 @@ def test_When_RealModelUpscales4x_Expect_SharperThanBicubicAndFaithful():
 
 
 @_needs_model
-def test_When_RealModelRunsTiled_Expect_NoSeams():
+@pytest.mark.parametrize("selected", list(UpscaleModel))
+def test_When_RealModelRunsTiled_Expect_NoSeams(selected):
+    if not locate_model(selected.filename).is_successful:
+        pytest.skip(f"{selected.model_name} not installed")
     source = _test_card(300, 300)
     upscaler = AiUpscaler(_Logger(), threads=2)
-    model = upscaler._load_model()
+    model = upscaler._load_model(selected)
     whole = model(np.asarray(source, dtype=np.float32).transpose(2, 0, 1)[None] / 255.0)[0]
     whole = (np.clip(whole, 0, 1) * 255 + 0.5).astype(np.uint8).transpose(1, 2, 0)
 
-    tiled = np.asarray(upscaler.upscale_image(source, UpscalePlan((300, 300), (1200, 1200))))
+    tiled = np.asarray(upscaler.upscale_image(source, UpscalePlan((300, 300), (1200, 1200)), selected))
 
     assert np.abs(tiled.astype(int) - whole.astype(int)).max() <= 1

@@ -1,5 +1,5 @@
 """
-Builds the ONNX file for AI upscaling from the official Real-ESRGAN weights.
+Builds the ONNX files for AI upscaling from the official Real-ESRGAN weights.
 
 Runs in its own Docker build stage (see the Dockerfile). Only the .onnx file and
 its .sha256 file are copied into the runtime image; torch, onnx and the .pth
@@ -44,6 +44,19 @@ WEIGHTS_FILENAME = "realesr-general-x4v3.pth"
 ONNX_FILENAME = "realesr-general-x4v3.onnx"
 CHECKSUM_SUFFIX = ".sha256"
 
+MODEL_SPECS = {
+    "general": {
+        "name": "realesr-general-x4v3",
+        "sha256": WEIGHTS_SHA256,
+        "num_conv": 32,
+    },
+    "anime": {
+        "name": "realesr-animevideov3",
+        "sha256": "b8a8376811077954d82ca3fcf476f1ac3da3e8a68a4f4d71363008000a18b75d",
+        "num_conv": 16,
+    },
+}
+
 OPSET = 17
 # Exactly the operators SRVGGNetCompact exports to with the pinned torch version.
 # Anything else means the graph is not what we expect; if a torch upgrade changes
@@ -60,17 +73,19 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def fetch_verified_weights(cache_dir: Path, url: str = WEIGHTS_URL, sha256: str = WEIGHTS_SHA256) -> Path:
+def fetch_verified_weights(
+    cache_dir: Path, url: str = WEIGHTS_URL, sha256: str = WEIGHTS_SHA256, filename: str = WEIGHTS_FILENAME
+) -> Path:
     """
     Returns the path of the weights file after checking its SHA-256. Downloads
     only if there is no verified copy in cache_dir. Never loads the file.
     """
     cache_dir.mkdir(parents=True, exist_ok=True)
-    destination = cache_dir / WEIGHTS_FILENAME
+    destination = cache_dir / filename
     if destination.is_file() and sha256_file(destination) == sha256:
         return destination
 
-    fd, temp_name = tempfile.mkstemp(dir=cache_dir, prefix=f".{WEIGHTS_FILENAME}.")
+    fd, temp_name = tempfile.mkstemp(dir=cache_dir, prefix=f".{filename}.")
     try:
         with os.fdopen(fd, "wb") as out, urllib.request.urlopen(url, timeout=120) as response:
             shutil.copyfileobj(response, out)
@@ -102,14 +117,15 @@ def check_graph(model) -> None:
             raise RuntimeError(f"ONNX initializer {tensor.name} uses external data")
 
 
-def build_reference_model(weights: Path):
+def build_reference_model(weights: Path, num_conv: int = 32):
     import torch
     from torch import nn
     from torch.nn import functional as F
 
     class SRVGGNetCompact(nn.Module):
-        # Same layers as realesrgan/archs/srvgg_arch.py with the settings of
-        # realesr-general-x4v3: num_feat=64, num_conv=32, upscale=4, PReLU.
+        # Same layers as realesrgan/archs/srvgg_arch.py. Both models use
+        # num_feat=64, upscale=4, PReLU. General uses 32 hidden convolutions;
+        # anime uses 16.
         def __init__(self, num_feat=64, num_conv=32, upscale=4):
             super().__init__()
             self.upscale = upscale
@@ -128,7 +144,7 @@ def build_reference_model(weights: Path):
 
     # weights_only=True: only tensors and plain containers are unpickled.
     state = torch.load(weights, map_location="cpu", weights_only=True)
-    model = SRVGGNetCompact()
+    model = SRVGGNetCompact(num_conv=num_conv)
     model.load_state_dict(state.get("params", state), strict=True)
     model.eval()
     return model
@@ -167,28 +183,36 @@ def compare_with_reference(model, onnx_path: Path) -> float:
     return worst
 
 
-def build(output_dir: Path, cache_dir: Path) -> Path:
+def build(output_dir: Path, cache_dir: Path, model: str = "general") -> Path:
+    spec = MODEL_SPECS[model]
+    name = spec["name"]
+    filename = f"{name}.onnx"
     # Verify first; nothing below may run on weights that failed the checksum.
-    weights = fetch_verified_weights(cache_dir)
-    model = build_reference_model(weights)
+    weights = fetch_verified_weights(
+        cache_dir,
+        url=f"https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/{name}.pth",
+        sha256=spec["sha256"],
+        filename=f"{name}.pth",
+    )
+    reference = build_reference_model(weights, num_conv=spec["num_conv"])
 
     import onnx
 
     output_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=output_dir) as tmp:
-        candidate = Path(tmp) / ONNX_FILENAME
-        export_onnx(model, candidate)
+        candidate = Path(tmp) / filename
+        export_onnx(reference, candidate)
         check_graph(onnx.load(str(candidate)))
-        worst = compare_with_reference(model, candidate)
+        worst = compare_with_reference(reference, candidate)
         if worst > TOLERANCE:
             raise RuntimeError(f"ONNX output differs from PyTorch by {worst:.2e} (limit {TOLERANCE:.0e})")
 
-        destination = output_dir / ONNX_FILENAME
+        destination = output_dir / filename
         os.chmod(candidate, 0o644)
         os.replace(candidate, destination)
     checksum = sha256_file(destination)
-    checksum_path = output_dir / (ONNX_FILENAME + CHECKSUM_SUFFIX)
-    checksum_path.write_text(f"{checksum}  {ONNX_FILENAME}\n", encoding="utf-8")
+    checksum_path = output_dir / (filename + CHECKSUM_SUFFIX)
+    checksum_path.write_text(f"{checksum}  {filename}\n", encoding="utf-8")
     os.chmod(checksum_path, 0o644)
     print(f"built {destination} (sha256 {checksum}), max diff to PyTorch {worst:.1e}")
     return destination
@@ -197,15 +221,19 @@ def build(output_dir: Path, cache_dir: Path) -> Path:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("output_dir", type=Path, help="Directory for the .onnx and .sha256 files")
+    parser.add_argument("--model", choices=["all", *MODEL_SPECS], default="all", help="Models to build (default: both)")
     parser.add_argument(
         "--cache", type=Path, default=None, help="Directory to keep the verified .pth between builds (default: temporary)"
     )
     args = parser.parse_args(argv)
+    models = list(MODEL_SPECS) if args.model == "all" else [args.model]
     if args.cache is not None:
-        build(args.output_dir.expanduser(), args.cache.expanduser())
+        for model in models:
+            build(args.output_dir.expanduser(), args.cache.expanduser(), model)
     else:
         with tempfile.TemporaryDirectory() as cache:
-            build(args.output_dir.expanduser(), Path(cache))
+            for model in models:
+                build(args.output_dir.expanduser(), Path(cache), model)
     return 0
 
 

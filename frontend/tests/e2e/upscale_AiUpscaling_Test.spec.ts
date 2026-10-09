@@ -15,6 +15,7 @@ import {
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
+import type { UpscaleTarget } from '../../src/lib/upscale';
 
 // These run against the real bundled model on the CPU (CI runners have no GPU).
 const UPSCALED_SUFFIX = '_ai-upscaled';
@@ -69,6 +70,32 @@ test.describe('AI upscaling', () => {
     expect(await psnrAsync(shrunk, source)).toBeGreaterThan(28);
   });
 
+  const aspectRatioCases: { target: UpscaleTarget; source: [number, number]; expected: [number, number] }[] = [
+    { target: '8x', source: [80, 60], expected: [640, 480] },
+    { target: '1080p', source: [80, 120], expected: [1080, 1620] },
+    { target: '4k', source: [80, 80], expected: [2160, 2160] },
+    { target: '6k', source: [120, 80], expected: [4860, 3240] },
+    { target: '8k', source: [120, 40], expected: [7680, 2560] },
+    { target: '16k', source: [20, 120], expected: [2560, 15360] },
+  ];
+
+  for (const { target, source: [width, height], expected } of aspectRatioCases) {
+    test(`${target} preserves the aspect ratio`, async ({ page }) => {
+      const card = new ImageFileDto(`aspect-ratio-${target}.png`);
+      const source = await buildLineCardAsync(width, height);
+
+      await page.goto('/');
+      await setOutputFormatAsync(page, 'JPEG');
+      await uploadGeneratedImageToDropzoneAsync(page, card.fileName, 'image/png', source);
+      await assertFilesPresentInDropzoneAsync(page, [card]);
+      await setUpscaleAsync(page, target);
+
+      const outputPath = await convertAndDownloadSingleAsync(page, card, '.jpg');
+      const metadata = await sharp(outputPath).metadata();
+      expect([metadata.width, metadata.height]).toEqual(expected);
+    });
+  }
+
   test('2x keeps transparency', async ({ page }) => {
     await page.goto('/');
     await setOutputFormatAsync(page, 'PNG');
@@ -87,7 +114,7 @@ test.describe('AI upscaling', () => {
   test('refuses outputs above the size limit', async ({ page }) => {
     const large = new ImageFileDto('large-flat.png');
     const buffer = await sharp({
-      create: { width: 2000, height: 1500, channels: 3, background: { r: 90, g: 120, b: 150 } },
+      create: { width: 4000, height: 3000, channels: 3, background: { r: 90, g: 120, b: 150 } },
     })
       .png()
       .toBuffer();
@@ -99,10 +126,10 @@ test.describe('AI upscaling', () => {
     await setUpscaleAsync(page, '4x');
     await clickConversionButtonAsync(page);
 
-    // 8000 x 6000 = 48 MP, above the default 36 MP limit. Refused before any inference.
+    // 16000 x 12000 = 192 MP, above the default 144 MP limit. Refused before any inference.
     const message = page.getByTestId('error-message-holder');
-    await expect(message).toContainText('8000x6000');
-    await expect(message).toContainText('36 MP limit');
+    await expect(message).toContainText('16000x12000');
+    await expect(message).toContainText('144 MP limit');
   });
 
   test('turns off resize width and is hidden for PDF', async ({ page }) => {
@@ -134,6 +161,51 @@ test.describe('AI upscaling', () => {
 
     await expect(page.getByTestId('upscale-switch')).toBeDisabled();
     await expect(page.getByTestId('upscale-unavailable-hint')).toBeVisible();
+  });
+
+  test('chooses general or anime and switches back to the correct model', async ({ page }) => {
+    const source = await buildLineCardAsync(160, 90);
+    const pixels: Buffer[] = [];
+    const models = ['general', 'anime', 'general'] as const;
+    for (const [index, model] of models.entries()) {
+      const card = new ImageFileDto(`model-${index}.png`);
+      await page.goto('/');
+      await setOutputFormatAsync(page, 'PNG');
+      await uploadGeneratedImageToDropzoneAsync(page, card.fileName, 'image/png', source);
+      await setUpscaleAsync(page, '4x');
+      const select = page.getByTestId('upscale-model-select');
+      await expect(select).toContainText('General');
+      if (model === 'anime') {
+        await select.click();
+        await page.getByTestId('upscale-model-option-anime').click();
+      }
+      await page.getByTestId('upscale-info').focus();
+      await expect(page.getByRole('tooltip')).toContainText(
+        model === 'anime' ? 'realesr-animevideov3' : 'realesr-general-x4v3'
+      );
+      await expect(page.getByRole('tooltip').locator('a')).toHaveCount(0);
+      const output = await convertAndDownloadSingleAsync(page, card, '.png');
+      const metadata = await sharp(output).metadata();
+      expect([metadata.width, metadata.height]).toEqual([640, 360]);
+      pixels.push(await sharp(output).raw().toBuffer());
+    }
+    expect(pixels[0].equals(pixels[1])).toBe(false);
+    expect(pixels[0].equals(pixels[2])).toBe(true);
+  });
+
+  test('marks an uninstalled anime model unavailable', async ({ page }) => {
+    await page.route('**/api/upscale_model', (route) => route.fulfill({ json: {
+      model_name: 'realesr-general-x4v3', available: true,
+      models: [
+        { id: 'general', model_name: 'realesr-general-x4v3', available: true },
+        { id: 'anime', model_name: 'realesr-animevideov3', available: false },
+      ],
+    } }));
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'PNG');
+    await setUpscaleAsync(page, '2x');
+    await page.getByTestId('upscale-model-select').click();
+    await expect(page.getByTestId('upscale-model-option-anime')).toHaveAttribute('aria-disabled', 'true');
   });
 });
 

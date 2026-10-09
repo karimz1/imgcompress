@@ -30,7 +30,10 @@ import {
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
 import { CropDialog } from "@/components/crop/CropDialog";
 import { CropConfig, isCropableFile, isCropUnsupportedFile } from "@/lib/crop";
-import { UPSCALE_TARGETS, toUpscaleTarget, type UpscaleSettings } from "@/lib/upscale";
+import {
+  UPSCALE_TARGETS, UPSCALE_MODELS, toUpscaleTarget, toUpscaleModel,
+  type UpscaleSettings, type UpscaleModelStatus,
+} from "@/lib/upscale";
 import { cn } from "@/lib/utils";
 
 interface FileConversionFormProps {
@@ -46,6 +49,7 @@ interface FileConversionFormProps {
   setUpscale: (val: UpscaleSettings) => void;
   upscaleModelName: string | null;
   upscaleAvailable: boolean;
+  upscaleModels: UpscaleModelStatus[];
   outputFormat: string;
   setOutputFormat: (val: string) => void;
   formatRequired: boolean;
@@ -109,6 +113,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setUpscale,
   upscaleModelName,
   upscaleAvailable,
+  upscaleModels,
   outputFormat,
   setOutputFormat,
   formatRequired,
@@ -897,9 +902,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               {t("form.upscale.label")}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span>
-                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-                  </span>
+                  <button type="button" data-testid="upscale-info" aria-label={t("form.upscale.label")}>
+                    <Info aria-hidden="true" className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent
                   side="top"
@@ -924,6 +929,34 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           )}
           {upscaleActive && (
             <div className="space-y-1">
+              <Label htmlFor="upscaleModel" className="text-sm">
+                {t("form.upscale.modelLabel")}
+              </Label>
+              <Select
+                value={upscale.model}
+                onValueChange={(value) => setUpscale({ ...upscale, model: toUpscaleModel(value) })}
+              >
+                <SelectTrigger
+                  id="upscaleModel"
+                  data-testid="upscale-model-select"
+                  disabled={isLoading}
+                  className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className={selectSurface}>
+                  {UPSCALE_MODELS.map((model) => (
+                    <SelectItem
+                      key={model}
+                      value={model}
+                      data-testid={`upscale-model-option-${model}`}
+                      disabled={!upscaleModels.some((status) => status.id === model && status.available)}
+                    >
+                      {t(`form.upscale.models.${model}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Label htmlFor="upscaleTarget" className="text-sm">
                 {t("form.upscale.targetLabel")}
               </Label>

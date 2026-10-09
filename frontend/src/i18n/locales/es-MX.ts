@@ -158,19 +158,28 @@ export const esMX: TranslationSchema = {
         "Define un tamaño máximo opcional de salida (en MB). Aplica a salidas JPEG, AVIF y WebP.",
     },
     upscale: {
+      modelLabel: "Modelo de IA",
+      models: {
+        general: "General (fotografías)",
+        anime: "Anime (ilustraciones)",
+      },
       label: "Ampliación con IA",
       tooltip:
-        "Amplía las imágenes con un modelo de IA local ({{model}}) que reconstruye bordes y detalles finos en lugar de solo estirar los píxeles. Se ejecuta en la CPU de este servidor y no se envía nada a ningún lado.",
+        "La IA local ({{model}}) amplía las imágenes y reconstruye bordes y detalles finos. No necesita internet.\nEl procesamiento en la CPU es más lento; pueden aparecer pequeños defectos, especialmente en los rostros.",
       targetLabel: "Ampliar a",
       options: {
         "2x": "2× más grande",
         "4x": "4× más grande",
+        "8x": "8× más grande",
         "1080p": "Full HD (cabe en 1920 × 1080)",
         "4k": "4K (cabe en 3840 × 2160)",
+        "6k": "6K (cabe en 5760 × 3240)",
+        "8k": "8K (cabe en 7680 × 4320)",
+        "16k": "16K (cabe en 15360 × 8640)",
       },
       hint:
-        "Se ejecuta en la CPU, así que tarda un poco: una imagen de 720p a 4K necesita unos 10 a 40 segundos según el equipo. Las imágenes que ya son lo bastante grandes se quedan igual.",
-      unavailableHint: "El modelo de ampliación no está instalado en este servidor.",
+        "Conserva las proporciones. Las imágenes que ya son lo bastante grandes para la resolución elegida se quedan igual. Las imágenes más grandes y las CPU más lentas necesitan más tiempo. Más allá de 4×, la ampliación con IA va seguida de un cambio de tamaño convencional.",
+      unavailableHint: "El modelo de ampliación no está instalado.",
     },
     resizeWidth: {
       label: "Cambiar ancho",

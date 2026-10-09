@@ -11,13 +11,15 @@ that path always works; it is slower than a GPU but has bounded memory:
   _PAD pixel border of real neighbouring pixels. The border is cropped away
   again, so tiles join without seams (32 px covers the network's receptive
   field; the result differs from a single full-image pass by at most one 8-bit
-  level). Peak memory is a few hundred MB regardless of image size.
-- Every tile is resized straight to its final position in the output, so the
-  4x intermediate image is never held in full. Only the output itself (capped
-  by max_output_megapixels) has to fit in memory.
-- One image is upscaled at a time in the whole container (a thread lock plus
-  a file lock shared by the Granian worker processes), so parallel requests
-  queue instead of multiplying memory and CPU use.
+  level). The model's working memory does not grow with the image size.
+- Tiles are pasted directly into one Pillow output image, avoiding a second
+  full-size NumPy output buffer. Resized pieces are also bounded, even when a
+  tiny source tile fills a very large output. The final image still occupies
+  RAM and is capped by max_output_megapixels.
+- Decoding, inference, assembly and TIFF encoding are serialized by a thread
+  lock and a file lock shared by the Granian workers. Queued upscale requests
+  do not decode their source images while waiting. Subsequent format conversion
+  is outside this lock and can still overlap between requests.
 
 If onnxruntime reports a GPU provider (a custom image with onnxruntime-gpu or
 onnxruntime-directml), it is tried first; any failure to create a GPU session
@@ -36,11 +38,15 @@ from typing import Callable, Optional
 import numpy as np
 from PIL import Image, ImageOps
 
-from backend.image_converter.domain.upscaling import MODEL_SCALE, UpscalePlan, UpscaleTarget, plan_upscale
+from backend.image_converter.config.app_config import DEFAULT_MAX_OUTPUT_MEGAPIXELS
+from backend.image_converter.domain.upscaling import MODEL_SCALE, UpscaleModel, UpscalePlan, UpscaleTarget, plan_upscale
 from backend.image_converter.infrastructure.upscale_model import locate_model
 
 _TILE = 256
 _PAD = 32
+# Bound resized output pieces too: a tiny source can otherwise create a
+# frame-sized temporary image from a single AI tile.
+_OUTPUT_TILE = 1024
 # Optional GPU providers, in order of preference. CPU is always appended last.
 _GPU_PROVIDERS = ("CUDAExecutionProvider", "DmlExecutionProvider")
 _CPU_PROVIDER = "CPUExecutionProvider"
@@ -56,7 +62,7 @@ _LOCK_FILE = Path(tempfile.gettempdir()) / "imgcompress-upscale.lock"
 
 @contextmanager
 def _exclusive_inference():
-    """Serialises inference across threads and across worker processes."""
+    """Serialises the complete upscale, including decoding and TIFF encoding."""
     with _inference_lock:
         try:
             import fcntl
@@ -184,7 +190,7 @@ class AiUpscaler:
         self,
         logger,
         threads: Optional[int] = None,
-        max_output_megapixels: int = 36,
+        max_output_megapixels: int = DEFAULT_MAX_OUTPUT_MEGAPIXELS,
         run_model: Optional[Callable[[np.ndarray], np.ndarray]] = None,
     ):
         self.logger = logger
@@ -192,16 +198,18 @@ class AiUpscaler:
         self.max_output_pixels = max_output_megapixels * 1_000_000
         self._run_model = run_model
 
-    def upscale(self, image_data: bytes, target: UpscaleTarget) -> Optional[bytes]:
+    def upscale(
+        self, image_data: bytes, target: UpscaleTarget, model: UpscaleModel = UpscaleModel.GENERAL
+    ) -> Optional[bytes]:
         """
         Returns the upscaled image as TIFF bytes, or None when the image already
         meets the target (a frame target never shrinks an image). Raises
         ValueError with a user-facing message if the output would be too large
         or the model is not installed.
         """
-        with Image.open(BytesIO(image_data)) as img:
+        with _exclusive_inference(), Image.open(BytesIO(image_data)) as img:
             try:
-                img = ImageOps.exif_transpose(img)
+                ImageOps.exif_transpose(img, in_place=True)
             except Exception:
                 pass
             icc_profile = img.info.get("icc_profile")
@@ -216,79 +224,98 @@ class AiUpscaler:
                     "info",
                 )
                 return None
-            result = self.upscale_image(img, plan)
+            with self._upscale_image(img, plan, model) as result, BytesIO() as buffer:
+                result.save(buffer, format="TIFF", icc_profile=icc_profile, compression="tiff_deflate")
+                return buffer.getvalue()
 
-            buffer = BytesIO()
-            result.save(buffer, format="TIFF", icc_profile=icc_profile, compression="tiff_deflate")
-            return buffer.getvalue()
-
-    def upscale_image(self, img: Image.Image, plan: UpscalePlan) -> Image.Image:
-        img = _to_8bit(img)
-        has_alpha = img.mode in ("RGBA", "LA", "PA") or (img.mode == "P" and "transparency" in img.info)
-        rgba = img.convert("RGBA") if has_alpha else None
-        source = rgba if rgba is not None else img
-        rgb = np.asarray(source.convert("RGB"), dtype=np.uint8)
-
-        run_model = self._run_model or self._load_model()
+    def upscale_image(
+        self, img: Image.Image, plan: UpscalePlan, model: UpscaleModel = UpscaleModel.GENERAL
+    ) -> Image.Image:
         with _exclusive_inference():
-            output = self._upscale_rgb(rgb, plan.output_size, run_model)
-        result = Image.fromarray(output, "RGB")
+            return self._upscale_image(img, plan, model)
 
-        if rgba is not None:
-            # The model only knows colour; alpha edges are smooth enough for Lanczos.
-            alpha = rgba.getchannel("A").resize(plan.output_size, Image.Resampling.LANCZOS)
-            result.putalpha(alpha)
-        return result
+    def _upscale_image(self, img: Image.Image, plan: UpscalePlan, model: UpscaleModel) -> Image.Image:
+        source = _to_8bit(img)
+        has_alpha = source.mode in ("RGBA", "LA", "PA") or (source.mode == "P" and "transparency" in source.info)
+        rgba = (source if source.mode == "RGBA" else source.convert("RGBA")) if has_alpha else None
+        result = None
+        try:
+            run_model = self._run_model or self._load_model(model)
+            result = self._upscale_rgb(rgba if rgba is not None else source, plan.output_size, run_model)
+            if rgba is not None:
+                # The model only knows colour; alpha edges use Lanczos.
+                with rgba.getchannel("A") as alpha, alpha.resize(plan.output_size, Image.Resampling.LANCZOS) as resized:
+                    result.putalpha(resized)
+            return result
+        except Exception:
+            if result is not None:
+                result.close()
+            raise
+        finally:
+            if rgba is not None and rgba is not source:
+                rgba.close()
+            if source is not img:
+                source.close()
 
-    def _load_model(self) -> Callable[[np.ndarray], np.ndarray]:
-        model_res = locate_model()
+    def _load_model(self, model: UpscaleModel = UpscaleModel.GENERAL) -> Callable[[np.ndarray], np.ndarray]:
+        model_res = locate_model(model.filename)
         if not model_res.is_successful:
             raise ValueError(model_res.error)
         return _OrtSession.get(model_res.value, self.threads, self.logger).run
 
     def _upscale_rgb(
         self,
-        rgb: np.ndarray,
+        source: Image.Image,
         output_size: tuple[int, int],
         run_model: Callable[[np.ndarray], np.ndarray],
-    ) -> np.ndarray:
-        height, width = rgb.shape[:2]
+    ) -> Image.Image:
+        width, height = source.size
         out_width, out_height = output_size
-        output = np.empty((out_height, out_width, 3), dtype=np.uint8)
+        output = Image.new("RGB", output_size)
         exact = (out_width, out_height) == (width * MODEL_SCALE, height * MODEL_SCALE)
 
         rows = list(_tile_starts(height))
         cols = list(_tile_starts(width))
         total = len(rows) * len(cols)
         done = 0
-        for y0 in rows:
-            y1 = min(y0 + _TILE, height)
-            py0, py1 = max(0, y0 - _PAD), min(height, y1 + _PAD)
-            for x0 in cols:
-                x1 = min(x0 + _TILE, width)
-                px0, px1 = max(0, x0 - _PAD), min(width, x1 + _PAD)
+        try:
+            for y0 in rows:
+                y1 = min(y0 + _TILE, height)
+                py0, py1 = max(0, y0 - _PAD), min(height, y1 + _PAD)
+                for x0 in cols:
+                    x1 = min(x0 + _TILE, width)
+                    px0, px1 = max(0, x0 - _PAD), min(width, x1 + _PAD)
 
-                tile = rgb[py0:py1, px0:px1].astype(np.float32).transpose(2, 0, 1)[None] / 255.0
-                upscaled = run_model(np.ascontiguousarray(tile))[0]
-                upscaled = (np.clip(upscaled, 0.0, 1.0) * 255.0 + 0.5).astype(np.uint8).transpose(1, 2, 0)
+                    # Convert just this tile, rather than duplicating the source
+                    # in a full-image RGB array before inference.
+                    with source.crop((px0, py0, px1, py1)) as region, region.convert("RGB") as rgb:
+                        tile = np.asarray(rgb, dtype=np.float32).transpose(2, 0, 1)[None] / 255.0
+                    upscaled = run_model(np.ascontiguousarray(tile))[0]
+                    upscaled = (np.clip(upscaled, 0.0, 1.0) * 255.0 + 0.5).astype(np.uint8).transpose(1, 2, 0)
 
-                if exact:
-                    output[MODEL_SCALE * y0 : MODEL_SCALE * y1, MODEL_SCALE * x0 : MODEL_SCALE * x1] = upscaled[
-                        MODEL_SCALE * (y0 - py0) : MODEL_SCALE * (y1 - py0),
-                        MODEL_SCALE * (x0 - px0) : MODEL_SCALE * (x1 - px0),
-                    ]
-                else:
-                    self._place_resized(output, upscaled, (x0, y0, x1, y1), (px0, py0), (width, height))
+                    with Image.fromarray(upscaled) as tile_image:
+                        if exact:
+                            box = (
+                                MODEL_SCALE * (x0 - px0), MODEL_SCALE * (y0 - py0),
+                                MODEL_SCALE * (x1 - px0), MODEL_SCALE * (y1 - py0),
+                            )
+                            with tile_image.crop(box) as piece:
+                                output.paste(piece, (MODEL_SCALE * x0, MODEL_SCALE * y0))
+                        else:
+                            self._place_resized(output, tile_image, (x0, y0, x1, y1), (px0, py0), (width, height))
 
-                done += 1
-                if total > _PROGRESS_EVERY and (done % _PROGRESS_EVERY == 0 or done == total):
-                    self.logger.log(f"AI upscaling: {done}/{total} tiles", "info")
-        return output
+                    done += 1
+                    if total > _PROGRESS_EVERY and (done % _PROGRESS_EVERY == 0 or done == total):
+                        self.logger.log(f"AI upscaling: {done}/{total} tiles", "info")
+            return output
+        except Exception:
+            output.close()
+            raise
 
     @staticmethod
     def _place_resized(
-        output: np.ndarray,
-        upscaled: np.ndarray,
+        output: Image.Image,
+        upscaled: Image.Image,
         tile_box: tuple[int, int, int, int],
         padded_origin: tuple[int, int],
         source_size: tuple[int, int],
@@ -298,7 +325,7 @@ class AiUpscaler:
         pixel edges are computed from the whole image, so neighbouring tiles
         meet exactly, and the padding gives Lanczos the real neighbours it needs.
         """
-        out_height, out_width = output.shape[:2]
+        out_width, out_height = output.size
         width, height = source_size
         x0, y0, x1, y1 = tile_box
         px0, py0 = padded_origin
@@ -311,14 +338,18 @@ class AiUpscaler:
         # Output pixel edges in the coordinates of the padded 4x tile.
         step_x = MODEL_SCALE * width / out_width
         step_y = MODEL_SCALE * height / out_height
-        box = (
-            ox0 * step_x - MODEL_SCALE * px0,
-            oy0 * step_y - MODEL_SCALE * py0,
-            ox1 * step_x - MODEL_SCALE * px0,
-            oy1 * step_y - MODEL_SCALE * py0,
-        )
-        piece = Image.fromarray(upscaled, "RGB").resize((ox1 - ox0, oy1 - oy0), Image.Resampling.LANCZOS, box=box)
-        output[oy0:oy1, ox0:ox1] = np.asarray(piece)
+        for top in range(oy0, oy1, _OUTPUT_TILE):
+            bottom = min(top + _OUTPUT_TILE, oy1)
+            for left in range(ox0, ox1, _OUTPUT_TILE):
+                right = min(left + _OUTPUT_TILE, ox1)
+                box = (
+                    left * step_x - MODEL_SCALE * px0,
+                    top * step_y - MODEL_SCALE * py0,
+                    right * step_x - MODEL_SCALE * px0,
+                    bottom * step_y - MODEL_SCALE * py0,
+                )
+                with upscaled.resize((right - left, bottom - top), Image.Resampling.LANCZOS, box=box) as piece:
+                    output.paste(piece, (left, top))
 
 
 def _tile_starts(length: int):

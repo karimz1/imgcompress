@@ -1,8 +1,9 @@
 """The bundled AI upscaling model: where it lives and how it is checked.
 
-The model is realesr-general-x4v3 from Real-ESRGAN (BSD-3-Clause, Xintao Wang),
-the small SRVGGNetCompact network (about 1.2 M parameters) that upstream
-recommends for general images, which keeps it practical on a CPU.
+The models are realesr-general-x4v3 and realesr-animevideov3 from Real-ESRGAN
+(BSD-3-Clause, Xintao Wang), small SRVGGNetCompact networks suitable for CPU
+inference. General is the default; the smaller anime model specializes in drawn
+images and anime frames.
 
 It is built during the Docker build, in a separate stage, by
 scripts/build_upscale_model.py: the official .pth weights are downloaded from the
@@ -26,9 +27,10 @@ from functools import lru_cache
 from pathlib import Path
 
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.domain.upscaling import UpscaleModel
 
-MODEL_NAME = "realesr-general-x4v3"
-MODEL_FILENAME = f"{MODEL_NAME}.onnx"
+MODEL_NAME = UpscaleModel.GENERAL.model_name
+MODEL_FILENAME = UpscaleModel.GENERAL.filename
 # Written by scripts/build_upscale_model.py in sha256sum format.
 CHECKSUM_SUFFIX = ".sha256"
 
@@ -56,7 +58,7 @@ def locate_model(filename: str = MODEL_FILENAME) -> Result[Path]:
     checksum_path = path.with_name(path.name + CHECKSUM_SUFFIX)
     if not path.is_file():
         return Result.failure(
-            f"The AI upscaling model ({MODEL_NAME}) is not installed at {path}. "
+            f"The AI upscaling model ({Path(filename).stem}) is not installed at {path}. "
             "It ships with the Docker image; outside Docker run "
             "'python scripts/build_upscale_model.py' once."
         )

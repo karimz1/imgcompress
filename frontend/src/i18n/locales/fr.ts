@@ -158,19 +158,28 @@ export const fr: TranslationSchema = {
         "Définissez une taille maximale de sortie optionnelle (en Mo). S'applique aux sorties JPEG, AVIF et WebP.",
     },
     upscale: {
+      modelLabel: "Modèle d’IA",
+      models: {
+        general: "Général (photos)",
+        anime: "Anime (illustrations)",
+      },
       label: "Agrandissement par IA",
       tooltip:
-        "Agrandit les images avec un modèle d'IA local ({{model}}) qui reconstruit les contours et les détails fins au lieu d'étirer simplement les pixels. Il tourne sur le processeur de ce serveur et rien n'est envoyé ailleurs.",
+        "L’IA locale ({{model}}) agrandit les images et reconstruit les contours et les détails fins. Aucune connexion Internet nécessaire.\nLe traitement sur le processeur est plus lent ; de petits artefacts peuvent apparaître, surtout sur les visages.",
       targetLabel: "Agrandir en",
       options: {
         "2x": "2× plus grand",
         "4x": "4× plus grand",
+        "8x": "8× plus grand",
         "1080p": "Full HD (tient dans 1920 × 1080)",
         "4k": "4K (tient dans 3840 × 2160)",
+        "6k": "6K (tient dans 5760 × 3240)",
+        "8k": "8K (tient dans 7680 × 4320)",
+        "16k": "16K (tient dans 15360 × 8640)",
       },
       hint:
-        "Fonctionne sur le processeur, cela prend donc un peu de temps : une image 720p vers 4K demande environ 10 à 40 secondes selon la machine. Les images déjà assez grandes restent inchangées.",
-      unavailableHint: "Le modèle d'agrandissement n'est pas installé sur ce serveur.",
+        "Conserve les proportions. Les images déjà assez grandes pour la résolution choisie restent inchangées. Les grandes images et les processeurs plus lents demandent plus de temps. Au-delà de 4×, l’agrandissement par IA est suivi d’un redimensionnement classique.",
+      unavailableHint: "Le modèle d’agrandissement n’est pas installé.",
     },
     resizeWidth: {
       label: "Redimensionner la largeur",

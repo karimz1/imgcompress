@@ -12,21 +12,47 @@ from backend.image_converter.core.internals.utilities import Result
 
 # The bundled model always enlarges by exactly this factor. Smaller factors are
 # reached by resizing the model output down with Lanczos; anything above it
-# (e.g. a tiny image to 4K) gets the remaining enlargement from Lanczos too.
+# (e.g. 8x or a tiny image to 8K) gets the remaining enlargement from Lanczos too.
 MODEL_SCALE = 4
+
+
+class UpscaleModel(Enum):
+    GENERAL = "general"
+    ANIME = "anime"
+
+    @property
+    def model_name(self) -> str:
+        return "realesr-general-x4v3" if self is UpscaleModel.GENERAL else "realesr-animevideov3"
+
+    @property
+    def filename(self) -> str:
+        return f"{self.model_name}.onnx"
+
+    @classmethod
+    def from_string_result(cls, value: Optional[str]) -> Result["UpscaleModel"]:
+        if value is None or not value.strip():
+            return Result.success(cls.GENERAL)
+        try:
+            return Result.success(cls(value.strip().lower()))
+        except ValueError:
+            return Result.failure(f"Unsupported upscale model: '{value}'. Use general or anime.")
 
 
 class UpscaleTarget(Enum):
     """
-    ``X2`` / ``X4`` multiply both sides. ``FULL_HD`` / ``UHD_4K`` scale until the
-    image fits a 1920x1080 / 3840x2160 frame, matched to the image's orientation
-    (a portrait image fits 1080x1920 / 2160x3840), keeping the aspect ratio.
+    Multipliers enlarge both sides. Resolution targets fit the image inside
+    a frame matched to its orientation, always keeping the aspect ratio.
+    A portrait image uses the frame's shorter side as its width.
     """
 
     X2 = "2x"
     X4 = "4x"
+    X8 = "8x"
     FULL_HD = "1080p"
     UHD_4K = "4k"
+    UHD_6K = "6k"
+    UHD_8K = "8k"
+    UHD_16K = "16k"
 
     @classmethod
     def from_string_result(cls, value: Optional[str]) -> Result[Optional["UpscaleTarget"]]:
@@ -43,6 +69,9 @@ class UpscaleTarget(Enum):
 _FRAMES = {
     UpscaleTarget.FULL_HD: (1920, 1080),
     UpscaleTarget.UHD_4K: (3840, 2160),
+    UpscaleTarget.UHD_6K: (5760, 3240),
+    UpscaleTarget.UHD_8K: (7680, 4320),
+    UpscaleTarget.UHD_16K: (15360, 8640),
 }
 
 
@@ -60,7 +89,7 @@ class UpscalePlan:
 def plan_upscale(width: int, height: int, target: UpscaleTarget, max_output_pixels: int) -> Result[UpscalePlan]:
     """
     Works out the output size for ``target`` and refuses sizes above
-    ``max_output_pixels``, which bounds memory no matter what is uploaded.
+    ``max_output_pixels``, which bounds the size of the output pixel buffer.
     Images that already meet a frame target are left as they are (never shrunk).
     """
     if width <= 0 or height <= 0:
@@ -86,6 +115,8 @@ def _scale_for(width: int, height: int, target: UpscaleTarget) -> float:
         return 2.0
     if target == UpscaleTarget.X4:
         return float(MODEL_SCALE)
+    if target == UpscaleTarget.X8:
+        return 8.0
     frame_long, frame_short = _FRAMES[target]
     long_side, short_side = max(width, height), min(width, height)
     return min(frame_long / long_side, frame_short / short_side)

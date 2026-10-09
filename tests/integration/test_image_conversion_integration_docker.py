@@ -331,13 +331,15 @@ class TestDockerIntegration:
             )
             assert has_transparency, "Expected some transparent pixels in background-removed image"
 
-    def test_run_docker_cli_upscale_withoutNetworkOnOneCpu_usesBundledModel(self):
+    @pytest.mark.parametrize("model", ["general", "anime"])
+    def test_run_docker_cli_upscale_withoutNetworkOnOneCpu_usesBundledModel(self, model):
         """
         --upscale must work fully offline on a plain CPU: the model ships in the
         image and nothing is downloaded at runtime. --network none makes any
         download attempt fail, --cpus 1 mimics a small box without a GPU.
         """
-        test_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_upscale_cli.png")
+        filename = f"test_upscale_cli_{model}.png"
+        test_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, filename)
         img = Image.new("RGB", (160, 90), (245, 245, 240))
         draw = ImageDraw.Draw(img)
         for x in range(4, 160, 9):
@@ -352,17 +354,18 @@ class TestDockerIntegration:
                 *strategy["volume_args"],
                 self.DOCKER_IMAGE_NAME,
                 "cli",
-                os.path.join(strategy["input_path"], "test_upscale_cli.png"),
+                os.path.join(strategy["input_path"], filename),
                 strategy["output_path"],
                 "--format", "png",
                 "--upscale", "4x",
+                "--upscale-model", model,
             ]
             print("Docker --upscale command:", shlex.join(cmd))
             subprocess.run(cmd, check=True)
         finally:
             os.remove(test_img_path)
 
-        output_path = os.path.join(self.OUTPUT_DIR, "test_upscale_cli.png")
+        output_path = os.path.join(self.OUTPUT_DIR, filename)
         assert os.path.exists(output_path)
         with Image.open(output_path) as out_img:
             assert out_img.size == (640, 360)
