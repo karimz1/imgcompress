@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageCms, ImageOps
 
 from backend.image_converter.config.app_config import DEFAULT_MAX_OUTPUT_MEGAPIXELS
 from backend.image_converter.domain.upscaling import MODEL_SCALE, UpscaleModel, UpscalePlan, UpscaleTarget, plan_upscale
@@ -212,8 +212,6 @@ class AiUpscaler:
                 ImageOps.exif_transpose(img, in_place=True)
             except Exception:
                 pass
-            icc_profile = img.info.get("icc_profile")
-
             plan_res = plan_upscale(img.width, img.height, target, self.max_output_pixels)
             if not plan_res.is_successful:
                 raise ValueError(plan_res.error)
@@ -224,9 +222,14 @@ class AiUpscaler:
                     "info",
                 )
                 return None
-            with self._upscale_image(img, plan, model) as result, BytesIO() as buffer:
-                result.save(buffer, format="TIFF", icc_profile=icc_profile, compression="tiff_deflate")
-                return buffer.getvalue()
+            source, icc_profile = _to_rgb_colour_space(img, self.logger)
+            try:
+                with self._upscale_image(source, plan, model) as result, BytesIO() as buffer:
+                    result.save(buffer, format="TIFF", icc_profile=icc_profile, compression="tiff_deflate")
+                    return buffer.getvalue()
+            finally:
+                if source is not img:
+                    source.close()
 
     def upscale_image(
         self, img: Image.Image, plan: UpscalePlan, model: UpscaleModel = UpscaleModel.GENERAL
@@ -354,6 +357,36 @@ class AiUpscaler:
 
 def _tile_starts(length: int):
     return range(0, length, _TILE)
+
+
+# Modes whose pixels are RGB, so an embedded RGB profile still describes the output.
+_RGB_MODES = ("RGB", "RGBA", "RGBX", "RGBa", "P", "PA")
+
+
+def _to_rgb_colour_space(img: Image.Image, logger) -> tuple[Image.Image, Optional[bytes]]:
+    """
+    The output is always RGB(A), so only an RGB ICC profile may be carried over.
+    A CMYK image with its own profile is colour-managed to sRGB first; any other
+    non-RGB profile (greyscale, CMYK that can't be converted) is dropped instead
+    of being attached to RGB pixels it doesn't describe.
+    """
+    icc_profile = img.info.get("icc_profile")
+    if not icc_profile or img.mode in _RGB_MODES:
+        return img, icc_profile
+    if img.mode == "CMYK":
+        try:
+            source_profile = ImageCms.ImageCmsProfile(BytesIO(icc_profile))
+            return ImageCms.profileToProfile(img, source_profile, _srgb_profile(), outputMode="RGB"), None
+        except (ImageCms.PyCMSError, OSError, ValueError) as exc:
+            logger.log(
+                f"AI upscaling: could not apply the CMYK colour profile ({exc}); converting without it.",
+                "warning",
+            )
+    return img, None
+
+
+def _srgb_profile() -> ImageCms.ImageCmsProfile:
+    return ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB"))
 
 
 def _to_8bit(img: Image.Image) -> Image.Image:

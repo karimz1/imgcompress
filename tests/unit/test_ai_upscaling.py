@@ -516,6 +516,53 @@ def test_When_UpscalingImageWithColourProfile_Expect_ProfilePreserved():
     assert result.info["icc_profile"] == profile
 
 
+@pytest.mark.parametrize(("mode", "colour"), [("L", 128), ("LA", (128, 255)), ("CMYK", (0, 200, 0, 0))])
+def test_When_SourceProfileIsNotRgb_Expect_ProfileNotAttachedToRgbOutput(mode, colour):
+    # Random bytes can't be parsed as a CMYK profile, so this also covers the fallback.
+    image_data = _encode(Image.new(mode, (20, 10), colour), "TIFF", icc_profile=b"not an RGB profile")
+
+    result = _decode(AiUpscaler(_Logger(), run_model=_nearest_4x).upscale(image_data, UpscaleTarget.X2))
+
+    assert result.mode in ("RGB", "RGBA")
+    assert result.size == (40, 20)
+    assert "icc_profile" not in result.info
+
+
+def test_When_CmykSourceHasProfile_Expect_ColourManagedToSrgb(monkeypatch):
+    calls = []
+
+    def _profile_to_profile(img, source, target, outputMode):
+        calls.append((img.mode, outputMode))
+        return Image.new("RGB", img.size, (1, 2, 3))
+
+    monkeypatch.setattr(ai_upscaler.ImageCms, "ImageCmsProfile", lambda profile: object())
+    monkeypatch.setattr(ai_upscaler.ImageCms, "profileToProfile", _profile_to_profile)
+    image_data = _encode(Image.new("CMYK", (20, 10), (0, 200, 0, 0)), "JPEG", icc_profile=b"cmyk profile")
+
+    result = _decode(AiUpscaler(_Logger(), run_model=_nearest_4x).upscale(image_data, UpscaleTarget.X2))
+
+    assert calls == [("CMYK", "RGB")]
+    assert result.getpixel((0, 0)) == (1, 2, 3)
+    assert "icc_profile" not in result.info
+
+
+_SYSTEM_CMYK_PROFILE = Path("/usr/share/color/icc/ghostscript/default_cmyk.icc")
+
+
+@pytest.mark.skipif(not _SYSTEM_CMYK_PROFILE.is_file(), reason="no CMYK ICC profile on this machine")
+def test_When_CmykSourceHasRealProfile_Expect_SrgbColours():
+    profile = _SYSTEM_CMYK_PROFILE.read_bytes()
+    # Pure magenta ink: naive conversion gives (255, 0, 255), a real profile a duller pink.
+    image_data = _encode(Image.new("CMYK", (20, 10), (0, 255, 0, 0)), "JPEG", icc_profile=profile, quality=100)
+
+    result = _decode(AiUpscaler(_Logger(), run_model=_nearest_4x).upscale(image_data, UpscaleTarget.X2))
+
+    red, green, blue = result.convert("RGB").getpixel((20, 10))
+    assert "icc_profile" not in result.info
+    assert red > 180 and blue > 80 and green < 90
+    assert (red, green, blue) != (255, 0, 255)
+
+
 def test_When_ModelOutputLeavesRange_Expect_Clamped():
     upscaler = AiUpscaler(_Logger(), run_model=lambda tile: _nearest_4x(tile) * 3.0 - 1.0)
     img = Image.new("RGB", (10, 10), (20, 200, 240))
