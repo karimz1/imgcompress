@@ -1,9 +1,9 @@
 """
 Builds the ONNX files for AI upscaling from the official Real-ESRGAN weights.
 
-Runs in its own Docker build stage (see the Dockerfile). Only the .onnx file and
-its .sha256 file are copied into the runtime image; torch, onnx and the .pth
-never get there.
+Runs in its own Docker build stage (see the Dockerfile). Only the .onnx files and
+their .sha256 files are copied into the runtime image; torch, onnx and the .pth
+files never get there.
 
 The .pth format is a Python pickle and can run code when it is loaded, so:
 
@@ -35,7 +35,8 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-WEIGHTS_URL = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth"
+RELEASE_URL = "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0"
+WEIGHTS_URL = f"{RELEASE_URL}/realesr-general-x4v3.pth"
 WEIGHTS_SHA256 = "8dc7edb9ac80ccdc30c3a5dca6616509367f05fbc184ad95b731f05bece96292"
 WEIGHTS_FILENAME = "realesr-general-x4v3.pth"
 
@@ -190,7 +191,7 @@ def build(output_dir: Path, cache_dir: Path, model: str = "general") -> Path:
     # Verify first; nothing below may run on weights that failed the checksum.
     weights = fetch_verified_weights(
         cache_dir,
-        url=f"https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/{name}.pth",
+        url=f"{RELEASE_URL}/{name}.pth",
         sha256=spec["sha256"],
         filename=f"{name}.pth",
     )

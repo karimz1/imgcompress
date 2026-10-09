@@ -170,8 +170,8 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 # a stage of its own. The .pth weights are a Python pickle, so they are SHA-256 checked
 # against the official release before anything loads them, then loaded with
 # torch.load(weights_only=True) and exported to ONNX (graph and weights, no code).
-# Only the .onnx and its .sha256 file are copied into the final image; torch, onnx and
-# the .pth stay here. See scripts/build_upscale_model.py.
+# Only the .onnx files and their .sha256 files are copied into the final image; torch,
+# onnx and the .pth files stay here. See scripts/build_upscale_model.py.
 FROM dhi.io/debian-base:trixie-debian13-dev@sha256:c6fc0de84b65bc20346cee5f071fd976ccf383431515db2a4d9721ca936feb9f AS upscale-model-stage
 
 COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
