@@ -101,12 +101,6 @@ jobs:
           done
           echo "::endgroup::"
 
-      - name: Set up Node for release notes
-        if: github.event_name == 'release'
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-
       # The tag predates review of the draft. Include the approved notes before
       # Docker copies frontend/public into the shipped image, including RCs.
       - name: Include approved release notes in the image
