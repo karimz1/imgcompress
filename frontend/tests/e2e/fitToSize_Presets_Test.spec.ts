@@ -23,6 +23,9 @@ import { ImageFileDto } from './utls/ImageFileDto';
 const PORTRAIT_PHOTO = new ImageFileDto('pexels-pealdesign-28594392.jpg');
 const SKYLINE_PHOTO = new ImageFileDto('pexels-willianjusten-29944187.jpg');
 const TRANSPARENT_PNG = new ImageFileDto('ico-datei.png');
+const HEIC_PHOTO = new ImageFileDto('IMG_0935.heic');
+const ROTATED_JPEG = new ImageFileDto('fit-exif-rotated.jpg');
+const TINY_PNG = new ImageFileDto('fit-tiny.png');
 
 // A 3:2 card like a typical hero image: flat background with one detailed band
 // (a checkerboard standing in for a title line) low in the frame.
@@ -107,6 +110,68 @@ test.describe('Fit to exact size', () => {
     expect(metadata.height).toBe(500);
     expect(metadata.hasAlpha).toBeTruthy();
     await AssertImageHasTransparentPixels(outputPath);
+  });
+
+  test('HEIC input is fitted from the server-decoded bitmap', async ({ page }) => {
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'JPEG');
+    await uploadAndAssertAsync(page, HEIC_PHOTO);
+    await setFitToSizeAsync(page, { preset: 'github-social' });
+
+    const outputPath = await convertAndDownloadSingleAsync(page, HEIC_PHOTO, '.jpg');
+
+    const metadata = await sharp(outputPath).metadata();
+    expect([metadata.width, metadata.height]).toEqual([1280, 640]);
+  });
+
+  test('EXIF-rotated photo is fitted upright', async ({ page }) => {
+    // Stored as 600 x 300 with the left half red and the right half blue.
+    // Orientation 6 shows it rotated 90 degrees clockwise: 300 x 600, red on top.
+    const stored = Buffer.alloc(600 * 300 * 3);
+    for (let y = 0; y < 300; y++) {
+      for (let x = 0; x < 600; x++) {
+        stored.set(x < 300 ? [220, 30, 30] : [30, 30, 220], (y * 600 + x) * 3);
+      }
+    }
+    const jpeg = await sharp(stored, { raw: { width: 600, height: 300, channels: 3 } })
+      .jpeg({ quality: 95 })
+      .withMetadata({ orientation: 6 })
+      .toBuffer();
+
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'PNG');
+    await uploadGeneratedImageToDropzoneAsync(page, ROTATED_JPEG.fileName, 'image/jpeg', jpeg);
+    await assertFilesPresentInDropzoneAsync(page, [ROTATED_JPEG]);
+    await setFitToSizeAsync(page, { preset: 'custom', width: 200, height: 400, anchor: 'center' });
+
+    const outputPath = await convertAndDownloadSingleAsync(page, ROTATED_JPEG, '.png');
+
+    const { data, info } = await sharp(outputPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    expect([info.width, info.height]).toEqual([200, 400]);
+    const pixel = (x: number, y: number) => Array.from(data.subarray((y * info.width + x) * 3, (y * info.width + x) * 3 + 3));
+    const [topRed, , topBlue] = pixel(100, 50);
+    const [bottomRed, , bottomBlue] = pixel(100, 350);
+    expect(topRed).toBeGreaterThan(150);
+    expect(topBlue).toBeLessThan(100);
+    expect(bottomBlue).toBeGreaterThan(150);
+    expect(bottomRed).toBeLessThan(100);
+  });
+
+  test('a tiny image is scaled up to the exact size', async ({ page }) => {
+    const png = await sharp({ create: { width: 6, height: 4, channels: 3, background: { r: 40, g: 160, b: 90 } } })
+      .png()
+      .toBuffer();
+
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'PNG');
+    await uploadGeneratedImageToDropzoneAsync(page, TINY_PNG.fileName, 'image/png', png);
+    await assertFilesPresentInDropzoneAsync(page, [TINY_PNG]);
+    await setFitToSizeAsync(page, { preset: 'open-graph' });
+
+    const outputPath = await convertAndDownloadSingleAsync(page, TINY_PNG, '.png');
+
+    const metadata = await sharp(outputPath).metadata();
+    expect([metadata.width, metadata.height]).toEqual([1200, 630]);
   });
 
   test('is replaced by page presets for PDF and turns off resize width', async ({ page }) => {
