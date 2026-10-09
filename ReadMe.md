@@ -117,6 +117,37 @@ Both rows start from a small image (about 120 px wide) taken to 4x. Left is a no
 
 ---
 
+## Fit to Exact Size (since v1.0.0)
+
+Create images at exact pixel dimensions for **GitHub social previews (1280 × 640)**, **Open Graph link previews (1200 × 630)**, or a custom size. Choose how to handle a different aspect ratio:
+
+- **Crop to fill:** Fills the frame by trimming the overflow. With **Keep → Important content (automatic)**, ImgCompress looks for text, faces, and other detail to keep as much important content as possible while choosing the crop.
+- **Blurred background:** Keeps the whole image and fills the empty space with a blurred, slightly darker copy.
+
+### Demo: one original, two GitHub social previews
+
+Both examples below use the same **1536 × 1024** original and produce a **1280 × 640** preview.
+
+<p align="center">
+  <img src="images/exact-image-resize/imgcompress-og-image.webp" width="380" alt="Original 1536 by 1024 pixel ImgCompress artwork with the title, message, mascot, and format icons"/><br/>
+  <strong>Original · 1536 × 1024</strong>
+</p>
+
+| Crop to fill · 1280 × 640 | Blurred background · 1280 × 640 |
+|:---:|:---:|
+| <img src="images/exact-image-resize/keep-important-content-automatic/cut_imgcompress-og-image.jpg" width="380" alt="ImgCompress artwork automatically cropped to 1280 by 640 pixels, keeping the title, main message, and mascot's face visible"/> | <img src="images/exact-image-resize/blurred-background/blurred-imgcompress-og-image.jpg" width="380" alt="Complete ImgCompress artwork fitted into a 1280 by 640 pixel preview with blurred background on the left and right"/> |
+| **Keep → Important content (automatic)** preserves the title, main message, and mascot's face while trimming surrounding artwork. | The whole image stays visible, including the format icons. A blurred copy fills the sides. |
+
+### How to use it
+
+1. Upload your image and choose an image output format.
+2. Enable **Fit to exact size**.
+3. Select **GitHub social preview (1280 × 640)**, **Open Graph link preview (1200 × 630)**, or **Custom size**.
+4. Choose **Crop to fill** with **Keep → Important content (automatic)** for the left example, or **Blurred background** for the right example.
+5. Convert and download the image at the selected dimensions.
+
+---
+
 ## Per-File Cropping (since v0.7.0)
 
 Every upload gets its own crop overlay before conversion. Pick a ratio preset (Free, 1:1, 16:9, 4:3) or type exact pixel width and height. Selections are saved per file, so one batch can mix square thumbnails with 16:9 covers without re-uploading.
