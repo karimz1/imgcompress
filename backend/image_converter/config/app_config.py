@@ -66,6 +66,10 @@ class RembgConfig:
 # Enough for a 16K UHD frame (15360x8640), with a little room for other ratios.
 # This caps output allocation; tiling only bounds the model's working memory.
 DEFAULT_MAX_OUTPUT_MEGAPIXELS = 144
+# Pillow refuses to open anything above 2 x Image.MAX_IMAGE_PIXELS (178,956,970 px)
+# as a decompression bomb, and the converters reopen the upscaled image. A higher
+# limit would only fail after the whole upscale has run.
+MAX_OUTPUT_MEGAPIXELS_LIMIT = 178
 
 
 @dataclass(frozen=True)

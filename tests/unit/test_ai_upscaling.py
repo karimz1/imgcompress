@@ -22,6 +22,7 @@ from PIL import Image, ImageDraw, ImageFilter
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.dtos import CompressionFormData
 from backend.image_converter.config import settings
+from backend.image_converter.config.app_config import MAX_OUTPUT_MEGAPIXELS_LIMIT
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.domain.upscaling import UpscaleModel, UpscalePlan, UpscaleTarget, plan_upscale
@@ -821,12 +822,22 @@ def test_When_UpscalingConfigured_Expect_Values(tmp_path):
     assert config.upscaling.max_output_megapixels == 20
 
 
-@pytest.mark.parametrize("upscaling", [{"threads": 0}, {"threads": "many"}, {"max_output_megapixels": 0}])
+@pytest.mark.parametrize(
+    "upscaling",
+    [{"threads": 0}, {"threads": "many"}, {"max_output_megapixels": 0}, {"max_output_megapixels": 179}],
+)
 def test_When_UpscalingConfigInvalid_Expect_ConfigError(tmp_path, upscaling):
     from backend.image_converter.config.loader import ConfigError
 
     with pytest.raises(ConfigError, match="upscaling"):
         _load_config(tmp_path, upscaling)
+
+
+def test_When_OutputAtHighestAllowedLimit_Expect_PillowCanStillOpenIt():
+    # The converters reopen the upscaled image, so the config ceiling has to stay
+    # below Pillow's decompression-bomb error threshold.
+    assert MAX_OUTPUT_MEGAPIXELS_LIMIT * 1_000_000 <= 2 * Image.MAX_IMAGE_PIXELS
+    assert (MAX_OUTPUT_MEGAPIXELS_LIMIT + 1) * 1_000_000 > 2 * Image.MAX_IMAGE_PIXELS
 
 
 # --- Service, use case and CLI wiring ------------------------------------------------------
