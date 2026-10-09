@@ -16,3 +16,11 @@
 - Label a PR `skip-release-notes` to leave it out.
 - No draft? `make release-draft RELEASE_TAG=release_0.10.0-rc.1`
 - Tests: `make release-tests` (Node 24)
+
+## App release notes
+
+- Publishing a stable release runs **Sync published release notes**, which copies the notes into `frontend/public/release-notes.md` on `main`.
+- Editing a published release replaces that version's entry.
+- RC notes only go into the RC image, not into `main`. The footer handles versions like `0.10.0-rc.1`.
+- The sync pushes to `main` with `GITHUB_TOKEN`. If branch protection is added, it needs an allowed bot.
+- Tests: `node --test tests/release-notes/*.test.mjs`
