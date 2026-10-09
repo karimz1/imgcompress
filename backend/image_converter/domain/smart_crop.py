@@ -89,8 +89,14 @@ def to_8bit(img: Image.Image) -> Image.Image:
 
 
 def _importance_map(img: Image.Image) -> np.ndarray:
-    small = to_8bit(img).convert("RGBA")
-    small.thumbnail((_ANALYSIS_SIZE, _ANALYSIS_SIZE), Image.Resampling.BILINEAR)
+    # Shrink before converting, so a large photo is never copied to RGBA at
+    # full resolution just to be thrown away.
+    small = to_8bit(img)
+    if small.mode not in ("RGB", "RGBA", "L", "LA"):
+        small = small.convert("RGBA")
+    scale = min(1.0, _ANALYSIS_SIZE / max(small.width, small.height))
+    size = (max(1, round(small.width * scale)), max(1, round(small.height * scale)))
+    small = small.resize(size, Image.Resampling.BILINEAR, reducing_gap=2.0).convert("RGBA")
 
     rgba = np.asarray(small, dtype=np.float32) / 255.0
     alpha = rgba[..., 3]
