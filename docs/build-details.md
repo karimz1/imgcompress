@@ -13,10 +13,10 @@ UI uses the user's locale and timezone. No network request to GitHub is needed
 to identify the installed image. This works even if a tag such as `nightly` has
 since moved to another build.
 
-Local builds without CI arguments are labeled as local, and older images or dev
-servers without the metadata file keep the existing footer version. To record
-the source when building locally, pass `BUILD_COMMIT`, `BUILD_DATE`, and
-`BUILD_REF` as Docker build arguments. The generated file is not committed.
+Local builds without the CI build arguments are labeled as local builds. Older
+images and dev servers without the metadata file keep the existing footer
+version. Passing `BUILD_COMMIT` to a local build marks it as nightly, so leave it
+out unless you are reproducing a nightly. The generated file is not committed.
 
 Run `node --test tests/build-info/*.test.mjs` with Node 24 for the metadata checks.
 The Playwright `buildDetails_Test.spec.ts` covers desktop/mobile layout, RCs,
