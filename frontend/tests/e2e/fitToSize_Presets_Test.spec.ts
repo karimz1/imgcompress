@@ -190,6 +190,24 @@ test.describe('Fit to exact size', () => {
     await expect(page.getByTestId('crop-fit-controls')).toHaveCount(0);
 
   });
+
+  test('turns off AI upscaling, so the fitted size stays exact', async ({ page }) => {
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'JPEG');
+    await uploadAndAssertAsync(page, SKYLINE_PHOTO);
+    const upscaleSwitch = page.getByTestId('upscale-switch');
+    await upscaleSwitch.click();
+    await expect(upscaleSwitch).toHaveAttribute('data-state', 'checked');
+
+    await setFitToSizeAsync(page, { preset: 'github-social' });
+    await expect(upscaleSwitch).toBeDisabled();
+    await expect(upscaleSwitch).toHaveAttribute('data-state', 'unchecked');
+    await expect(page.getByTestId('upscale-fit-hint')).toBeVisible();
+
+    const outputPath = await convertAndDownloadSingleAsync(page, SKYLINE_PHOTO, '.jpg');
+    const metadata = await sharp(outputPath).metadata();
+    expect([metadata.width, metadata.height]).toEqual([1280, 640]);
+  });
 });
 
 async function uploadAndAssertAsync(page: Page, image: ImageFileDto): Promise<void> {

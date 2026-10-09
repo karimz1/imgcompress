@@ -450,3 +450,76 @@ def test_When_CliFitIsInvalid_Expect_ExitWithError(argv):
         app.main(argv)
 
     assert exc.value.code == 1
+
+
+# --- Fit together with AI upscaling ------------------------------------------------
+
+
+class _DoublingUpscaler:
+    """Stands in for the ONNX model: doubles the image and records what it got."""
+
+    def __init__(self):
+        self.sizes = []
+
+    def upscale(self, image_data, target, model):
+        with Image.open(BytesIO(image_data)) as img:
+            self.sizes.append(img.size)
+            return _encode(img.resize((img.width * 2, img.height * 2)))
+
+
+def test_When_CliProcessorHasUpscaleAndFit_Expect_UpscaledFirstThenExactSize(tmp_path):
+    from backend.image_converter.domain.upscaling import UpscaleTarget
+
+    source = tmp_path / "small.png"
+    _stripes((300, 200), vertical=True).save(source)
+    destination = tmp_path / "out"
+    processor = ImageConversionProcessor(
+        source=str(source),
+        destination=str(destination),
+        image_format=ImageFormat.PNG,
+        upscale=UpscaleTarget.X2,
+        fit=FitToSize(1280, 640, FitMode.CROP),
+    )
+    upscaler = _DoublingUpscaler()
+    processor._upscaler = upscaler
+    processor.run()
+
+    assert upscaler.sizes == [(300, 200)]
+    with Image.open(destination / "small.png") as out:
+        assert out.size == (1280, 640)
+    assert processor.results[0].resized_width == 1280
+
+
+def test_When_CompressingWithUpscaleAndFit_Expect_BothPassedAndWidthDropped(tmp_path):
+    from backend.image_converter.domain.upscaling import UpscaleTarget
+
+    use_case = _CapturingUseCase()
+    service = CompressionService(DummyLogger(), use_case=use_case, temp_folder_service=_TempFolders(tmp_path))
+
+    service.compress(_form_data(ImageFormat.JPEG, upscale="2x", fit_width="1280", fit_height="640"))
+
+    assert use_case.request.upscale is UpscaleTarget.X2
+    assert use_case.request.fit == FitToSize(1280, 640, FitMode.CROP, FitAnchor.AUTO)
+    assert use_case.request.width is None
+
+
+def test_When_CliGetsUpscaleAndFit_Expect_ProcessorReceivesBoth(monkeypatch):
+    from backend.image_converter.domain.upscaling import UpscaleTarget
+    from backend.image_converter.presentation.cli import app
+
+    captured = {}
+
+    class _Processor:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        def run(self):
+            pass
+
+    monkeypatch.setattr(app, "ImageConversionProcessor", _Processor)
+
+    app.main(["in", "out", "--width", "300", "--upscale", "4x", "--fit", "1280x640"])
+
+    assert captured["upscale"] is UpscaleTarget.X4
+    assert captured["fit"] == FitToSize(1280, 640, FitMode.CROP, FitAnchor.AUTO)
+    assert captured["width"] is None
