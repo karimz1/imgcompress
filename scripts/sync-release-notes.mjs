@@ -23,7 +23,9 @@ export function releaseEntry(release) {
   if (Number.isNaN(date.valueOf())) throw new Error('Invalid publication date');
   const version = match[1];
   const prerelease = Boolean(release.prerelease || version.includes('-'));
-  const lines = release.body.replace(/\r\n/g, '\n').trim().split('\n');
+  // GitHub adds a hidden "generated using configuration" comment; it means nothing in the app.
+  const lines = release.body.replace(/\r\n/g, '\n').trim().split('\n')
+    .filter((line) => !/^<!--\s*Release notes generated using configuration\b.*-->\s*$/.test(line));
   const first = new RegExp(`^##\\s+v?(${VERSION_PATTERN})\\s+[—-]\\s+\\d{4}-\\d{2}-\\d{2}\\s*$`).exec(lines[0]);
   if (first?.[1] === version) lines.shift();
   let fence = null;

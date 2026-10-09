@@ -53,6 +53,13 @@ test('legacy headers are not duplicated and fenced Markdown stays intact', () =>
   assert.match(result, /```markdown\n## Example heading\n```/);
 });
 
+test('GitHub\'s generator comment is not copied into the app notes', () => {
+  const body = '<!-- Release notes generated using configuration in .github/release.yml at main -->\n\n## What\'s Changed\n* Fix';
+  const result = releaseEntry({ ...release, body }).markdown;
+  assert.doesNotMatch(result, /<!--/);
+  assert.ok(result.startsWith('## v0.10.0 — 2026-10-09\n\n### What\'s Changed\n* Fix'));
+});
+
 test('drafts, empty notes, invalid tags and dates fail before changing the file', () => {
   for (const override of [{ draft: true }, { published_at: null }, { published_at: 'invalid' }, { body: '' }, { tag_name: 'release_bad' }]) {
     assert.throws(() => upsertReleaseNotes(archive, { ...release, ...override }));
