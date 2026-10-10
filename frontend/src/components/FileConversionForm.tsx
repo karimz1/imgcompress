@@ -74,6 +74,9 @@ interface FileConversionFormProps {
   setUseRembg: (val: boolean) => void;
   rembgModelName: string | null;
 
+  webpLossless: boolean;
+  setWebpLossless: (val: boolean) => void;
+
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
@@ -125,6 +128,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   useRembg,
   setUseRembg,
   rembgModelName,
+  webpLossless,
+  setWebpLossless,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -151,6 +156,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     resizeWidth: t("form.resizeWidth.tooltip"),
     targetSize: t("form.targetSize.tooltip"),
     rembg: t("form.rembg.tooltip"),
+    webpLossless: t("form.webpLossless.tooltip"),
   };
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
@@ -169,6 +175,16 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const pdfMarginValue =
     pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
   const rembgLabel = rembgModelName?.trim() || "rembg";
+  // Lossless WebP has no quality knob, so it gets neither the quality slider nor
+  // the max-file-size search.
+  const hasQualitySettings =
+    outputFormat === "jpeg" ||
+    outputFormat === "avif" ||
+    (outputFormat === "webp" && !webpLossless);
+  // "WebP" is written in mixed case everywhere else in the UI.
+  const outputFormatLabel = outputFormat === "webp" ? "WebP" : outputFormat.toUpperCase();
+  const supportsBackgroundRemoval =
+    outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp";
   const renderError = useMemo(
     () =>
       error && (
@@ -421,6 +437,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <SelectItem value="jpeg">{t("form.outputFormat.options.jpeg")}</SelectItem>
             <SelectItem value="png">{t("form.outputFormat.options.png")}</SelectItem>
             <SelectItem value="avif">{t("form.outputFormat.options.avif")}</SelectItem>
+            <SelectItem value="webp">{t("form.outputFormat.options.webp")}</SelectItem>
             <SelectItem value="pdf">{t("form.outputFormat.options.pdf")}</SelectItem>
             <SelectItem value="ico">{t("form.outputFormat.options.ico")}</SelectItem>
           </SelectContent>
@@ -654,9 +671,42 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "jpeg" || outputFormat === "avif") && (
+      {outputFormat === "webp" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="webpLosslessToggle"
+              className="text-sm flex items-center gap-1"
+            >
+              {t("form.webpLossless.label")}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+                >
+                  <p className="text-sm">{tooltipContent.webpLossless}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Switch
+              data-testid="webp-lossless-switch"
+              id="webpLosslessToggle"
+              checked={webpLossless}
+              onCheckedChange={setWebpLossless}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      )}
+
+      {hasQualitySettings && (
         <div className="space-y-2">
-          <Label className="text-sm">{t("form.compressionMode.label", { format: outputFormat.toUpperCase() })}</Label>
+          <Label className="text-sm">{t("form.compressionMode.label", { format: outputFormatLabel })}</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -680,7 +730,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "png" || outputFormat === "avif") && (
+      {supportsBackgroundRemoval && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -713,7 +763,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality" && (
+      {hasQualitySettings && compressionMode === "quality" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -764,7 +814,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size" && (
+      {hasQualitySettings && compressionMode === "size" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -823,7 +873,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </div>
 
           <p className={cn("text-xs", subtleText)}>
-            {t("form.targetSize.hint", { format: outputFormat.toUpperCase() })}
+            {t("form.targetSize.hint", { format: outputFormatLabel })}
           </p>
         </div>
       )}

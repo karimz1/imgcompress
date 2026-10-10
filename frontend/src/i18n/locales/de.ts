@@ -64,11 +64,12 @@ export const de: TranslationSchema = {
         jpeg: "JPEG (kleinere Dateigröße)",
         png: "PNG (erhält Transparenz)",
         avif: "AVIF (beste Komprimierung und Qualität)",
+        webp: "WebP (kleine Dateien, überall nutzbar)",
         pdf: "PDF (einseitiges Dokument)",
         ico: "ICO (erhält Transparenz)",
       },
       tooltip:
-        "PNG: Erhält Transparenz (Alpha) und ist ideal für Bilder mit transparentem Hintergrund.\nJPEG: Ideal für Bilder ohne Transparenz und erzeugt kleinere Dateien.\nAVIF: Modernes Format mit hervorragender Komprimierung und Qualität, unterstützt Transparenz.\nPDF: Exportiert Bilder in PDFs mit optionalen Seitenvorgaben, Rändern und Aufteilung auf mehrere Seiten.\nICO: Wird häufig für Favicons und Anwendungssymbole verwendet, unterstützt Transparenz (Alpha). Für die Konvertierung zu ICO wird PNG als Quelle empfohlen.",
+        "PNG: Erhält Transparenz (Alpha) und ist ideal für Bilder mit transparentem Hintergrund.\nJPEG: Ideal für Bilder ohne Transparenz und erzeugt kleinere Dateien.\nAVIF: Modernes Format mit hervorragender Komprimierung und Qualität, unterstützt Transparenz.\nWebP: Kleine Dateien mit breiter Browser-Unterstützung, unterstützt Transparenz und einen optionalen verlustfreien Modus.\nPDF: Exportiert Bilder in PDFs mit optionalen Seitenvorgaben, Rändern und Aufteilung auf mehrere Seiten.\nICO: Wird häufig für Favicons und Anwendungssymbole verwendet, unterstützt Transparenz (Alpha). Für die Konvertierung zu ICO wird PNG als Quelle empfohlen.",
     },
     pdfPreset: {
       label: "PDF-Seitenvorgabe",
@@ -123,6 +124,11 @@ export const de: TranslationSchema = {
       label: "Lange Bilder auf mehrere Seiten aufteilen",
       tooltip: "Teilt lange Bilder auf mehrere Seiten auf, wenn eine PDF-Vorgabe ausgewählt ist.",
     },
+    webpLossless: {
+      label: "Verlustfreies WebP",
+      tooltip:
+        "Behält jedes Pixel exakt wie im Original. Die Dateien sind größer als bei verlustbehaftetem WebP, daher sind Qualität und maximale Dateigröße nicht verfügbar.\nGut für Screenshots, Logos und Grafiken mit Text.",
+    },
     compressionMode: {
       label: "{{format}}-Einstellungsmodus",
       byQuality: "Nach Qualität festlegen",
@@ -136,7 +142,7 @@ export const de: TranslationSchema = {
     quality: {
       label: "Qualität",
       tooltip:
-        "Passe die Qualität an (100 ist die beste Qualität, niedrigere Werte reduzieren die Dateigröße). Gilt für JPEG und AVIF.",
+        "Passe die Qualität an (100 ist die beste Qualität, niedrigere Werte reduzieren die Dateigröße). Gilt für JPEG, AVIF und WebP.",
       presets: {
         smaller: "Kleiner (60)",
         balanced: "Ausgewogen (75)",
@@ -149,7 +155,7 @@ export const de: TranslationSchema = {
       placeholder: "z. B. 0,50",
       hint: "Es wird versucht, jede {{format}}-Datei durch automatische Qualitätsanpassung auf oder unter dieser Größe zu halten.",
       tooltip:
-        "Lege eine optionale maximale Ausgabegröße (in MB) fest. Gilt für JPEG- und AVIF-Ausgaben.",
+        "Lege eine optionale maximale Ausgabegröße (in MB) fest. Gilt für JPEG-, AVIF- und WebP-Ausgaben.",
     },
     resizeWidth: {
       label: "Breite ändern",

@@ -358,6 +358,67 @@ class TestDockerIntegration:
             )
         print(f"AVIF file '{out_path}' validated at {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
 
+    def test_run_docker_cli_webpFormat_producesValidWebpFile(self):
+        """
+        Tests --format webp at the CLI level (lossy, resized like the other formats).
+        """
+        single_file_name = "pexels-pealdesign-28594392.jpg"
+        local_path = os.path.join(self.SAMPLE_IMAGES_DIR, single_file_name)
+        assert os.path.exists(local_path), f"Missing test image: {local_path}"
+
+        self.run_docker_singlefile_processing(
+            single_file_name,
+            extra_args=["--format", "webp"],
+        )
+
+        output_files = os.listdir(self.OUTPUT_DIR)
+        assert len(output_files) == 1, f"Expected 1 output file, found {len(output_files)}."
+        out_path = os.path.join(self.OUTPUT_DIR, output_files[0])
+        assert out_path.lower().endswith(".webp"), f"Expected .webp output, got: {out_path}"
+        validate_image_dimensions(out_path, self.EXPECTED_IMAGE_WIDTH)
+        assert self._webp_bitstream(out_path) == b"VP8 "
+
+    def test_run_docker_cli_webpLossless_keepsAlphaChannel(self):
+        """
+        Tests --format webp --webp-lossless with a half-transparent square, like the PNG test.
+        """
+        transparent_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_transparent_webp.png")
+        img = Image.new("RGBA", (100, 100), (255, 0, 0, 0))
+        ImageDraw.Draw(img).rectangle([10, 10, 50, 50], fill=(0, 255, 0, 128))
+        img.save(transparent_img_path, "PNG")
+        try:
+            self.run_docker_singlefile_processing(
+                "test_transparent_webp.png",
+                extra_args=["--format", "webp", "--webp-lossless"],
+            )
+        finally:
+            os.remove(transparent_img_path)
+
+        out_path = os.path.join(self.OUTPUT_DIR, "test_transparent_webp.webp")
+        assert os.path.exists(out_path), f"Output file {out_path} not found."
+        assert self._webp_bitstream(out_path) == b"VP8L"
+        with Image.open(out_path) as out_img:
+            assert out_img.format == "WEBP"
+            assert out_img.mode == "RGBA"
+            scale_factor = self.EXPECTED_IMAGE_WIDTH / 100
+            assert out_img.getpixel((int(30 * scale_factor), int(30 * scale_factor)))[3] == 128
+            assert out_img.getpixel((int(6 * scale_factor), int(6 * scale_factor)))[3] == 0
+
+    @staticmethod
+    def _webp_bitstream(path: str) -> bytes:
+        """FourCC of the image chunk: b"VP8 " for lossy, b"VP8L" for lossless."""
+        with open(path, "rb") as f:
+            data = f.read()
+        assert data[:4] == b"RIFF" and data[8:12] == b"WEBP", f"{path} is not a WebP file"
+        offset = 12
+        while offset + 8 <= len(data):
+            fourcc = data[offset:offset + 4]
+            if fourcc in (b"VP8 ", b"VP8L"):
+                return fourcc
+            size = int.from_bytes(data[offset + 4:offset + 8], "little")
+            offset += 8 + size + (size % 2)
+        raise AssertionError(f"No VP8/VP8L chunk in {path}")
+
     def test_run_docker_cli_jsonOutput_emitsParseableMachineReadablePayload(self):
         """
         Tests --json-output at the CLI level. The README "For Code Wizards"

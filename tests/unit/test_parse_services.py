@@ -96,3 +96,28 @@ def test_extract_form_data_clamps_pdf_margin():
     form_data = extract_form_data(request, _Logger()).value
 
     assert form_data.pdf_margin_mm == 30.0
+
+
+def test_extract_form_data_parses_webp_lossless_flag():
+    request = _build_request(
+        {"format": "webp", "webp_lossless": "true"},
+        {"files[]": (b"\x89PNG\r\n\x1a\n" + b"x" * 100, "x.png")},
+    )
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    assert result.value.image_format is ImageFormat.WEBP
+    assert result.value.webp_lossless is True
+
+
+def test_extract_form_data_defaults_webp_lossless_to_false():
+    request = _build_request(
+        {"format": "webp"},
+        {"files[]": (b"\x89PNG\r\n\x1a\n" + b"x" * 100, "x.png")},
+    )
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    assert result.value.webp_lossless is False

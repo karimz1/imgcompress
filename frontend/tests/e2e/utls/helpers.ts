@@ -29,6 +29,7 @@ const selectors = {
   storageManagementButton: '[data-testid="storage-management-btn"]',
   storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]',
   rembgSwitch: '[data-testid="rembg-switch"]',
+  webpLosslessSwitch: '[data-testid="webp-lossless-switch"]',
   supportedFormatsBtn: '[data-testid="supported-formats-btn"]',
   supportedFormatsCount: '[data-testid="supported-formats-count"]',
   compressionModeQualityBtn: '[data-testid="compression-mode-quality-btn"]',
@@ -170,6 +171,15 @@ export async function uploadFilesToDropzoneAsync(page: Page, fileNames: ImageFil
     const dropzoneInput = page.locator(selectors.dropzoneInput);
     const filePaths = await Promise.all(fileNames.map(GetFullFilePathOfImageFileAsync));
     await dropzoneInput.setInputFiles(filePaths);
+}
+
+/** Uploads files generated in the test itself, so no extra fixture has to be committed. */
+export async function uploadBuffersToDropzoneAsync(
+  page: Page,
+  files: { name: string; mimeType: string; buffer: Buffer }[]
+): Promise<void> {
+  await waitForSupportedFormatsCountAsync(page);
+  await page.locator(selectors.dropzoneInput).setInputFiles(files);
 }
 
 export async function waitForSupportedFormatsCountAsync(page: Page): Promise<number> {
@@ -360,6 +370,15 @@ export async function setPdfPaginateEnabledAsync(page: Page, enabled: boolean): 
 
 export async function setRembgEnabledAsync(page: Page, enabled: boolean): Promise<void> {
   const toggle = page.locator(selectors.rembgSwitch);
+  await expect(toggle).toBeVisible();
+  const isChecked = await toggle.getAttribute('data-state');
+  if ((isChecked === 'checked') !== enabled) {
+    await toggle.click();
+  }
+}
+
+export async function setWebpLosslessEnabledAsync(page: Page, enabled: boolean): Promise<void> {
+  const toggle = page.locator(selectors.webpLosslessSwitch);
   await expect(toggle).toBeVisible();
   const isChecked = await toggle.getAttribute('data-state');
   if ((isChecked === 'checked') !== enabled) {

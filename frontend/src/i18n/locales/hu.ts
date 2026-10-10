@@ -64,11 +64,12 @@ export const hu: TranslationSchema = {
         jpeg: "JPEG (kisebb fájlméret)",
         png: "PNG (átlátszóság megőrzése)",
         avif: "AVIF (kiváló tömörítés és minőség)",
+        webp: "WebP (kis fájlok, mindenhol működik)",
         pdf: "PDF (egyoldalas dokumentum)",
         ico: "ICO (átlátszóság megőrzése)",
       },
       tooltip:
-        "PNG: Megőrzi az átlátszóságot (alfa), ezért átlátszó hátterű képekhez ideális.\nJPEG: Átlátszóság nélküli képekhez ajánlott, általában kisebb fájlméretet ad.\nAVIF: Modern formátum kiváló tömörítéssel és minőséggel, átlátszóságot is támogat.\nPDF: Képek exportálása PDF-be opcionális oldalbeállításokkal, margókkal és többoldalas felosztással.\nICO: Faviconokhoz és alkalmazásikonokhoz használatos, támogatja az átlátszóságot (alfa). ICO készítéséhez PNG forrás ajánlott.",
+        "PNG: Megőrzi az átlátszóságot (alfa), ezért átlátszó hátterű képekhez ideális.\nJPEG: Átlátszóság nélküli képekhez ajánlott, általában kisebb fájlméretet ad.\nAVIF: Modern formátum kiváló tömörítéssel és minőséggel, átlátszóságot is támogat.\nWebP: Kis fájlméret széles böngészőtámogatással, támogatja az átlátszóságot és egy opcionális veszteségmentes módot.\nPDF: Képek exportálása PDF-be opcionális oldalbeállításokkal, margókkal és többoldalas felosztással.\nICO: Faviconokhoz és alkalmazásikonokhoz használatos, támogatja az átlátszóságot (alfa). ICO készítéséhez PNG forrás ajánlott.",
     },
     pdfPreset: {
       label: "PDF oldalbeállítás",
@@ -123,6 +124,11 @@ export const hu: TranslationSchema = {
       label: "Hosszú képek felosztása több oldalra",
       tooltip: "A hosszú képeket több oldalra osztja, ha PDF-oldalbeállítás aktív.",
     },
+    webpLossless: {
+      label: "Veszteségmentes WebP",
+      tooltip:
+        "Minden pixelt pontosan az eredetinek megfelelően megőriz. A fájlok nagyobbak, mint a veszteséges WebP esetén, ezért a minőség és a maximális fájlméret nem állítható.\nKépernyőképekhez, logókhoz és szöveges grafikákhoz ajánlott.",
+    },
     compressionMode: {
       label: "{{format}} beállítási módja",
       byQuality: "Minőség alapján",
@@ -136,7 +142,7 @@ export const hu: TranslationSchema = {
     quality: {
       label: "Minőség",
       tooltip:
-        "A minőség beállítása (100 a legjobb minőség, alacsonyabb értékek csökkentik a fájlméretet). JPEG és AVIF esetén érvényes.",
+        "A minőség beállítása (100 a legjobb minőség, alacsonyabb értékek csökkentik a fájlméretet). JPEG, AVIF és WebP esetén érvényes.",
       presets: {
         smaller: "Kisebb (60)",
         balanced: "Kiegyensúlyozott (75)",
@@ -149,7 +155,7 @@ export const hu: TranslationSchema = {
       placeholder: "pl. 0,50",
       hint: "Megpróbálja az egyes {{format}} fájlokat ezen a határon belül tartani a minőség automatikus állításával.",
       tooltip:
-        "Opcionális maximális kimeneti méret (MB-ban). JPEG és AVIF kimenethez érvényes.",
+        "Opcionális maximális kimeneti méret (MB-ban). JPEG, AVIF és WebP kimenethez érvényes.",
     },
     resizeWidth: {
       label: "Átméretezés szélesség alapján",

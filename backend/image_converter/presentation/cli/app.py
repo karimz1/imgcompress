@@ -12,10 +12,10 @@ def main(argv=None):
     args = parse_arguments(argv)
     logger = Logger(debug=args.debug, json_output=args.json_output)
 
-    # Validate: --remove-background only works with PNG or AVIF format
-    if args.remove_background and args.format.upper() not in ["PNG", "AVIF"]:
+    # Validate: --remove-background only works with formats that keep transparency
+    if args.remove_background and args.format.upper() not in ["PNG", "AVIF", "WEBP"]:
         logger.log(
-            "Error: --remove-background can only be used with --format png or --format avif",
+            "Error: --remove-background can only be used with --format png, avif, or webp",
             "error"
         )
         sys.exit(1)
@@ -42,6 +42,7 @@ def main(argv=None):
             pdf_margin_mm=pdf_margin_mm,
             pdf_paginate=pdf_paginate,
             pdf_quality=PdfQuality.default(),
+            webp_lossless=args.webp_lossless and image_format == ImageFormat.WEBP,
             use_rembg=args.remove_background,
             debug=args.debug,
             json_output=args.json_output

@@ -64,11 +64,12 @@ export const ptBR: TranslationSchema = {
         jpeg: "JPEG (menor tamanho de arquivo)",
         png: "PNG (preserva transparência)",
         avif: "AVIF (melhor compressão e qualidade)",
+        webp: "WebP (arquivos pequenos, funciona em todo lugar)",
         pdf: "PDF (documento de uma página)",
         ico: "ICO (preserva transparência)",
       },
       tooltip:
-        "PNG: preserva transparência (alfa) e é melhor para imagens com fundos transparentes.\nJPEG: ideal para imagens sem transparência e gera arquivos menores.\nAVIF: formato moderno com compressão e qualidade superiores, com suporte a transparência.\nPDF: exporta imagens para PDFs com predefinições de página, margens e divisão em várias páginas opcionais.\nICO: usado com frequência para favicons e ícones de aplicativos, com suporte a transparência (alfa). Recomenda-se usar PNG como origem ao converter para ICO.",
+        "PNG: preserva transparência (alfa) e é melhor para imagens com fundos transparentes.\nJPEG: ideal para imagens sem transparência e gera arquivos menores.\nAVIF: formato moderno com compressão e qualidade superiores, com suporte a transparência.\nWebP: Arquivos pequenos com amplo suporte nos navegadores, suporta transparência e um modo sem perdas opcional.\nPDF: exporta imagens para PDFs com predefinições de página, margens e divisão em várias páginas opcionais.\nICO: usado com frequência para favicons e ícones de aplicativos, com suporte a transparência (alfa). Recomenda-se usar PNG como origem ao converter para ICO.",
     },
     pdfPreset: {
       label: "Predefinição de página PDF",
@@ -123,6 +124,11 @@ export const ptBR: TranslationSchema = {
       label: "Dividir imagens longas em várias páginas",
       tooltip: "Divide imagens longas em várias páginas quando uma predefinição PDF é selecionada.",
     },
+    webpLossless: {
+      label: "WebP sem perdas",
+      tooltip:
+        "Mantém cada pixel exatamente como no original. Os arquivos ficam maiores do que no WebP com perdas, por isso qualidade e tamanho máximo de arquivo não estão disponíveis.\nBom para capturas de tela, logotipos e gráficos com texto.",
+    },
     compressionMode: {
       label: "Modo de configurações de {{format}}",
       byQuality: "Definir por qualidade",
@@ -136,7 +142,7 @@ export const ptBR: TranslationSchema = {
     quality: {
       label: "Qualidade",
       tooltip:
-        "Ajuste a qualidade (100 oferece a melhor qualidade; valores menores reduzem o tamanho do arquivo). Aplica-se a JPEG e AVIF.",
+        "Ajuste a qualidade (100 oferece a melhor qualidade; valores menores reduzem o tamanho do arquivo). Aplica-se a JPEG, AVIF e WebP.",
       presets: {
         smaller: "Menor (60)",
         balanced: "Equilibrada (75)",
@@ -149,7 +155,7 @@ export const ptBR: TranslationSchema = {
       placeholder: "ex.: 0,50",
       hint: "Tentará manter cada {{format}} nesse tamanho ou abaixo dele ajustando a qualidade automaticamente.",
       tooltip:
-        "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG e AVIF.",
+        "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG, AVIF e WebP.",
     },
     resizeWidth: {
       label: "Redimensionar largura",

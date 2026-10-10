@@ -68,7 +68,7 @@ class CompressImagesUseCase:
                     else:
                         data = self._resize_if_needed(payload.data, req.width)
 
-                    if req.target_size and req.image_format in [ImageFormat.JPEG, ImageFormat.AVIF]:
+                    if req.target_size and req.image_format in [ImageFormat.JPEG, ImageFormat.AVIF, ImageFormat.WEBP]:
                         target = TargetSize(req.target_size.bytes)
                         target_bytes = target.soft_limit
 
@@ -103,6 +103,7 @@ class CompressImagesUseCase:
                             pdf_margin_mm=pdf_margin_mm,
                             pdf_paginate=pdf_paginate,
                             pdf_quality=pdf_quality,
+                            webp_lossless=req.webp_lossless,
                         )
                         # Tag the filename when the converter itself removed the
                         # background, so the suffix follows the actual behaviour

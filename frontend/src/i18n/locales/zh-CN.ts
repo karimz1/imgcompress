@@ -64,11 +64,12 @@ export const zhCN: TranslationSchema = {
         jpeg: "JPEG（文件更小）",
         png: "PNG（保留透明度）",
         avif: "AVIF（最佳压缩和质量）",
+        webp: "WebP（文件小，兼容性广）",
         pdf: "PDF（单页文档）",
         ico: "ICO（保留透明度）",
       },
       tooltip:
-        "PNG：保留透明度（Alpha），最适合透明背景图片。\nJPEG：适合没有透明度的图片，可生成更小的文件。\nAVIF：现代格式，压缩率和质量更好，并支持透明度。\nPDF：将图片导出为 PDF，可选择页面预设、边距和多页拆分。\nICO：常用于收藏夹图标和应用图标，支持透明度（Alpha）。转换为 ICO 时建议使用 PNG 作为源文件。",
+        "PNG：保留透明度（Alpha），最适合透明背景图片。\nJPEG：适合没有透明度的图片，可生成更小的文件。\nAVIF：现代格式，压缩率和质量更好，并支持透明度。\nWebP：文件小且浏览器支持广泛，支持透明度和可选的无损模式。\nPDF：将图片导出为 PDF，可选择页面预设、边距和多页拆分。\nICO：常用于收藏夹图标和应用图标，支持透明度（Alpha）。转换为 ICO 时建议使用 PNG 作为源文件。",
     },
     pdfPreset: {
       label: "PDF 页面预设",
@@ -123,6 +124,11 @@ export const zhCN: TranslationSchema = {
       label: "将长图拆分为多页",
       tooltip: "选择 PDF 预设时，将长图拆分为多页。",
     },
+    webpLossless: {
+      label: "无损 WebP",
+      tooltip:
+        "完全保留原图的每个像素。文件比有损 WebP 更大，因此无法设置质量和最大文件大小。\n适合截图、徽标和带文字的图形。",
+    },
     compressionMode: {
       label: "{{format}} 设置模式",
       byQuality: "按质量设置",
@@ -136,7 +142,7 @@ export const zhCN: TranslationSchema = {
     quality: {
       label: "质量",
       tooltip:
-        "调整质量（100 表示最佳质量，较低值会减小文件大小）。适用于 JPEG 和 AVIF。",
+        "调整质量（100 表示最佳质量，较低值会减小文件大小）。适用于 JPEG、AVIF 和 WebP。",
       presets: {
         smaller: "更小 (60)",
         balanced: "均衡 (75)",
@@ -149,7 +155,7 @@ export const zhCN: TranslationSchema = {
       placeholder: "例如 0.50",
       hint: "它会通过自动调整质量，尝试让每个 {{format}} 文件不超过此大小。",
       tooltip:
-        "设置可选的最大输出大小（MB）。适用于 JPEG 和 AVIF 输出。",
+        "设置可选的最大输出大小（MB）。适用于 JPEG、AVIF 和 WebP 输出。",
     },
     resizeWidth: {
       label: "调整宽度",

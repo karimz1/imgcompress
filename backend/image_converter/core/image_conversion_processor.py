@@ -41,6 +41,7 @@ class ImageConversionProcessor:
         pdf_margin_mm: Optional[float] = None,
         pdf_paginate: bool = False,
         pdf_quality: PdfQuality = PdfQuality.HIGH,
+        webp_lossless: bool = False,
         use_rembg: bool = False,
         debug: bool = False,
         json_output: bool = False
@@ -55,6 +56,7 @@ class ImageConversionProcessor:
         self.pdf_margin_mm = pdf_margin_mm
         self.pdf_paginate = pdf_paginate
         self.pdf_quality = pdf_quality
+        self.webp_lossless = webp_lossless
         self.use_rembg = use_rembg
         self.debug = debug
         self.json_output = json_output
@@ -90,6 +92,7 @@ class ImageConversionProcessor:
             pdf_margin_mm=self.pdf_margin_mm,
             pdf_paginate=self.pdf_paginate,
             pdf_quality=self.pdf_quality,
+            webp_lossless=self.webp_lossless,
         )
         self.results: List[PageProcessingResult] = []
 

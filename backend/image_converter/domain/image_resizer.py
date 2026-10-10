@@ -16,9 +16,16 @@ class ImageResizer:
             if img.width <= 0:
                 raise ValueError("Original image width must be > 0.")
 
+            # The TIFF written below carries no EXIF, so apply the orientation now.
+            # This also makes the target width the width the user actually sees.
+            try:
+                img = ImageOps.exif_transpose(img)
+            except Exception:
+                pass
+
             # Calculate dimensions
             ratio = target_width / float(img.width)
-            new_size = (target_width, int(img.height * ratio))
+            new_size = (target_width, max(1, int(img.height * ratio)))
 
             # Metadata and High-Bit preservation
             icc_profile = img.info.get("icc_profile")
