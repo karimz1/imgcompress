@@ -677,7 +677,7 @@ def test_When_ManyTiles_Expect_ProgressLogged():
 # --- Threads and execution providers ------------------------------------------------------
 
 
-@pytest.mark.parametrize(("cpu_max", "expected"), [("max 100000", None), ("200000 100000", 2), ("50000 100000", 1), ("350000 100000", 3), ("garbage", None)])
+@pytest.mark.parametrize(("cpu_max", "expected"), [("max 100000", None), ("200000 100000", 2), ("50000 100000", 1), ("350000 100000", 3), ("garbage", None), ("100000 0", None), ("-100000 100000", None)])
 def test_When_ReadingCgroupQuota_Expect_WholeCpus(cpu_max, expected):
     assert cgroup_cpu_limit(cpu_max) == expected
 
