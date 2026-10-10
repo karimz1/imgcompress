@@ -14,7 +14,7 @@
 
 Deployments share one queue because stable releases share `latest`. A nightly
 run is skipped if `main` has moved since its commit passed CI. PR branches do
-not publish nightly images.
+not publish nightly images. Manual nightly deployment is restricted to `main`.
 
 - Put `Closes #123` in PR descriptions so the ticket shows up in the notes.
 - Label a PR `skip-release-notes` to leave it out.

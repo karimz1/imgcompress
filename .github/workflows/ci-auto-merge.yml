@@ -644,13 +644,3 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --squash --delete-branch "$PR_URL"
 
-      - name: Trigger Deployment Workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          gh api \
-            --method POST \
-            "repos/${REPOSITORY}/dispatches" \
-            -f event_type=deploy \
-            -f "client_payload[ref]=main"
