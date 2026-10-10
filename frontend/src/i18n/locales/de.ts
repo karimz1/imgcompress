@@ -290,6 +290,23 @@ export const de: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "Build-Details",
+      description: "Die Version, die auf diesem Gerät läuft.",
+      built: "Erstellt am",
+      commit: "Quellcode-Commit",
+      buildId: "Build-ID",
+      open: "Build-Details anzeigen",
+      copy: "Details kopieren",
+      copied: "Kopiert",
+      copyFailed: "Kopieren fehlgeschlagen. Du kannst die Build-ID oben markieren.",
+      channels: {
+        nightly: "Nightly-Build",
+        rc: "Release-Kandidat",
+        stable: "Stabil",
+        local: "Lokaler Build",
+      },
+    },
     updateAvailable: "Update verfügbar: {{version}}",
     whatsNew: "Was ist neu?",
     version: "Version: {{version}}",

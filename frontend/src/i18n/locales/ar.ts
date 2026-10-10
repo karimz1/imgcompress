@@ -289,6 +289,23 @@ export const ar: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "تفاصيل الإصدار",
+      description: "الإصدار الذي يعمل على هذا الجهاز.",
+      built: "وقت الإنشاء",
+      commit: "تعديل الشيفرة المصدرية",
+      buildId: "معرّف البناء",
+      open: "عرض تفاصيل الإصدار",
+      copy: "نسخ التفاصيل",
+      copied: "تم النسخ",
+      copyFailed: "تعذّر النسخ. يمكنك تحديد معرّف البناء أعلاه.",
+      channels: {
+        nightly: "بناء ليلي",
+        rc: "إصدار مرشّح",
+        stable: "مستقر",
+        local: "بناء محلي",
+      },
+    },
     updateAvailable: "يتوفر تحديث: {{version}}",
     whatsNew: "ما الجديد",
     version: "الإصدار {{version}}",

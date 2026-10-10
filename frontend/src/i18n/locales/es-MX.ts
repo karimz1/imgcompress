@@ -290,6 +290,23 @@ export const esMX: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "Detalles de la compilación",
+      description: "La compilación que se ejecuta en este dispositivo.",
+      built: "Compilado el",
+      commit: "Commit de origen",
+      buildId: "ID de compilación",
+      open: "Mostrar detalles de la compilación",
+      copy: "Copiar detalles",
+      copied: "Copiado",
+      copyFailed: "No se pudo copiar. Puedes seleccionar el ID de compilación de arriba.",
+      channels: {
+        nightly: "Nocturna",
+        rc: "Versión candidata",
+        stable: "Estable",
+        local: "Compilación local",
+      },
+    },
     updateAvailable: "Actualización disponible: {{version}}",
     whatsNew: "Novedades",
     version: "Versión {{version}}",

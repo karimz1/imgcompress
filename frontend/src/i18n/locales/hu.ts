@@ -291,6 +291,23 @@ export const hu: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "Build adatai",
+      description: "Az ezen az eszközön futó build.",
+      built: "Készült",
+      commit: "Forráscommit",
+      buildId: "Buildazonosító",
+      open: "Build adatainak megjelenítése",
+      copy: "Adatok másolása",
+      copied: "Másolva",
+      copyFailed: "A másolás nem sikerült. A fenti buildazonosító kijelölhető.",
+      channels: {
+        nightly: "Éjszakai",
+        rc: "Kiadásra jelölt",
+        stable: "Stabil",
+        local: "Helyi build",
+      },
+    },
     updateAvailable: "Frissítés elérhető: {{version}}",
     whatsNew: "Mi újság?",
     version: "Verzió: {{version}}",

@@ -287,6 +287,23 @@ export const en = {
   },
 
   footer: {
+    build: {
+      title: "Build details",
+      description: "The build running on this device.",
+      built: "Built",
+      commit: "Source commit",
+      buildId: "Build ID",
+      open: "Show build details",
+      copy: "Copy details",
+      copied: "Copied",
+      copyFailed: "Could not copy. You can select the build ID above.",
+      channels: {
+        nightly: "Nightly",
+        rc: "Release candidate",
+        stable: "Stable",
+        local: "Local build",
+      },
+    },
     updateAvailable: "Update available: {{version}}",
     whatsNew: "What's new",
     version: "Version {{version}}",

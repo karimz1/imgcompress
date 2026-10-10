@@ -290,6 +290,23 @@ export const ptBR: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "Detalhes da compilação",
+      description: "A compilação em execução neste dispositivo.",
+      built: "Compilada em",
+      commit: "Commit de origem",
+      buildId: "ID da compilação",
+      open: "Mostrar detalhes da compilação",
+      copy: "Copiar detalhes",
+      copied: "Copiado",
+      copyFailed: "Não foi possível copiar. Você pode selecionar o ID acima.",
+      channels: {
+        nightly: "Noturna",
+        rc: "Versão candidata",
+        stable: "Estável",
+        local: "Compilação local",
+      },
+    },
     updateAvailable: "Atualização disponível: {{version}}",
     whatsNew: "Novidades",
     version: "Versão {{version}}",

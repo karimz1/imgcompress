@@ -24,20 +24,22 @@ const compareVersions = (current: string, latest: string): boolean => {
   return gt(normalizedLatest, normalizedCurrent);
 };
 
-export function useVersionCheck(): VersionInfo {
+export function useVersionCheck(installedVersion?: string): VersionInfo {
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchVersionInfo = async () => {
       try {
-        // Fetch current version from local release notes
-        const releaseNotesResponse = await fetch("/release-notes.md", { cache: "no-store" });
-        if (releaseNotesResponse.ok) {
-          const markdown = await releaseNotesResponse.text();
-          const rawCurrent = extractCurrentVersion(markdown);
+        let rawCurrent = installedVersion;
+        if (!rawCurrent) {
+          const releaseNotesResponse = await fetch("/release-notes.md", { cache: "no-store" });
+          if (releaseNotesResponse.ok) {
+            rawCurrent = extractCurrentVersion(await releaseNotesResponse.text()) ?? undefined;
+          }
+        }
+        if (rawCurrent) {
           const current = rawCurrent ? normalizeVersion(rawCurrent) : null;
           setCurrentVersion(current);
 
@@ -55,9 +57,6 @@ export function useVersionCheck(): VersionInfo {
                   typeof rawLatest === "string" ? normalizeVersion(rawLatest) : null;
                 if (latest) {
                   setLatestVersion(latest);
-                  if (compareVersions(current, latest)) {
-                    setUpdateAvailable(true);
-                  }
                 }
               }
             } catch (apiError) {
@@ -73,12 +72,16 @@ export function useVersionCheck(): VersionInfo {
     };
 
     fetchVersionInfo();
-  }, []);
+  }, [installedVersion]);
+
+  // Metadata and notes can arrive in either order. Compare against the same
+  // installed version used in the footer, rather than retaining a stale result.
+  const effectiveCurrent = installedVersion ? normalizeVersion(installedVersion) : currentVersion;
 
   return {
-    currentVersion,
+    currentVersion: effectiveCurrent,
     latestVersion,
-    updateAvailable,
+    updateAvailable: !!effectiveCurrent && !!latestVersion && compareVersions(effectiveCurrent, latestVersion),
     isLoading,
   };
 }

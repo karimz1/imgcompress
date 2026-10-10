@@ -290,6 +290,23 @@ export const hi: TranslationSchema = {
   },
 
   footer: {
+    build: {
+      title: "बिल्ड का विवरण",
+      description: "इस डिवाइस पर चल रहा बिल्ड।",
+      built: "बिल्ड का समय",
+      commit: "सोर्स कमिट",
+      buildId: "बिल्ड आईडी",
+      open: "बिल्ड का विवरण दिखाएँ",
+      copy: "विवरण कॉपी करें",
+      copied: "कॉपी हो गया",
+      copyFailed: "कॉपी नहीं हो सका। ऊपर दी गई बिल्ड आईडी चुन सकते हैं।",
+      channels: {
+        nightly: "नाइटली",
+        rc: "रिलीज़ कैंडिडेट",
+        stable: "स्थिर",
+        local: "स्थानीय बिल्ड",
+      },
+    },
     updateAvailable: "अपडेट उपलब्ध: {{version}}",
     whatsNew: "नया क्या है",
     version: "संस्करण {{version}}",

@@ -24,6 +24,9 @@ const rcReleaseNotes = [
 test.describe('Update Banner for release candidates', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('imgcompress_locale', 'en'));
+    // This suite exercises the release-notes fallback. Docker builds also have
+    // build-info.json, which is tested separately in buildDetails_Test.
+    await page.route('**/build-info.json', (route) => route.fulfill({ status: 404, body: '' }));
     await mockReleaseNotesAsync(page, rcReleaseNotes);
   });
 
