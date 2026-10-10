@@ -134,7 +134,9 @@ class ImageResizer:
             return buffer.getvalue()
 
     @classmethod
-    def fit_image(cls, img: Image.Image, fit: FitToSize) -> Image.Image:
+    def fit_image(
+        cls, img: Image.Image, fit: FitToSize, output_size: tuple[int, int] | None = None
+    ) -> Image.Image:
         """
         Same as ``fit_to_size`` for an image that is already decoded and upright.
         The editor preview uses this directly so it does not have to encode and
@@ -142,10 +144,11 @@ class ImageResizer:
         """
         if img.mode in ("P", "PA"):
             img = img.convert("RGBA" if cls._has_alpha(img) else "RGB")
+        size = output_size or (fit.width, fit.height)
         if fit.mode == FitMode.BLUR:
-            return cls._fit_on_blurred_background(img, fit.width, fit.height)
+            return cls._fit_on_blurred_background(img, fit.width, fit.height, size)
         box = cls.fit_crop_box(img, fit.width, fit.height, fit.anchor)
-        return img.resize((fit.width, fit.height), Image.Resampling.LANCZOS, box=box)
+        return img.resize(size, Image.Resampling.LANCZOS, box=box)
 
     @staticmethod
     def fit_crop_box(
@@ -175,7 +178,9 @@ class ImageResizer:
         return left, top, left + box_width, top + box_height
 
     @classmethod
-    def _fit_on_blurred_background(cls, img: Image.Image, width: int, height: int) -> Image.Image:
+    def _fit_on_blurred_background(
+        cls, img: Image.Image, width: int, height: int, output_size: tuple[int, int]
+    ) -> Image.Image:
         # Blur and compositing work on 8-bit RGB; the output is opaque anyway.
         img = to_8bit(img)
         if cls._has_alpha(img):
@@ -189,14 +194,17 @@ class ImageResizer:
             flat = img.convert("RGB")
 
         box = cls.fit_crop_box(flat, width, height, FitAnchor.CENTER)
-        background = flat.resize((width, height), Image.Resampling.LANCZOS, box=box)
-        radius = max(2.0, max(width, height) * _BLUR_RADIUS_SHARE)
+        background = flat.resize(output_size, Image.Resampling.LANCZOS, box=box)
+        radius = max(2.0, max(width, height) * _BLUR_RADIUS_SHARE) * max(output_size) / max(width, height)
         background = background.filter(ImageFilter.GaussianBlur(radius))
         background = ImageEnhance.Brightness(background).enhance(_BLUR_BRIGHTNESS)
 
         ratio = min(width / img.width, height / img.height)
         size = (max(1, min(width, round(img.width * ratio))), max(1, min(height, round(img.height * ratio))))
         offset = ((width - size[0]) // 2, (height - size[1]) // 2)
+        scale_x, scale_y = output_size[0] / width, output_size[1] / height
+        size = (max(1, round(size[0] * scale_x)), max(1, round(size[1] * scale_y)))
+        offset = (round(offset[0] * scale_x), round(offset[1] * scale_y))
         if rgba is not None:
             foreground = rgba.resize(size, Image.Resampling.LANCZOS)
             background.paste(foreground.convert("RGB"), offset, mask=foreground.getchannel("A"))

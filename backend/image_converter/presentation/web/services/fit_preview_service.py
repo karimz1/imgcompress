@@ -56,11 +56,12 @@ class FitPreviewService:
                 png = None
                 if with_image:
                     selected = img.crop((x, y, x + width, y + height))
-                    fitted = ImageResizer.fit_image(selected, fit)
-                    if not full_size:
-                        fitted.thumbnail(
-                            (PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.Resampling.LANCZOS
-                        )
+                    scale = 1.0 if full_size else min(1.0, PREVIEW_MAX_SIDE / max(fit.width, fit.height))
+                    preview_size = (max(1, round(fit.width * scale)), max(1, round(fit.height * scale)))
+                    # Render directly at preview resolution while using the
+                    # export geometry. Do not allocate an 8192px canvas just to
+                    # shrink it for every editor update.
+                    fitted = ImageResizer.fit_image(selected, fit, output_size=preview_size)
                     buffer = BytesIO()
                     fitted.save(buffer, format="PNG", icc_profile=icc_profile)
                     png = buffer.getvalue()

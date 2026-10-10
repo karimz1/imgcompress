@@ -144,6 +144,27 @@ def test_large_custom_size_gets_a_scaled_preview_but_renders_at_full_size():
     assert Image.open(BytesIO(full.value[1])).size == (4000, 3000)
 
 
+@pytest.mark.parametrize("mode", ["crop", "blur"])
+def test_large_preview_never_allocates_the_export_canvas(monkeypatch, mode):
+    sizes = []
+    original_resize = Image.Image.resize
+
+    def record_resize(image, size, *args, **kwargs):
+        sizes.append(size)
+        return original_resize(image, size, *args, **kwargs)
+
+    monkeypatch.setattr(Image.Image, "resize", record_resize)
+    result = render(
+        Image.new("RGB", (600, 400), "green"),
+        fit_width="8192", fit_height="8192", fit_mode=mode,
+    )
+
+    assert result.is_successful
+    assert Image.open(BytesIO(result.value[1])).size == (2048, 2048)
+    assert sizes and all(max(size) <= 2048 for size in sizes)
+    assert result.value[0]["fit"] == {"width": 8192, "height": 8192, "mode": mode}
+
+
 def test_colour_profile_is_kept_for_rgb_and_dropped_after_cmyk_conversion():
     from PIL import ImageCms
 
