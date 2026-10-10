@@ -62,6 +62,8 @@ class FitPreviewService:
                     # export geometry. Do not allocate an 8192px canvas just to
                     # shrink it for every editor update.
                     fitted = ImageResizer.fit_image(selected, fit, output_size=preview_size)
+                    if fitted.mode in ("RGB", "RGBA") and icc_profile and icc_profile[16:20] != b"RGB ":
+                        icc_profile = None
                     buffer = BytesIO()
                     fitted.save(buffer, format="PNG", icc_profile=icc_profile)
                     png = buffer.getvalue()

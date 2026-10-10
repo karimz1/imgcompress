@@ -180,6 +180,32 @@ def test_colour_profile_is_kept_for_rgb_and_dropped_after_cmyk_conversion():
         assert Image.open(BytesIO(result.value[1])).info.get("icc_profile") == expected
 
 
+@pytest.mark.parametrize(("mode", "signature"), [("RGB", b"RGB "), ("L", b"GRAY"), ("CMYK", b"CMYK")])
+def test_blur_preview_and_export_only_keep_a_matching_colour_profile(mode, signature):
+    from PIL import ImageCms
+    from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
+    from backend.image_converter.domain.image_resizer import ImageResizer
+
+    profile = bytearray(ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes())
+    profile[16:20] = signature
+    profile = bytes(profile)
+    bitmap = BytesIO()
+    Image.new(mode, (300, 200)).save(bitmap, format="TIFF", icc_profile=profile)
+    data = bitmap.getvalue()
+    expected = profile if mode == "RGB" else None
+
+    result = FitPreviewService().build(
+        FileStorage(stream=BytesIO(data)),
+        {"fit_width": "400", "fit_height": "200", "fit_mode": "blur"},
+    )
+    assert result.is_successful
+    export = ImageResizer().fit_to_size(data, FitToSize(400, 200, FitMode.BLUR))
+    for encoded in (result.value[1], export):
+        with Image.open(BytesIO(encoded)) as image:
+            assert image.mode == "RGB"
+            assert image.info.get("icc_profile") == expected
+
+
 def test_selection_only_request_skips_the_preview():
     from backend.image_converter.presentation.web.server import app
 

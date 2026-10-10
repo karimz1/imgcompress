@@ -123,6 +123,10 @@ class ImageResizer:
                 pass
             icc_profile = img.info.get("icc_profile")
             result = self.fit_image(img, fit)
+            if result.mode in ("RGB", "RGBA") and icc_profile and icc_profile[16:20] != b"RGB ":
+                # Blur mode converts CMYK and grayscale pixels to RGB. Their
+                # original profiles no longer describe the exported pixels.
+                icc_profile = None
 
             buffer = BytesIO()
             result.save(
