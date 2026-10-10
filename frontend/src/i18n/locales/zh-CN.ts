@@ -157,10 +157,35 @@ export const zhCN: TranslationSchema = {
       tooltip:
         "设置可选的最大输出大小（MB）。适用于 JPEG、AVIF 和 WebP 输出。",
     },
+    upscale: {
+      modelLabel: "AI 模型",
+      models: {
+        general: "通用（照片）",
+        anime: "动漫（绘画图像）",
+      },
+      label: "AI 放大",
+      tooltip:
+        "本地 AI（{{model}}）放大图片，重建边缘和细节。无需互联网。\nCPU 处理较慢；可能出现轻微瑕疵，尤其是在面部。",
+      targetLabel: "放大到",
+      options: {
+        "2x": "放大 2 倍",
+        "4x": "放大 4 倍",
+        "8x": "放大 8 倍",
+        "1080p": "全高清（适配 1920 × 1080）",
+        "4k": "4K（适配 3840 × 2160）",
+        "6k": "6K（适配 5760 × 3240）",
+        "8k": "8K（适配 7680 × 4320）",
+        "16k": "16K（适配 15360 × 8640）",
+      },
+      hint:
+        "保持宽高比。已经足够达到目标分辨率的图片保持不变。较大的图片和较慢的 CPU 需要更长时间。超过 4 倍的放大会先进行 AI 放大，再使用常规缩放。",
+      unavailableHint: "未安装放大模型。",
+    },
     resizeWidth: {
       label: "调整宽度",
       tooltip:
         "将图片调整到所需宽度，同时保留原始宽高比。",
+      upscaleActiveHint: "开启 AI 放大时不使用。",
     },
     dropzone: {
       dragActive: "将图片或 PDF 拖到这里...",

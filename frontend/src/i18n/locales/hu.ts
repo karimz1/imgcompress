@@ -157,10 +157,35 @@ export const hu: TranslationSchema = {
       tooltip:
         "Opcionális maximális kimeneti méret (MB-ban). JPEG, AVIF és WebP kimenethez érvényes.",
     },
+    upscale: {
+      modelLabel: "MI-modell",
+      models: {
+        general: "Általános (fényképek)",
+        anime: "Anime (rajzolt képek)",
+      },
+      label: "MI-felskálázás",
+      tooltip:
+        "A helyi MI ({{model}}) nagyítja a képeket, és rekonstruálja az éleket és a finom részleteket. Nem igényel internetet.\nA processzoron lassabb a feldolgozás; apró képhibák jelenhetnek meg, különösen az arcokon.",
+      targetLabel: "Felskálázás erre",
+      options: {
+        "2x": "2× nagyobb",
+        "4x": "4× nagyobb",
+        "8x": "8× nagyobb",
+        "1080p": "Full HD (belefér: 1920 × 1080)",
+        "4k": "4K (belefér: 3840 × 2160)",
+        "6k": "6K (belefér: 5760 × 3240)",
+        "8k": "8K (belefér: 7680 × 4320)",
+        "16k": "16K (belefér: 15360 × 8640)",
+      },
+      hint:
+        "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
+      unavailableHint: "A felskálázó modell nincs telepítve.",
+    },
     resizeWidth: {
       label: "Átméretezés szélesség alapján",
       tooltip:
         "A kép(ek) átméretezése a kívánt szélességre, az eredeti képarány megtartásával.",
+      upscaleActiveHint: "Nem használatos, amíg az MI-felskálázás be van kapcsolva.",
     },
     dropzone: {
       dragActive: "Ejtsd ide a képeket vagy PDF-eket...",

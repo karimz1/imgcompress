@@ -157,10 +157,35 @@ export const ptBR: TranslationSchema = {
       tooltip:
         "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG, AVIF e WebP.",
     },
+    upscale: {
+      modelLabel: "Modelo de IA",
+      models: {
+        general: "Geral (fotos)",
+        anime: "Anime (ilustrações)",
+      },
+      label: "Ampliação com IA",
+      tooltip:
+        "A IA local ({{model}}) amplia as imagens e reconstrói bordas e detalhes finos. Não precisa de internet.\nO processamento na CPU é mais lento; podem aparecer pequenos artefatos, especialmente em rostos.",
+      targetLabel: "Ampliar para",
+      options: {
+        "2x": "2× maior",
+        "4x": "4× maior",
+        "8x": "8× maior",
+        "1080p": "Full HD (cabe em 1920 × 1080)",
+        "4k": "4K (cabe em 3840 × 2160)",
+        "6k": "6K (cabe em 5760 × 3240)",
+        "8k": "8K (cabe em 7680 × 4320)",
+        "16k": "16K (cabe em 15360 × 8640)",
+      },
+      hint:
+        "Mantém as proporções. Imagens que já são grandes o bastante para a resolução escolhida ficam como estão. Imagens maiores e CPUs mais lentas levam mais tempo. Acima de 4×, a ampliação com IA é seguida por um redimensionamento convencional.",
+      unavailableHint: "O modelo de ampliação não está instalado.",
+    },
     resizeWidth: {
       label: "Redimensionar largura",
       tooltip:
         "Redimensiona a(s) imagem(ns) para a largura desejada preservando a proporção original.",
+      upscaleActiveHint: "Não é usado enquanto a ampliação com IA está ativada.",
     },
     dropzone: {
       dragActive: "Solte imagens ou PDFs aqui...",

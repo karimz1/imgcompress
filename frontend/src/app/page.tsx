@@ -36,6 +36,8 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 import { useRembgModel } from "@/hooks/useRembgModel";
+import { useUpscaleModel } from "@/hooks/useUpscaleModel";
+import { DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, type UpscaleSettings } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
@@ -83,6 +85,7 @@ function HomePageContent() {
     unsupportedExtensions: cropUnsupportedExtensions,
   } = useCropUnsupportedExtensions();
   const { modelName: rembgModelName } = useRembgModel();
+  const { models: upscaleModels } = useUpscaleModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -97,6 +100,17 @@ function HomePageContent() {
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
+  const [upscale, setUpscale] = useState<UpscaleSettings>(DEFAULT_UPSCALE_SETTINGS);
+  const selectedUpscaleModel = upscaleModels.find((model) => model.id === upscale.model);
+  const upscaleModelName = selectedUpscaleModel?.modelName || UPSCALE_MODEL_NAMES[upscale.model];
+  const upscaleAvailable = selectedUpscaleModel?.available === true;
+
+  useEffect(() => {
+    if (!upscaleModels.some((model) => model.id === upscale.model && model.available)) {
+      const availableModel = upscaleModels.find((model) => model.available);
+      if (availableModel) setUpscale((previous) => ({ ...previous, model: availableModel.id }));
+    }
+  }, [upscaleModels, upscale.model]);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
@@ -175,6 +189,14 @@ function HomePageContent() {
       setWidth("");
     }
   }, [outputFormat, pdfPreset]);
+
+  useEffect(() => {
+    // Upscaling decides the output size, so a resize width would contradict it.
+    if (upscale.enabled && outputFormat !== "pdf") {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [upscale.enabled, outputFormat]);
 
   useEffect(() => {
     if (outputFormat === "pdf" && pdfPreset === "original") {
@@ -312,8 +334,13 @@ function HomePageContent() {
       if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
-      if (resizeWidthEnabled) {
+      const upscaleActive = upscale.enabled && outputFormat !== "pdf";
+      if (resizeWidthEnabled && !upscaleActive) {
         formData.append("width", width);
+      }
+      if (upscaleActive) {
+        formData.append("upscale", upscale.target);
+        formData.append("upscale_model", upscale.model);
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -409,6 +436,7 @@ function HomePageContent() {
       quality,
       resizeWidthEnabled,
       width,
+      upscale,
       clearError,
       setError,
       compressionMode,
@@ -567,6 +595,11 @@ function HomePageContent() {
               setWidth={setWidth}
               resizeWidthEnabled={resizeWidthEnabled}
               setResizeWidthEnabled={setResizeWidthEnabled}
+              upscale={upscale}
+              setUpscale={setUpscale}
+              upscaleModelName={upscaleModelName}
+              upscaleAvailable={upscaleAvailable}
+              upscaleModels={upscaleModels}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}

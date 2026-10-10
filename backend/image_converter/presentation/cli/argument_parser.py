@@ -1,5 +1,7 @@
 import argparse
 
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
+
 def parse_arguments(argv=None) -> argparse.Namespace:
     """Parse command-line arguments for the image conversion script."""
     parser = argparse.ArgumentParser(
@@ -24,6 +26,22 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         type=int,
         default=None,
         help="Optional width for resizing (height auto-calculated)"
+    )
+    parser.add_argument(
+        "--upscale",
+        type=str,
+        choices=[target.value for target in UpscaleTarget],
+        default=None,
+        help="Enlarge images with the bundled local AI model (runs on the CPU, no network). "
+             "1080p, 4k, 6k, 8k and 16k fit the image into that frame, preserving the aspect ratio. "
+             "Enlargement beyond 4x uses AI followed by Lanczos resizing. "
+             "Replaces --width. Not available with --format pdf."
+    )
+    parser.add_argument(
+        "--upscale-model",
+        choices=[model.value for model in UpscaleModel],
+        default=UpscaleModel.GENERAL.value,
+        help="AI model for --upscale: general for photos, anime for drawn images (default: general).",
     )
     parser.add_argument(
         "--format",

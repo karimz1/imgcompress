@@ -4,6 +4,7 @@ from backend.image_converter.presentation.cli.argument_parser import parse_argum
 from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.domain.pdf_quality import PdfQuality
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 from backend.image_converter.infrastructure.logger import Logger
 
 def main(argv=None):
@@ -19,6 +20,11 @@ def main(argv=None):
             "error"
         )
         sys.exit(1)
+
+    if args.upscale and args.format.upper() == "PDF":
+        logger.log("Error: --upscale cannot be used with --format pdf", "error")
+        sys.exit(1)
+    upscale = UpscaleTarget(args.upscale) if args.upscale else None
 
     try:
         image_format = ImageFormat.from_string(args.format.upper())
@@ -36,7 +42,9 @@ def main(argv=None):
             destination=args.destination,
             image_format=image_format,
             quality=args.quality,
-            width=args.width,
+            width=None if upscale else args.width,
+            upscale=upscale,
+            upscale_model=UpscaleModel(args.upscale_model),
             pdf_preset=pdf_preset,
             pdf_scale=pdf_scale,
             pdf_margin_mm=pdf_margin_mm,

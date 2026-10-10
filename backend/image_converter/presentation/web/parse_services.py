@@ -35,6 +35,8 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         pdf_paginate=_parse_bool(request.form.get("pdf_paginate")),
         pdf_quality=request.form.get("pdf_quality", "high").strip(),
         webp_lossless=_parse_bool(request.form.get("webp_lossless")),
+        upscale=request.form.get("upscale", "").strip(),
+        upscale_model=request.form.get("upscale_model", "general").strip(),
     )
     return Result.success(form_data)
 

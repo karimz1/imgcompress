@@ -83,6 +83,7 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 |---|---|
 | **70+ Image Formats** | HEIC, HEIF, PSD, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60+ more |
 | **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
+| **Local AI Upscaling** | Choose General or Anime. Real-ESRGAN enlarges images 2x, 4x, 8x, or to Full HD / 4K / 6K / 8K / 16K on your CPU, preserving the aspect ratio. Both models ship in the image; nothing is downloaded at runtime |
 | **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, image batches to paginated PDF, and more |
 | **Per-File Cropping** | Crop each upload before conversion with ratio presets (Free, 1:1, 16:9, 4:3) or custom pixel dimensions |
@@ -99,6 +100,19 @@ Stop uploading personal or client photos to cloud-based removers. ImgCompress sh
 | Original | Background Removed |
 |:---:|:---:|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="380" alt="Original sunset landscape photo"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="380" alt="Same photo with background removed by local AI"/> |
+
+---
+
+## AI Upscaling (since v1.0.0)
+
+Enlarge images with local AI while preserving their aspect ratio. Choose **General** (`realesr-general-x4v3`) for photos and mixed content, or **Anime** (`realesr-animevideov3`) for drawn images. Both models run on the CPU and work offline.
+
+| Original | AI-upscaled |
+|:---:|:---:|
+| <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/anime-nails-original.webp" width="380" alt="Small anime drawing of a hand with turquoise nails, enlarged 4x with plain bicubic resizing"/> | <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/anime-nails-upscaled.webp" width="380" alt="Same drawing upscaled 4x by the local AI model, with sharper outlines"/> |
+| <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/pagoda-photo-original.webp" width="380" alt="Small photo of a lit pagoda, enlarged 4x with plain bicubic resizing"/> | <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/pagoda-photo-upscaled.webp" width="380" alt="Same photo upscaled 4x by the local AI model, with crisper edges on the roofs"/> |
+
+Both rows start from a small image (about 120 px wide) taken to 4x. Left is a normal bicubic resize, right is the General model in ImgCompress.
 
 ---
 

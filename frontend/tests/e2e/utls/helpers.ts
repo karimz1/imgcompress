@@ -6,6 +6,7 @@ import sharp, { type Metadata } from 'sharp';
 import { ImageFileDto } from './ImageFileDto';
 import { DownloadType } from './DownloadType';
 import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
+import type { UpscaleTarget } from '../../../src/lib/upscale';
 
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
@@ -33,7 +34,9 @@ const selectors = {
   supportedFormatsBtn: '[data-testid="supported-formats-btn"]',
   supportedFormatsCount: '[data-testid="supported-formats-count"]',
   compressionModeQualityBtn: '[data-testid="compression-mode-quality-btn"]',
-  compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]'
+  compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]',
+  upscaleSwitch: '[data-testid="upscale-switch"]',
+  upscaleTargetSelect: '[data-testid="upscale-target-select"]'
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
@@ -180,6 +183,28 @@ export async function uploadBuffersToDropzoneAsync(
 ): Promise<void> {
   await waitForSupportedFormatsCountAsync(page);
   await page.locator(selectors.dropzoneInput).setInputFiles(files);
+}
+
+/** Uploads an image built in the test (e.g. with sharp) instead of a fixture file. */
+export async function uploadGeneratedImageToDropzoneAsync(
+    page: Page,
+    fileName: string,
+    mimeType: string,
+    buffer: Buffer
+): Promise<void> {
+    await waitForSupportedFormatsCountAsync(page);
+    await page.locator(selectors.dropzoneInput).setInputFiles({ name: fileName, mimeType, buffer });
+}
+
+export async function setUpscaleAsync(page: Page, target: UpscaleTarget): Promise<void> {
+  const toggle = page.locator(selectors.upscaleSwitch);
+  await expect(toggle).toBeEnabled();
+  if ((await toggle.getAttribute('data-state')) !== 'checked') {
+    await toggle.click();
+  }
+  await page.locator(selectors.upscaleTargetSelect).click();
+  await page.getByTestId(`upscale-target-option-${target}`).click();
+  await expect(page.locator(selectors.upscaleTargetSelect)).toBeVisible();
 }
 
 export async function waitForSupportedFormatsCountAsync(page: Page): Promise<number> {

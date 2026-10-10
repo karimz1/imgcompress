@@ -157,10 +157,35 @@ export const esMX: TranslationSchema = {
       tooltip:
         "Define un tamaño máximo opcional de salida (en MB). Aplica a salidas JPEG, AVIF y WebP.",
     },
+    upscale: {
+      modelLabel: "Modelo de IA",
+      models: {
+        general: "General (fotografías)",
+        anime: "Anime (ilustraciones)",
+      },
+      label: "Ampliación con IA",
+      tooltip:
+        "La IA local ({{model}}) amplía las imágenes y reconstruye bordes y detalles finos. No necesita internet.\nEl procesamiento en la CPU es más lento; pueden aparecer pequeños defectos, especialmente en los rostros.",
+      targetLabel: "Ampliar a",
+      options: {
+        "2x": "2× más grande",
+        "4x": "4× más grande",
+        "8x": "8× más grande",
+        "1080p": "Full HD (cabe en 1920 × 1080)",
+        "4k": "4K (cabe en 3840 × 2160)",
+        "6k": "6K (cabe en 5760 × 3240)",
+        "8k": "8K (cabe en 7680 × 4320)",
+        "16k": "16K (cabe en 15360 × 8640)",
+      },
+      hint:
+        "Conserva las proporciones. Las imágenes que ya son lo bastante grandes para la resolución elegida se quedan igual. Las imágenes más grandes y las CPU más lentas necesitan más tiempo. Más allá de 4×, la ampliación con IA va seguida de un cambio de tamaño convencional.",
+      unavailableHint: "El modelo de ampliación no está instalado.",
+    },
     resizeWidth: {
       label: "Cambiar ancho",
       tooltip:
         "Cambia el tamaño de la(s) imagen(es) al ancho deseado conservando la relación de aspecto original.",
+      upscaleActiveHint: "No se usa mientras la ampliación con IA está activada.",
     },
     dropzone: {
       dragActive: "Arrastra imágenes o PDF aquí...",

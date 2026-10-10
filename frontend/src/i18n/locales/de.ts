@@ -157,10 +157,35 @@ export const de: TranslationSchema = {
       tooltip:
         "Lege eine optionale maximale Ausgabegröße (in MB) fest. Gilt für JPEG-, AVIF- und WebP-Ausgaben.",
     },
+    upscale: {
+      modelLabel: "KI-Modell",
+      models: {
+        general: "Allgemein (Fotos)",
+        anime: "Anime (gezeichnete Bilder)",
+      },
+      label: "KI-Hochskalierung",
+      tooltip:
+        "Vergrößert Bilder mit lokaler KI ({{model}}), die Kanten und feine Details rekonstruiert. Kein Internet erforderlich.\nLangsamere Verarbeitung auf der CPU; kleine Artefakte können auftreten, besonders bei Gesichtern.",
+      targetLabel: "Hochskalieren auf",
+      options: {
+        "2x": "2× größer",
+        "4x": "4× größer",
+        "8x": "8× größer",
+        "1080p": "Full HD (passt in 1920 × 1080)",
+        "4k": "4K (passt in 3840 × 2160)",
+        "6k": "6K (passt in 5760 × 3240)",
+        "8k": "8K (passt in 7680 × 4320)",
+        "16k": "16K (passt in 15360 × 8640)",
+      },
+      hint:
+        "Behält das Seitenverhältnis bei. Bilder, die für die Zielauflösung bereits groß genug sind, bleiben unverändert. Größere Bilder und langsamere CPUs brauchen mehr Zeit. Über 4× folgt auf die KI-Hochskalierung eine normale Größenänderung.",
+      unavailableHint: "Das Modell für die Hochskalierung ist nicht installiert.",
+    },
     resizeWidth: {
       label: "Breite ändern",
       tooltip:
         "Ändert die Größe der Bilder auf die gewünschte Breite und behält dabei das ursprüngliche Seitenverhältnis bei.",
+      upscaleActiveHint: "Wird nicht verwendet, solange die KI-Hochskalierung aktiv ist.",
     },
     dropzone: {
       dragActive: "Bilder oder PDFs hier ablegen...",

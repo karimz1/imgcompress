@@ -154,10 +154,35 @@ export const en = {
       tooltip:
         "Set an optional maximum output size (in MB). Applies to JPEG, AVIF, and WebP output.",
     },
+    upscale: {
+      modelLabel: "AI model",
+      models: {
+        general: "General (photos)",
+        anime: "Anime (drawn images)",
+      },
+      label: "AI upscaling",
+      tooltip:
+        "Local AI ({{model}}) enlarges images and reconstructs edges and fine detail. No internet required.\nSlower processing on the CPU; small artifacts may appear, especially in faces.",
+      targetLabel: "Upscale to",
+      options: {
+        "2x": "2× larger",
+        "4x": "4× larger",
+        "8x": "8× larger",
+        "1080p": "Full HD (fits 1920 × 1080)",
+        "4k": "4K (fits 3840 × 2160)",
+        "6k": "6K (fits 5760 × 3240)",
+        "8k": "8K (fits 7680 × 4320)",
+        "16k": "16K (fits 15360 × 8640)",
+      },
+      hint:
+        "Keeps the aspect ratio. Images already large enough for a resolution target stay unchanged. Larger images and slower CPUs take longer. Beyond 4×, AI upscaling is followed by standard resizing.",
+      unavailableHint: "The upscaling model is not installed.",
+    },
     resizeWidth: {
       label: "Resize Width",
       tooltip:
         "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
+      upscaleActiveHint: "Not used while AI upscaling is on.",
     },
     dropzone: {
       dragActive: "Drop images or PDFs here...",
