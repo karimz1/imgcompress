@@ -2,13 +2,15 @@ from io import BytesIO
 
 from PIL import Image
 
+from backend.image_converter.application.file_payload_expander import (
+    FilePayloadExpander,
+)
 from backend.image_converter.config import settings
 from backend.image_converter.core.internals.utilities import (
     Result,
     supported_extensions,
 )
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
-from backend.image_converter.application.file_payload_expander import FilePayloadExpander
 
 SAMPLE_PDF = "tests/sample-images/imgcompress_screenshot.pdf"
 
@@ -57,6 +59,58 @@ def test_When_PdfiumRaisesRuntimeError_Expect_ExtractorFailure(monkeypatch):
         "boom" in message and "broken.pdf" in message
         for message, _ in logger.messages
     )
+
+
+class _FakePdfPage:
+    def __init__(self, render_calls):
+        self.render_calls = render_calls
+
+    def render(self, scale):
+        self.render_calls.append(scale)
+        return self
+
+    def to_pil(self):
+        return Image.new("RGB", (1, 1))
+
+    def close(self):
+        pass
+
+
+class _FakePdfDocument:
+    def __init__(self, page_sizes):
+        self.page_sizes = page_sizes
+        self.render_calls = []
+        self.pages = [_FakePdfPage(self.render_calls) for _ in page_sizes]
+        self.closed = False
+
+    def __len__(self):
+        return len(self.pages)
+
+    def __getitem__(self, index):
+        return self.pages[index]
+
+    def get_page_size(self, index):
+        return self.page_sizes[index]
+
+    def close(self):
+        self.closed = True
+
+
+def test_When_PdfContains20InchPage_Expect_RejectedBeforeRendering(monkeypatch):
+    twenty_inches_in_points = 20 * 72
+    document = _FakePdfDocument(
+        page_sizes=[(twenty_inches_in_points, twenty_inches_in_points)]
+    )
+    monkeypatch.setattr(PdfPageExtractor, "_open_document", lambda *_: document)
+
+    result = PdfPageExtractor().rasterize_pages(b"pdf", "large-page.pdf")
+
+    assert result.is_successful is False
+    assert result.error == (
+        "PDF page 1 exceeds the maximum allowed rendered pixel count (25000000)."
+    )
+    assert document.render_calls == []
+    assert document.closed is True
 
 
 class DummyRenderer:
