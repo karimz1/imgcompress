@@ -11,6 +11,7 @@ export const esMX: TranslationSchema = {
       noFormatError: "Primero selecciona un formato de salida.",
       qualityRangeError: "La calidad debe ser un número entre 1 y 100.",
       widthPositiveError: "El ancho debe ser un número positivo.",
+      fitSizeError: "Ajustar a tamaño exacto necesita un ancho y un alto entre 1 y 8192 píxeles.",
       icoWidthClamped:
         "El formato ICO está limitado a un ancho máximo de 256 px. Tu entrada se ajustó a 256.",
       targetSizeError: "Define un tamaño máximo de archivo positivo (en MB).",
@@ -180,12 +181,32 @@ export const esMX: TranslationSchema = {
       hint:
         "Conserva las proporciones. Las imágenes que ya son lo bastante grandes para la resolución elegida se quedan igual. Las imágenes más grandes y las CPU más lentas necesitan más tiempo. Más allá de 4×, la ampliación con IA va seguida de un cambio de tamaño convencional.",
       unavailableHint: "El modelo de ampliación no está instalado.",
+      fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
+    },
+    fitSize: {
+      preset: {
+        label: "Tamaño",
+        options: {
+          githubSocial: "Vista previa social de GitHub (1280 × 640)",
+          openGraph: "Vista previa de enlace Open Graph (1200 × 630)",
+          custom: "Tamaño personalizado",
+        },
+      },
+      widthLabel: "Ancho (px)",
+      heightLabel: "Alto (px)",
+      mode: {
+        crop: "Recortar para llenar",
+        blur: "Fondo desenfocado",
+        cropHint: "Llena todo el marco. Se recortan partes de la imagen.",
+        blurHint: "Conserva la imagen completa. Los lados vacíos muestran una copia desenfocada y un poco más oscura.",
+      },
     },
     resizeWidth: {
       label: "Cambiar ancho",
       tooltip:
         "Cambia el tamaño de la(s) imagen(es) al ancho deseado conservando la relación de aspecto original.",
       upscaleActiveHint: "No se usa mientras la ampliación con IA está activada.",
+      fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
     },
     dropzone: {
       dragActive: "Arrastra imágenes o PDF aquí...",
@@ -391,6 +412,20 @@ export const esMX: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Recortar",
+      fit: "Ajustar tamaño",
+    },
+    fit: {
+      hint: "Elige tamaño y modo. La vista previa se actualiza automáticamente.",
+      selection: "Ajustar recorte",
+      autoFit: "Ajustar automáticamente",
+      applyAll: "Ajustar todas las imágenes",
+      output: "Salida: {{w}} × {{h}} px",
+      preview: "Vista previa de salida",
+      previewScaled: "Vista previa {{pw}} × {{ph}} px · se exporta a tamaño completo {{w}} × {{h}} px",
+      updating: "Actualizando vista previa…",
+    },
     aspectRatio: "Relación de aspecto",
     adjust: "Ajustar",
     zoom: "Acercamiento",
@@ -405,7 +440,7 @@ export const esMX: TranslationSchema = {
     original: "Imagen original: {{w}} × {{h}} px",
     removeSavedCrop: "Eliminar recorte guardado",
     discard: "Descartar",
-    saveCrop: "Guardar recorte",
+    saveCrop: "Guardar",
     switchToLight: "Cambiar a tema claro",
     switchToDark: "Cambiar a tema oscuro",
     confirmDialog: {
@@ -436,8 +471,8 @@ export const esMX: TranslationSchema = {
       },
     },
     freeRatio: "Libre",
-    editorTitle: "Editor de recorte",
-    editorDescription: "Ajusta la región de recorte, la proporción y el zoom de esta imagen, luego haz clic en Guardar recorte o Descartar.",
+    editorTitle: "Recortar y redimensionar",
+    editorDescription: "Ajusta la región de recorte, la proporción y el zoom de esta imagen, luego haz clic en Guardar o Descartar.",
     removeDialog: {
       title: "¿Eliminar recorte guardado?",
       description: "Esto borra el recorte guardado para este archivo. El archivo original permanecerá en tu lista de conversión.",

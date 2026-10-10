@@ -11,6 +11,7 @@ export const de: TranslationSchema = {
       noFormatError: "Bitte wähle zuerst ein Ausgabeformat aus.",
       qualityRangeError: "Die Qualität muss eine Zahl zwischen 1 und 100 sein.",
       widthPositiveError: "Die Breite muss eine positive Zahl sein.",
+      fitSizeError: "„Auf exakte Größe bringen“ braucht eine Breite und Höhe zwischen 1 und 8192 Pixeln.",
       icoWidthClamped:
         "Das ICO-Format ist auf eine maximale Breite von 256 px beschränkt. Deine Eingabe wurde auf 256 gesetzt.",
       targetSizeError: "Bitte lege eine positive maximale Dateigröße (in MB) fest.",
@@ -180,12 +181,32 @@ export const de: TranslationSchema = {
       hint:
         "Behält das Seitenverhältnis bei. Bilder, die für die Zielauflösung bereits groß genug sind, bleiben unverändert. Größere Bilder und langsamere CPUs brauchen mehr Zeit. Über 4× folgt auf die KI-Hochskalierung eine normale Größenänderung.",
       unavailableHint: "Das Modell für die Hochskalierung ist nicht installiert.",
+      fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
+    },
+    fitSize: {
+      preset: {
+        label: "Größe",
+        options: {
+          githubSocial: "GitHub-Social-Preview (1280 × 640)",
+          openGraph: "Open-Graph-Linkvorschau (1200 × 630)",
+          custom: "Eigene Größe",
+        },
+      },
+      widthLabel: "Breite (px)",
+      heightLabel: "Höhe (px)",
+      mode: {
+        crop: "Zuschneiden",
+        blur: "Unscharfer Hintergrund",
+        cropHint: "Füllt den ganzen Rahmen. Teile des Bildes werden abgeschnitten.",
+        blurHint: "Behält das ganze Bild. Die freien Seiten zeigen eine unscharfe, etwas dunklere Kopie davon.",
+      },
     },
     resizeWidth: {
       label: "Breite ändern",
       tooltip:
         "Ändert die Größe der Bilder auf die gewünschte Breite und behält dabei das ursprüngliche Seitenverhältnis bei.",
       upscaleActiveHint: "Wird nicht verwendet, solange die KI-Hochskalierung aktiv ist.",
+      fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
     },
     dropzone: {
       dragActive: "Bilder oder PDFs hier ablegen...",
@@ -391,6 +412,20 @@ export const de: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Zuschneiden",
+      fit: "Einpassen",
+    },
+    fit: {
+      hint: "Wähle Größe und Modus. Die Vorschau wird automatisch aktualisiert.",
+      selection: "Zuschnitt anpassen",
+      autoFit: "Automatisch einpassen",
+      applyAll: "Alle Bilder einpassen",
+      output: "Ausgabe: {{w}} × {{h}} px",
+      preview: "Ausgabevorschau",
+      previewScaled: "Vorschau {{pw}} × {{ph}} px · Export in voller Größe {{w}} × {{h}} px",
+      updating: "Vorschau wird aktualisiert…",
+    },
     aspectRatio: "Seitenverhältnis",
     adjust: "Anpassen",
     zoom: "Vergrößerung",
@@ -405,7 +440,7 @@ export const de: TranslationSchema = {
     original: "Ursprünglich: {{w}} × {{h}} px",
     removeSavedCrop: "Gespeicherten Zuschnitt entfernen",
     discard: "Verwerfen",
-    saveCrop: "Zuschnitt speichern",
+    saveCrop: "Speichern",
     switchToLight: "Zum hellen Design wechseln",
     switchToDark: "Zum dunklen Design wechseln",
     confirmDialog: {
@@ -436,8 +471,8 @@ export const de: TranslationSchema = {
       },
     },
     freeRatio: "Frei",
-    editorTitle: "Zuschnitt-Editor",
-    editorDescription: "Passe Zuschnittbereich, Verhältnis und Zoom für dieses Bild an und klicke dann auf Zuschnitt speichern oder Verwerfen.",
+    editorTitle: "Zuschneiden & Größe ändern",
+    editorDescription: "Passe Zuschnittbereich, Verhältnis und Zoom für dieses Bild an und klicke dann auf Speichern oder Verwerfen.",
     removeDialog: {
       title: "Gespeicherten Zuschnitt entfernen?",
       description: "Dadurch wird der gespeicherte Zuschnitt für diese Datei gelöscht. Die Originaldatei bleibt in deiner Konvertierungsliste.",

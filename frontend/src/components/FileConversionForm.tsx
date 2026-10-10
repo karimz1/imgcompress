@@ -201,7 +201,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const supportsBackgroundRemoval =
     outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp";
   const upscaleVisible = outputFormat !== "pdf";
-  const upscaleActive = upscaleVisible && upscale.enabled;
+  const fitActive = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
+  // Fitted images already have their final size, so upscaling them would undo it.
+  const upscaleActive = upscaleVisible && upscale.enabled && !fitActive;
   const renderError = useMemo(
     () =>
       error && (
@@ -232,6 +234,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             const cropable =
               !cropUnsupported && isCropableFile(file, supportedExtensions);
             const savedCrop = crops[file.name];
+            const savedFit = outputFormat !== "pdf" ? savedCrop?.fit : undefined;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
             return (
               <div
@@ -256,7 +259,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           className="inline-flex items-center gap-1 text-xs font-medium rounded-full pl-2 pr-1 py-0.5 bg-green-500/15 text-green-600 dark:text-green-300 border border-green-500/30"
                           data-testid="dropzone-crop-badge"
                         >
-                          {t("form.filesList.croppedBadge", { w: savedCrop.width, h: savedCrop.height })}
+                          {t(savedFit ? "crop.fit.output" : "form.filesList.croppedBadge", {
+                            w: savedFit?.width ?? savedCrop.width,
+                            h: savedFit?.height ?? savedCrop.height,
+                          })}
                           <button
                             type="button"
                             aria-label={t("form.filesList.removeSavedCropAria")}
@@ -295,7 +301,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           data-testid="dropzone-crop-file-btn"
                         >
                           <CropIcon className="h-3.5 w-3.5" />
-                          {savedCrop ? t("form.filesList.editButton") : t("form.filesList.cropButton")}
+                          {savedCrop ? t("form.filesList.editButton") : t("crop.editorTitle")}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent
@@ -363,6 +369,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       setCropForFile,
       supportedExtensions,
       cropUnsupportedExtensions,
+      outputFormat,
       tooltipSurface,
       t,
     ]
@@ -380,6 +387,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       onReportError={onReportCropError}
       isDarkTheme={isDarkTheme}
       disableLogo={disableLogo}
+      fitAvailable={outputFormat !== "pdf"}
+      cropUnsupportedExtensions={cropUnsupportedExtensions}
     />
   );
 
@@ -919,9 +928,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               id="upscaleToggle"
               checked={upscaleActive}
               onCheckedChange={(checked) => setUpscale({ ...upscale, enabled: checked })}
-              disabled={isLoading || !upscaleAvailable}
+              disabled={isLoading || !upscaleAvailable || fitActive}
             />
           </div>
+          {fitActive && (
+            <p className={cn("text-xs", subtleText)} data-testid="upscale-fit-hint">
+              {t("form.upscale.fitActiveHint")}
+            </p>
+          )}
           {!upscaleAvailable && (
             <p className={cn("text-xs", subtleText)} data-testid="upscale-unavailable-hint">
               {t("form.upscale.unavailableHint")}
@@ -1021,12 +1035,17 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 setWidth("");
               }
             }}
-            disabled={isLoading || upscaleActive || (outputFormat === "pdf" && pdfPreset !== "original")}
+            disabled={isLoading || upscaleActive || fitActive || (outputFormat === "pdf" && pdfPreset !== "original")}
           />
         </div>
         {upscaleActive && (
           <p className={cn("text-xs", subtleText)} data-testid="resize-width-upscale-hint">
             {t("form.resizeWidth.upscaleActiveHint")}
+          </p>
+        )}
+        {fitActive && !upscaleActive && (
+          <p className={cn("text-xs", subtleText)} data-testid="resize-width-fit-hint">
+            {t("form.resizeWidth.fitActiveHint")}
           </p>
         )}
         {resizeWidthEnabled && (

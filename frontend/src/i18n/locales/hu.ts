@@ -11,6 +11,7 @@ export const hu: TranslationSchema = {
       noFormatError: "Kérlek, először válassz kimeneti formátumot.",
       qualityRangeError: "A minőségnek 1 és 100 közötti számnak kell lennie.",
       widthPositiveError: "A szélességnek pozitív számnak kell lennie.",
+      fitSizeError: "A pontos méretre igazításhoz 1 és 8192 pixel közötti szélesség és magasság szükséges.",
       icoWidthClamped:
         "Az ICO formátum legfeljebb 256 px szélességet támogat. A megadott értéket 256-ra állítottam.",
       targetSizeError: "Kérlek, adj meg egy pozitív maximális fájlméretet (MB-ban).",
@@ -180,12 +181,32 @@ export const hu: TranslationSchema = {
       hint:
         "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
       unavailableHint: "A felskálázó modell nincs telepítve.",
+      fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
+    },
+    fitSize: {
+      preset: {
+        label: "Méret",
+        options: {
+          githubSocial: "GitHub közösségi előnézet (1280 × 640)",
+          openGraph: "Open Graph linkelőnézet (1200 × 630)",
+          custom: "Egyéni méret",
+        },
+      },
+      widthLabel: "Szélesség (px)",
+      heightLabel: "Magasság (px)",
+      mode: {
+        crop: "Kitöltés vágással",
+        blur: "Elmosott háttér",
+        cropHint: "Kitölti a teljes keretet. A kép egyes részei levágásra kerülnek.",
+        blurHint: "A teljes kép megmarad. Az üres oldalakon a kép elmosott, kissé sötétebb másolata látszik.",
+      },
     },
     resizeWidth: {
       label: "Átméretezés szélesség alapján",
       tooltip:
         "A kép(ek) átméretezése a kívánt szélességre, az eredeti képarány megtartásával.",
       upscaleActiveHint: "Nem használatos, amíg az MI-felskálázás be van kapcsolva.",
+      fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
     },
     dropzone: {
       dragActive: "Ejtsd ide a képeket vagy PDF-eket...",
@@ -392,6 +413,20 @@ export const hu: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Kivágás",
+      fit: "Méretre illesztés",
+    },
+    fit: {
+      hint: "Válassz méretet és módot. Az előnézet automatikusan frissül.",
+      selection: "Kivágás módosítása",
+      autoFit: "Automatikus illesztés",
+      applyAll: "Minden kép illesztése",
+      output: "Kimenet: {{w}} × {{h}} px",
+      preview: "Kimeneti előnézet",
+      previewScaled: "Előnézet {{pw}} × {{ph}} px · exportálás teljes méretben: {{w}} × {{h}} px",
+      updating: "Előnézet frissítése…",
+    },
     aspectRatio: "Képarány",
     adjust: "Beállítás",
     zoom: "Nagyítás",
@@ -437,8 +472,8 @@ export const hu: TranslationSchema = {
       },
     },
     freeRatio: "Szabad",
-    editorTitle: "Kép kivágása",
-    editorDescription: "Állítsd be a kivágási területet, az arányt és a nagyítást, majd kattints a Kivágás mentése vagy az Elvetés gombra.",
+    editorTitle: "Vágás és átméretezés",
+    editorDescription: "Állítsd be a kivágási területet, az arányt és a nagyítást, majd kattints a Mentés vagy az Elvetés gombra.",
     removeDialog: {
       title: "Eltávolítod a mentett kivágást?",
       description: "Ez törli a fájlhoz mentett kivágást. Az eredeti fájl az átalakítási listában marad.",

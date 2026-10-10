@@ -14,6 +14,7 @@ from backend.image_converter.application.dtos import (
 )
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.domain.fit_to_size import FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
     normalize_pdf_scale,
@@ -90,6 +91,19 @@ class CompressionService:
         model_res = UpscaleModel.from_string_result(form_data.upscale_model)
         if not model_res.is_successful:
             return Result.failure(model_res.error)
+        fit_res = FitToSize.from_strings_result(
+            form_data.fit_width,
+            form_data.fit_height,
+            form_data.fit_mode,
+            form_data.fit_anchor,
+        )
+        if not fit_res.is_successful:
+            return Result.failure(fit_res.error)
+        fit = fit_res.value
+        if fit and fmt == ImageFormat.PDF:
+            return Result.failure(
+                "Fit to size is not available for PDF output. Use a PDF page preset instead."
+            )
 
         src: Optional[str] = None
         dst: Optional[str] = None
@@ -114,8 +128,8 @@ class CompressionService:
                 dest_folder=dst,
                 image_format=fmt,
                 quality=form_data.quality,
-                # Upscaling decides the output size, so a resize width would undo it.
-                width=None if upscale else form_data.width,
+                # Upscaling and fitting decide the output size, so a resize width would undo it.
+                width=None if (upscale or fit) else form_data.width,
                 target_size=target,
                 use_rembg=form_data.use_rembg,
                 pdf_preset=pdf_preset,
@@ -126,6 +140,7 @@ class CompressionService:
                 webp_lossless=webp_lossless,
                 upscale=upscale,
                 upscale_model=model_res.value,
+                fit=fit,
             )
 
             result = self.use_case.execute(req)

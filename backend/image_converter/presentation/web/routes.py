@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+import base64
+from io import BytesIO
 
 from flask import Blueprint, Response, request, jsonify, send_file, send_from_directory
 
@@ -17,6 +19,7 @@ from backend.image_converter.presentation.web.services.compression_service impor
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
 from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
+from backend.image_converter.presentation.web.services.fit_preview_service import FitPreviewService
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 
@@ -53,6 +56,7 @@ crop_preview_service = CropPreviewService(
     max_attempts=_config.crop_preview.max_retry_attempts,
 )
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
+fit_preview_service = FitPreviewService()
 backend_diagnostics_service = BackendDiagnosticsService(
     logger,
     TEMP_DIR,
@@ -179,6 +183,23 @@ def crop_unsupported_formats():
     return jsonify({
         "unsupported_formats": crop_preview_service.get_unsupported_extensions()
     }), 200
+
+
+@api_blueprint.route("/crop/fit", methods=["POST"])
+def fit_editor_bitmap():
+    render = request.form.get("render") == "true"
+    with_preview = request.form.get("preview") != "false"
+    result = fit_preview_service.build(
+        request.files.get("file"), request.form, full_size=render, with_image=render or with_preview
+    )
+    if not result.is_successful:
+        return jsonify({"error": result.error}), 400
+    crop, png = result.value
+    if render:
+        return send_file(BytesIO(png), mimetype="image/png")
+    if not with_preview:
+        return jsonify({"crop": crop})
+    return jsonify({"crop": crop, "preview": "data:image/png;base64," + base64.b64encode(png).decode("ascii")})
 
 
 @api_blueprint.route("/crop/bitmap", methods=["POST"])

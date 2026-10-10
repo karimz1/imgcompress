@@ -11,6 +11,7 @@ export const ja: TranslationSchema = {
       noFormatError: "先に出力形式を選択してください。",
       qualityRangeError: "品質は 1 から 100 の数値で指定してください。",
       widthPositiveError: "幅は正の数値で指定してください。",
+      fitSizeError: "「指定サイズに合わせる」には 1〜8192 ピクセルの幅と高さが必要です。",
       icoWidthClamped:
         "ICO 形式の最大幅は 256px です。入力値は 256 に制限されました。",
       targetSizeError: "正の最大ファイルサイズ (MB) を設定してください。",
@@ -180,12 +181,32 @@ export const ja: TranslationSchema = {
       hint:
         "縦横比を維持します。指定した解像度に対してすでに十分大きい画像はそのままです。大きい画像や遅いCPUでは処理に時間がかかります。4倍を超える拡大では、AI処理の後に通常のリサイズを行います。",
       unavailableHint: "アップスケール用のモデルがインストールされていません。",
+      fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
+    },
+    fitSize: {
+      preset: {
+        label: "サイズ",
+        options: {
+          githubSocial: "GitHub ソーシャルプレビュー (1280 × 640)",
+          openGraph: "Open Graph リンクプレビュー (1200 × 630)",
+          custom: "カスタムサイズ",
+        },
+      },
+      widthLabel: "幅 (px)",
+      heightLabel: "高さ (px)",
+      mode: {
+        crop: "切り抜いて埋める",
+        blur: "ぼかし背景",
+        cropHint: "枠全体を埋めます。画像の一部は切り取られます。",
+        blurHint: "画像全体を残します。空いた部分には、画像をぼかして少し暗くしたコピーが表示されます。",
+      },
     },
     resizeWidth: {
       label: "幅をリサイズ",
       tooltip:
         "元のアスペクト比を保ったまま、画像を指定した幅にリサイズします。",
       upscaleActiveHint: "AIアップスケールがオンの間は使用されません。",
+      fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
     },
     dropzone: {
       dragActive: "画像または PDF をここにドロップ...",
@@ -391,6 +412,20 @@ export const ja: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "切り抜き",
+      fit: "サイズに合わせる",
+    },
+    fit: {
+      hint: "サイズとモードを選ぶと、プレビューが自動で更新されます。",
+      selection: "切り抜きを調整",
+      autoFit: "自動調整",
+      applyAll: "すべての画像を自動調整",
+      output: "出力: {{w}} × {{h}} px",
+      preview: "出力プレビュー",
+      previewScaled: "プレビュー {{pw}} × {{ph}} px · 書き出しはフルサイズ {{w}} × {{h}} px",
+      updating: "プレビューを更新中…",
+    },
     aspectRatio: "アスペクト比",
     adjust: "調整",
     zoom: "ズーム",
@@ -405,7 +440,7 @@ export const ja: TranslationSchema = {
     original: "元画像: {{w}} × {{h}} px",
     removeSavedCrop: "保存済み切り抜きを削除",
     discard: "破棄",
-    saveCrop: "切り抜きを保存",
+    saveCrop: "保存",
     switchToLight: "ライトテーマに切り替え",
     switchToDark: "ダークテーマに切り替え",
     confirmDialog: {
@@ -436,8 +471,8 @@ export const ja: TranslationSchema = {
       },
     },
     freeRatio: "自由",
-    editorTitle: "切り抜きエディター",
-    editorDescription: "この画像の切り抜き範囲、比率、ズームを調整し、切り抜きを保存または破棄をクリックしてください。",
+    editorTitle: "切り抜きとサイズ変更",
+    editorDescription: "この画像の切り抜き範囲、比率、ズームを調整し、保存または破棄をクリックしてください。",
     removeDialog: {
       title: "保存済み切り抜きを削除しますか?",
       description: "このファイルの保存済み切り抜きを削除します。元のファイルは変換リストに残ります。",

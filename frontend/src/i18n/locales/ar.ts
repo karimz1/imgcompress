@@ -11,6 +11,7 @@ export const ar: TranslationSchema = {
       noFormatError: "يرجى تحديد تنسيق إخراج أولاً.",
       qualityRangeError: "يجب أن تكون الجودة رقماً بين 1 و100.",
       widthPositiveError: "يجب أن يكون العرض رقماً موجباً.",
+      fitSizeError: "يحتاج الضبط على حجم محدد إلى عرض وارتفاع بين 1 و8192 بكسل.",
       icoWidthClamped:
         "تنسيق ICO محدود بعرض أقصى قدره 256 بكسل. تم ضبط الإدخال إلى 256.",
       targetSizeError: "يرجى تعيين حجم ملف أقصى موجب (بالميغابايت).",
@@ -180,12 +181,32 @@ export const ar: TranslationSchema = {
       hint:
         "يحافظ على نسبة العرض إلى الارتفاع. تبقى الصور الكبيرة بما يكفي للدقة المطلوبة دون تغيير. تستغرق الصور الأكبر والمعالجات الأبطأ وقتًا أطول. عند التكبير لأكثر من 4 مرات، يتبع التكبير بالذكاء الاصطناعي تغيير عادي للحجم.",
       unavailableHint: "نموذج التكبير غير مثبت.",
+      fitActiveHint: "لا يُستخدم أثناء تفعيل الضبط على حجم محدد.",
+    },
+    fitSize: {
+      preset: {
+        label: "الحجم",
+        options: {
+          githubSocial: "معاينة GitHub الاجتماعية (1280 × 640)",
+          openGraph: "معاينة رابط Open Graph (1200 × 630)",
+          custom: "حجم مخصص",
+        },
+      },
+      widthLabel: "العرض (px)",
+      heightLabel: "الارتفاع (px)",
+      mode: {
+        crop: "قص لملء الإطار",
+        blur: "خلفية ضبابية",
+        cropHint: "يملأ الإطار بالكامل. تُقص أجزاء من الصورة.",
+        blurHint: "يحتفظ بالصورة كاملة. تعرض الجوانب الفارغة نسخة ضبابية وأغمق قليلاً منها.",
+      },
     },
     resizeWidth: {
       label: "تغيير العرض",
       tooltip:
         "يغيّر حجم الصورة/الصور إلى العرض المطلوب مع الحفاظ على نسبة الأبعاد الأصلية.",
       upscaleActiveHint: "لا يُستخدم أثناء تفعيل التكبير بالذكاء الاصطناعي.",
+      fitActiveHint: "لا يُستخدم أثناء تفعيل الضبط على حجم محدد.",
     },
     dropzone: {
       dragActive: "أسقط الصور أو ملفات PDF هنا...",
@@ -390,6 +411,20 @@ export const ar: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "قص",
+      fit: "ملاءمة الحجم",
+    },
+    fit: {
+      hint: "اختر المقاس والطريقة. تُحدّث المعاينة تلقائيًا.",
+      selection: "تعديل القص",
+      autoFit: "ملاءمة تلقائية",
+      applyAll: "ملاءمة جميع الصور",
+      output: "الناتج: {{w}} × {{h}} بكسل",
+      preview: "معاينة الناتج",
+      previewScaled: "معاينة {{pw}} × {{ph}} بكسل · التصدير بالحجم الكامل {{w}} × {{h}} بكسل",
+      updating: "جارٍ تحديث المعاينة…",
+    },
     aspectRatio: "نسبة الأبعاد",
     adjust: "ضبط",
     zoom: "تكبير",
@@ -404,7 +439,7 @@ export const ar: TranslationSchema = {
     original: "الأصلي: {{w}} × {{h}} بكسل",
     removeSavedCrop: "إزالة القص المحفوظ",
     discard: "تجاهل",
-    saveCrop: "حفظ القص",
+    saveCrop: "حفظ",
     switchToLight: "التبديل إلى السمة الفاتحة",
     switchToDark: "التبديل إلى السمة الداكنة",
     confirmDialog: {
@@ -435,8 +470,8 @@ export const ar: TranslationSchema = {
       },
     },
     freeRatio: "حر",
-    editorTitle: "محرر القص",
-    editorDescription: "اضبط منطقة القص والنسبة والتكبير لهذه الصورة، ثم انقر على حفظ القص أو تجاهل.",
+    editorTitle: "قص وتغيير الحجم",
+    editorDescription: "اضبط منطقة القص والنسبة والتكبير لهذه الصورة، ثم انقر على حفظ أو تجاهل.",
     removeDialog: {
       title: "إزالة القص المحفوظ؟",
       description: "يمسح هذا القص المحفوظ لهذا الملف. سيبقى الملف الأصلي في قائمة التحويل.",

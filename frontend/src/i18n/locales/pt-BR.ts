@@ -11,6 +11,7 @@ export const ptBR: TranslationSchema = {
       noFormatError: "Primeiro selecione um formato de saída.",
       qualityRangeError: "A qualidade deve ser um número entre 1 e 100.",
       widthPositiveError: "A largura deve ser um número positivo.",
+      fitSizeError: "Ajustar ao tamanho exato precisa de largura e altura entre 1 e 8192 pixels.",
       icoWidthClamped:
         "O formato ICO é limitado a uma largura máxima de 256 px. Sua entrada foi ajustada para 256.",
       targetSizeError: "Defina um tamanho máximo de arquivo positivo (em MB).",
@@ -180,12 +181,32 @@ export const ptBR: TranslationSchema = {
       hint:
         "Mantém as proporções. Imagens que já são grandes o bastante para a resolução escolhida ficam como estão. Imagens maiores e CPUs mais lentas levam mais tempo. Acima de 4×, a ampliação com IA é seguida por um redimensionamento convencional.",
       unavailableHint: "O modelo de ampliação não está instalado.",
+      fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
+    },
+    fitSize: {
+      preset: {
+        label: "Tamanho",
+        options: {
+          githubSocial: "Prévia social do GitHub (1280 × 640)",
+          openGraph: "Prévia de link Open Graph (1200 × 630)",
+          custom: "Tamanho personalizado",
+        },
+      },
+      widthLabel: "Largura (px)",
+      heightLabel: "Altura (px)",
+      mode: {
+        crop: "Recortar para preencher",
+        blur: "Fundo desfocado",
+        cropHint: "Preenche todo o quadro. Partes da imagem são cortadas.",
+        blurHint: "Mantém a imagem inteira. As laterais vazias mostram uma cópia desfocada e um pouco mais escura.",
+      },
     },
     resizeWidth: {
       label: "Redimensionar largura",
       tooltip:
         "Redimensiona a(s) imagem(ns) para a largura desejada preservando a proporção original.",
       upscaleActiveHint: "Não é usado enquanto a ampliação com IA está ativada.",
+      fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
     },
     dropzone: {
       dragActive: "Solte imagens ou PDFs aqui...",
@@ -391,6 +412,20 @@ export const ptBR: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Cortar",
+      fit: "Ajustar tamanho",
+    },
+    fit: {
+      hint: "Escolha o tamanho e o modo. A prévia é atualizada automaticamente.",
+      selection: "Ajustar corte",
+      autoFit: "Ajustar automaticamente",
+      applyAll: "Ajustar todas as imagens",
+      output: "Saída: {{w}} × {{h}} px",
+      preview: "Prévia da saída",
+      previewScaled: "Prévia {{pw}} × {{ph}} px · exporta em tamanho real {{w}} × {{h}} px",
+      updating: "Atualizando prévia…",
+    },
     aspectRatio: "Proporção",
     adjust: "Ajustar",
     zoom: "Ampliação",
@@ -405,7 +440,7 @@ export const ptBR: TranslationSchema = {
     original: "Imagem original: {{w}} × {{h}} px",
     removeSavedCrop: "Remover corte salvo",
     discard: "Descartar",
-    saveCrop: "Salvar corte",
+    saveCrop: "Salvar",
     switchToLight: "Mudar para tema claro",
     switchToDark: "Mudar para tema escuro",
     confirmDialog: {
@@ -436,8 +471,8 @@ export const ptBR: TranslationSchema = {
       },
     },
     freeRatio: "Livre",
-    editorTitle: "Editor de corte",
-    editorDescription: "Ajuste a região de corte, proporção e zoom desta imagem, depois clique em Salvar corte ou Descartar.",
+    editorTitle: "Recortar e redimensionar",
+    editorDescription: "Ajuste a região de corte, proporção e zoom desta imagem, depois clique em Salvar ou Descartar.",
     removeDialog: {
       title: "Remover corte salvo?",
       description: "Isso limpa o corte salvo para este arquivo. O arquivo original permanecerá na sua lista de conversão.",

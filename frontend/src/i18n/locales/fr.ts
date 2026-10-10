@@ -11,6 +11,7 @@ export const fr: TranslationSchema = {
       noFormatError: "Veuillez d'abord choisir un format de sortie.",
       qualityRangeError: "La qualité doit être un nombre entre 1 et 100.",
       widthPositiveError: "La largeur doit être un nombre positif.",
+      fitSizeError: "« Ajuster à une taille exacte » nécessite une largeur et une hauteur entre 1 et 8192 pixels.",
       icoWidthClamped:
         "Le format ICO est limité à une largeur maximale de 256 px. Votre saisie a été limitée à 256.",
       targetSizeError: "Veuillez définir une taille maximale de fichier positive (en Mo).",
@@ -180,12 +181,32 @@ export const fr: TranslationSchema = {
       hint:
         "Conserve les proportions. Les images déjà assez grandes pour la résolution choisie restent inchangées. Les grandes images et les processeurs plus lents demandent plus de temps. Au-delà de 4×, l’agrandissement par IA est suivi d’un redimensionnement classique.",
       unavailableHint: "Le modèle d’agrandissement n’est pas installé.",
+      fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
+    },
+    fitSize: {
+      preset: {
+        label: "Taille",
+        options: {
+          githubSocial: "Aperçu social GitHub (1280 × 640)",
+          openGraph: "Aperçu de lien Open Graph (1200 × 630)",
+          custom: "Taille personnalisée",
+        },
+      },
+      widthLabel: "Largeur (px)",
+      heightLabel: "Hauteur (px)",
+      mode: {
+        crop: "Recadrer pour remplir",
+        blur: "Arrière-plan flou",
+        cropHint: "Remplit tout le cadre. Des parties de l'image sont coupées.",
+        blurHint: "Conserve l'image entière. Les côtés vides affichent une copie floutée et légèrement assombrie.",
+      },
     },
     resizeWidth: {
       label: "Redimensionner la largeur",
       tooltip:
         "Redimensionne l'image ou les images à la largeur souhaitée en conservant le rapport d'aspect d'origine.",
       upscaleActiveHint: "Non utilisé tant que l'agrandissement par IA est activé.",
+      fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
     },
     dropzone: {
       dragActive: "Déposez des images ou des PDF ici...",
@@ -391,6 +412,20 @@ export const fr: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Recadrer",
+      fit: "Ajuster la taille",
+    },
+    fit: {
+      hint: "Choisissez la taille et le mode. L’aperçu se met à jour automatiquement.",
+      selection: "Ajuster le recadrage",
+      autoFit: "Ajuster automatiquement",
+      applyAll: "Ajuster toutes les images",
+      output: "Sortie : {{w}} × {{h}} px",
+      preview: "Aperçu du résultat",
+      previewScaled: "Aperçu {{pw}} × {{ph}} px · export en taille réelle {{w}} × {{h}} px",
+      updating: "Actualisation de l’aperçu…",
+    },
     aspectRatio: "Rapport d'aspect",
     adjust: "Ajuster",
     zoom: "Agrandissement",
@@ -405,7 +440,7 @@ export const fr: TranslationSchema = {
     original: "Image d'origine : {{w}} × {{h}} px",
     removeSavedCrop: "Retirer le recadrage enregistré",
     discard: "Abandonner",
-    saveCrop: "Enregistrer le recadrage",
+    saveCrop: "Enregistrer",
     switchToLight: "Passer au thème clair",
     switchToDark: "Passer au thème sombre",
     confirmDialog: {
@@ -436,8 +471,8 @@ export const fr: TranslationSchema = {
       },
     },
     freeRatio: "Libre",
-    editorTitle: "Éditeur de recadrage",
-    editorDescription: "Ajustez la zone de recadrage, le ratio et l'agrandissement de cette image, puis cliquez sur Enregistrer le recadrage ou Abandonner.",
+    editorTitle: "Recadrer et redimensionner",
+    editorDescription: "Ajustez la zone de recadrage, le ratio et l'agrandissement de cette image, puis cliquez sur Enregistrer ou Abandonner.",
     removeDialog: {
       title: "Retirer le recadrage enregistré ?",
       description: "Cela efface le recadrage enregistré pour ce fichier. Le fichier d'origine restera dans votre liste de conversion.",

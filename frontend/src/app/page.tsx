@@ -190,6 +190,14 @@ function HomePageContent() {
     }
   }, [outputFormat, pdfPreset]);
 
+  const hasFittedImages = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
+  useEffect(() => {
+    if (hasFittedImages) {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [hasFittedImages]);
+
   useEffect(() => {
     // Upscaling decides the output size, so a resize width would contradict it.
     if (upscale.enabled && outputFormat !== "pdf") {
@@ -307,16 +315,20 @@ function HomePageContent() {
       clearError();
       setConverted([]);
       setDestFolder("");
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       let processedFiles: File[];
       try {
         processedFiles = await Promise.all(
           files.map((file) => {
             const cfg = crops[file.name];
-            return cfg ? applyCropToFile(file, cfg) : Promise.resolve(file);
+            return cfg ? applyCropToFile(file, outputFormat === "pdf" ? { ...cfg, fit: undefined } : cfg, controller.signal) : Promise.resolve(file);
           })
         );
       } catch (cropErr) {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        if (controller.signal.aborted) return;
         const message =
           cropErr instanceof Error ? cropErr.message : "Failed to apply crop.";
         setError({
@@ -328,13 +340,15 @@ function HomePageContent() {
         setIsLoading(false);
         return;
       }
+      if (controller.signal.aborted) return;
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
       if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
-      const upscaleActive = upscale.enabled && outputFormat !== "pdf";
+      // Fitted images already have their final size, so they are not upscaled.
+      const upscaleActive = upscale.enabled && outputFormat !== "pdf" && !hasFittedImages;
       if (resizeWidthEnabled && !upscaleActive) {
         formData.append("width", width);
       }
@@ -368,9 +382,6 @@ function HomePageContent() {
       }
 
       try {
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-
         const res = await fetch("/api/compress", {
           method: "POST",
           body: formData,
@@ -427,6 +438,7 @@ function HomePageContent() {
         });
         toast.error(t("page.toast.unexpectedError"));
       } finally {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
         setIsLoading(false);
       }
     },
@@ -437,6 +449,7 @@ function HomePageContent() {
       resizeWidthEnabled,
       width,
       upscale,
+      hasFittedImages,
       clearError,
       setError,
       compressionMode,

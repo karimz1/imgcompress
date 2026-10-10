@@ -11,6 +11,7 @@ export const zhCN: TranslationSchema = {
       noFormatError: "请先选择输出格式。",
       qualityRangeError: "质量必须是 1 到 100 之间的数字。",
       widthPositiveError: "宽度必须是正数。",
+      fitSizeError: "“调整为精确尺寸”需要 1 到 8192 像素之间的宽度和高度。",
       icoWidthClamped:
         "ICO 格式的最大宽度限制为 256px。你的输入已被限制为 256。",
       targetSizeError: "请设置一个正的最大文件大小（MB）。",
@@ -180,12 +181,32 @@ export const zhCN: TranslationSchema = {
       hint:
         "保持宽高比。已经足够达到目标分辨率的图片保持不变。较大的图片和较慢的 CPU 需要更长时间。超过 4 倍的放大会先进行 AI 放大，再使用常规缩放。",
       unavailableHint: "未安装放大模型。",
+      fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
+    },
+    fitSize: {
+      preset: {
+        label: "尺寸",
+        options: {
+          githubSocial: "GitHub 社交预览 (1280 × 640)",
+          openGraph: "Open Graph 链接预览 (1200 × 630)",
+          custom: "自定义尺寸",
+        },
+      },
+      widthLabel: "宽度 (px)",
+      heightLabel: "高度 (px)",
+      mode: {
+        crop: "裁剪填充",
+        blur: "模糊背景",
+        cropHint: "填满整个画面，图片的部分内容会被裁掉。",
+        blurHint: "保留完整图片，空白两侧显示该图片模糊并略微变暗的副本。",
+      },
     },
     resizeWidth: {
       label: "调整宽度",
       tooltip:
         "将图片调整到所需宽度，同时保留原始宽高比。",
       upscaleActiveHint: "开启 AI 放大时不使用。",
+      fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
     },
     dropzone: {
       dragActive: "将图片或 PDF 拖到这里...",
@@ -390,6 +411,20 @@ export const zhCN: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "裁剪",
+      fit: "适配尺寸",
+    },
+    fit: {
+      hint: "选择尺寸和模式，预览会自动更新。",
+      selection: "调整裁剪",
+      autoFit: "自动适配",
+      applyAll: "自动适配所有图片",
+      output: "输出：{{w}} × {{h}} 像素",
+      preview: "输出预览",
+      previewScaled: "预览 {{pw}} × {{ph}} 像素 · 按完整尺寸导出 {{w}} × {{h}} 像素",
+      updating: "正在更新预览…",
+    },
     aspectRatio: "宽高比",
     adjust: "调整",
     zoom: "缩放",
@@ -404,7 +439,7 @@ export const zhCN: TranslationSchema = {
     original: "原始：{{w}} × {{h}} px",
     removeSavedCrop: "移除已保存裁剪",
     discard: "放弃",
-    saveCrop: "保存裁剪",
+    saveCrop: "保存",
     switchToLight: "切换到浅色主题",
     switchToDark: "切换到深色主题",
     confirmDialog: {
@@ -435,8 +470,8 @@ export const zhCN: TranslationSchema = {
       },
     },
     freeRatio: "自由",
-    editorTitle: "裁剪编辑器",
-    editorDescription: "调整此图片的裁剪区域、比例和缩放，然后点击保存裁剪或放弃。",
+    editorTitle: "裁剪与调整尺寸",
+    editorDescription: "调整此图片的裁剪区域、比例和缩放，然后点击保存或放弃。",
     removeDialog: {
       title: "移除已保存裁剪？",
       description: "这会清除此文件的已保存裁剪。原始文件仍会保留在转换列表中。",
