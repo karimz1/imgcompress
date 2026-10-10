@@ -105,7 +105,10 @@ def cgroup_cpu_limit(cpu_max: str) -> Optional[int]:
         quota, period = cpu_max.split()[:2]
         if quota == "max":
             return None
-        return max(1, math.floor(int(quota) / int(period)))
+        quota, period = int(quota), int(period)
+        if quota <= 0 or period <= 0:
+            return None
+        return max(1, math.floor(quota / period))
     except ValueError:
         return None
 
