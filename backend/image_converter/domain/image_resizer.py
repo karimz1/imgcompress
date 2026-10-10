@@ -25,7 +25,7 @@ class ImageResizer:
 
             # Calculate dimensions
             ratio = target_width / float(img.width)
-            new_size = (target_width, int(img.height * ratio))
+            new_size = (target_width, max(1, int(img.height * ratio)))
 
             # Metadata and High-Bit preservation
             icc_profile = img.info.get("icc_profile")
