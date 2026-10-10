@@ -50,6 +50,34 @@ test('an RC shows its actual version instead of the previous stable notes', asyn
   await expect(page.getByText('Update available', { exact: false })).not.toBeVisible();
 });
 
+test('update checks use the installed RC even when the notes describe an older version', async ({ page }) => {
+  await page.route('**/build-info.json', (route) => route.fulfill({ json: {
+    ...metadata, version: '0.10.0-rc.1', channel: 'rc',
+  } }));
+  await page.route('**/repos/karimz1/imgcompress/releases/latest', (route) => route.fulfill({
+    json: { tag_name: 'release_0.9.1' },
+  }));
+  await page.goto('/');
+  await expect(page.getByTestId('build-details-trigger')).toContainText('Version 0.10.0-rc.1');
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText('Update available', { exact: false })).not.toBeVisible();
+});
+
+test('an installed RC offers its stable release even if the notes already list that release', async ({ page }) => {
+  await page.route('**/build-info.json', (route) => route.fulfill({ json: {
+    ...metadata, version: '0.10.0-rc.1', channel: 'rc',
+  } }));
+  await page.route('**/release-notes.md', (route) => route.fulfill({
+    contentType: 'text/markdown', body: '## v0.10.0 — 2026-10-10\n- Stable release',
+  }));
+  await page.route('**/repos/karimz1/imgcompress/releases/latest', (route) => route.fulfill({
+    json: { tag_name: 'release_0.10.0' },
+  }));
+  await page.goto('/');
+  await expect(page.getByTestId('build-details-trigger')).toContainText('Version 0.10.0-rc.1');
+  await expect(page.getByText('Update available', { exact: false })).toContainText('0.10.0');
+});
+
 test('missing metadata retains the version and release-notes link', async ({ page }) => {
   await page.route('**/build-info.json', (route) => route.fulfill({ status: 404, body: '' }));
   await page.goto('/');

@@ -10,8 +10,8 @@ import { BuildDetails } from "@/components/BuildDetails";
 
 const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
   const { t } = useTranslation();
-  const { currentVersion, latestVersion, updateAvailable } = useVersionCheck();
   const buildInfo = useBuildInfo();
+  const { currentVersion, latestVersion, updateAvailable } = useVersionCheck(buildInfo?.version);
   // The baked-in build wins: an RC knows its own version, the notes may not.
   const installedVersion = buildInfo?.version || currentVersion;
 
