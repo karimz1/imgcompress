@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "docker.io/karimz1/imgcompress:nightly",
+  "ArtifactType": "container_image",
+  "Results": [
+    {
+      "Target": "docker.io/karimz1/imgcompress:nightly (debian 13.6)",
+      "Class": "os-pkgs",
+      "Type": "debian"
+    },
+    {
+      "Target": "container/venv/lib/python3.14/site-packages/flask-3.1.3.dist-info/METADATA",
+      "Class": "lang-pkgs",
+      "Type": "python-pkg"
+    }
+  ]
+}
