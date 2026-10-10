@@ -15,6 +15,7 @@ permissions:
 
 concurrency:
   group: release-draft-${{ inputs.tag || github.ref_name }}
+  queue: max
   cancel-in-progress: false
 
 jobs:
