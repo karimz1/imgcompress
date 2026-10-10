@@ -1,9 +1,6 @@
 name: Deployment for imgcompress to Docker Hub
 
 on:
-  push:
-    branches:
-      - main
   release:
     types: [published]
   workflow_dispatch:
@@ -13,15 +10,39 @@ on:
 permissions:
   contents: read
 
-# One release deploy per tag at a time, and nightly pushes in order, so a rerun
-# or a slow build can't overwrite a newer image with an older one.
+# All tags share latest. Serialize releases as well as nightlies so a slow
+# older release cannot overwrite a newer release's image or Docker Hub README.
 concurrency:
-  group: deploy-docker-image-${{ github.event.release.tag_name || 'nightly' }}
+  group: deploy-docker-image
   cancel-in-progress: false
 
 jobs:
-  deploy-image-to-dockerhub:
+  select-source:
     if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'release_')
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.source.outputs.deploy }}
+    steps:
+      - name: Skip superseded nightly commits
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          DEPLOY_REF: ${{ github.event.client_payload.ref || '' }}
+        run: |
+          if [ "$EVENT_NAME" = 'repository_dispatch' ]; then
+            current=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+            if [ "$DEPLOY_REF" != "$current" ]; then
+              echo 'Skipping nightly: main has moved since this commit passed CI.'
+              echo 'deploy=false' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo 'deploy=true' >> "$GITHUB_OUTPUT"
+
+  deploy-image-to-dockerhub:
+    needs: select-source
+    if: needs.select-source.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
