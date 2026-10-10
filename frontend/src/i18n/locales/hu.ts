@@ -11,6 +11,7 @@ export const hu: TranslationSchema = {
       noFormatError: "Kérlek, először válassz kimeneti formátumot.",
       qualityRangeError: "A minőségnek 1 és 100 közötti számnak kell lennie.",
       widthPositiveError: "A szélességnek pozitív számnak kell lennie.",
+      fitSizeError: "A pontos méretre igazításhoz 1 és 8192 pixel közötti szélesség és magasság szükséges.",
       icoWidthClamped:
         "Az ICO formátum legfeljebb 256 px szélességet támogat. A megadott értéket 256-ra állítottam.",
       targetSizeError: "Kérlek, adj meg egy pozitív maximális fájlméretet (MB-ban).",
@@ -64,11 +65,12 @@ export const hu: TranslationSchema = {
         jpeg: "JPEG (kisebb fájlméret)",
         png: "PNG (átlátszóság megőrzése)",
         avif: "AVIF (kiváló tömörítés és minőség)",
+        webp: "WebP (kis fájlok, mindenhol működik)",
         pdf: "PDF (egyoldalas dokumentum)",
         ico: "ICO (átlátszóság megőrzése)",
       },
       tooltip:
-        "PNG: Megőrzi az átlátszóságot (alfa), ezért átlátszó hátterű képekhez ideális.\nJPEG: Átlátszóság nélküli képekhez ajánlott, általában kisebb fájlméretet ad.\nAVIF: Modern formátum kiváló tömörítéssel és minőséggel, átlátszóságot is támogat.\nPDF: Képek exportálása PDF-be opcionális oldalbeállításokkal, margókkal és többoldalas felosztással.\nICO: Faviconokhoz és alkalmazásikonokhoz használatos, támogatja az átlátszóságot (alfa). ICO készítéséhez PNG forrás ajánlott.",
+        "PNG: Megőrzi az átlátszóságot (alfa), ezért átlátszó hátterű képekhez ideális.\nJPEG: Átlátszóság nélküli képekhez ajánlott, általában kisebb fájlméretet ad.\nAVIF: Modern formátum kiváló tömörítéssel és minőséggel, átlátszóságot is támogat.\nWebP: Kis fájlméret széles böngészőtámogatással, támogatja az átlátszóságot és egy opcionális veszteségmentes módot.\nPDF: Képek exportálása PDF-be opcionális oldalbeállításokkal, margókkal és többoldalas felosztással.\nICO: Faviconokhoz és alkalmazásikonokhoz használatos, támogatja az átlátszóságot (alfa). ICO készítéséhez PNG forrás ajánlott.",
     },
     pdfPreset: {
       label: "PDF oldalbeállítás",
@@ -123,6 +125,11 @@ export const hu: TranslationSchema = {
       label: "Hosszú képek felosztása több oldalra",
       tooltip: "A hosszú képeket több oldalra osztja, ha PDF-oldalbeállítás aktív.",
     },
+    webpLossless: {
+      label: "Veszteségmentes WebP",
+      tooltip:
+        "Minden pixelt pontosan az eredetinek megfelelően megőriz. A fájlok nagyobbak, mint a veszteséges WebP esetén, ezért a minőség és a maximális fájlméret nem állítható.\nKépernyőképekhez, logókhoz és szöveges grafikákhoz ajánlott.",
+    },
     compressionMode: {
       label: "{{format}} beállítási módja",
       byQuality: "Minőség alapján",
@@ -136,7 +143,7 @@ export const hu: TranslationSchema = {
     quality: {
       label: "Minőség",
       tooltip:
-        "A minőség beállítása (100 a legjobb minőség, alacsonyabb értékek csökkentik a fájlméretet). JPEG és AVIF esetén érvényes.",
+        "A minőség beállítása (100 a legjobb minőség, alacsonyabb értékek csökkentik a fájlméretet). JPEG, AVIF és WebP esetén érvényes.",
       presets: {
         smaller: "Kisebb (60)",
         balanced: "Kiegyensúlyozott (75)",
@@ -149,12 +156,57 @@ export const hu: TranslationSchema = {
       placeholder: "pl. 0,50",
       hint: "Megpróbálja az egyes {{format}} fájlokat ezen a határon belül tartani a minőség automatikus állításával.",
       tooltip:
-        "Opcionális maximális kimeneti méret (MB-ban). JPEG és AVIF kimenethez érvényes.",
+        "Opcionális maximális kimeneti méret (MB-ban). JPEG, AVIF és WebP kimenethez érvényes.",
+    },
+    upscale: {
+      modelLabel: "MI-modell",
+      models: {
+        general: "Általános (fényképek)",
+        anime: "Anime (rajzolt képek)",
+      },
+      label: "MI-felskálázás",
+      tooltip:
+        "A helyi MI ({{model}}) nagyítja a képeket, és rekonstruálja az éleket és a finom részleteket. Nem igényel internetet.\nA processzoron lassabb a feldolgozás; apró képhibák jelenhetnek meg, különösen az arcokon.",
+      targetLabel: "Felskálázás erre",
+      options: {
+        "2x": "2× nagyobb",
+        "4x": "4× nagyobb",
+        "8x": "8× nagyobb",
+        "1080p": "Full HD (belefér: 1920 × 1080)",
+        "4k": "4K (belefér: 3840 × 2160)",
+        "6k": "6K (belefér: 5760 × 3240)",
+        "8k": "8K (belefér: 7680 × 4320)",
+        "16k": "16K (belefér: 15360 × 8640)",
+      },
+      hint:
+        "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
+      unavailableHint: "A felskálázó modell nincs telepítve.",
+      fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
+    },
+    fitSize: {
+      preset: {
+        label: "Méret",
+        options: {
+          githubSocial: "GitHub közösségi előnézet (1280 × 640)",
+          openGraph: "Open Graph linkelőnézet (1200 × 630)",
+          custom: "Egyéni méret",
+        },
+      },
+      widthLabel: "Szélesség (px)",
+      heightLabel: "Magasság (px)",
+      mode: {
+        crop: "Kitöltés vágással",
+        blur: "Elmosott háttér",
+        cropHint: "Kitölti a teljes keretet. A kép egyes részei levágásra kerülnek.",
+        blurHint: "A teljes kép megmarad. Az üres oldalakon a kép elmosott, kissé sötétebb másolata látszik.",
+      },
     },
     resizeWidth: {
       label: "Átméretezés szélesség alapján",
       tooltip:
         "A kép(ek) átméretezése a kívánt szélességre, az eredeti képarány megtartásával.",
+      upscaleActiveHint: "Nem használatos, amíg az MI-felskálázás be van kapcsolva.",
+      fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
     },
     dropzone: {
       dragActive: "Ejtsd ide a képeket vagy PDF-eket...",
@@ -361,6 +413,20 @@ export const hu: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Kivágás",
+      fit: "Méretre illesztés",
+    },
+    fit: {
+      hint: "Válassz méretet és módot. Az előnézet automatikusan frissül.",
+      selection: "Kivágás módosítása",
+      autoFit: "Automatikus illesztés",
+      applyAll: "Minden kép illesztése",
+      output: "Kimenet: {{w}} × {{h}} px",
+      preview: "Kimeneti előnézet",
+      previewScaled: "Előnézet {{pw}} × {{ph}} px · exportálás teljes méretben: {{w}} × {{h}} px",
+      updating: "Előnézet frissítése…",
+    },
     aspectRatio: "Képarány",
     adjust: "Beállítás",
     zoom: "Nagyítás",
@@ -406,8 +472,8 @@ export const hu: TranslationSchema = {
       },
     },
     freeRatio: "Szabad",
-    editorTitle: "Kép kivágása",
-    editorDescription: "Állítsd be a kivágási területet, az arányt és a nagyítást, majd kattints a Kivágás mentése vagy az Elvetés gombra.",
+    editorTitle: "Vágás és átméretezés",
+    editorDescription: "Állítsd be a kivágási területet, az arányt és a nagyítást, majd kattints a Mentés vagy az Elvetés gombra.",
     removeDialog: {
       title: "Eltávolítod a mentett kivágást?",
       description: "Ez törli a fájlhoz mentett kivágást. Az eredeti fájl az átalakítási listában marad.",

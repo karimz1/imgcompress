@@ -9,6 +9,7 @@ export const en = {
       noFormatError: "Please select an output format first.",
       qualityRangeError: "Quality must be a number between 1 and 100.",
       widthPositiveError: "Width must be a positive number.",
+      fitSizeError: "Fit to exact size needs a width and height between 1 and 8192 pixels.",
       icoWidthClamped:
         "ICO format is limited to a max width of 256px. Your input has been clamped to 256.",
       targetSizeError: "Please set a positive Max file size (in MB).",
@@ -62,11 +63,12 @@ export const en = {
         jpeg: "JPEG (smaller file size)",
         png: "PNG (preserves transparency)",
         avif: "AVIF (best compression & quality)",
+        webp: "WebP (small files, works everywhere)",
         pdf: "PDF (single-page document)",
         ico: "ICO (preserves transparency)",
       },
       tooltip:
-        "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+        "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nWebP: Small files with wide browser support, supports transparency and an optional lossless mode.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
     },
     pdfPreset: {
       label: "PDF Page Preset",
@@ -120,6 +122,11 @@ export const en = {
       label: "Split long images into multiple pages",
       tooltip: "Splits long images into multiple pages when a PDF preset is selected.",
     },
+    webpLossless: {
+      label: "Lossless WebP",
+      tooltip:
+        "Keeps every pixel exactly as in the source. Files are larger than lossy WebP, so quality and max file size are not available.\nGood for screenshots, logos, and graphics with text.",
+    },
     compressionMode: {
       label: "{{format}} settings mode",
       byQuality: "Set by Quality",
@@ -133,7 +140,7 @@ export const en = {
     quality: {
       label: "Quality",
       tooltip:
-        "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG and AVIF.",
+        "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG, AVIF, and WebP.",
       presets: {
         smaller: "Smaller (60)",
         balanced: "Balanced (75)",
@@ -146,12 +153,57 @@ export const en = {
       placeholder: "e.g., 0.50",
       hint: "It will try to keep each {{format}} at or below this size by automatically adjusting quality.",
       tooltip:
-        "Set an optional maximum output size (in MB). Applies to JPEG and AVIF output.",
+        "Set an optional maximum output size (in MB). Applies to JPEG, AVIF, and WebP output.",
+    },
+    upscale: {
+      modelLabel: "AI model",
+      models: {
+        general: "General (photos)",
+        anime: "Anime (drawn images)",
+      },
+      label: "AI upscaling",
+      tooltip:
+        "Local AI ({{model}}) enlarges images and reconstructs edges and fine detail. No internet required.\nSlower processing on the CPU; small artifacts may appear, especially in faces.",
+      targetLabel: "Upscale to",
+      options: {
+        "2x": "2× larger",
+        "4x": "4× larger",
+        "8x": "8× larger",
+        "1080p": "Full HD (fits 1920 × 1080)",
+        "4k": "4K (fits 3840 × 2160)",
+        "6k": "6K (fits 5760 × 3240)",
+        "8k": "8K (fits 7680 × 4320)",
+        "16k": "16K (fits 15360 × 8640)",
+      },
+      hint:
+        "Keeps the aspect ratio. Images already large enough for a resolution target stay unchanged. Larger images and slower CPUs take longer. Beyond 4×, AI upscaling is followed by standard resizing.",
+      unavailableHint: "The upscaling model is not installed.",
+      fitActiveHint: "Not used while Fit to exact size is on.",
+    },
+    fitSize: {
+      preset: {
+        label: "Size",
+        options: {
+          githubSocial: "GitHub social preview (1280 × 640)",
+          openGraph: "Open Graph link preview (1200 × 630)",
+          custom: "Custom size",
+        },
+      },
+      widthLabel: "Width (px)",
+      heightLabel: "Height (px)",
+      mode: {
+        crop: "Crop to fill",
+        blur: "Blurred background",
+        cropHint: "Fills the whole frame. Parts of the image are cut off.",
+        blurHint: "Keeps the whole image. The empty sides show a blurred, slightly darker copy of it.",
+      },
     },
     resizeWidth: {
       label: "Resize Width",
       tooltip:
         "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
+      upscaleActiveHint: "Not used while AI upscaling is on.",
+      fitActiveHint: "Not used while Fit to exact size is on.",
     },
     dropzone: {
       dragActive: "Drop images or PDFs here...",
@@ -357,6 +409,20 @@ export const en = {
   },
 
   crop: {
+    tabs: {
+      crop: "Crop",
+      fit: "Fit to size",
+    },
+    fit: {
+      hint: "Choose a size and mode. The preview updates automatically.",
+      selection: "Adjust crop",
+      autoFit: "Auto fit",
+      applyAll: "Auto fit all images",
+      output: "Output: {{w}} × {{h}} px",
+      preview: "Output preview",
+      previewScaled: "Preview {{pw}} × {{ph}} px · exports at full size {{w}} × {{h}} px",
+      updating: "Updating preview…",
+    },
     aspectRatio: "Aspect ratio",
     adjust: "Adjust",
     zoom: "Zoom",
@@ -371,7 +437,7 @@ export const en = {
     original: "Original: {{w}} × {{h}} px",
     removeSavedCrop: "Remove Saved Crop",
     discard: "Discard",
-    saveCrop: "Save Crop",
+    saveCrop: "Save",
     switchToLight: "Switch to light theme",
     switchToDark: "Switch to dark theme",
     confirmDialog: {
@@ -402,8 +468,8 @@ export const en = {
       },
     },
     freeRatio: "Free",
-    editorTitle: "Crop Editor",
-    editorDescription: "Adjust the crop region, ratio, and zoom for this image, then click Save Crop or Discard.",
+    editorTitle: "Crop & resize",
+    editorDescription: "Adjust the crop region, ratio, and zoom for this image, then click Save or Discard.",
     removeDialog: {
       title: "Remove saved crop?",
       description: "This clears the saved crop for this file. The original file will stay in your conversion list.",

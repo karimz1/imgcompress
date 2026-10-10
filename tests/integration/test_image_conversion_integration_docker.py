@@ -11,6 +11,7 @@ from tests.test_utils import (
     create_sample_test_image,
 )
 
+import numpy as np
 import pillow_heif
 from PIL import Image, ImageDraw
 
@@ -330,6 +331,57 @@ class TestDockerIntegration:
             )
             assert has_transparency, "Expected some transparent pixels in background-removed image"
 
+    @pytest.mark.parametrize("model", ["general", "anime"])
+    def test_run_docker_cli_upscale_withoutNetworkOnOneCpu_usesBundledModel(self, model):
+        """
+        --upscale must work fully offline on a plain CPU: the model ships in the
+        image and nothing is downloaded at runtime. --network none makes any
+        download attempt fail, --cpus 1 mimics a small box without a GPU.
+        """
+        filename = f"test_upscale_cli_{model}.png"
+        test_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, filename)
+        img = Image.new("RGB", (160, 90), (245, 245, 240))
+        draw = ImageDraw.Draw(img)
+        for x in range(4, 160, 9):
+            draw.line((x, 0, x, 45), fill=(30, 30, 30), width=1)
+        draw.rectangle([20, 56, 60, 78], fill=(200, 40, 40))
+        img.save(test_img_path, "PNG")
+
+        try:
+            strategy = self._mounting_strategy()
+            cmd = [
+                "docker", "run", "--rm", "--network", "none", "--cpus", "1",
+                *strategy["volume_args"],
+                self.DOCKER_IMAGE_NAME,
+                "cli",
+                os.path.join(strategy["input_path"], filename),
+                strategy["output_path"],
+                "--format", "png",
+                "--upscale", "4x",
+                "--upscale-model", model,
+            ]
+            print("Docker --upscale command:", shlex.join(cmd))
+            subprocess.run(cmd, check=True)
+        finally:
+            os.remove(test_img_path)
+
+        output_path = os.path.join(self.OUTPUT_DIR, filename)
+        assert os.path.exists(output_path)
+        with Image.open(output_path) as out_img:
+            assert out_img.size == (640, 360)
+            ai = out_img.convert("L")
+
+        # The model output has far crisper edges than plain bicubic, which proves
+        # the AI path ran rather than a silent resize.
+        bicubic = img.resize((640, 360), Image.Resampling.BICUBIC).convert("L")
+
+        def edge_energy(image):
+            grey = np.asarray(image, dtype=np.float32)
+            lap = 4 * grey[1:-1, 1:-1] - grey[:-2, 1:-1] - grey[2:, 1:-1] - grey[1:-1, :-2] - grey[1:-1, 2:]
+            return float(np.mean(lap**2))
+
+        assert edge_energy(ai) > 2 * edge_energy(bicubic)
+
     def test_run_docker_cli_avifFormat_producesValidAvifFile(self):
         """
         Tests --format avif at the CLI level. README documents AVIF as a supported
@@ -357,6 +409,67 @@ class TestDockerIntegration:
                 f"Unexpected output format: {out_img.format}"
             )
         print(f"AVIF file '{out_path}' validated at {self.EXPECTED_IMAGE_WIDTH}px wide - OK")
+
+    def test_run_docker_cli_webpFormat_producesValidWebpFile(self):
+        """
+        Tests --format webp at the CLI level (lossy, resized like the other formats).
+        """
+        single_file_name = "pexels-pealdesign-28594392.jpg"
+        local_path = os.path.join(self.SAMPLE_IMAGES_DIR, single_file_name)
+        assert os.path.exists(local_path), f"Missing test image: {local_path}"
+
+        self.run_docker_singlefile_processing(
+            single_file_name,
+            extra_args=["--format", "webp"],
+        )
+
+        output_files = os.listdir(self.OUTPUT_DIR)
+        assert len(output_files) == 1, f"Expected 1 output file, found {len(output_files)}."
+        out_path = os.path.join(self.OUTPUT_DIR, output_files[0])
+        assert out_path.lower().endswith(".webp"), f"Expected .webp output, got: {out_path}"
+        validate_image_dimensions(out_path, self.EXPECTED_IMAGE_WIDTH)
+        assert self._webp_bitstream(out_path) == b"VP8 "
+
+    def test_run_docker_cli_webpLossless_keepsAlphaChannel(self):
+        """
+        Tests --format webp --webp-lossless with a half-transparent square, like the PNG test.
+        """
+        transparent_img_path = os.path.join(self.SAMPLE_IMAGES_DIR, "test_transparent_webp.png")
+        img = Image.new("RGBA", (100, 100), (255, 0, 0, 0))
+        ImageDraw.Draw(img).rectangle([10, 10, 50, 50], fill=(0, 255, 0, 128))
+        img.save(transparent_img_path, "PNG")
+        try:
+            self.run_docker_singlefile_processing(
+                "test_transparent_webp.png",
+                extra_args=["--format", "webp", "--webp-lossless"],
+            )
+        finally:
+            os.remove(transparent_img_path)
+
+        out_path = os.path.join(self.OUTPUT_DIR, "test_transparent_webp.webp")
+        assert os.path.exists(out_path), f"Output file {out_path} not found."
+        assert self._webp_bitstream(out_path) == b"VP8L"
+        with Image.open(out_path) as out_img:
+            assert out_img.format == "WEBP"
+            assert out_img.mode == "RGBA"
+            scale_factor = self.EXPECTED_IMAGE_WIDTH / 100
+            assert out_img.getpixel((int(30 * scale_factor), int(30 * scale_factor)))[3] == 128
+            assert out_img.getpixel((int(6 * scale_factor), int(6 * scale_factor)))[3] == 0
+
+    @staticmethod
+    def _webp_bitstream(path: str) -> bytes:
+        """FourCC of the image chunk: b"VP8 " for lossy, b"VP8L" for lossless."""
+        with open(path, "rb") as f:
+            data = f.read()
+        assert data[:4] == b"RIFF" and data[8:12] == b"WEBP", f"{path} is not a WebP file"
+        offset = 12
+        while offset + 8 <= len(data):
+            fourcc = data[offset:offset + 4]
+            if fourcc in (b"VP8 ", b"VP8L"):
+                return fourcc
+            size = int.from_bytes(data[offset + 4:offset + 8], "little")
+            offset += 8 + size + (size % 2)
+        raise AssertionError(f"No VP8/VP8L chunk in {path}")
 
     def test_run_docker_cli_jsonOutput_emitsParseableMachineReadablePayload(self):
         """

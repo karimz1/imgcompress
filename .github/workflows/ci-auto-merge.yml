@@ -1,16 +1,13 @@
 name: CI and Auto Merge for imgcompress
 
 on:
+  # Feature branches run through pull_request only. Pushing them here as well
+  # started every PR run twice.
   push:
     branches:
       - main
       - next_rc
-      - feature/*
-      - bugfix/*
-      - enhancements/*
       - release/*
-      - prepare-rc-*
-      - prepair-rc-*
   pull_request:
   workflow_dispatch:
     inputs:
@@ -540,9 +537,8 @@ jobs:
       - test-feature-flags-matrix
       - test-unverified-formats-api
     if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true)
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy_nightly == true)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -551,7 +547,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-          DEPLOY_REF: ${{ github.head_ref || github.ref_name }}
+          DEPLOY_REF: ${{ github.sha }}
         run: |
           gh api \
             --method POST \
@@ -604,14 +600,3 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --squash --delete-branch "$PR_URL"
-
-      - name: Trigger Deployment Workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          gh api \
-            --method POST \
-            "repos/${REPOSITORY}/dispatches" \
-            -f event_type=deploy \
-            -f "client_payload[ref]=main"

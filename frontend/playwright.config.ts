@@ -1,13 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import fs from "fs";
 import path from "path";
-
-const videoDir = path.join(__dirname, "e2e-test-results/");
-
-
-if (fs.existsSync(videoDir))
-  fs.rmSync(videoDir, { recursive: true, force: true });
-fs.mkdirSync(videoDir, { recursive: true });
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -20,10 +12,8 @@ export default defineConfig({
   use: {
     actionTimeout: 60000 *2,
     headless: true,
-    // Exercise the desktop crop layout: the crop side panel only appears at the
-    // Tailwind 2xl breakpoint (>=1536px); below it the controls live in a mobile
-    // drawer. 2xl is used solely by the crop widget, so a wider viewport does not
-    // change any other screen's behavior.
+    // Keep the default desktop layout roomy; dedicated cases also exercise
+    // laptop and phone widths. The editor uses a side panel from 1024px.
     viewport: { width: 1600, height: 720 },
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     launchOptions: {
@@ -31,5 +21,7 @@ export default defineConfig({
     },
     video: { mode: "on" },
   },
-  outputDir: "e2e-test-results/",
+  // Playwright clears this once per run. Clearing it on config import also
+  // erased earlier image comparisons whenever a worker was restarted.
+  outputDir: path.join(__dirname, "e2e-test-results"),
 });

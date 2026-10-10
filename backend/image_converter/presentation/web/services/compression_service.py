@@ -14,6 +14,7 @@ from backend.image_converter.application.dtos import (
 )
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.domain.fit_to_size import FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
     normalize_pdf_scale,
@@ -22,6 +23,7 @@ from backend.image_converter.domain.pdf_presets import (
 )
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize, to_bytes
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 
 
 class CompressionService:
@@ -74,6 +76,35 @@ class CompressionService:
             pdf_margin_mm = None
             pdf_paginate = False
 
+        webp_lossless = fmt == ImageFormat.WEBP and form_data.webp_lossless
+        if webp_lossless and form_data.target_size_kb:
+            return Result.failure(
+                "Lossless WebP cannot be combined with a max file size. "
+                "Turn off lossless or remove the size limit."
+            )
+        upscale_res = UpscaleTarget.from_string_result(form_data.upscale)
+        if not upscale_res.is_successful:
+            return Result.failure(upscale_res.error)
+        upscale = upscale_res.value
+        if upscale and fmt == ImageFormat.PDF:
+            return Result.failure("AI upscaling is not available for PDF output.")
+        model_res = UpscaleModel.from_string_result(form_data.upscale_model)
+        if not model_res.is_successful:
+            return Result.failure(model_res.error)
+        fit_res = FitToSize.from_strings_result(
+            form_data.fit_width,
+            form_data.fit_height,
+            form_data.fit_mode,
+            form_data.fit_anchor,
+        )
+        if not fit_res.is_successful:
+            return Result.failure(fit_res.error)
+        fit = fit_res.value
+        if fit and fmt == ImageFormat.PDF:
+            return Result.failure(
+                "Fit to size is not available for PDF output. Use a PDF page preset instead."
+            )
+
         src: Optional[str] = None
         dst: Optional[str] = None
         dest_ready = False
@@ -97,7 +128,8 @@ class CompressionService:
                 dest_folder=dst,
                 image_format=fmt,
                 quality=form_data.quality,
-                width=form_data.width,
+                # Upscaling and fitting decide the output size, so a resize width would undo it.
+                width=None if (upscale or fit) else form_data.width,
                 target_size=target,
                 use_rembg=form_data.use_rembg,
                 pdf_preset=pdf_preset,
@@ -105,6 +137,10 @@ class CompressionService:
                 pdf_margin_mm=pdf_margin_mm,
                 pdf_paginate=pdf_paginate,
                 pdf_quality=pdf_quality,
+                webp_lossless=webp_lossless,
+                upscale=upscale,
+                upscale_model=model_res.value,
+                fit=fit,
             )
 
             result = self.use_case.execute(req)

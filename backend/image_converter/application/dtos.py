@@ -7,8 +7,10 @@ from typing import List, Optional, Tuple
 from werkzeug.datastructures import FileStorage
 
 from backend.image_converter.core.enums.image_format import ImageFormat
+from backend.image_converter.domain.fit_to_size import FitToSize
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 
 
 @dataclass
@@ -25,6 +27,10 @@ class CompressRequest:
     pdf_margin_mm: Optional[float] = None
     pdf_paginate: bool = False
     pdf_quality: PdfQuality = PdfQuality.HIGH
+    webp_lossless: bool = False
+    upscale: Optional[UpscaleTarget] = None
+    upscale_model: UpscaleModel = UpscaleModel.GENERAL
+    fit: Optional[FitToSize] = None
 
 
 @dataclass
@@ -95,6 +101,13 @@ class CompressionFormData:
     pdf_margin_mm: float
     pdf_paginate: bool
     pdf_quality: str = "high"
+    webp_lossless: bool = False
+    upscale: str = ""
+    upscale_model: str = "general"
+    fit_width: str = ""
+    fit_height: str = ""
+    fit_mode: str = ""
+    fit_anchor: str = ""
 
 
 @dataclass(frozen=True)

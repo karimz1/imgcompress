@@ -164,6 +164,60 @@ COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 # to avoid permission issues when copying frontend assets.
 RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
+# Stage 2b: AI UPSCALING MODEL BUILD
+# ------------------------------------------------------------------------------------------
+# Intent: Build the general and anime ONNX models from the official Real-ESRGAN weights in
+# a stage of its own. The .pth weights are a Python pickle, so they are SHA-256 checked
+# against the official release before anything loads them, then loaded with
+# torch.load(weights_only=True) and exported to ONNX (graph and weights, no code).
+# Only the .onnx files and their .sha256 files are copied into the final image; torch,
+# onnx and the .pth files stay here. See scripts/build_upscale_model.py.
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:c6fc0de84b65bc20346cee5f071fd976ccf383431515db2a4d9721ca936feb9f AS upscale-model-stage
+
+COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
+
+# torch and onnxruntime wheels link against the system C++ runtime and OpenMP, which
+# the base image doesn't ship (same packages as in the backend stage).
+# ca-certificates: the build script downloads the official weights over HTTPS with
+# Python's own TLS stack, which finds no CA certificates in this image (uv and
+# requests/certifi bring their own roots, urllib does not). Without it the download
+# fails with CERTIFICATE_VERIFY_FAILED.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -eux; \
+    i=0; \
+    until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
+        i=$((i+1)); \
+        if [ "$i" -ge 5 ]; then echo "apt-get update failed after 5 attempts" >&2; exit 1; fi; \
+        sleep 15; \
+    done && \
+    apt-get install -y --no-install-recommends ca-certificates libstdc++6 libgomp1 && \
+    mkdir -p /build && chown -R nonroot:nonroot /build
+
+# uv's standalone Python looks for /etc/ssl/cert.pem, which Debian doesn't create;
+# point it at the bundle ca-certificates installs.
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+
+USER nonroot
+WORKDIR /build
+
+ENV UV_PYTHON_INSTALL_DIR=/build/python
+# CPU-only torch wheel (no CUDA libraries); versions pinned so the exported graph is
+# reproducible and matches the operator allowlist in the build script.
+RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
+    uv python install 3.14 && \
+    uv venv --python 3.14 /build/venv && \
+    uv pip install --python /build/venv/bin/python \
+        --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 && \
+    uv pip install --python /build/venv/bin/python \
+        onnx==1.23.2 onnxruntime==1.26.0 numpy==2.5.3
+
+COPY --chown=nonroot:nonroot scripts/build_upscale_model.py ./build_upscale_model.py
+# The cache mount keeps the verified .pth between builds; it is re-checked every time.
+RUN --mount=type=cache,target=/home/nonroot/.cache/upscale-weights,uid=65532,gid=65532 \
+    /build/venv/bin/python build_upscale_model.py /build/models \
+        --cache /home/nonroot/.cache/upscale-weights
+
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
 FROM dhi.io/debian-base:trixie-debian13@sha256:20079b51710f0397da5e056bfc7156b6aafc7ff3aa4ef4cbcb0b0f1df99cd8c4 AS final-stage
@@ -171,7 +225,7 @@ FROM dhi.io/debian-base:trixie-debian13@sha256:20079b51710f0397da5e056bfc7156b6a
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
       org.opencontainers.image.title="imgcompress - High Performance Image Compression & Background Removal" \
-      org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), and background removal using local AI. Supports 70+ formats." \
+      org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), background removal and upscaling using local AI. Supports 70+ formats." \
       org.opencontainers.image.url="https://github.com/karimz1/imgcompress" \
       org.opencontainers.image.source="https://github.com/karimz1/imgcompress" \
       org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress" \
@@ -180,6 +234,7 @@ LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.co
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV U2NET_HOME=/container/.u2net
+ENV IMGCOMPRESS_MODEL_HOME=/container/.models
 
 WORKDIR /container
 
@@ -187,6 +242,7 @@ COPY --from=backend-build-stage /dpkg-export/ /
 COPY --from=backend-build-stage --chown=65532:65532 /container/python /container/python
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
+COPY --from=upscale-model-stage --chown=65532:65532 /build/models /container/.models
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py

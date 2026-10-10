@@ -11,6 +11,7 @@ export const fr: TranslationSchema = {
       noFormatError: "Veuillez d'abord choisir un format de sortie.",
       qualityRangeError: "La qualité doit être un nombre entre 1 et 100.",
       widthPositiveError: "La largeur doit être un nombre positif.",
+      fitSizeError: "« Ajuster à une taille exacte » nécessite une largeur et une hauteur entre 1 et 8192 pixels.",
       icoWidthClamped:
         "Le format ICO est limité à une largeur maximale de 256 px. Votre saisie a été limitée à 256.",
       targetSizeError: "Veuillez définir une taille maximale de fichier positive (en Mo).",
@@ -64,11 +65,12 @@ export const fr: TranslationSchema = {
         jpeg: "JPEG (taille de fichier réduite)",
         png: "PNG (conserve la transparence)",
         avif: "AVIF (meilleure compression et qualité)",
+        webp: "WebP (fichiers légers, compatible partout)",
         pdf: "PDF (document d'une page)",
         ico: "ICO (conserve la transparence)",
       },
       tooltip:
-        "PNG : conserve la transparence (alpha) et convient aux images avec arrière-plan transparent.\nJPEG : idéal pour les images sans transparence et produit des fichiers plus petits.\nAVIF : format moderne avec une excellente compression et une bonne qualité, avec prise en charge de la transparence.\nPDF : exporte les images en PDF avec des préréglages de page, marges et découpe multipage optionnels.\nICO : souvent utilisé pour les favicons et les icônes d'application, avec prise en charge de la transparence (alpha). Utilisez de préférence un PNG comme source pour convertir en ICO.",
+        "PNG : conserve la transparence (alpha) et convient aux images avec arrière-plan transparent.\nJPEG : idéal pour les images sans transparence et produit des fichiers plus petits.\nAVIF : format moderne avec une excellente compression et une bonne qualité, avec prise en charge de la transparence.\nWebP : fichiers légers largement pris en charge par les navigateurs, gère la transparence et propose un mode sans perte optionnel.\nPDF : exporte les images en PDF avec des préréglages de page, marges et découpe multipage optionnels.\nICO : souvent utilisé pour les favicons et les icônes d'application, avec prise en charge de la transparence (alpha). Utilisez de préférence un PNG comme source pour convertir en ICO.",
     },
     pdfPreset: {
       label: "Préréglage de page PDF",
@@ -123,6 +125,11 @@ export const fr: TranslationSchema = {
       label: "Diviser les images longues en plusieurs pages",
       tooltip: "Divise les images longues en plusieurs pages lorsqu'un préréglage PDF est sélectionné.",
     },
+    webpLossless: {
+      label: "WebP sans perte",
+      tooltip:
+        "Conserve chaque pixel exactement comme dans l'original. Les fichiers sont plus lourds qu'en WebP avec perte, la qualité et la taille maximale ne sont donc pas disponibles.\nIdéal pour les captures d'écran, les logos et les graphiques contenant du texte.",
+    },
     compressionMode: {
       label: "Mode de réglage {{format}}",
       byQuality: "Régler par qualité",
@@ -136,7 +143,7 @@ export const fr: TranslationSchema = {
     quality: {
       label: "Qualité",
       tooltip:
-        "Ajustez la qualité (100 donne la meilleure qualité, les valeurs plus basses réduisent la taille du fichier). S'applique à JPEG et AVIF.",
+        "Ajustez la qualité (100 donne la meilleure qualité, les valeurs plus basses réduisent la taille du fichier). S'applique à JPEG, AVIF et WebP.",
       presets: {
         smaller: "Plus petit (60)",
         balanced: "Équilibré (75)",
@@ -149,12 +156,57 @@ export const fr: TranslationSchema = {
       placeholder: "p. ex. 0,50",
       hint: "Chaque fichier {{format}} sera maintenu à cette taille ou en dessous en ajustant automatiquement la qualité.",
       tooltip:
-        "Définissez une taille maximale de sortie optionnelle (en Mo). S'applique aux sorties JPEG et AVIF.",
+        "Définissez une taille maximale de sortie optionnelle (en Mo). S'applique aux sorties JPEG, AVIF et WebP.",
+    },
+    upscale: {
+      modelLabel: "Modèle d’IA",
+      models: {
+        general: "Général (photos)",
+        anime: "Anime (illustrations)",
+      },
+      label: "Agrandissement par IA",
+      tooltip:
+        "L’IA locale ({{model}}) agrandit les images et reconstruit les contours et les détails fins. Aucune connexion Internet nécessaire.\nLe traitement sur le processeur est plus lent ; de petits artefacts peuvent apparaître, surtout sur les visages.",
+      targetLabel: "Agrandir en",
+      options: {
+        "2x": "2× plus grand",
+        "4x": "4× plus grand",
+        "8x": "8× plus grand",
+        "1080p": "Full HD (tient dans 1920 × 1080)",
+        "4k": "4K (tient dans 3840 × 2160)",
+        "6k": "6K (tient dans 5760 × 3240)",
+        "8k": "8K (tient dans 7680 × 4320)",
+        "16k": "16K (tient dans 15360 × 8640)",
+      },
+      hint:
+        "Conserve les proportions. Les images déjà assez grandes pour la résolution choisie restent inchangées. Les grandes images et les processeurs plus lents demandent plus de temps. Au-delà de 4×, l’agrandissement par IA est suivi d’un redimensionnement classique.",
+      unavailableHint: "Le modèle d’agrandissement n’est pas installé.",
+      fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
+    },
+    fitSize: {
+      preset: {
+        label: "Taille",
+        options: {
+          githubSocial: "Aperçu social GitHub (1280 × 640)",
+          openGraph: "Aperçu de lien Open Graph (1200 × 630)",
+          custom: "Taille personnalisée",
+        },
+      },
+      widthLabel: "Largeur (px)",
+      heightLabel: "Hauteur (px)",
+      mode: {
+        crop: "Recadrer pour remplir",
+        blur: "Arrière-plan flou",
+        cropHint: "Remplit tout le cadre. Des parties de l'image sont coupées.",
+        blurHint: "Conserve l'image entière. Les côtés vides affichent une copie floutée et légèrement assombrie.",
+      },
     },
     resizeWidth: {
       label: "Redimensionner la largeur",
       tooltip:
         "Redimensionne l'image ou les images à la largeur souhaitée en conservant le rapport d'aspect d'origine.",
+      upscaleActiveHint: "Non utilisé tant que l'agrandissement par IA est activé.",
+      fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
     },
     dropzone: {
       dragActive: "Déposez des images ou des PDF ici...",
@@ -360,6 +412,20 @@ export const fr: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Recadrer",
+      fit: "Ajuster la taille",
+    },
+    fit: {
+      hint: "Choisissez la taille et le mode. L’aperçu se met à jour automatiquement.",
+      selection: "Ajuster le recadrage",
+      autoFit: "Ajuster automatiquement",
+      applyAll: "Ajuster toutes les images",
+      output: "Sortie : {{w}} × {{h}} px",
+      preview: "Aperçu du résultat",
+      previewScaled: "Aperçu {{pw}} × {{ph}} px · export en taille réelle {{w}} × {{h}} px",
+      updating: "Actualisation de l’aperçu…",
+    },
     aspectRatio: "Rapport d'aspect",
     adjust: "Ajuster",
     zoom: "Agrandissement",
@@ -374,7 +440,7 @@ export const fr: TranslationSchema = {
     original: "Image d'origine : {{w}} × {{h}} px",
     removeSavedCrop: "Retirer le recadrage enregistré",
     discard: "Abandonner",
-    saveCrop: "Enregistrer le recadrage",
+    saveCrop: "Enregistrer",
     switchToLight: "Passer au thème clair",
     switchToDark: "Passer au thème sombre",
     confirmDialog: {
@@ -405,8 +471,8 @@ export const fr: TranslationSchema = {
       },
     },
     freeRatio: "Libre",
-    editorTitle: "Éditeur de recadrage",
-    editorDescription: "Ajustez la zone de recadrage, le ratio et l'agrandissement de cette image, puis cliquez sur Enregistrer le recadrage ou Abandonner.",
+    editorTitle: "Recadrer et redimensionner",
+    editorDescription: "Ajustez la zone de recadrage, le ratio et l'agrandissement de cette image, puis cliquez sur Enregistrer ou Abandonner.",
     removeDialog: {
       title: "Retirer le recadrage enregistré ?",
       description: "Cela efface le recadrage enregistré pour ce fichier. Le fichier d'origine restera dans votre liste de conversion.",

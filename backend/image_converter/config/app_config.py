@@ -1,6 +1,7 @@
 """Typed backend configuration models."""
 
 from dataclasses import dataclass
+from typing import Optional
 
 from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
 from backend.image_converter.domain.web_workers import WebWorkerCount
@@ -62,6 +63,22 @@ class RembgConfig:
     model_name: str
 
 
+# Enough for a 16K UHD frame (15360x8640), with a little room for other ratios.
+# This caps output allocation; tiling only bounds the model's working memory.
+DEFAULT_MAX_OUTPUT_MEGAPIXELS = 144
+# Pillow refuses to open anything above 2 x Image.MAX_IMAGE_PIXELS (178,956,970 px)
+# as a decompression bomb, and the converters reopen the upscaled image. A higher
+# limit would only fail after the whole upscale has run.
+MAX_OUTPUT_MEGAPIXELS_LIMIT = 178
+
+
+@dataclass(frozen=True)
+class UpscalingConfig:
+    # None means "auto": the CPUs available to the container, capped at 8.
+    threads: Optional[int]
+    max_output_megapixels: int
+
+
 @dataclass(frozen=True)
 class AppConfig:
     temporary_storage: TemporaryStorageConfig
@@ -72,3 +89,4 @@ class AppConfig:
     formats: FormatsConfig
     features: FeaturesConfig
     rembg: RembgConfig
+    upscaling: UpscalingConfig

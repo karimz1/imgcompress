@@ -11,6 +11,7 @@ export const ptBR: TranslationSchema = {
       noFormatError: "Primeiro selecione um formato de saída.",
       qualityRangeError: "A qualidade deve ser um número entre 1 e 100.",
       widthPositiveError: "A largura deve ser um número positivo.",
+      fitSizeError: "Ajustar ao tamanho exato precisa de largura e altura entre 1 e 8192 pixels.",
       icoWidthClamped:
         "O formato ICO é limitado a uma largura máxima de 256 px. Sua entrada foi ajustada para 256.",
       targetSizeError: "Defina um tamanho máximo de arquivo positivo (em MB).",
@@ -64,11 +65,12 @@ export const ptBR: TranslationSchema = {
         jpeg: "JPEG (menor tamanho de arquivo)",
         png: "PNG (preserva transparência)",
         avif: "AVIF (melhor compressão e qualidade)",
+        webp: "WebP (arquivos pequenos, funciona em todo lugar)",
         pdf: "PDF (documento de uma página)",
         ico: "ICO (preserva transparência)",
       },
       tooltip:
-        "PNG: preserva transparência (alfa) e é melhor para imagens com fundos transparentes.\nJPEG: ideal para imagens sem transparência e gera arquivos menores.\nAVIF: formato moderno com compressão e qualidade superiores, com suporte a transparência.\nPDF: exporta imagens para PDFs com predefinições de página, margens e divisão em várias páginas opcionais.\nICO: usado com frequência para favicons e ícones de aplicativos, com suporte a transparência (alfa). Recomenda-se usar PNG como origem ao converter para ICO.",
+        "PNG: preserva transparência (alfa) e é melhor para imagens com fundos transparentes.\nJPEG: ideal para imagens sem transparência e gera arquivos menores.\nAVIF: formato moderno com compressão e qualidade superiores, com suporte a transparência.\nWebP: Arquivos pequenos com amplo suporte nos navegadores, suporta transparência e um modo sem perdas opcional.\nPDF: exporta imagens para PDFs com predefinições de página, margens e divisão em várias páginas opcionais.\nICO: usado com frequência para favicons e ícones de aplicativos, com suporte a transparência (alfa). Recomenda-se usar PNG como origem ao converter para ICO.",
     },
     pdfPreset: {
       label: "Predefinição de página PDF",
@@ -123,6 +125,11 @@ export const ptBR: TranslationSchema = {
       label: "Dividir imagens longas em várias páginas",
       tooltip: "Divide imagens longas em várias páginas quando uma predefinição PDF é selecionada.",
     },
+    webpLossless: {
+      label: "WebP sem perdas",
+      tooltip:
+        "Mantém cada pixel exatamente como no original. Os arquivos ficam maiores do que no WebP com perdas, por isso qualidade e tamanho máximo de arquivo não estão disponíveis.\nBom para capturas de tela, logotipos e gráficos com texto.",
+    },
     compressionMode: {
       label: "Modo de configurações de {{format}}",
       byQuality: "Definir por qualidade",
@@ -136,7 +143,7 @@ export const ptBR: TranslationSchema = {
     quality: {
       label: "Qualidade",
       tooltip:
-        "Ajuste a qualidade (100 oferece a melhor qualidade; valores menores reduzem o tamanho do arquivo). Aplica-se a JPEG e AVIF.",
+        "Ajuste a qualidade (100 oferece a melhor qualidade; valores menores reduzem o tamanho do arquivo). Aplica-se a JPEG, AVIF e WebP.",
       presets: {
         smaller: "Menor (60)",
         balanced: "Equilibrada (75)",
@@ -149,12 +156,57 @@ export const ptBR: TranslationSchema = {
       placeholder: "ex.: 0,50",
       hint: "Tentará manter cada {{format}} nesse tamanho ou abaixo dele ajustando a qualidade automaticamente.",
       tooltip:
-        "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG e AVIF.",
+        "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG, AVIF e WebP.",
+    },
+    upscale: {
+      modelLabel: "Modelo de IA",
+      models: {
+        general: "Geral (fotos)",
+        anime: "Anime (ilustrações)",
+      },
+      label: "Ampliação com IA",
+      tooltip:
+        "A IA local ({{model}}) amplia as imagens e reconstrói bordas e detalhes finos. Não precisa de internet.\nO processamento na CPU é mais lento; podem aparecer pequenos artefatos, especialmente em rostos.",
+      targetLabel: "Ampliar para",
+      options: {
+        "2x": "2× maior",
+        "4x": "4× maior",
+        "8x": "8× maior",
+        "1080p": "Full HD (cabe em 1920 × 1080)",
+        "4k": "4K (cabe em 3840 × 2160)",
+        "6k": "6K (cabe em 5760 × 3240)",
+        "8k": "8K (cabe em 7680 × 4320)",
+        "16k": "16K (cabe em 15360 × 8640)",
+      },
+      hint:
+        "Mantém as proporções. Imagens que já são grandes o bastante para a resolução escolhida ficam como estão. Imagens maiores e CPUs mais lentas levam mais tempo. Acima de 4×, a ampliação com IA é seguida por um redimensionamento convencional.",
+      unavailableHint: "O modelo de ampliação não está instalado.",
+      fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
+    },
+    fitSize: {
+      preset: {
+        label: "Tamanho",
+        options: {
+          githubSocial: "Prévia social do GitHub (1280 × 640)",
+          openGraph: "Prévia de link Open Graph (1200 × 630)",
+          custom: "Tamanho personalizado",
+        },
+      },
+      widthLabel: "Largura (px)",
+      heightLabel: "Altura (px)",
+      mode: {
+        crop: "Recortar para preencher",
+        blur: "Fundo desfocado",
+        cropHint: "Preenche todo o quadro. Partes da imagem são cortadas.",
+        blurHint: "Mantém a imagem inteira. As laterais vazias mostram uma cópia desfocada e um pouco mais escura.",
+      },
     },
     resizeWidth: {
       label: "Redimensionar largura",
       tooltip:
         "Redimensiona a(s) imagem(ns) para a largura desejada preservando a proporção original.",
+      upscaleActiveHint: "Não é usado enquanto a ampliação com IA está ativada.",
+      fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
     },
     dropzone: {
       dragActive: "Solte imagens ou PDFs aqui...",
@@ -360,6 +412,20 @@ export const ptBR: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "Cortar",
+      fit: "Ajustar tamanho",
+    },
+    fit: {
+      hint: "Escolha o tamanho e o modo. A prévia é atualizada automaticamente.",
+      selection: "Ajustar corte",
+      autoFit: "Ajustar automaticamente",
+      applyAll: "Ajustar todas as imagens",
+      output: "Saída: {{w}} × {{h}} px",
+      preview: "Prévia da saída",
+      previewScaled: "Prévia {{pw}} × {{ph}} px · exporta em tamanho real {{w}} × {{h}} px",
+      updating: "Atualizando prévia…",
+    },
     aspectRatio: "Proporção",
     adjust: "Ajustar",
     zoom: "Ampliação",
@@ -374,7 +440,7 @@ export const ptBR: TranslationSchema = {
     original: "Imagem original: {{w}} × {{h}} px",
     removeSavedCrop: "Remover corte salvo",
     discard: "Descartar",
-    saveCrop: "Salvar corte",
+    saveCrop: "Salvar",
     switchToLight: "Mudar para tema claro",
     switchToDark: "Mudar para tema escuro",
     confirmDialog: {
@@ -405,8 +471,8 @@ export const ptBR: TranslationSchema = {
       },
     },
     freeRatio: "Livre",
-    editorTitle: "Editor de corte",
-    editorDescription: "Ajuste a região de corte, proporção e zoom desta imagem, depois clique em Salvar corte ou Descartar.",
+    editorTitle: "Recortar e redimensionar",
+    editorDescription: "Ajuste a região de corte, proporção e zoom desta imagem, depois clique em Salvar ou Descartar.",
     removeDialog: {
       title: "Remover corte salvo?",
       description: "Isso limpa o corte salvo para este arquivo. O arquivo original permanecerá na sua lista de conversão.",

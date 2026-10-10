@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+import base64
+from io import BytesIO
 
 from flask import Blueprint, Response, request, jsonify, send_file, send_from_directory
 
@@ -8,6 +10,7 @@ from backend.image_converter.config import settings
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
+from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.presentation.web.parse_services import extract_form_data
@@ -16,6 +19,7 @@ from backend.image_converter.presentation.web.services.compression_service impor
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
 from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
+from backend.image_converter.presentation.web.services.fit_preview_service import FitPreviewService
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 
@@ -30,7 +34,14 @@ logger = Logger(debug=False, json_output=False)
 resizer = ImageResizer()
 storage = LocalStorage(logger=logger)
 payload_expander = create_payload_expander(logger)
-use_case = CompressImagesUseCase(logger, resizer, ImageConverterFactory, storage, payload_expander)
+upscaler = AiUpscaler(
+    logger,
+    threads=_config.upscaling.threads,
+    max_output_megapixels=_config.upscaling.max_output_megapixels,
+)
+use_case = CompressImagesUseCase(
+    logger, resizer, ImageConverterFactory, storage, payload_expander, upscaler=upscaler
+)
 
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
@@ -45,6 +56,7 @@ crop_preview_service = CropPreviewService(
     max_attempts=_config.crop_preview.max_retry_attempts,
 )
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
+fit_preview_service = FitPreviewService()
 backend_diagnostics_service = BackendDiagnosticsService(
     logger,
     TEMP_DIR,
@@ -161,11 +173,33 @@ def rembg_model():
     return jsonify({"model_name": configuration_service.get_rembg_model_name()}), 200
 
 
+@api_blueprint.route("/upscale_model", methods=["GET"])
+def upscale_model():
+    return jsonify(configuration_service.get_upscale_model_status()), 200
+
+
 @api_blueprint.route("/crop_unsupported_formats", methods=["GET"])
 def crop_unsupported_formats():
     return jsonify({
         "unsupported_formats": crop_preview_service.get_unsupported_extensions()
     }), 200
+
+
+@api_blueprint.route("/crop/fit", methods=["POST"])
+def fit_editor_bitmap():
+    render = request.form.get("render") == "true"
+    with_preview = request.form.get("preview") != "false"
+    result = fit_preview_service.build(
+        request.files.get("file"), request.form, full_size=render, with_image=render or with_preview
+    )
+    if not result.is_successful:
+        return jsonify({"error": result.error}), 400
+    crop, png = result.value
+    if render:
+        return send_file(BytesIO(png), mimetype="image/png")
+    if not with_preview:
+        return jsonify({"crop": crop})
+    return jsonify({"crop": crop, "preview": "data:image/png;base64," + base64.b64encode(png).decode("ascii")})
 
 
 @api_blueprint.route("/crop/bitmap", methods=["POST"])
