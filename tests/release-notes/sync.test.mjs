@@ -29,6 +29,16 @@ test('retries and edited release text replace one entry and keep the archive', (
   assert.ok(edited.endsWith(archive));
 });
 
+test('a release header inside a code example stays in its own entry on retries', () => {
+  const example = '```markdown\n## v99.0.0 — 2026-01-01\n\nExample, not a release.\n```';
+  const reviewed = { ...release, body: '- Change\n\n' + example };
+  const first = upsertReleaseNotes(archive, reviewed);
+  assert.equal(upsertReleaseNotes(first, reviewed), first);
+  const edited = upsertReleaseNotes(first, { ...release, body: '- Edited notes' });
+  assert.doesNotMatch(edited, /99\.0\.0|Example, not a release/);
+  assert.ok(edited.endsWith(archive));
+});
+
 test('RCs stay off main but identify their version in the released image', () => {
   const rc = { ...release, tag_name: 'release_0.10.0-rc.1', prerelease: true };
   assert.equal(upsertReleaseNotes(archive, rc), archive);
