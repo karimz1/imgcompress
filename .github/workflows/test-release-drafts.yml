@@ -1,0 +1,42 @@
+name: Test release automation
+
+on:
+  pull_request:
+    paths:
+      - '.github/release.yml'
+      - '.github/workflows/*release*'
+      - '.github/workflows/deploy-docker-image.yml'
+      - 'scripts/*release*.mjs'
+      - 'scripts/docker-image-tags.mjs'
+      - 'tests/releases/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/release.yml'
+      - '.github/workflows/*release*'
+      - '.github/workflows/deploy-docker-image.yml'
+      - 'scripts/*release*.mjs'
+      - 'scripts/docker-image-tags.mjs'
+      - 'tests/releases/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Run release automation tests
+        run: node --test tests/releases/*.test.mjs

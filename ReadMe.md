@@ -259,9 +259,11 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 - Read the **[Contributing Guide](contributing.md)** before opening a PR
 - Browse [`good-first-issue`](https://github.com/karimz1/imgcompress/labels/good-first-issue) labels for a starting point
 - Every change is verified by a Playwright E2E suite that covers all supported formats
+- Maintainers: [how releases work](docs/releasing.md)
 
 > [!NOTE]
 > **Meet [imgcompress-chan](https://imgcompress.karimzouine.com/docs/imgcompress-chan)**, the repo's custom helper bot. She auto-merges Dependabot PRs once CI passes, and if a frontend dependency update leaves a broken `pnpm-lock.yaml`.
+
 ---
 
 ## License & Author

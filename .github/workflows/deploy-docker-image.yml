@@ -1,11 +1,8 @@
 name: Deployment for imgcompress to Docker Hub
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - release_*
+  release:
+    types: [published]
   workflow_dispatch:
   repository_dispatch:
     types: [ deploy ]
@@ -13,17 +10,70 @@ on:
 permissions:
   contents: read
 
+# All tags share latest. Serialize releases as well as nightlies so a slow
+# older release cannot overwrite a newer release's image or Docker Hub README.
+concurrency:
+  group: deploy-docker-image
+  queue: max
+  cancel-in-progress: false
+
 jobs:
+  select-source:
+    if: >
+      github.event_name == 'repository_dispatch' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'release_'))
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.source.outputs.deploy }}
+    steps:
+      - name: Skip superseded nightly commits
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          DEPLOY_REF: ${{ github.event.client_payload.ref || '' }}
+        run: |
+          if [ "$EVENT_NAME" = 'repository_dispatch' ]; then
+            current=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+            if [ "$DEPLOY_REF" != "$current" ]; then
+              echo 'Skipping nightly: main has moved since this commit passed CI.'
+              echo 'deploy=false' >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo 'deploy=true' >> "$GITHUB_OUTPUT"
+
   deploy-image-to-dockerhub:
+    needs: select-source
+    if: needs.select-source.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write  # needed for pushing to GHCR with GITHUB_TOKEN
+    outputs:
+      latest: ${{ steps.tags.outputs.latest }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.client_payload.ref || github.ref }}
+          # refs/tags/ so a branch with the same name can never be built instead.
+          ref: ${{ github.event_name == 'release' && format('refs/tags/{0}', github.event.release.tag_name) || github.event.client_payload.ref || github.ref }}
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Compute image tags
+        id: tags
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || '' }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease || false }}
+          DEPLOY_REF: ${{ github.event.client_payload.ref || github.ref }}
+        run: node scripts/docker-image-tags.mjs
 
       - name: Login to Docker Hub
         uses: docker/login-action@v4
@@ -32,11 +82,20 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Authenticate to dhi.io for DHI base images
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        # Inline instead of scripts/dockerLoginWithRetry.sh: release builds check
+        # out the tag, and older tags don't have that script.
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if printf '%s' "$REGISTRY_PASSWORD" | docker login dhi.io --username "$REGISTRY_USERNAME" --password-stdin; then
+              exit 0
+            fi
+            echo "Login to dhi.io failed (attempt $attempt/5)" >&2
+            sleep $((attempt * 15))
+          done
+          exit 1
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -50,42 +109,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Compute image tags
-        id: tags
-        shell: bash
-        env:
-          GITHUB_OWNER: ${{ github.repository_owner }}
-        run: |
-          set -euo pipefail
-
-          # Docker Hub image
-          IMAGE_DH="karimz1/imgcompress"
-
-          # GitHub Container Registry image
-          IMAGE_GH="ghcr.io/${GITHUB_OWNER}/imgcompress"
-
-          TAGS=()
-          VERSION=""
-
-          # If this is a release tag like refs/tags/release_1.0.3
-          if [[ "${GITHUB_REF:-}" == refs/tags/release_* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/release_}"
-
-            # For releases: versioned tag + latest (both registries)
-            TAGS+=("$IMAGE_DH:${VERSION}")
-            TAGS+=("$IMAGE_DH:latest")
-            
-            TAGS+=("$IMAGE_GH:${VERSION}")
-            TAGS+=("$IMAGE_GH:latest")
-          else
-            # Main (or other branches): nightly (both registries)
-            TAGS+=("$IMAGE_DH:nightly")
-            TAGS+=("$IMAGE_GH:nightly")
-          fi
-
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
 
       - name: Debug - Display Computed Tags
         shell: bash
@@ -104,8 +127,10 @@ jobs:
           echo "::endgroup::"
 
       - name: Build and Push Docker Image
+        id: build-app
+        continue-on-error: true
         uses: docker/build-push-action@v7
-        with:
+        with: &app-build
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
@@ -113,13 +138,28 @@ jobs:
           cache-from: type=gha,scope=app-deploy
           cache-to: type=gha,mode=max,scope=app-deploy
 
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@v7
+        with: *app-build
+
   update-dockerhub-description:
     needs: deploy-image-to-dockerhub
-    if: startsWith(github.ref, 'refs/tags/release_')
+    # Only the release that also got `latest`, so a backport keeps the current README.
+    if: github.event_name == 'release' && needs.deploy-image-to-dockerhub.outputs.latest == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name }}
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -131,13 +171,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Choose README ref
-        id: readme-ref
-        shell: bash
-        run: |
-          README_REF="${GITHUB_REF#refs/tags/}"
-          echo "README_REF=$README_REF" >> "$GITHUB_ENV"
-
       - name: Update Docker Hub Description
         run: |
           python update_dockerhub_description.py \
@@ -145,6 +178,7 @@ jobs:
               --branch "$README_REF" \
               --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/$README_REF"
         env:
+          README_REF: ${{ github.event.release.tag_name }}
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: "imgcompress"
