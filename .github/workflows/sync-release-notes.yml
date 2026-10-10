@@ -10,6 +10,7 @@ permissions:
 # published and edited can arrive together; let them commit one after another.
 concurrency:
   group: sync-release-notes
+  queue: max
   cancel-in-progress: false
 
 jobs:
