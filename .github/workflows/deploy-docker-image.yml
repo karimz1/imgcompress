@@ -14,6 +14,7 @@ permissions:
 # older release cannot overwrite a newer release's image or Docker Hub README.
 concurrency:
   group: deploy-docker-image
+  queue: max
   cancel-in-progress: false
 
 jobs:
