@@ -1,0 +1,44 @@
+name: Test release notes sync
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/sync-release-notes.yml'
+      - '.github/workflows/test-release-notes.yml'
+      - '.github/workflows/deploy-docker-image.yml'
+      - 'scripts/sync-release-notes.mjs'
+      - 'frontend/src/lib/release-version.ts'
+      - 'frontend/src/hooks/useVersionCheck.ts'
+      - 'tests/release-notes/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-release-notes.yml'
+      - '.github/workflows/test-release-notes.yml'
+      - '.github/workflows/deploy-docker-image.yml'
+      - 'scripts/sync-release-notes.mjs'
+      - 'frontend/src/lib/release-version.ts'
+      - 'frontend/src/hooks/useVersionCheck.ts'
+      - 'tests/release-notes/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Run release notes tests
+        run: node --test tests/release-notes/*.test.mjs

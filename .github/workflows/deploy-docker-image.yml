@@ -126,6 +126,19 @@ jobs:
           done
           echo "::endgroup::"
 
+      # The tag predates review of the draft. Include the approved notes before
+      # Docker copies frontend/public into the shipped image, including RCs.
+      - name: Include approved release notes in the image
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ github.event.release.id }}
+          RELEASE_JSON_PATH: ${{ runner.temp }}/published-release.json
+          INCLUDE_PRERELEASE: 'true'
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" > "$RELEASE_JSON_PATH"
+          node scripts/sync-release-notes.mjs
+
       - name: Build and Push Docker Image
         id: build-app
         continue-on-error: true

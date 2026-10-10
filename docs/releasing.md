@@ -25,3 +25,11 @@ Merge stacked PRs from the base upward using **Create a merge commit**. This
 keeps the parent commits in the next PR's history. After each merge, change
 the next PR's base to `main`. Squashing or rebasing a parent requires restacking
 its children before merging them.
+
+## App release notes
+
+- Publishing a stable release runs **Sync published release notes**, which copies the notes into `frontend/public/release-notes.md` on `main`.
+- Editing a published release replaces that version's entry.
+- RC notes only go into the RC image, not into `main`. The footer handles versions like `0.10.0-rc.1`.
+- The sync pushes to `main` with `GITHUB_TOKEN`. If branch protection is added, it needs an allowed bot.
+- Tests: `node --test tests/release-notes/*.test.mjs`

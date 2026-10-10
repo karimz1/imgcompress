@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { coerce, gt } from "semver";
+import { coerce, gt, valid } from "semver";
 import { APP_CONFIG } from "@/lib/config";
+import { extractCurrentVersion } from "@/lib/release-version";
 
 interface VersionInfo {
   currentVersion: string | null;
@@ -10,6 +11,8 @@ interface VersionInfo {
 }
 
 const normalizeVersion = (value: string): string | null => {
+  const exact = valid(value.replace(/^(?:release_|v)/, ""));
+  if (exact) return exact;
   const parsed = coerce(value);
   return parsed ? parsed.version : null;
 };
@@ -19,17 +22,6 @@ const compareVersions = (current: string, latest: string): boolean => {
   const normalizedLatest = normalizeVersion(latest);
   if (!normalizedCurrent || !normalizedLatest) return false;
   return gt(normalizedLatest, normalizedCurrent);
-};
-
-const extractMaxVersion = (markdown: string): string | null => {
-  const versionPattern =
-    /##\s+v?(\d+\.\d+\.\d+(?:\.\d+)?)\s+[—-]\s+\d{4}-\d{2}-\d{2}/g;
-  const matches = Array.from(markdown.matchAll(versionPattern), (match) => match[1]);
-  const normalized = matches
-    .map((version) => normalizeVersion(version))
-    .filter((version): version is string => Boolean(version));
-  if (normalized.length === 0) return null;
-  return normalized.reduce((max, current) => (gt(current, max) ? current : max));
 };
 
 export function useVersionCheck(): VersionInfo {
@@ -45,7 +37,8 @@ export function useVersionCheck(): VersionInfo {
         const releaseNotesResponse = await fetch("/release-notes.md", { cache: "no-store" });
         if (releaseNotesResponse.ok) {
           const markdown = await releaseNotesResponse.text();
-          const current = extractMaxVersion(markdown);
+          const rawCurrent = extractCurrentVersion(markdown);
+          const current = rawCurrent ? normalizeVersion(rawCurrent) : null;
           setCurrentVersion(current);
 
           // Fetch latest version from API
