@@ -40,3 +40,13 @@ def test_When_JpegHasExifRotation_Expect_ResizedUprightToTargetWidth():
 
     with Image.open(BytesIO(resized_bytes)) as img:
         assert img.size == (100, 200)
+
+
+def test_thin_image_resize_keeps_at_least_one_row():
+    buf = BytesIO()
+    Image.new("RGB", (3000, 4), "red").save(buf, format="PNG")
+
+    resized = ImageResizer().resize_image(buf.getvalue(), 100)
+
+    with Image.open(BytesIO(resized)) as img:
+        assert img.size == (100, 1)
