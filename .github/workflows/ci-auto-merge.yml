@@ -295,14 +295,15 @@ jobs:
             devcontainer:local-test -c "/app/scripts/run-e2e.sh"
 
       - name: Get CPU Architecture
+        if: always()
         run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
 
       - name: Ensure E2E Test Results Directory Exists
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
+        if: failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true')
         run: mkdir -p frontend/e2e-test-results
 
       - name: Zip E2E Test Results for ${{ env.ARCH }}
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
+        if: failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true')
         run: |
           if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
             zip -r e2e-test-results-${{ env.ARCH }}.zip frontend/e2e-test-results
@@ -312,7 +313,7 @@ jobs:
           fi
 
       - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
+        if: failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true')
         uses: actions/upload-artifact@v7
         with:
           name: e2e-test-results-${{ env.ARCH }}
@@ -579,9 +580,8 @@ jobs:
       - test-feature-flags-matrix
       - test-unverified-formats-api
     if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true)
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy_nightly == true)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -590,7 +590,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-          DEPLOY_REF: ${{ github.head_ref || github.ref_name }}
+          DEPLOY_REF: ${{ github.sha }}
         run: |
           gh api \
             --method POST \

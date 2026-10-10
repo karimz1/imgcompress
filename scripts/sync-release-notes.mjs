@@ -2,7 +2,25 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 const VERSION_PATTERN = '\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?';
-const HEADER = new RegExp(`^##\\s+v?(${VERSION_PATTERN})\\s+[—-]\\s+\\d{4}-\\d{2}-\\d{2}\\s*$`, 'gm');
+const HEADER = new RegExp(`^##\\s+v?(${VERSION_PATTERN})\\s+[—-]\\s+\\d{4}-\\d{2}-\\d{2}\\s*$`);
+
+function releaseHeaders(markdown) {
+  const headers = [];
+  let fence = null;
+  let offset = 0;
+  for (const line of markdown.split('\n')) {
+    const marker = /^\s*(`{3,}|~{3,})/.exec(line);
+    if (marker) {
+      if (!fence) fence = marker[1];
+      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = null;
+    } else if (!fence) {
+      const header = HEADER.exec(line);
+      if (header) headers.push({ version: header[1], index: offset });
+    }
+    offset += line.length + 1;
+  }
+  return headers;
+}
 
 function compareVersions(a, b) {
   const left = a.split('-')[0].split('.').map(Number);
@@ -45,10 +63,10 @@ export function releaseEntry(release) {
 export function upsertReleaseNotes(markdown, release, { includePrerelease = false, promote = false } = {}) {
   const entry = releaseEntry(release);
   if (entry.prerelease && !includePrerelease) return markdown;
-  const headers = [...markdown.matchAll(HEADER)];
+  const headers = releaseHeaders(markdown);
   const preamble = headers.length ? markdown.slice(0, headers[0].index).trim() : markdown.trim();
   const entries = headers.map((header, index) => ({
-    version: header[1],
+    version: header.version,
     markdown: markdown.slice(header.index, headers[index + 1]?.index ?? markdown.length).trim(),
   })).filter((existing) => existing.version !== entry.version);
   entries.push(entry);
