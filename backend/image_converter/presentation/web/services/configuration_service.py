@@ -20,6 +20,7 @@ class ConfigurationService:
             ".ico",
             ".eps",
             ".psd",
+            ".svg",
             ".pdf",
             ".avif",
         ]

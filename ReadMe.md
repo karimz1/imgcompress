@@ -102,6 +102,12 @@ Stop uploading personal or client photos to cloud-based removers. ImgCompress sh
 
 ---
 
+## SVG Import
+
+Upload or drag and drop an `.svg` file, then choose PNG, JPEG, AVIF, ICO, or PDF as the output format. SVGs also work in CLI conversions and directory batches. PNG preserves transparency; JPEG places transparent areas on white. Resize and crop settings work as usual.
+
+SVGs render locally at their document dimensions (or their `viewBox` dimensions when no size is specified). Use self-contained SVGs with embedded images; links to external image files are rejected.
+
 ## Per-File Cropping (since v0.7.0)
 
 Every upload gets its own crop overlay before conversion. Pick a ratio preset (Free, 1:1, 16:9, 4:3) or type exact pixel width and height. Selections are saved per file, so one batch can mix square thumbnails with 16:9 covers without re-uploading.

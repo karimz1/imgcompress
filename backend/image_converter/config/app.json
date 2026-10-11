@@ -20,7 +20,6 @@
     "max_retry_attempts": 3,
     "unsupported_input_extensions": [
       ".pdf",
-      ".svg",
       ".raw",
       ".cr2",
       ".nef",
@@ -31,7 +30,8 @@
   "formats": {
     "custom_pipeline_extensions": [
       ".pdf",
-      ".psd"
+      ".psd",
+      ".svg"
     ]
   },
   "features": {

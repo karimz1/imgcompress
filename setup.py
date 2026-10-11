@@ -11,6 +11,8 @@ setup(
     install_requires=[
         'Pillow>=9.0.0',
         'pypdfium2>=4.30.0',
+        'resvg-py==0.5.0',
+        'defusedxml==0.7.1',
     ],
     entry_points={
         'console_scripts': [
