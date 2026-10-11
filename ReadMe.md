@@ -104,7 +104,7 @@ Stop uploading personal or client photos to cloud-based removers. ImgCompress sh
 
 ---
 
-## SVG Import
+## SVG Import (since v1.0.0)
 
 Upload or drag and drop an `.svg` file, then choose PNG, JPEG, AVIF, WebP, ICO, or PDF as the output format. SVGs also work in CLI conversions and directory batches. PNG preserves transparency; JPEG places transparent areas on white. Resize and crop settings work as usual.
 
