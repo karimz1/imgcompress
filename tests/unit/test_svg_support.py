@@ -61,7 +61,7 @@ def test_svg_with_only_viewbox_has_intrinsic_dimensions():
     assert result.is_successful, result.error
     with Image.open(BytesIO(result.value)) as image:
         assert image.size == (40, 20)
-        assert image.getpixel((10, 10)) == (255, 0, 0, 255)
+        assert image.convert("RGBA").getpixel((10, 10)) == (255, 0, 0, 255)
 
 
 @pytest.mark.parametrize(
@@ -80,7 +80,7 @@ def test_invalid_svg_returns_failure(data):
     assert result.error == "SVG could not be rendered."
 
 
-@pytest.mark.parametrize("element", ["image", "feImage"])
+@pytest.mark.parametrize("element", ["image", "use"])
 @pytest.mark.parametrize("attribute", ["href", "xlink:href"])
 @pytest.mark.parametrize(
     "reference",
@@ -95,7 +95,7 @@ def test_external_image_references_are_rejected(element, attribute, reference):
     data = f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="10" height="10"><{element} {attribute}="{reference}"/></svg>'.encode()
     result = SvgRenderer().render("external.svg", data)
     assert not result.is_successful
-    assert "external image references" in result.error
+    assert "external references" in result.error
 
 
 def test_embedded_image_is_rendered():
@@ -106,14 +106,67 @@ def test_embedded_image_is_rendered():
     result = SvgRenderer().render("embedded.svg", data)
     assert result.is_successful, result.error
     with Image.open(BytesIO(result.value)) as image:
-        assert image.getpixel((0, 0)) == (255, 0, 0, 255)
+        assert image.convert("RGBA").getpixel((0, 0)) == (255, 0, 0, 255)
+
+
+def test_css_gradient_and_partial_alpha_are_preserved():
+    data = b"""<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20">
+      <style>.paint { fill: url(#gradient); opacity: 0.5; }</style>
+      <defs><linearGradient id="gradient">
+        <stop stop-color="red"/><stop offset="1" stop-color="blue"/>
+      </linearGradient></defs>
+      <rect class="paint" x="5" y="5" width="30" height="10"/>
+    </svg>"""
+    result = SvgRenderer().render("styled.svg", data)
+    assert result.is_successful, result.error
+    with Image.open(BytesIO(result.value)) as image:
+        left = image.getpixel((10, 10))
+        right = image.getpixel((30, 10))
+        assert left[0] > right[0]
+        assert right[2] > left[2]
+        assert left[3] in (127, 128)
+        assert image.getpixel((0, 0))[3] == 0
+
+
+def test_internal_use_reference_is_rendered():
+    data = b"""<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+      <defs><rect id="shape" width="10" height="10" fill="red"/></defs>
+      <use href="#shape"/>
+    </svg>"""
+    result = SvgRenderer().render("use.svg", data)
+    assert result.is_successful, result.error
+    with Image.open(BytesIO(result.value)) as image:
+        assert image.convert("RGBA").getpixel((5, 5)) == (255, 0, 0, 255)
+
+
+def test_external_css_import_is_rejected():
+    data = b"""<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+      <style>@import url("https://example.com/style.css");</style>
+      <rect width="10" height="10"/>
+    </svg>"""
+    result = SvgRenderer().render("external-css.svg", data)
+    assert not result.is_successful
+    assert "external references" in result.error
+
+
+def test_external_image_in_embedded_svg_is_rejected():
+    nested = b"""<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+      <image href="https://example.com/private.png" width="10" height="10"/>
+    </svg>"""
+    encoded = base64.b64encode(nested).decode()
+    data = f'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="data:image/svg+xml;base64,{encoded}" width="10" height="10"/></svg>'.encode()
+    result = SvgRenderer().render("nested.svg", data)
+    assert not result.is_successful
+    assert "external references" in result.error
 
 
 def test_renderer_is_lazy_loaded_and_missing_dependency_is_reported(monkeypatch):
-    monkeypatch.delitem(sys.modules, "resvg_py", raising=False)
+    for module in tuple(sys.modules):
+        if module == "cairosvg" or module.startswith("cairosvg."):
+            monkeypatch.delitem(sys.modules, module)
     renderer = SvgRenderer()
-    assert "resvg_py" not in sys.modules
-    monkeypatch.setitem(sys.modules, "resvg_py", None)
+    assert "cairosvg" not in sys.modules
+    monkeypatch.setitem(sys.modules, "cairosvg", None)
     result = renderer.render("drawing.svg", SAMPLE_SVG)
     assert not result.is_successful
     assert "must be installed" in result.error
