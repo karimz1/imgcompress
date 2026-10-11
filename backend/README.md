@@ -22,6 +22,12 @@ make unit          # Run unit tests
 make integration   # Run integration tests
 ```
 
+## SVG import
+
+SVGs are rasterized with CairoSVG before entering the existing Pillow conversion pipeline. CairoSVG handles alpha transparency, CSS styling, and gradients; embedded resources are supported, and external files and URLs are rejected.
+
+Docker and Dev Containers include the Cairo runtime. For a native installation, install Cairo as well as the Python requirements (for example, `libcairo2` on Debian/Ubuntu, `brew install cairo` on macOS, or a Cairo/GTK runtime on Windows). CairoSVG brings its XML and CSS dependencies automatically; no separate SVG package is needed.
+
 ## AI upscaling
 
 Two Real-ESRGAN models ship in the Docker image: `realesr-general-x4v3` (General, the default) and `realesr-animevideov3` (Anime, for drawn images). Both are built in the `upscale-model-stage` of the Dockerfile by `scripts/build_upscale_model.py` from the official `.pth` release files, which are SHA-256 checked before they are loaded. Only the `.onnx` files and their `.sha256` files end up in `IMGCOMPRESS_MODEL_HOME` (`/container/.models`). Nothing is downloaded at runtime; a missing or changed model file shows up as "not installed" in the UI.

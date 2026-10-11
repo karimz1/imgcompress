@@ -44,6 +44,7 @@ COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d99
 #   - libimagequant: high-quality PNG quantization
 #   - libheif: enables HEIF / HEIC / AVIF image decoding
 #   - ghostscript: enables reading vector formats like .EPS, .PS, and .PDF
+#   - libcairo: SVG rasterization through CairoSVG
 #   - liblcms2, libfreetype, libharfbuzz, libfribidi: color management + advanced text rendering
 #   - libxcb, zlib, libgif: core compression and GIF/X11 support
 #
@@ -85,7 +86,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         sleep 15; \
     done && \
     apt-get install -y --no-install-recommends \
-        ghostscript \
+        ghostscript libcairo2 \
         libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
         libimagequant0 libheif1 liblcms2-2 \
         libfreetype6 libharfbuzz0b libfribidi0 \
@@ -97,7 +98,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     #                   Immune to Debian t64 renames (libpng16-16 → libpng16-16t64, etc.)
     # Phase 2 (dpkg-L): copy data files (CMaps, fonts, dumb-init binary) that ldd misses.
     # See extract_deps.sh for details.
-    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh /usr/bin/gs && \
+    CAIRO_LIBRARY=$(dpkg -L libcairo2 | sed -n '/\/libcairo\.so\.2$/p') && \
+    test -n "$CAIRO_LIBRARY" && \
+    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh "/usr/bin/gs $CAIRO_LIBRARY" && \
+    cp --parents -a "$(realpath "$CAIRO_LIBRARY")" "$CAIRO_LIBRARY" /dpkg-export/ && \
     \
     # Generate ld.so.cache so the dynamic linker can find all .so files at runtime.
     # Without this, libgs.so.10 fails to load its device plugins ("Unable to open
@@ -257,6 +261,9 @@ COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/public \
 USER nonroot
 
 EXPOSE 5000
+
+# Check the Cairo shared-library closure in the shell-free runtime image.
+RUN ["/container/venv/bin/python", "-c", "import cairosvg; assert cairosvg.svg2png(bytestring=b'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"1\" height=\"1\"/></svg>').startswith(b'\\x89PNG')"]
 
 # Constraint: The runtime hardened image lacks a shell (/bin/sh). 
 # We execute the healthcheck via python directly.
