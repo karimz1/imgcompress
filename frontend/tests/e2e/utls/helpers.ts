@@ -6,6 +6,8 @@ import sharp, { type Metadata } from 'sharp';
 import { ImageFileDto } from './ImageFileDto';
 import { DownloadType } from './DownloadType';
 import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
+import type { UpscaleTarget } from '../../../src/lib/upscale';
+import type { FitMode, FitPreset } from '../../../src/lib/fitToSize';
 
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
@@ -29,10 +31,16 @@ const selectors = {
   storageManagementButton: '[data-testid="storage-management-btn"]',
   storageManagementDownloadLink: '[data-testid="storage-management-file-download-link"]',
   rembgSwitch: '[data-testid="rembg-switch"]',
+  webpLosslessSwitch: '[data-testid="webp-lossless-switch"]',
   supportedFormatsBtn: '[data-testid="supported-formats-btn"]',
   supportedFormatsCount: '[data-testid="supported-formats-count"]',
   compressionModeQualityBtn: '[data-testid="compression-mode-quality-btn"]',
-  compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]'
+  compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]',
+  upscaleSwitch: '[data-testid="upscale-switch"]',
+  upscaleTargetSelect: '[data-testid="upscale-target-select"]',
+  fitPresetSelect: '[data-testid="fit-preset-select"]',
+  fitWidthInput: '[data-testid="fit-width-input"]',
+  fitHeightInput: '[data-testid="fit-height-input"]'
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
@@ -170,6 +178,85 @@ export async function uploadFilesToDropzoneAsync(page: Page, fileNames: ImageFil
     const dropzoneInput = page.locator(selectors.dropzoneInput);
     const filePaths = await Promise.all(fileNames.map(GetFullFilePathOfImageFileAsync));
     await dropzoneInput.setInputFiles(filePaths);
+}
+
+/** Uploads files generated in the test itself, so no extra fixture has to be committed. */
+export async function uploadBuffersToDropzoneAsync(
+  page: Page,
+  files: { name: string; mimeType: string; buffer: Buffer }[]
+): Promise<void> {
+  await waitForSupportedFormatsCountAsync(page);
+  await page.locator(selectors.dropzoneInput).setInputFiles(files);
+}
+
+/** Uploads an image built in the test (e.g. with sharp) instead of a fixture file. */
+export async function uploadGeneratedImageToDropzoneAsync(
+    page: Page,
+    fileName: string,
+    mimeType: string,
+    buffer: Buffer
+): Promise<void> {
+    await waitForSupportedFormatsCountAsync(page);
+    await page.locator(selectors.dropzoneInput).setInputFiles({ name: fileName, mimeType, buffer });
+}
+
+export async function setUpscaleAsync(page: Page, target: UpscaleTarget): Promise<void> {
+  const toggle = page.locator(selectors.upscaleSwitch);
+  await expect(toggle).toBeEnabled();
+  if ((await toggle.getAttribute('data-state')) !== 'checked') {
+    await toggle.click();
+  }
+  await page.locator(selectors.upscaleTargetSelect).click();
+  await page.getByTestId(`upscale-target-option-${target}`).click();
+  await expect(page.locator(selectors.upscaleTargetSelect)).toBeVisible();
+}
+
+export interface FitToSizeOptions {
+  preset: FitPreset;
+  width?: number;
+  height?: number;
+  mode?: FitMode;
+  anchor?: 'auto' | 'center' | 'top' | 'bottom' | 'left' | 'right';
+}
+
+export async function setFitToSizeAsync(page: Page, options: FitToSizeOptions): Promise<void> {
+  await page.getByTestId('dropzone-crop-file-btn').first().click();
+  await expect(page.getByTestId('crop-dialog')).toBeVisible();
+  await page.getByTestId('crop-tab-fit').click();
+  await page.locator(selectors.fitPresetSelect).click();
+  await page.getByTestId(`fit-preset-option-${options.preset}`).click();
+  await expect(page.locator(selectors.fitPresetSelect)).toBeVisible();
+
+  if (options.preset === 'custom') {
+    await page.locator(selectors.fitWidthInput).fill(String(options.width));
+    await page.locator(selectors.fitHeightInput).fill(String(options.height));
+  }
+
+  const mode = options.mode ?? 'crop';
+  await page.getByTestId(`fit-mode-${mode}-btn`).click();
+
+  await expect(page.getByTestId('crop-fit-preview')).toBeVisible();
+  await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
+
+  if (mode === 'crop' && options.anchor && options.anchor !== 'auto') {
+    const selection = page.getByTestId('crop-selection');
+    const box = await selection.boundingBox();
+    const image = await selection.locator('..').boundingBox();
+    if (!box || !image) throw new Error('Crop selection not visible');
+    let x = image.x + (image.width - box.width) / 2;
+    let y = image.y + (image.height - box.height) / 2;
+    if (options.anchor === 'top') y = image.y;
+    if (options.anchor === 'bottom') y = image.y + image.height - box.height;
+    if (options.anchor === 'left') x = image.x;
+    if (options.anchor === 'right') x = image.x + image.width - box.width;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(x + box.width / 2, y + box.height / 2, { steps: 8 });
+    await page.mouse.up();
+  }
+  await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
+  await page.getByTestId('crop-save-btn').click();
+  await expect(page.getByTestId('crop-dialog')).toHaveCount(0);
 }
 
 export async function waitForSupportedFormatsCountAsync(page: Page): Promise<number> {
@@ -360,6 +447,15 @@ export async function setPdfPaginateEnabledAsync(page: Page, enabled: boolean): 
 
 export async function setRembgEnabledAsync(page: Page, enabled: boolean): Promise<void> {
   const toggle = page.locator(selectors.rembgSwitch);
+  await expect(toggle).toBeVisible();
+  const isChecked = await toggle.getAttribute('data-state');
+  if ((isChecked === 'checked') !== enabled) {
+    await toggle.click();
+  }
+}
+
+export async function setWebpLosslessEnabledAsync(page: Page, enabled: boolean): Promise<void> {
+  const toggle = page.locator(selectors.webpLosslessSwitch);
   await expect(toggle).toBeVisible();
   const isChecked = await toggle.getAttribute('data-state');
   if ((isChecked === 'checked') !== enabled) {

@@ -30,6 +30,10 @@ import {
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
 import { CropDialog } from "@/components/crop/CropDialog";
 import { CropConfig, isCropableFile, isCropUnsupportedFile } from "@/lib/crop";
+import {
+  UPSCALE_TARGETS, UPSCALE_MODELS, toUpscaleTarget, toUpscaleModel,
+  type UpscaleSettings, type UpscaleModelStatus,
+} from "@/lib/upscale";
 import { cn } from "@/lib/utils";
 
 interface FileConversionFormProps {
@@ -41,6 +45,11 @@ interface FileConversionFormProps {
   setWidth: (val: string) => void;
   resizeWidthEnabled: boolean;
   setResizeWidthEnabled: (val: boolean) => void;
+  upscale: UpscaleSettings;
+  setUpscale: (val: UpscaleSettings) => void;
+  upscaleModelName: string | null;
+  upscaleAvailable: boolean;
+  upscaleModels: UpscaleModelStatus[];
   outputFormat: string;
   setOutputFormat: (val: string) => void;
   formatRequired: boolean;
@@ -74,6 +83,9 @@ interface FileConversionFormProps {
   setUseRembg: (val: boolean) => void;
   rembgModelName: string | null;
 
+  webpLossless: boolean;
+  setWebpLossless: (val: boolean) => void;
+
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
@@ -97,6 +109,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   setWidth,
   resizeWidthEnabled,
   setResizeWidthEnabled,
+  upscale,
+  setUpscale,
+  upscaleModelName,
+  upscaleAvailable,
+  upscaleModels,
   outputFormat,
   setOutputFormat,
   formatRequired,
@@ -125,6 +142,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   useRembg,
   setUseRembg,
   rembgModelName,
+  webpLossless,
+  setWebpLossless,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -149,8 +168,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     pdfPaginate: t("form.pdfPaginate.tooltip"),
     quality: t("form.quality.tooltip"),
     resizeWidth: t("form.resizeWidth.tooltip"),
+    upscale: t("form.upscale.tooltip", { model: upscaleModelName?.trim() || "Real-ESRGAN" }),
     targetSize: t("form.targetSize.tooltip"),
     rembg: t("form.rembg.tooltip"),
+    webpLossless: t("form.webpLossless.tooltip"),
   };
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
@@ -169,6 +190,20 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const pdfMarginValue =
     pdfMarginMm.trim() === "" || Number.isNaN(parsedPdfMargin) ? 10 : parsedPdfMargin;
   const rembgLabel = rembgModelName?.trim() || "rembg";
+  // Lossless WebP has no quality knob, so it gets neither the quality slider nor
+  // the max-file-size search.
+  const hasQualitySettings =
+    outputFormat === "jpeg" ||
+    outputFormat === "avif" ||
+    (outputFormat === "webp" && !webpLossless);
+  // "WebP" is written in mixed case everywhere else in the UI.
+  const outputFormatLabel = outputFormat === "webp" ? "WebP" : outputFormat.toUpperCase();
+  const supportsBackgroundRemoval =
+    outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp";
+  const upscaleVisible = outputFormat !== "pdf";
+  const fitActive = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
+  // Fitted images already have their final size, so upscaling them would undo it.
+  const upscaleActive = upscaleVisible && upscale.enabled && !fitActive;
   const renderError = useMemo(
     () =>
       error && (
@@ -199,6 +234,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             const cropable =
               !cropUnsupported && isCropableFile(file, supportedExtensions);
             const savedCrop = crops[file.name];
+            const savedFit = outputFormat !== "pdf" ? savedCrop?.fit : undefined;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
             return (
               <div
@@ -223,7 +259,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           className="inline-flex items-center gap-1 text-xs font-medium rounded-full pl-2 pr-1 py-0.5 bg-green-500/15 text-green-600 dark:text-green-300 border border-green-500/30"
                           data-testid="dropzone-crop-badge"
                         >
-                          {t("form.filesList.croppedBadge", { w: savedCrop.width, h: savedCrop.height })}
+                          {t(savedFit ? "crop.fit.output" : "form.filesList.croppedBadge", {
+                            w: savedFit?.width ?? savedCrop.width,
+                            h: savedFit?.height ?? savedCrop.height,
+                          })}
                           <button
                             type="button"
                             aria-label={t("form.filesList.removeSavedCropAria")}
@@ -262,7 +301,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           data-testid="dropzone-crop-file-btn"
                         >
                           <CropIcon className="h-3.5 w-3.5" />
-                          {savedCrop ? t("form.filesList.editButton") : t("form.filesList.cropButton")}
+                          {savedCrop ? t("form.filesList.editButton") : t("crop.editorTitle")}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent
@@ -330,6 +369,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       setCropForFile,
       supportedExtensions,
       cropUnsupportedExtensions,
+      outputFormat,
       tooltipSurface,
       t,
     ]
@@ -347,6 +387,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       onReportError={onReportCropError}
       isDarkTheme={isDarkTheme}
       disableLogo={disableLogo}
+      fitAvailable={outputFormat !== "pdf"}
+      cropUnsupportedExtensions={cropUnsupportedExtensions}
     />
   );
 
@@ -421,6 +463,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <SelectItem value="jpeg">{t("form.outputFormat.options.jpeg")}</SelectItem>
             <SelectItem value="png">{t("form.outputFormat.options.png")}</SelectItem>
             <SelectItem value="avif">{t("form.outputFormat.options.avif")}</SelectItem>
+            <SelectItem value="webp">{t("form.outputFormat.options.webp")}</SelectItem>
             <SelectItem value="pdf">{t("form.outputFormat.options.pdf")}</SelectItem>
             <SelectItem value="ico">{t("form.outputFormat.options.ico")}</SelectItem>
           </SelectContent>
@@ -654,9 +697,42 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "jpeg" || outputFormat === "avif") && (
+      {outputFormat === "webp" && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="webpLosslessToggle"
+              className="text-sm flex items-center gap-1"
+            >
+              {t("form.webpLossless.label")}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+                >
+                  <p className="text-sm">{tooltipContent.webpLossless}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Switch
+              data-testid="webp-lossless-switch"
+              id="webpLosslessToggle"
+              checked={webpLossless}
+              onCheckedChange={setWebpLossless}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      )}
+
+      {hasQualitySettings && (
         <div className="space-y-2">
-          <Label className="text-sm">{t("form.compressionMode.label", { format: outputFormat.toUpperCase() })}</Label>
+          <Label className="text-sm">{t("form.compressionMode.label", { format: outputFormatLabel })}</Label>
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
@@ -680,7 +756,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "png" || outputFormat === "avif") && (
+      {supportsBackgroundRemoval && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -713,7 +789,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality" && (
+      {hasQualitySettings && compressionMode === "quality" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -764,7 +840,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
       )}
 
-      {(outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size" && (
+      {hasQualitySettings && compressionMode === "size" && (
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Label
@@ -823,8 +899,106 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           </div>
 
           <p className={cn("text-xs", subtleText)}>
-            {t("form.targetSize.hint", { format: outputFormat.toUpperCase() })}
+            {t("form.targetSize.hint", { format: outputFormatLabel })}
           </p>
+        </div>
+      )}
+
+      {upscaleVisible && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="upscaleToggle" className="text-sm flex items-center gap-1">
+              {t("form.upscale.label")}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" data-testid="upscale-info" aria-label={t("form.upscale.label")}>
+                    <Info aria-hidden="true" className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("max-w-80 p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+                >
+                  <p className="text-sm">{tooltipContent.upscale}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Switch
+              data-testid="upscale-switch"
+              id="upscaleToggle"
+              checked={upscaleActive}
+              onCheckedChange={(checked) => setUpscale({ ...upscale, enabled: checked })}
+              disabled={isLoading || !upscaleAvailable || fitActive}
+            />
+          </div>
+          {fitActive && (
+            <p className={cn("text-xs", subtleText)} data-testid="upscale-fit-hint">
+              {t("form.upscale.fitActiveHint")}
+            </p>
+          )}
+          {!upscaleAvailable && (
+            <p className={cn("text-xs", subtleText)} data-testid="upscale-unavailable-hint">
+              {t("form.upscale.unavailableHint")}
+            </p>
+          )}
+          {upscaleActive && (
+            <div className="space-y-1">
+              <Label htmlFor="upscaleModel" className="text-sm">
+                {t("form.upscale.modelLabel")}
+              </Label>
+              <Select
+                value={upscale.model}
+                onValueChange={(value) => setUpscale({ ...upscale, model: toUpscaleModel(value) })}
+              >
+                <SelectTrigger
+                  id="upscaleModel"
+                  data-testid="upscale-model-select"
+                  disabled={isLoading}
+                  className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className={selectSurface}>
+                  {UPSCALE_MODELS.map((model) => (
+                    <SelectItem
+                      key={model}
+                      value={model}
+                      data-testid={`upscale-model-option-${model}`}
+                      disabled={!upscaleModels.some((status) => status.id === model && status.available)}
+                    >
+                      {t(`form.upscale.models.${model}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Label htmlFor="upscaleTarget" className="text-sm">
+                {t("form.upscale.targetLabel")}
+              </Label>
+              <Select
+                value={upscale.target}
+                onValueChange={(value) => setUpscale({ ...upscale, target: toUpscaleTarget(value) })}
+              >
+                <SelectTrigger
+                  id="upscaleTarget"
+                  data-testid="upscale-target-select"
+                  disabled={isLoading}
+                  className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className={selectSurface}>
+                  {UPSCALE_TARGETS.map((target) => (
+                    <SelectItem key={target} value={target} data-testid={`upscale-target-option-${target}`}>
+                      {t(`form.upscale.options.${target}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className={cn("text-xs", subtleText)} data-testid="upscale-hint">
+                {t("form.upscale.hint")}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -861,9 +1035,19 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 setWidth("");
               }
             }}
-            disabled={isLoading || (outputFormat === "pdf" && pdfPreset !== "original")}
+            disabled={isLoading || upscaleActive || fitActive || (outputFormat === "pdf" && pdfPreset !== "original")}
           />
         </div>
+        {upscaleActive && (
+          <p className={cn("text-xs", subtleText)} data-testid="resize-width-upscale-hint">
+            {t("form.resizeWidth.upscaleActiveHint")}
+          </p>
+        )}
+        {fitActive && !upscaleActive && (
+          <p className={cn("text-xs", subtleText)} data-testid="resize-width-fit-hint">
+            {t("form.resizeWidth.fitActiveHint")}
+          </p>
+        )}
         {resizeWidthEnabled && (
           <Input
             data-testid="resize-width-input"

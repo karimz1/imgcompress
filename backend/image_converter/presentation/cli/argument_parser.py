@@ -1,9 +1,11 @@
 import argparse
 
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
+
 def parse_arguments(argv=None) -> argparse.Namespace:
     """Parse command-line arguments for the image conversion script."""
     parser = argparse.ArgumentParser(
-        description="Convert images to JPEG, PNG, AVIF, or PDF (optionally resizing to a given width)."
+        description="Convert images to JPEG, PNG, AVIF, WebP, or PDF (optionally resizing to a given width)."
     )
     parser.add_argument(
         "source",
@@ -17,7 +19,7 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         "--quality",
         type=int,
         default=85,
-        help="JPEG quality (default: 85)"
+        help="JPEG, AVIF, and WebP quality (default: 85)"
     )
     parser.add_argument(
         "--width",
@@ -26,11 +28,57 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         help="Optional width for resizing (height auto-calculated)"
     )
     parser.add_argument(
+        "--upscale",
+        type=str,
+        choices=[target.value for target in UpscaleTarget],
+        default=None,
+        help="Enlarge images with the bundled local AI model (runs on the CPU, no network). "
+             "1080p, 4k, 6k, 8k and 16k fit the image into that frame, preserving the aspect ratio. "
+             "Enlargement beyond 4x uses AI followed by Lanczos resizing. "
+             "Replaces --width. Not available with --format pdf."
+    )
+    parser.add_argument(
+        "--upscale-model",
+        choices=[model.value for model in UpscaleModel],
+        default=UpscaleModel.GENERAL.value,
+        help="AI model for --upscale: general for photos, anime for drawn images (default: general).",
+    )
+    parser.add_argument(
+        "--fit",
+        type=str,
+        default=None,
+        metavar="WIDTHxHEIGHT",
+        help="Output exactly this size, e.g. 1280x640 for a GitHub social preview. "
+             "Replaces --width. With --upscale, the image is upscaled first. "
+             "Not available with --format pdf."
+    )
+    parser.add_argument(
+        "--fit-mode",
+        type=str,
+        choices=["crop", "blur"],
+        default="crop",
+        help="How --fit handles a different aspect ratio: crop the overflow, or fit the whole "
+             "image on a blurred copy of itself (default: crop)."
+    )
+    parser.add_argument(
+        "--fit-anchor",
+        type=str,
+        choices=["auto", "center", "top", "bottom", "left", "right"],
+        default="auto",
+        help="Which part to keep when --fit-mode crop cuts the image. 'auto' looks for the "
+             "important content (default: auto)."
+    )
+    parser.add_argument(
         "--format",
         type=str,
-        choices=["jpeg", "png", "avif", "pdf"],
+        choices=["jpeg", "png", "avif", "webp", "pdf"],
         default="jpeg",
-        help="Output format: 'jpeg', 'png', 'avif', or 'pdf' (default: jpeg)"
+        help="Output format: 'jpeg', 'png', 'avif', 'webp', or 'pdf' (default: jpeg)"
+    )
+    parser.add_argument(
+        "--webp-lossless",
+        action="store_true",
+        help="Encode WebP losslessly (only used with --format webp; --quality is ignored)."
     )
     parser.add_argument(
         "--pdf-preset",
@@ -70,7 +118,7 @@ def parse_arguments(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--remove-background",
         action="store_true",
-        help="Remove image background using local AI (works with --format png or --format avif)"
+        help="Remove image background using local AI (works with --format png, avif, or webp)"
     )
     parser.add_argument(
         "--debug",

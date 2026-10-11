@@ -11,6 +11,7 @@ export const zhCN: TranslationSchema = {
       noFormatError: "请先选择输出格式。",
       qualityRangeError: "质量必须是 1 到 100 之间的数字。",
       widthPositiveError: "宽度必须是正数。",
+      fitSizeError: "“调整为精确尺寸”需要 1 到 8192 像素之间的宽度和高度。",
       icoWidthClamped:
         "ICO 格式的最大宽度限制为 256px。你的输入已被限制为 256。",
       targetSizeError: "请设置一个正的最大文件大小（MB）。",
@@ -64,11 +65,12 @@ export const zhCN: TranslationSchema = {
         jpeg: "JPEG（文件更小）",
         png: "PNG（保留透明度）",
         avif: "AVIF（最佳压缩和质量）",
+        webp: "WebP（文件小，兼容性广）",
         pdf: "PDF（单页文档）",
         ico: "ICO（保留透明度）",
       },
       tooltip:
-        "PNG：保留透明度（Alpha），最适合透明背景图片。\nJPEG：适合没有透明度的图片，可生成更小的文件。\nAVIF：现代格式，压缩率和质量更好，并支持透明度。\nPDF：将图片导出为 PDF，可选择页面预设、边距和多页拆分。\nICO：常用于收藏夹图标和应用图标，支持透明度（Alpha）。转换为 ICO 时建议使用 PNG 作为源文件。",
+        "PNG：保留透明度（Alpha），最适合透明背景图片。\nJPEG：适合没有透明度的图片，可生成更小的文件。\nAVIF：现代格式，压缩率和质量更好，并支持透明度。\nWebP：文件小且浏览器支持广泛，支持透明度和可选的无损模式。\nPDF：将图片导出为 PDF，可选择页面预设、边距和多页拆分。\nICO：常用于收藏夹图标和应用图标，支持透明度（Alpha）。转换为 ICO 时建议使用 PNG 作为源文件。",
     },
     pdfPreset: {
       label: "PDF 页面预设",
@@ -123,6 +125,11 @@ export const zhCN: TranslationSchema = {
       label: "将长图拆分为多页",
       tooltip: "选择 PDF 预设时，将长图拆分为多页。",
     },
+    webpLossless: {
+      label: "无损 WebP",
+      tooltip:
+        "完全保留原图的每个像素。文件比有损 WebP 更大，因此无法设置质量和最大文件大小。\n适合截图、徽标和带文字的图形。",
+    },
     compressionMode: {
       label: "{{format}} 设置模式",
       byQuality: "按质量设置",
@@ -136,7 +143,7 @@ export const zhCN: TranslationSchema = {
     quality: {
       label: "质量",
       tooltip:
-        "调整质量（100 表示最佳质量，较低值会减小文件大小）。适用于 JPEG 和 AVIF。",
+        "调整质量（100 表示最佳质量，较低值会减小文件大小）。适用于 JPEG、AVIF 和 WebP。",
       presets: {
         smaller: "更小 (60)",
         balanced: "均衡 (75)",
@@ -149,12 +156,57 @@ export const zhCN: TranslationSchema = {
       placeholder: "例如 0.50",
       hint: "它会通过自动调整质量，尝试让每个 {{format}} 文件不超过此大小。",
       tooltip:
-        "设置可选的最大输出大小（MB）。适用于 JPEG 和 AVIF 输出。",
+        "设置可选的最大输出大小（MB）。适用于 JPEG、AVIF 和 WebP 输出。",
+    },
+    upscale: {
+      modelLabel: "AI 模型",
+      models: {
+        general: "通用（照片）",
+        anime: "动漫（绘画图像）",
+      },
+      label: "AI 放大",
+      tooltip:
+        "本地 AI（{{model}}）放大图片，重建边缘和细节。无需互联网。\nCPU 处理较慢；可能出现轻微瑕疵，尤其是在面部。",
+      targetLabel: "放大到",
+      options: {
+        "2x": "放大 2 倍",
+        "4x": "放大 4 倍",
+        "8x": "放大 8 倍",
+        "1080p": "全高清（适配 1920 × 1080）",
+        "4k": "4K（适配 3840 × 2160）",
+        "6k": "6K（适配 5760 × 3240）",
+        "8k": "8K（适配 7680 × 4320）",
+        "16k": "16K（适配 15360 × 8640）",
+      },
+      hint:
+        "保持宽高比。已经足够达到目标分辨率的图片保持不变。较大的图片和较慢的 CPU 需要更长时间。超过 4 倍的放大会先进行 AI 放大，再使用常规缩放。",
+      unavailableHint: "未安装放大模型。",
+      fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
+    },
+    fitSize: {
+      preset: {
+        label: "尺寸",
+        options: {
+          githubSocial: "GitHub 社交预览 (1280 × 640)",
+          openGraph: "Open Graph 链接预览 (1200 × 630)",
+          custom: "自定义尺寸",
+        },
+      },
+      widthLabel: "宽度 (px)",
+      heightLabel: "高度 (px)",
+      mode: {
+        crop: "裁剪填充",
+        blur: "模糊背景",
+        cropHint: "填满整个画面，图片的部分内容会被裁掉。",
+        blurHint: "保留完整图片，空白两侧显示该图片模糊并略微变暗的副本。",
+      },
     },
     resizeWidth: {
       label: "调整宽度",
       tooltip:
         "将图片调整到所需宽度，同时保留原始宽高比。",
+      upscaleActiveHint: "开启 AI 放大时不使用。",
+      fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
     },
     dropzone: {
       dragActive: "将图片或 PDF 拖到这里...",
@@ -359,6 +411,20 @@ export const zhCN: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "裁剪",
+      fit: "适配尺寸",
+    },
+    fit: {
+      hint: "选择尺寸和模式，预览会自动更新。",
+      selection: "调整裁剪",
+      autoFit: "自动适配",
+      applyAll: "自动适配所有图片",
+      output: "输出：{{w}} × {{h}} 像素",
+      preview: "输出预览",
+      previewScaled: "预览 {{pw}} × {{ph}} 像素 · 按完整尺寸导出 {{w}} × {{h}} 像素",
+      updating: "正在更新预览…",
+    },
     aspectRatio: "宽高比",
     adjust: "调整",
     zoom: "缩放",
@@ -373,7 +439,7 @@ export const zhCN: TranslationSchema = {
     original: "原始：{{w}} × {{h}} px",
     removeSavedCrop: "移除已保存裁剪",
     discard: "放弃",
-    saveCrop: "保存裁剪",
+    saveCrop: "保存",
     switchToLight: "切换到浅色主题",
     switchToDark: "切换到深色主题",
     confirmDialog: {
@@ -404,8 +470,8 @@ export const zhCN: TranslationSchema = {
       },
     },
     freeRatio: "自由",
-    editorTitle: "裁剪编辑器",
-    editorDescription: "调整此图片的裁剪区域、比例和缩放，然后点击保存裁剪或放弃。",
+    editorTitle: "裁剪与调整尺寸",
+    editorDescription: "调整此图片的裁剪区域、比例和缩放，然后点击保存或放弃。",
     removeDialog: {
       title: "移除已保存裁剪？",
       description: "这会清除此文件的已保存裁剪。原始文件仍会保留在转换列表中。",

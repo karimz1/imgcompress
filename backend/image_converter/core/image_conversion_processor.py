@@ -5,8 +5,10 @@ import json
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.file_manager import FileManager
 from backend.image_converter.core.internals.image_loader import ImageLoader
+from backend.image_converter.domain.fit_to_size import FitToSize
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.domain.pdf_quality import PdfQuality
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.enums.conversion_error import ConversionError
@@ -36,25 +38,34 @@ class ImageConversionProcessor:
         image_format: ImageFormat,
         quality: int = 85,
         width: Optional[int] = None,
+        upscale: Optional[UpscaleTarget] = None,
+        fit: Optional[FitToSize] = None,
         pdf_preset: Optional[str] = None,
         pdf_scale: str = "fit",
         pdf_margin_mm: Optional[float] = None,
         pdf_paginate: bool = False,
         pdf_quality: PdfQuality = PdfQuality.HIGH,
+        webp_lossless: bool = False,
         use_rembg: bool = False,
         debug: bool = False,
-        json_output: bool = False
+        json_output: bool = False,
+        upscale_model: UpscaleModel = UpscaleModel.GENERAL,
     ):
         self.source = source
         self.destination = destination
         self.image_format = image_format
         self.quality = quality
         self.width = width
+        self.upscale = upscale
+        self.upscale_model = upscale_model
+        self._upscaler = None
+        self.fit = fit
         self.pdf_preset = pdf_preset
         self.pdf_scale = pdf_scale
         self.pdf_margin_mm = pdf_margin_mm
         self.pdf_paginate = pdf_paginate
         self.pdf_quality = pdf_quality
+        self.webp_lossless = webp_lossless
         self.use_rembg = use_rembg
         self.debug = debug
         self.json_output = json_output
@@ -90,6 +101,7 @@ class ImageConversionProcessor:
             pdf_margin_mm=self.pdf_margin_mm,
             pdf_paginate=self.pdf_paginate,
             pdf_quality=self.pdf_quality,
+            webp_lossless=self.webp_lossless,
         )
         self.results: List[PageProcessingResult] = []
 
@@ -175,6 +187,17 @@ class ImageConversionProcessor:
 
             if self.image_format == ImageFormat.PDF and self.pdf_preset_config:
                 data = payload.data
+            elif self.upscale or self.fit:
+                if self.upscale:
+                    upscaled = self._get_upscaler().upscale(data, self.upscale, self.upscale_model)
+                    if upscaled is not None:
+                        data = upscaled
+                        with Image.open(BytesIO(data)) as upscaled_img:
+                            new_width, _ = upscaled_img.size
+                if self.fit:
+                    # Upscale first so the exact size is cut from the sharper image.
+                    data = self.image_resizer.fit_to_size(data, self.fit)
+                    new_width = self.fit.width
             elif self.width and self.width > 0:
                 data = self.image_resizer.resize_image(payload.data, self.width)
                 with Image.open(BytesIO(data)) as resized_img:
@@ -208,6 +231,17 @@ class ImageConversionProcessor:
                 is_successful=False,
                 error=str(e),
             )
+
+    def _get_upscaler(self):
+        if self._upscaler is None:
+            from backend.image_converter.config import settings
+            from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
+
+            config = settings.get().upscaling
+            self._upscaler = AiUpscaler(
+                self.logger, threads=config.threads, max_output_megapixels=config.max_output_megapixels
+            )
+        return self._upscaler
 
     def generate_summary(self) -> ConversionSummary:
         error_count = sum(not r.is_successful for r in self.results)

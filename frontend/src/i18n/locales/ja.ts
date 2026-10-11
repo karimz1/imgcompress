@@ -11,6 +11,7 @@ export const ja: TranslationSchema = {
       noFormatError: "先に出力形式を選択してください。",
       qualityRangeError: "品質は 1 から 100 の数値で指定してください。",
       widthPositiveError: "幅は正の数値で指定してください。",
+      fitSizeError: "「指定サイズに合わせる」には 1〜8192 ピクセルの幅と高さが必要です。",
       icoWidthClamped:
         "ICO 形式の最大幅は 256px です。入力値は 256 に制限されました。",
       targetSizeError: "正の最大ファイルサイズ (MB) を設定してください。",
@@ -64,11 +65,12 @@ export const ja: TranslationSchema = {
         jpeg: "JPEG (ファイルサイズ小)",
         png: "PNG (透明度を保持)",
         avif: "AVIF (最高の圧縮率と品質)",
+        webp: "WebP (小さいファイル、幅広く対応)",
         pdf: "PDF (1 ページ文書)",
         ico: "ICO (透明度を保持)",
       },
       tooltip:
-        "PNG: 透明度 (アルファ) を保持し、透明背景の画像に最適です。\nJPEG: 透明度のない画像に適しており、ファイルサイズを小さくできます。\nAVIF: 優れた圧縮率と品質を持つ最新形式で、透明度にも対応します。\nPDF: ページプリセット、余白、複数ページ分割を指定して画像を PDF に書き出します。\nICO: ファビコンやアプリアイコンによく使われ、透明度 (アルファ) に対応します。ICO に変換する場合は PNG を元画像にすることをおすすめします。",
+        "PNG: 透明度 (アルファ) を保持し、透明背景の画像に最適です。\nJPEG: 透明度のない画像に適しており、ファイルサイズを小さくできます。\nAVIF: 優れた圧縮率と品質を持つ最新形式で、透明度にも対応します。\nWebP: ファイルが小さく、ブラウザの対応も幅広い形式です。透明度とオプションのロスレスモードに対応しています。\nPDF: ページプリセット、余白、複数ページ分割を指定して画像を PDF に書き出します。\nICO: ファビコンやアプリアイコンによく使われ、透明度 (アルファ) に対応します。ICO に変換する場合は PNG を元画像にすることをおすすめします。",
     },
     pdfPreset: {
       label: "PDF ページプリセット",
@@ -123,6 +125,11 @@ export const ja: TranslationSchema = {
       label: "長い画像を複数ページに分割",
       tooltip: "PDF プリセットが選択されているとき、長い画像を複数ページに分割します。",
     },
+    webpLossless: {
+      label: "ロスレス WebP",
+      tooltip:
+        "すべてのピクセルを元の画像と同じに保ちます。非可逆の WebP よりファイルが大きくなるため、品質と最大ファイルサイズは設定できません。\nスクリーンショット、ロゴ、文字を含む画像に適しています。",
+    },
     compressionMode: {
       label: "{{format}} 設定モード",
       byQuality: "品質で設定",
@@ -136,7 +143,7 @@ export const ja: TranslationSchema = {
     quality: {
       label: "品質",
       tooltip:
-        "品質を調整します (100 が最高品質、低い値ほどファイルサイズが小さくなります)。JPEG と AVIF に適用されます。",
+        "品質を調整します (100 が最高品質、低い値ほどファイルサイズが小さくなります)。JPEG、AVIF、WebP に適用されます。",
       presets: {
         smaller: "小さめ (60)",
         balanced: "バランス (75)",
@@ -149,12 +156,57 @@ export const ja: TranslationSchema = {
       placeholder: "例: 0.50",
       hint: "品質を自動調整して、各 {{format}} をこのサイズ以下に収めようとします。",
       tooltip:
-        "任意の最大出力サイズ (MB) を設定します。JPEG と AVIF の出力に適用されます。",
+        "任意の最大出力サイズ (MB) を設定します。JPEG、AVIF、WebP の出力に適用されます。",
+    },
+    upscale: {
+      modelLabel: "AIモデル",
+      models: {
+        general: "汎用（写真）",
+        anime: "アニメ（イラスト）",
+      },
+      label: "AIアップスケール",
+      tooltip:
+        "ローカルAI（{{model}}）で画像を拡大し、輪郭や細部を再構成します。インターネット接続は不要です。\nCPUでの処理は遅く、特に顔に小さな不自然な部分が生じることがあります。",
+      targetLabel: "拡大先",
+      options: {
+        "2x": "2倍",
+        "4x": "4倍",
+        "8x": "8倍",
+        "1080p": "フルHD（1920 × 1080に収める）",
+        "4k": "4K（3840 × 2160に収める）",
+        "6k": "6K（5760 × 3240に収める）",
+        "8k": "8K（7680 × 4320に収める）",
+        "16k": "16K（15360 × 8640に収める）",
+      },
+      hint:
+        "縦横比を維持します。指定した解像度に対してすでに十分大きい画像はそのままです。大きい画像や遅いCPUでは処理に時間がかかります。4倍を超える拡大では、AI処理の後に通常のリサイズを行います。",
+      unavailableHint: "アップスケール用のモデルがインストールされていません。",
+      fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
+    },
+    fitSize: {
+      preset: {
+        label: "サイズ",
+        options: {
+          githubSocial: "GitHub ソーシャルプレビュー (1280 × 640)",
+          openGraph: "Open Graph リンクプレビュー (1200 × 630)",
+          custom: "カスタムサイズ",
+        },
+      },
+      widthLabel: "幅 (px)",
+      heightLabel: "高さ (px)",
+      mode: {
+        crop: "切り抜いて埋める",
+        blur: "ぼかし背景",
+        cropHint: "枠全体を埋めます。画像の一部は切り取られます。",
+        blurHint: "画像全体を残します。空いた部分には、画像をぼかして少し暗くしたコピーが表示されます。",
+      },
     },
     resizeWidth: {
       label: "幅をリサイズ",
       tooltip:
         "元のアスペクト比を保ったまま、画像を指定した幅にリサイズします。",
+      upscaleActiveHint: "AIアップスケールがオンの間は使用されません。",
+      fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
     },
     dropzone: {
       dragActive: "画像または PDF をここにドロップ...",
@@ -360,6 +412,20 @@ export const ja: TranslationSchema = {
   },
 
   crop: {
+    tabs: {
+      crop: "切り抜き",
+      fit: "サイズに合わせる",
+    },
+    fit: {
+      hint: "サイズとモードを選ぶと、プレビューが自動で更新されます。",
+      selection: "切り抜きを調整",
+      autoFit: "自動調整",
+      applyAll: "すべての画像を自動調整",
+      output: "出力: {{w}} × {{h}} px",
+      preview: "出力プレビュー",
+      previewScaled: "プレビュー {{pw}} × {{ph}} px · 書き出しはフルサイズ {{w}} × {{h}} px",
+      updating: "プレビューを更新中…",
+    },
     aspectRatio: "アスペクト比",
     adjust: "調整",
     zoom: "ズーム",
@@ -374,7 +440,7 @@ export const ja: TranslationSchema = {
     original: "元画像: {{w}} × {{h}} px",
     removeSavedCrop: "保存済み切り抜きを削除",
     discard: "破棄",
-    saveCrop: "切り抜きを保存",
+    saveCrop: "保存",
     switchToLight: "ライトテーマに切り替え",
     switchToDark: "ダークテーマに切り替え",
     confirmDialog: {
@@ -405,8 +471,8 @@ export const ja: TranslationSchema = {
       },
     },
     freeRatio: "自由",
-    editorTitle: "切り抜きエディター",
-    editorDescription: "この画像の切り抜き範囲、比率、ズームを調整し、切り抜きを保存または破棄をクリックしてください。",
+    editorTitle: "切り抜きとサイズ変更",
+    editorDescription: "この画像の切り抜き範囲、比率、ズームを調整し、保存または破棄をクリックしてください。",
     removeDialog: {
       title: "保存済み切り抜きを削除しますか?",
       description: "このファイルの保存済み切り抜きを削除します。元のファイルは変換リストに残ります。",

@@ -36,6 +36,8 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 import { useRembgModel } from "@/hooks/useRembgModel";
+import { useUpscaleModel } from "@/hooks/useUpscaleModel";
+import { DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, type UpscaleSettings } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { cn } from "@/lib/utils";
@@ -83,6 +85,7 @@ function HomePageContent() {
     unsupportedExtensions: cropUnsupportedExtensions,
   } = useCropUnsupportedExtensions();
   const { modelName: rembgModelName } = useRembgModel();
+  const { models: upscaleModels } = useUpscaleModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -97,6 +100,17 @@ function HomePageContent() {
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
+  const [upscale, setUpscale] = useState<UpscaleSettings>(DEFAULT_UPSCALE_SETTINGS);
+  const selectedUpscaleModel = upscaleModels.find((model) => model.id === upscale.model);
+  const upscaleModelName = selectedUpscaleModel?.modelName || UPSCALE_MODEL_NAMES[upscale.model];
+  const upscaleAvailable = selectedUpscaleModel?.available === true;
+
+  useEffect(() => {
+    if (!upscaleModels.some((model) => model.id === upscale.model && model.available)) {
+      const availableModel = upscaleModels.find((model) => model.available);
+      if (availableModel) setUpscale((previous) => ({ ...previous, model: availableModel.id }));
+    }
+  }, [upscaleModels, upscale.model]);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
   const [destFolder, setDestFolder] = useState("");
@@ -111,6 +125,7 @@ function HomePageContent() {
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
+  const [webpLossless, setWebpLossless] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [crops, setCrops] = useState<Record<string, CropConfig>>({});
@@ -135,13 +150,26 @@ function HomePageContent() {
   const accentOneClass = isDarkTheme ? "bg-slate-500/10" : "bg-slate-300/15";
   const accentTwoClass = isDarkTheme ? "bg-slate-400/10" : "bg-slate-200/15";
 
+  // Formats with a quality knob. Lossless WebP has none, so it gets neither a
+  // quality value nor a max file size.
+  const hasQualitySettings =
+    outputFormat === "jpeg" ||
+    outputFormat === "avif" ||
+    (outputFormat === "webp" && !webpLossless);
+
   useEffect(() => {
-    if (outputFormat !== "jpeg" && outputFormat !== "avif") {
+    if (!hasQualitySettings) {
       setCompressionMode("quality");
       setTargetSizeMB("");
     }
-    if (outputFormat !== "png" && outputFormat !== "avif") {
+  }, [hasQualitySettings]);
+
+  useEffect(() => {
+    if (outputFormat !== "png" && outputFormat !== "avif" && outputFormat !== "webp") {
       setUseRembg(false);
+    }
+    if (outputFormat !== "webp") {
+      setWebpLossless(false);
     }
     if (outputFormat !== "pdf") {
       setPdfPreset("original");
@@ -161,6 +189,22 @@ function HomePageContent() {
       setWidth("");
     }
   }, [outputFormat, pdfPreset]);
+
+  const hasFittedImages = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
+  useEffect(() => {
+    if (hasFittedImages) {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [hasFittedImages]);
+
+  useEffect(() => {
+    // Upscaling decides the output size, so a resize width would contradict it.
+    if (upscale.enabled && outputFormat !== "pdf") {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [upscale.enabled, outputFormat]);
 
   useEffect(() => {
     if (outputFormat === "pdf" && pdfPreset === "original") {
@@ -234,7 +278,7 @@ function HomePageContent() {
         return;
       }
 
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
+      if (hasQualitySettings && compressionMode === "quality") {
         const qualityNum = parseInt(quality, 10);
         if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
           setError({ message: t("page.toast.qualityRangeError") });
@@ -257,7 +301,7 @@ function HomePageContent() {
         }
       }
 
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
+      if (hasQualitySettings && compressionMode === "size") {
         const trimmed = (targetSizeMB || "").trim();
         const parsedSize = parseFloat(trimmed);
         if (!trimmed || isNaN(parsedSize) || parsedSize <= 0) {
@@ -271,16 +315,20 @@ function HomePageContent() {
       clearError();
       setConverted([]);
       setDestFolder("");
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       let processedFiles: File[];
       try {
         processedFiles = await Promise.all(
           files.map((file) => {
             const cfg = crops[file.name];
-            return cfg ? applyCropToFile(file, cfg) : Promise.resolve(file);
+            return cfg ? applyCropToFile(file, outputFormat === "pdf" ? { ...cfg, fit: undefined } : cfg, controller.signal) : Promise.resolve(file);
           })
         );
       } catch (cropErr) {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        if (controller.signal.aborted) return;
         const message =
           cropErr instanceof Error ? cropErr.message : "Failed to apply crop.";
         setError({
@@ -292,14 +340,21 @@ function HomePageContent() {
         setIsLoading(false);
         return;
       }
+      if (controller.signal.aborted) return;
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
+      if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
-      if (resizeWidthEnabled) {
+      // Fitted images already have their final size, so they are not upscaled.
+      const upscaleActive = upscale.enabled && outputFormat !== "pdf" && !hasFittedImages;
+      if (resizeWidthEnabled && !upscaleActive) {
         formData.append("width", width);
+      }
+      if (upscaleActive) {
+        formData.append("upscale", upscale.target);
+        formData.append("upscale_model", upscale.model);
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -313,20 +368,20 @@ function HomePageContent() {
           }
         }
       }
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
+      if (hasQualitySettings && compressionMode === "size") {
         const kb = Math.round(parseFloat(targetSizeMB) * 1024);
         if (!isNaN(kb) && kb > 0) {
           formData.append("target_size_kb", String(kb));
         }
       }
-      if ((outputFormat === "png" || outputFormat === "avif") && useRembg) {
+      if (outputFormat === "webp" && webpLossless) {
+        formData.append("webp_lossless", "true");
+      }
+      if ((outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp") && useRembg) {
         formData.append("use_rembg", "true");
       }
 
       try {
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-
         const res = await fetch("/api/compress", {
           method: "POST",
           body: formData,
@@ -383,6 +438,7 @@ function HomePageContent() {
         });
         toast.error(t("page.toast.unexpectedError"));
       } finally {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
         setIsLoading(false);
       }
     },
@@ -392,11 +448,15 @@ function HomePageContent() {
       quality,
       resizeWidthEnabled,
       width,
+      upscale,
+      hasFittedImages,
       clearError,
       setError,
       compressionMode,
       targetSizeMB,
       useRembg,
+      webpLossless,
+      hasQualitySettings,
       pdfPreset,
       pdfScale,
       pdfMarginMm,
@@ -548,6 +608,11 @@ function HomePageContent() {
               setWidth={setWidth}
               resizeWidthEnabled={resizeWidthEnabled}
               setResizeWidthEnabled={setResizeWidthEnabled}
+              upscale={upscale}
+              setUpscale={setUpscale}
+              upscaleModelName={upscaleModelName}
+              upscaleAvailable={upscaleAvailable}
+              upscaleModels={upscaleModels}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}
@@ -576,6 +641,8 @@ function HomePageContent() {
               useRembg={useRembg}
               setUseRembg={setUseRembg}
               rembgModelName={rembgModelName}
+              webpLossless={webpLossless}
+              setWebpLossless={setWebpLossless}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

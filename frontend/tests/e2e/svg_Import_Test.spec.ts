@@ -41,6 +41,7 @@ for (const { format, extension } of [
   { format: 'PNG', extension: 'png' },
   { format: 'JPEG', extension: 'jpg' },
   { format: 'AVIF', extension: 'avif' },
+  { format: 'WebP', extension: 'webp' },
   { format: 'ICO', extension: 'ico' },
   { format: 'PDF', extension: 'pdf' },
 ]) {

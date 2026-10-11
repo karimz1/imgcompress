@@ -3,7 +3,9 @@ import traceback
 from backend.image_converter.presentation.cli.argument_parser import parse_arguments
 from backend.image_converter.core.image_conversion_processor import ImageConversionProcessor
 from backend.image_converter.core.enums.image_format import ImageFormat
+from backend.image_converter.domain.fit_to_size import FitToSize
 from backend.image_converter.domain.pdf_quality import PdfQuality
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
 from backend.image_converter.infrastructure.logger import Logger
 
 def main(argv=None):
@@ -12,13 +14,29 @@ def main(argv=None):
     args = parse_arguments(argv)
     logger = Logger(debug=args.debug, json_output=args.json_output)
 
-    # Validate: --remove-background only works with PNG or AVIF format
-    if args.remove_background and args.format.upper() not in ["PNG", "AVIF"]:
+    # Validate: --remove-background only works with formats that keep transparency
+    if args.remove_background and args.format.upper() not in ["PNG", "AVIF", "WEBP"]:
         logger.log(
-            "Error: --remove-background can only be used with --format png or --format avif",
+            "Error: --remove-background can only be used with --format png, avif, or webp",
             "error"
         )
         sys.exit(1)
+
+    if args.upscale and args.format.upper() == "PDF":
+        logger.log("Error: --upscale cannot be used with --format pdf", "error")
+        sys.exit(1)
+    upscale = UpscaleTarget(args.upscale) if args.upscale else None
+    fit = None
+    if args.fit:
+        width, _, height = args.fit.lower().partition("x")
+        fit_res = FitToSize.from_strings_result(width, height, args.fit_mode, args.fit_anchor)
+        if not fit_res.is_successful or fit_res.value is None:
+            logger.log(f"Error: --fit expects WIDTHxHEIGHT, e.g. 1280x640. {fit_res.error or ''}".strip(), "error")
+            sys.exit(1)
+        if args.format.upper() == "PDF":
+            logger.log("Error: --fit cannot be used with --format pdf", "error")
+            sys.exit(1)
+        fit = fit_res.value
 
     try:
         image_format = ImageFormat.from_string(args.format.upper())
@@ -36,12 +54,16 @@ def main(argv=None):
             destination=args.destination,
             image_format=image_format,
             quality=args.quality,
-            width=args.width,
+            width=None if (upscale or fit) else args.width,
+            upscale=upscale,
+            upscale_model=UpscaleModel(args.upscale_model),
+            fit=fit,
             pdf_preset=pdf_preset,
             pdf_scale=pdf_scale,
             pdf_margin_mm=pdf_margin_mm,
             pdf_paginate=pdf_paginate,
             pdf_quality=PdfQuality.default(),
+            webp_lossless=args.webp_lossless and image_format == ImageFormat.WEBP,
             use_rembg=args.remove_background,
             debug=args.debug,
             json_output=args.json_output

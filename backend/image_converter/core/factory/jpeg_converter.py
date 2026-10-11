@@ -10,20 +10,19 @@ from backend.image_converter.core.interfaces.base_converter import BaseImageConv
 def _normalize_for_jpeg(img: Image.Image) -> Image.Image:
     """
     Ensure deterministic, JPEG-safe pixel data:
-    - apply EXIF orientation
+    - apply EXIF orientation in place (the caller owns the decoded image)
     - flatten alpha onto white
     - convert to RGB (handles P/CMYK/L/etc.)
     """
     try:
-        img = ImageOps.exif_transpose(img)
+        ImageOps.exif_transpose(img, in_place=True)
     except Exception:
         pass
 
     if img.mode in ("RGBA", "LA"):
         # composite over white
         background = Image.new("RGB", img.size, (255, 255, 255))
-        alpha = img.getchannel("A")
-        background.paste(img.convert("RGB"), mask=alpha)
+        background.paste(img, mask=img)
         img = background
     elif img.mode not in ("RGB",):
         # Convert everything else to RGB
@@ -48,19 +47,22 @@ class JpegConverter(BaseImageConverter):
         Encode to JPEG fully in memory and return the encoded bytes.
         This is what your size-targeting binary search calls repeatedly.
         """
-        with Image.open(BytesIO(image_data)) as img:
-            img = _normalize_for_jpeg(img)
-
-            out = BytesIO()
-            img.save(
-                out,
-                format="JPEG",
-                quality=self.quality,
-                optimize=True,
-                progressive=True,
-                subsampling="4:2:0",
-            )
-            return out.getvalue()
+        with Image.open(BytesIO(image_data)) as source:
+            img = _normalize_for_jpeg(source)
+            try:
+                with BytesIO() as out:
+                    img.save(
+                        out,
+                        format="JPEG",
+                        quality=self.quality,
+                        optimize=True,
+                        progressive=True,
+                        subsampling="4:2:0",
+                    )
+                    return out.getvalue()
+            finally:
+                if img is not source:
+                    img.close()
 
     def convert(self, image_data: bytes, source_path: str, dest_path: str) -> Result[ConversionDetails]:
         """Convert bytes to JPEG on disk and return typed details."""

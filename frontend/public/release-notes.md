@@ -1,3 +1,13 @@
+## v1.0.0 — DateNeedsToBeReplaced
+
+### Features
+
+- Add local AI upscaling: Small photos, drawings lose detail when enlarged with ordinary resizing. Add an optional local upscaler to the web UI and CLI. [#907](https://github.com/karimz1/imgcompress/issues/907)
+
+- Add WebP export: ImgCompress was able read WebP, but now it can also export it. Add WebP so photos and graphics can be converted without another tool. [#905](https://github.com/karimz1/imgcompress/issues/905)
+
+- Fit images to an exact output size: Now it is way easier to do an export for example for GitHub social previews and Open Graph links. It allows for Crop to fill and Blurred background. [#906](https://github.com/karimz1/imgcompress/issues/906)
+
 ## v0.9.0 — 2026-08-22
 
 ### Features
