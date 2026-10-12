@@ -5,6 +5,7 @@ import {
   CropBitmapError,
   isBrowserNativeFormat,
   loadImageFromFile,
+  sourceImageSize,
 } from "@/lib/crop";
 
 export type LoadingVariant = "local" | "server";
@@ -47,7 +48,7 @@ export function useCropImageLoader(file: File): CropImageLoadResult {
         }
         createdUrl = img.src;
         setImgUrl(img.src);
-        setImgSize({ width: img.naturalWidth, height: img.naturalHeight });
+        setImgSize(sourceImageSize(img));
       })
       .catch((err: unknown) => {
         if (cancelled) return;

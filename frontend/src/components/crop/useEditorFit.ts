@@ -23,6 +23,7 @@ const previewKey = (fit: FitOutput, crop: Rect) =>
   ]);
 
 export function useEditorFit({
+  file,
   imgUrl,
   crop,
   initialCrop,
@@ -30,6 +31,7 @@ export function useEditorFit({
   onApplyToAll,
   active,
 }: {
+  file: File;
   imgUrl: string | null;
   crop: Rect | null;
   initialCrop: CropConfig | null;
@@ -102,7 +104,7 @@ export function useEditorFit({
     setLoadingPreview(true);
     setError(null);
     const timer = window.setTimeout(() => {
-      previewFit(imgUrl, applied, crop, controller.signal)
+      previewFit(imgUrl, applied, crop, controller.signal, file)
         .then((result) => {
           if (controller.signal.aborted) return;
           lastPreviewKey.current = key;
@@ -119,7 +121,7 @@ export function useEditorFit({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [active, imgUrl, applied, crop, pending, working, retryCount]);
+  }, [active, imgUrl, applied, crop, pending, working, retryCount, file]);
 
   const autoFit = useCallback(async () => {
     if (!active || !imgUrl || !targetWidth || !targetHeight) return;
@@ -139,6 +141,7 @@ export function useEditorFit({
         fit,
         undefined,
         controller.signal,
+        file,
       );
       if (controller.signal.aborted) return;
       lastPreviewKey.current = previewKey(fit, result.crop);
@@ -153,7 +156,7 @@ export function useEditorFit({
     } finally {
       if (actionController.current === controller) setWorking(false);
     }
-  }, [active, imgUrl, targetWidth, targetHeight, settings.mode, onSelection]);
+  }, [active, imgUrl, targetWidth, targetHeight, settings.mode, onSelection, file]);
 
   // Selecting the Fit tab or changing a target produces the preview. Reopening
   // a saved fit keeps its explicit selection instead of finding a new crop.

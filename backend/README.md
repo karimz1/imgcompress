@@ -24,7 +24,9 @@ make integration   # Run integration tests
 
 ## SVG import
 
-SVGs are rasterized with CairoSVG before entering the existing Pillow conversion pipeline. CairoSVG handles alpha transparency, CSS styling, and gradients; embedded resources are supported, and external files and URLs are rejected.
+SVGs are rasterized with CairoSVG at the requested width, upscale target, or fit dimensions before entering the Pillow conversion pipeline. SVGs bypass bitmap resizing and AI upscaling; the original viewport dimensions remain available in CLI results. CairoSVG handles alpha transparency, CSS styling, and gradients; embedded resources are supported, and external files and URLs are rejected.
+
+The crop editor uses a PNG preview with a longest side of 2048 pixels while keeping crop coordinates in the original SVG viewport. Saved crops embed and clip the original SVG, preserving its vectors until final conversion. Fit previews and fitted exports render the selected vectors at their output resolution. Embedded bitmap images cannot gain vector detail through this process.
 
 Docker and Dev Containers include the Cairo runtime. For a native installation, install Cairo as well as the Python requirements (for example, `libcairo2` on Debian/Ubuntu, `brew install cairo` on macOS, or a Cairo/GTK runtime on Windows). CairoSVG brings its XML and CSS dependencies automatically; no separate SVG package is needed.
 

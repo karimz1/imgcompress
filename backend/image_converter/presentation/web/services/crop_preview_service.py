@@ -9,6 +9,14 @@ from PIL import Image, UnidentifiedImageError
 from backend.image_converter.core.internals.utilities import Result
 
 
+class CropPreviewPng(BytesIO):
+    """Preview pixels with the original viewport used for crop coordinates."""
+
+    def __init__(self, source_size: tuple[int, int] | None = None):
+        super().__init__()
+        self.source_size = source_size
+
+
 class CropPreviewService:
     _PERMANENT_ERROR_TYPES = (UnidentifiedImageError,)
 
@@ -86,7 +94,10 @@ class CropPreviewService:
         )
 
     def _build_preview_png(self, filename: str, raw_bytes: bytes) -> BytesIO:
-        expanded = self.payload_expander.expand(filename, raw_bytes)
+        if filename.lower().endswith(".svg"):
+            expanded = self.payload_expander.expand(filename, raw_bytes, svg_preview=True)
+        else:
+            expanded = self.payload_expander.expand(filename, raw_bytes)
         if not expanded.is_successful:
             raise RuntimeError(expanded.error)
 
@@ -97,7 +108,7 @@ class CropPreviewService:
         with Image.open(BytesIO(first_payload.data)) as img:
             img.load()
             normalized = self._normalize_image(img)
-            buffer = BytesIO()
+            buffer = CropPreviewPng(first_payload.source_size)
             normalized.save(buffer, format="PNG", optimize=False, compress_level=6)
 
         buffer.seek(0)

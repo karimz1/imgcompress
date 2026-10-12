@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { InputFileBadge } from "@/components/InputFileBadge"
 
 const APP_CONFIG = {
     GITHUB_ISSUES_URL: "https://github.com/karimz1/imgcompress/issues",
@@ -137,13 +138,14 @@ export function SupportedFormatsDialog({
                                         data-testid={formatTestId(ext)}
                                         data-format={ext}
                                         data-search-match={match}
-                                        className={`px-3 py-1.5 text-[11px] font-mono border rounded-md transition-all duration-300 ${
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-mono border rounded-md transition-all duration-300 ${
                                             match 
                                             ? "bg-blue-600 text-white border-blue-400 scale-110 shadow-lg shadow-blue-500/20 z-10" 
                                             : "bg-emerald-50/50 dark:bg-[#1e293b]/30 border-emerald-200 dark:border-slate-800 text-emerald-700 dark:text-emerald-400 font-bold"
                                         }`}
                                     >
                                         {ext}
+                                        <InputFileBadge filename={ext} />
                                     </span>
                                 );
                             })}
@@ -166,13 +168,14 @@ export function SupportedFormatsDialog({
                                         data-testid={formatTestId(ext)}
                                         data-format={ext}
                                         data-search-match={match}
-                                        className={`px-3 py-1.5 text-[11px] font-mono border rounded-md transition-all duration-300 ${
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-mono border rounded-md transition-all duration-300 ${
                                             match 
                                             ? "bg-blue-600 text-white border-blue-400 scale-110 shadow-lg shadow-blue-500/20 z-10" 
                                             : "bg-slate-50 dark:bg-[#1e293b]/20 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-500"
                                         }`}
                                     >
                                         {ext}
+                                        <InputFileBadge filename={ext} />
                                     </span>
                                 );
                             })}

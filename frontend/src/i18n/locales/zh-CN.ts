@@ -159,6 +159,8 @@ export const zhCN: TranslationSchema = {
         "设置可选的最大输出大小（MB）。适用于 JPEG、AVIF 和 WebP 输出。",
     },
     upscale: {
+      vectorTargetLabel: "尺寸预设",
+      vectorLabel: "放大",
       modelLabel: "AI 模型",
       models: {
         general: "通用（照片）",
@@ -202,16 +204,30 @@ export const zhCN: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "关闭“{{enlargeLabel}}”即可输入指定宽度。",
       label: "调整宽度",
       tooltip:
         "将图片调整到所需宽度，同时保留原始宽高比。",
-      upscaleActiveHint: "开启 AI 放大时不使用。",
+      upscaleActiveHint: "开启放大时不使用。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
     },
     dropzone: {
       dragActive: "将图片或 PDF 拖到这里...",
       processing: "处理过程中不能拖入文件...",
       idle: "将图片或 PDF 拖放到这里，或点击选择",
+    },
+    fileTypes: {
+      vectorGraphic: "矢量图形",
+      document: "文档",
+    },
+    vectorInfo: {
+      description: "矢量图形保存形状和线条。",
+      sharpResize: "调整大小和裁剪后，绘制的边缘仍保持清晰。文件内的照片仍可能变模糊。",
+      pixelResize: "打开时转换为像素图像。放大可能使边缘变模糊。",
+      downloadHint: "下载的是像素图像。请保留原始文件，以便日后调整大小。",
+    },
+    documentInfo: {
+      description: "处理时，每页都会转换为图像。",
     },
     filesList: {
       label: "要转换的文件：",

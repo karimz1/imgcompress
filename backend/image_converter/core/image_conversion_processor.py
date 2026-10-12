@@ -146,7 +146,17 @@ class ImageConversionProcessor:
         try:
             load_result = self.image_loader.load_image_as_bytes(file_path)
             image_data = self._unwrap_result(load_result)
-            payload_result = self.payload_expander.expand(os.path.basename(file_path), image_data)
+            source_name = os.path.basename(file_path)
+            if source_name.lower().endswith(".svg"):
+                use_sizing = not (self.image_format == ImageFormat.PDF and self.pdf_preset_config)
+                payload_result = self.payload_expander.expand(
+                    source_name, image_data,
+                    width=self.width if use_sizing else None,
+                    upscale=self.upscale if use_sizing else None,
+                    fit=self.fit if use_sizing else None,
+                )
+            else:
+                payload_result = self.payload_expander.expand(source_name, image_data)
             page_payloads = self._unwrap_result(payload_result)
         except Exception as e:
             error_msg = f"Error preparing {file_path}: {e}"
@@ -180,12 +190,11 @@ class ImageConversionProcessor:
         try:
             data = payload.data
             with Image.open(BytesIO(data)) as temp_img:
-                original_width, _ = temp_img.size
+                new_width = temp_img.width
+            original_width = payload.source_size[0] if payload.source_size else new_width
             
             self.logger.log(f"Opened image: {page_label} ({original_width}px, {len(data)} bytes)", LogLevel.DEBUG.value)
-            new_width = original_width
-
-            if self.image_format == ImageFormat.PDF and self.pdf_preset_config:
+            if payload.is_vector or (self.image_format == ImageFormat.PDF and self.pdf_preset_config):
                 data = payload.data
             elif self.upscale or self.fit:
                 if self.upscale:

@@ -53,7 +53,16 @@ class CompressImagesUseCase:
                     raise ValueError(read_result.error)
                 original = read_result.value
 
-                expand_result = self.payload_expander.expand(item.name, original)
+                if item.name.lower().endswith(".svg"):
+                    use_sizing = not (pdf_preset and req.image_format == ImageFormat.PDF)
+                    expand_result = self.payload_expander.expand(
+                        item.name, original,
+                        width=req.width if use_sizing else None,
+                        upscale=req.upscale if use_sizing else None,
+                        fit=req.fit if use_sizing else None,
+                    )
+                else:
+                    expand_result = self.payload_expander.expand(item.name, original)
                 if not expand_result.is_successful:
                     raise ValueError(expand_result.error)
                 page_payloads = expand_result.value
@@ -66,7 +75,7 @@ class CompressImagesUseCase:
                 page_label = payload.label
                 try:
                     upscaled = False
-                    if pdf_preset and req.image_format == ImageFormat.PDF:
+                    if payload.is_vector or (pdf_preset and req.image_format == ImageFormat.PDF):
                         data = payload.data
                     elif req.upscale or req.fit:
                         data = payload.data

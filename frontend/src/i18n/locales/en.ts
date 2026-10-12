@@ -156,6 +156,8 @@ export const en = {
         "Set an optional maximum output size (in MB). Applies to JPEG, AVIF, and WebP output.",
     },
     upscale: {
+      vectorTargetLabel: "Size preset",
+      vectorLabel: "Enlarge",
       modelLabel: "AI model",
       models: {
         general: "General (photos)",
@@ -199,16 +201,30 @@ export const en = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "Turn off {{enlargeLabel}} to enter a specific width.",
       label: "Resize Width",
       tooltip:
         "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
-      upscaleActiveHint: "Not used while AI upscaling is on.",
+      upscaleActiveHint: "Not used while upscaling is on.",
       fitActiveHint: "Not used while Fit to exact size is on.",
     },
     dropzone: {
       dragActive: "Drop images or PDFs here...",
       processing: "Cannot drop files while processing...",
       idle: "Drag & drop images or PDFs here, or click to select",
+    },
+    fileTypes: {
+      vectorGraphic: "Vector graphic",
+      document: "Document",
+    },
+    vectorInfo: {
+      description: "Vector graphics store shapes and lines.",
+      sharpResize: "Resizing and cropping keep drawn edges clear. Photos inside the file can still blur.",
+      pixelResize: "Converted to pixels when opened. Enlarging may soften edges.",
+      downloadHint: "Downloads use pixels. Keep the original for future resizing.",
+    },
+    documentInfo: {
+      description: "Each page becomes an image for processing.",
     },
     filesList: {
       label: "Files to convert:",

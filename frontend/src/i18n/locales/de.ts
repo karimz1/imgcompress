@@ -159,6 +159,8 @@ export const de: TranslationSchema = {
         "Lege eine optionale maximale Ausgabegröße (in MB) fest. Gilt für JPEG-, AVIF- und WebP-Ausgaben.",
     },
     upscale: {
+      vectorTargetLabel: "Größenvorgabe",
+      vectorLabel: "Vergrößern",
       modelLabel: "KI-Modell",
       models: {
         general: "Allgemein (Fotos)",
@@ -202,16 +204,30 @@ export const de: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "Schalte {{enlargeLabel}} aus, um eine bestimmte Breite einzugeben.",
       label: "Breite ändern",
       tooltip:
         "Ändert die Größe der Bilder auf die gewünschte Breite und behält dabei das ursprüngliche Seitenverhältnis bei.",
-      upscaleActiveHint: "Wird nicht verwendet, solange die KI-Hochskalierung aktiv ist.",
+      upscaleActiveHint: "Wird nicht verwendet, solange die Hochskalierung aktiv ist.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
     },
     dropzone: {
       dragActive: "Bilder oder PDFs hier ablegen...",
       processing: "Während der Verarbeitung können keine Dateien abgelegt werden...",
       idle: "Bilder oder PDFs hierher ziehen oder klicken, um sie auszuwählen",
+    },
+    fileTypes: {
+      vectorGraphic: "Vektorgrafik",
+      document: "Dokument",
+    },
+    vectorInfo: {
+      description: "Vektorgrafiken speichern Formen und Linien.",
+      sharpResize: "Gezeichnete Kanten bleiben beim Ändern der Größe und Zuschneiden klar. Eingebettete Fotos können unscharf werden.",
+      pixelResize: "Wird beim Öffnen in Pixel umgewandelt. Vergrößern kann Kanten unschärfer machen.",
+      downloadHint: "Downloads bestehen aus Pixeln. Behalte das Original für spätere Größenänderungen.",
+    },
+    documentInfo: {
+      description: "Jede Seite wird zur Verarbeitung in ein Bild umgewandelt.",
     },
     filesList: {
       label: "Zu konvertierende Dateien:",

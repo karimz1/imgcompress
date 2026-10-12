@@ -28,8 +28,9 @@ import {
 } from "@/components/ui/select";
 
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
+import { InputFileBadge } from "@/components/InputFileBadge";
 import { CropDialog } from "@/components/crop/CropDialog";
-import { CropConfig, isCropableFile, isCropUnsupportedFile } from "@/lib/crop";
+import { CropConfig, isCropableFile, isCropUnsupportedFile, isSvgFile } from "@/lib/crop";
 import {
   UPSCALE_TARGETS, UPSCALE_MODELS, toUpscaleTarget, toUpscaleModel,
   type UpscaleSettings, type UpscaleModelStatus,
@@ -158,6 +159,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const [confirmCropRemoveFor, setConfirmCropRemoveFor] = useState<string | null>(null);
   const { isDarkTheme } = useMountedTheme();
   const { t } = useTranslation();
+  const onlySvgFiles = files.length > 0 && files.every(isSvgFile);
+  const upscaleLabel = t(onlySvgFiles ? "form.upscale.vectorLabel" : "form.upscale.label");
 
   const tooltipContent = {
     outputFormat: t("form.outputFormat.tooltip"),
@@ -240,18 +243,19 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               <div
                 key={file.name}
                 className={cn(
-                  "flex flex-wrap items-center justify-between gap-2 rounded-md p-2 transition-colors",
+                  "flex flex-col items-stretch gap-2 rounded-md p-2 transition-colors sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
                   filePillClass
                 )}
                 data-testid="dropzone-added-file-wrapper"
               >
-                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
                   <span
-                    className="text-sm truncate"
+                    className="max-w-full text-sm truncate"
                     data-testid="dropzone-added-file"
                   >
                     {file.name}
                   </span>
+                  <InputFileBadge filename={file.name} />
                   {savedCrop && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -342,7 +346,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                     </Tooltip>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-end gap-2">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -415,7 +419,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
     ),
-    [getInputProps, getRootProps, isDarkTheme, isDragActive, isLoading]
+    [getInputProps, getRootProps, isDarkTheme, isDragActive, isLoading, t]
   );
 
   return (
@@ -908,27 +912,29 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="upscaleToggle" className="text-sm flex items-center gap-1">
-              {t("form.upscale.label")}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" data-testid="upscale-info" aria-label={t("form.upscale.label")}>
-                    <Info aria-hidden="true" className={cn("h-4 w-4 cursor-pointer", subtleText)} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  className={cn("max-w-80 p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
-                >
-                  <p className="text-sm">{tooltipContent.upscale}</p>
-                </TooltipContent>
-              </Tooltip>
+              {upscaleLabel}
+              {!onlySvgFiles && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" data-testid="upscale-info" aria-label={upscaleLabel}>
+                      <Info aria-hidden="true" className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className={cn("max-w-80 p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+                  >
+                    <p className="text-sm">{tooltipContent.upscale}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </Label>
             <Switch
               data-testid="upscale-switch"
               id="upscaleToggle"
               checked={upscaleActive}
               onCheckedChange={(checked) => setUpscale({ ...upscale, enabled: checked })}
-              disabled={isLoading || !upscaleAvailable || fitActive}
+              disabled={isLoading || (!upscaleAvailable && !onlySvgFiles) || fitActive}
             />
           </div>
           {fitActive && (
@@ -936,43 +942,47 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               {t("form.upscale.fitActiveHint")}
             </p>
           )}
-          {!upscaleAvailable && (
+          {!upscaleAvailable && !onlySvgFiles && (
             <p className={cn("text-xs", subtleText)} data-testid="upscale-unavailable-hint">
               {t("form.upscale.unavailableHint")}
             </p>
           )}
           {upscaleActive && (
             <div className="space-y-1">
-              <Label htmlFor="upscaleModel" className="text-sm">
-                {t("form.upscale.modelLabel")}
-              </Label>
-              <Select
-                value={upscale.model}
-                onValueChange={(value) => setUpscale({ ...upscale, model: toUpscaleModel(value) })}
-              >
-                <SelectTrigger
-                  id="upscaleModel"
-                  data-testid="upscale-model-select"
-                  disabled={isLoading}
-                  className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className={selectSurface}>
-                  {UPSCALE_MODELS.map((model) => (
-                    <SelectItem
-                      key={model}
-                      value={model}
-                      data-testid={`upscale-model-option-${model}`}
-                      disabled={!upscaleModels.some((status) => status.id === model && status.available)}
+              {!onlySvgFiles && (
+                <>
+                  <Label htmlFor="upscaleModel" className="text-sm">
+                    {t("form.upscale.modelLabel")}
+                  </Label>
+                  <Select
+                    value={upscale.model}
+                    onValueChange={(value) => setUpscale({ ...upscale, model: toUpscaleModel(value) })}
+                  >
+                    <SelectTrigger
+                      id="upscaleModel"
+                      data-testid="upscale-model-select"
+                      disabled={isLoading}
+                      className={cn(selectSurface, "focus:border-blue-500 focus:ring-2 focus:ring-blue-500")}
                     >
-                      {t(`form.upscale.models.${model}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={selectSurface}>
+                      {UPSCALE_MODELS.map((model) => (
+                        <SelectItem
+                          key={model}
+                          value={model}
+                          data-testid={`upscale-model-option-${model}`}
+                          disabled={!upscaleModels.some((status) => status.id === model && status.available)}
+                        >
+                          {t(`form.upscale.models.${model}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
               <Label htmlFor="upscaleTarget" className="text-sm">
-                {t("form.upscale.targetLabel")}
+                {t(onlySvgFiles ? "form.upscale.vectorTargetLabel" : "form.upscale.targetLabel")}
               </Label>
               <Select
                 value={upscale.target}
@@ -994,9 +1004,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-              <p className={cn("text-xs", subtleText)} data-testid="upscale-hint">
-                {t("form.upscale.hint")}
-              </p>
+              {!onlySvgFiles && (
+                <p className={cn("text-xs", subtleText)} data-testid="upscale-hint">
+                  {t("form.upscale.hint")}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -1040,7 +1052,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         </div>
         {upscaleActive && (
           <p className={cn("text-xs", subtleText)} data-testid="resize-width-upscale-hint">
-            {t("form.resizeWidth.upscaleActiveHint")}
+            {t(onlySvgFiles ? "form.resizeWidth.vectorUpscaleActiveHint" : "form.resizeWidth.upscaleActiveHint", {
+              enlargeLabel: upscaleLabel,
+            })}
           </p>
         )}
         {fitActive && !upscaleActive && (

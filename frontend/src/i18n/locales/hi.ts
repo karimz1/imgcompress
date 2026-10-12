@@ -159,6 +159,8 @@ export const hi: TranslationSchema = {
         "वैकल्पिक अधिकतम आउटपुट आकार (MB में) सेट करें। JPEG, AVIF और WebP आउटपुट पर लागू।",
     },
     upscale: {
+      vectorTargetLabel: "पहले से तय आकार",
+      vectorLabel: "बड़ा करें",
       modelLabel: "AI मॉडल",
       models: {
         general: "सामान्य (फ़ोटो)",
@@ -202,16 +204,30 @@ export const hi: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "निश्चित चौड़ाई दर्ज करने के लिए {{enlargeLabel}} बंद करें।",
       label: "चौड़ाई बदलें",
       tooltip:
         "मूल अनुपात बनाए रखते हुए इमेज को मनचाही चौड़ाई में बदलता है।",
-      upscaleActiveHint: "AI अपस्केलिंग चालू होने पर इसका उपयोग नहीं होता।",
+      upscaleActiveHint: "अपस्केलिंग चालू होने पर इसका उपयोग नहीं होता।",
       fitActiveHint: "सटीक आकार में फ़िट करें चालू रहने पर इसका उपयोग नहीं होता।",
     },
     dropzone: {
       dragActive: "इमेज या PDF यहां छोड़ें...",
       processing: "प्रोसेसिंग के दौरान फ़ाइलें नहीं छोड़ी जा सकतीं...",
       idle: "इमेज या PDF यहां खींचकर छोड़ें, या चुनने के लिए क्लिक करें",
+    },
+    fileTypes: {
+      vectorGraphic: "वेक्टर ग्राफ़िक",
+      document: "दस्तावेज़",
+    },
+    vectorInfo: {
+      description: "वेक्टर ग्राफ़िक्स आकृतियाँ और रेखाएँ सहेजते हैं।",
+      sharpResize: "आकार बदलने और क्रॉप करने पर बने हुए किनारे साफ़ रहते हैं। फ़ाइल में मौजूद फ़ोटो धुंधली हो सकती हैं।",
+      pixelResize: "खोलते समय पिक्सेल में बदलता है। बड़ा करने पर किनारे धुंधले हो सकते हैं।",
+      downloadHint: "डाउनलोड पिक्सेल चित्र हैं। बाद में आकार बदलने के लिए मूल फ़ाइल रखें।",
+    },
+    documentInfo: {
+      description: "प्रोसेसिंग के लिए हर पेज एक चित्र बन जाता है।",
     },
     filesList: {
       label: "कन्वर्ट करने के लिए फ़ाइलें:",

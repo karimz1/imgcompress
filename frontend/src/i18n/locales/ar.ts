@@ -159,6 +159,8 @@ export const ar: TranslationSchema = {
         "عيّن حجماً أقصى اختيارياً للإخراج (بالميغابايت). ينطبق على إخراج JPEG وAVIF وWebP.",
     },
     upscale: {
+      vectorTargetLabel: "حجم جاهز",
+      vectorLabel: "تكبير",
       modelLabel: "نموذج الذكاء الاصطناعي",
       models: {
         general: "عام (صور فوتوغرافية)",
@@ -202,16 +204,30 @@ export const ar: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "أوقف {{enlargeLabel}} لإدخال عرض محدد.",
       label: "تغيير العرض",
       tooltip:
         "يغيّر حجم الصورة/الصور إلى العرض المطلوب مع الحفاظ على نسبة الأبعاد الأصلية.",
-      upscaleActiveHint: "لا يُستخدم أثناء تفعيل التكبير بالذكاء الاصطناعي.",
+      upscaleActiveHint: "لا يُستخدم أثناء تفعيل التكبير.",
       fitActiveHint: "لا يُستخدم أثناء تفعيل الضبط على حجم محدد.",
     },
     dropzone: {
       dragActive: "أسقط الصور أو ملفات PDF هنا...",
       processing: "لا يمكن إسقاط الملفات أثناء المعالجة...",
       idle: "اسحب وأفلت الصور أو ملفات PDF هنا، أو انقر للتحديد",
+    },
+    fileTypes: {
+      vectorGraphic: "رسم متجهي",
+      document: "مستند",
+    },
+    vectorInfo: {
+      description: "تحفظ الرسومات المتجهية الأشكال والخطوط.",
+      sharpResize: "يحافظ تغيير الحجم والقص على وضوح الحواف المرسومة. قد تصبح الصور المضمّنة ضبابية.",
+      pixelResize: "يُحوّل إلى بكسلات عند الفتح. قد تصبح الحواف أقل وضوحًا عند التكبير.",
+      downloadHint: "الصور المنزّلة تتكوّن من بكسلات. احتفظ بالأصل لتغيير حجمه لاحقًا.",
+    },
+    documentInfo: {
+      description: "تتحول كل صفحة إلى صورة لمعالجتها.",
     },
     filesList: {
       label: "الملفات المراد تحويلها:",

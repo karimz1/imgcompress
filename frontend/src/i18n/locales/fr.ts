@@ -159,6 +159,8 @@ export const fr: TranslationSchema = {
         "Définissez une taille maximale de sortie optionnelle (en Mo). S'applique aux sorties JPEG, AVIF et WebP.",
     },
     upscale: {
+      vectorTargetLabel: "Taille prédéfinie",
+      vectorLabel: "Agrandir",
       modelLabel: "Modèle d’IA",
       models: {
         general: "Général (photos)",
@@ -202,16 +204,30 @@ export const fr: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "Désactivez {{enlargeLabel}} pour saisir une largeur précise.",
       label: "Redimensionner la largeur",
       tooltip:
         "Redimensionne l'image ou les images à la largeur souhaitée en conservant le rapport d'aspect d'origine.",
-      upscaleActiveHint: "Non utilisé tant que l'agrandissement par IA est activé.",
+      upscaleActiveHint: "Non utilisé tant que l’agrandissement est activé.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
     },
     dropzone: {
       dragActive: "Déposez des images ou des PDF ici...",
       processing: "Impossible de déposer des fichiers pendant le traitement...",
       idle: "Glissez-déposez des images ou des PDF ici, ou cliquez pour sélectionner",
+    },
+    fileTypes: {
+      vectorGraphic: "Image vectorielle",
+      document: "Document PDF",
+    },
+    vectorInfo: {
+      description: "Les images vectorielles conservent des formes et des lignes.",
+      sharpResize: "Le redimensionnement et le recadrage gardent les contours dessinés nets. Les photos intégrées peuvent devenir floues.",
+      pixelResize: "Converti en pixels à l’ouverture. L’agrandissement peut rendre les contours moins nets.",
+      downloadHint: "Les téléchargements utilisent des pixels. Gardez l’original pour les futurs redimensionnements.",
+    },
+    documentInfo: {
+      description: "Chaque page devient une image pour le traitement.",
     },
     filesList: {
       label: "Fichiers à convertir :",

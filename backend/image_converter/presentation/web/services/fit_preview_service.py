@@ -6,6 +6,10 @@ from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.domain.fit_to_size import FitAnchor, FitMode, FitToSize
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.domain.smart_crop import to_8bit
+from backend.image_converter.infrastructure.svg_renderer import (
+    SvgRenderer,
+    wrap_svg_crop,
+)
 
 # Longest side of the preview shown in the editor. Every preset fits, so a
 # preset preview is the exported image pixel for pixel; a large custom size
@@ -38,7 +42,16 @@ class FitPreviewService:
             return Result.failure("No editor bitmap uploaded.")
 
         try:
-            with Image.open(upload.stream) as source:
+            svg_data = None
+            if (upload.filename or "").lower().endswith(".svg"):
+                svg_data = upload.stream.read()
+                rendered = SvgRenderer().render(upload.filename, svg_data)
+                if not rendered.is_successful:
+                    return Result.failure(rendered.error)
+                source_stream = BytesIO(rendered.value)
+            else:
+                source_stream = upload.stream
+            with Image.open(source_stream) as source:
                 img = to_8bit(ImageOps.exif_transpose(source))
                 img.load()
                 icc_profile = img.info.get("icc_profile")
@@ -55,18 +68,44 @@ class FitPreviewService:
                 x, y, width, height = crop
                 png = None
                 if with_image:
-                    selected = img.crop((x, y, x + width, y + height))
-                    scale = 1.0 if full_size else min(1.0, PREVIEW_MAX_SIDE / max(fit.width, fit.height))
-                    preview_size = (max(1, round(fit.width * scale)), max(1, round(fit.height * scale)))
+                    scale = (
+                        1.0
+                        if full_size
+                        else min(1.0, PREVIEW_MAX_SIDE / max(fit.width, fit.height))
+                    )
+                    preview_size = (
+                        max(1, round(fit.width * scale)),
+                        max(1, round(fit.height * scale)),
+                    )
                     # Render directly at preview resolution while using the
                     # export geometry. Do not allocate an 8192px canvas just to
                     # shrink it for every editor update.
-                    fitted = ImageResizer.fit_image(selected, fit, output_size=preview_size)
-                    if fitted.mode in ("RGB", "RGBA") and icc_profile and icc_profile[16:20] != b"RGB ":
-                        icc_profile = None
-                    buffer = BytesIO()
-                    fitted.save(buffer, format="PNG", icc_profile=icc_profile)
-                    png = buffer.getvalue()
+                    if svg_data is not None:
+                        clipped = wrap_svg_crop(
+                            svg_data, img.size, (x, y, width, height)
+                        )
+                        rendered = SvgRenderer().render(
+                            upload.filename,
+                            clipped,
+                            fit=FitToSize(*preview_size, fit.mode, FitAnchor.CENTER),
+                        )
+                        if not rendered.is_successful:
+                            return Result.failure(rendered.error)
+                        png = rendered.value
+                    else:
+                        selected = img.crop((x, y, x + width, y + height))
+                        fitted = ImageResizer.fit_image(
+                            selected, fit, output_size=preview_size
+                        )
+                        if (
+                            fitted.mode in ("RGB", "RGBA")
+                            and icc_profile
+                            and icc_profile[16:20] != b"RGB "
+                        ):
+                            icc_profile = None
+                        buffer = BytesIO()
+                        fitted.save(buffer, format="PNG", icc_profile=icc_profile)
+                        png = buffer.getvalue()
                 return Result.success(
                     (
                         {
@@ -86,7 +125,12 @@ class FitPreviewService:
                         png,
                     )
                 )
-        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        except (
+            UnidentifiedImageError,
+            OSError,
+            ValueError,
+            Image.DecompressionBombError,
+        ):
             return Result.failure("Could not read the editor bitmap.")
 
     @staticmethod

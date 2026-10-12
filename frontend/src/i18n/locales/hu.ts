@@ -159,6 +159,8 @@ export const hu: TranslationSchema = {
         "Opcionális maximális kimeneti méret (MB-ban). JPEG, AVIF és WebP kimenethez érvényes.",
     },
     upscale: {
+      vectorTargetLabel: "Előre beállított méret",
+      vectorLabel: "Nagyítás",
       modelLabel: "MI-modell",
       models: {
         general: "Általános (fényképek)",
@@ -202,16 +204,30 @@ export const hu: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "Kapcsold ki a {{enlargeLabel}} beállítást a pontos szélesség megadásához.",
       label: "Átméretezés szélesség alapján",
       tooltip:
         "A kép(ek) átméretezése a kívánt szélességre, az eredeti képarány megtartásával.",
-      upscaleActiveHint: "Nem használatos, amíg az MI-felskálázás be van kapcsolva.",
+      upscaleActiveHint: "Nem használatos, amíg a felskálázás be van kapcsolva.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
     },
     dropzone: {
       dragActive: "Ejtsd ide a képeket vagy PDF-eket...",
       processing: "Feldolgozás közben nem lehet fájlokat húzni...",
       idle: "Húzd ide a képeket vagy PDF-eket, vagy kattints a kiválasztáshoz",
+    },
+    fileTypes: {
+      vectorGraphic: "Vektorgrafika",
+      document: "Dokumentum",
+    },
+    vectorInfo: {
+      description: "A vektorgrafikák alakzatokat és vonalakat tárolnak.",
+      sharpResize: "Az átméretezés és vágás megőrzi a rajzolt szélek élességét. A beágyazott fotók elmosódhatnak.",
+      pixelResize: "Megnyitáskor pixelképpé alakul. Nagyításkor a szélek elmosódhatnak.",
+      downloadHint: "A letöltések pixelekből állnak. Őrizd meg az eredetit a későbbi átméretezéshez.",
+    },
+    documentInfo: {
+      description: "A feldolgozáshoz minden oldal képpé alakul.",
     },
     filesList: {
       label: "Konvertálandó fájlok:",

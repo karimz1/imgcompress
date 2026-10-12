@@ -108,7 +108,7 @@ Stop uploading personal or client photos to cloud-based removers. ImgCompress sh
 
 Upload or drag and drop an `.svg` file, then choose PNG, JPEG, AVIF, WebP, ICO, or PDF as the output format. SVGs also work in CLI conversions and directory batches. PNG preserves transparency; JPEG places transparent areas on white. Resize and crop settings work as usual.
 
-SVGs render locally with CairoSVG at their document dimensions (or their `viewBox` dimensions when no size is specified), including CSS styling, gradients, and alpha transparency. Use self-contained SVGs with embedded resources; external image files and stylesheets are rejected.
+SVGs render locally with CairoSVG directly at the requested width or fit size, including CSS styling, gradients, and alpha transparency. Without a size setting, their document dimensions (or `viewBox` dimensions) are used. Cropping retains the vector source until export; editor previews do not reduce the quality of the original SVG. Upscale targets enlarge SVGs directly from vectors without an AI model, keeping logos and line art sharp. Embedded bitmap images still retain their original resolution. Use self-contained SVGs with embedded resources; external image files and stylesheets are rejected.
 
 ---
 

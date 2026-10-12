@@ -208,7 +208,11 @@ def crop_bitmap():
     if not result.is_successful:
         return jsonify({"error": result.error}), result.status_code
 
-    return send_file(result.value, mimetype="image/png")
+    response = send_file(result.value, mimetype="image/png")
+    if result.source_size:
+        response.headers["X-Image-Width"] = str(result.source_size[0])
+        response.headers["X-Image-Height"] = str(result.source_size[1])
+    return response
 
 
 @api_blueprint.route("/logs/backend", methods=["GET"])

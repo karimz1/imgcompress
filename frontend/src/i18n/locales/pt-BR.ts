@@ -159,6 +159,8 @@ export const ptBR: TranslationSchema = {
         "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG, AVIF e WebP.",
     },
     upscale: {
+      vectorTargetLabel: "Tamanho predefinido",
+      vectorLabel: "Ampliar",
       modelLabel: "Modelo de IA",
       models: {
         general: "Geral (fotos)",
@@ -202,16 +204,30 @@ export const ptBR: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "Desative {{enlargeLabel}} para inserir uma largura específica.",
       label: "Redimensionar largura",
       tooltip:
         "Redimensiona a(s) imagem(ns) para a largura desejada preservando a proporção original.",
-      upscaleActiveHint: "Não é usado enquanto a ampliação com IA está ativada.",
+      upscaleActiveHint: "Não é usado enquanto a ampliação está ativada.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
     },
     dropzone: {
       dragActive: "Solte imagens ou PDFs aqui...",
       processing: "Não é possível soltar arquivos durante o processamento...",
       idle: "Arraste e solte imagens ou PDFs aqui, ou clique para selecionar",
+    },
+    fileTypes: {
+      vectorGraphic: "Gráfico vetorial",
+      document: "Documento",
+    },
+    vectorInfo: {
+      description: "Gráficos vetoriais armazenam formas e linhas.",
+      sharpResize: "Redimensionar e recortar mantém os contornos desenhados nítidos. As fotos incorporadas podem ficar desfocadas.",
+      pixelResize: "Convertido em pixels ao abrir. Ampliar pode reduzir a nitidez das bordas.",
+      downloadHint: "Os downloads usam pixels. Guarde o original para futuros redimensionamentos.",
+    },
+    documentInfo: {
+      description: "Cada página vira uma imagem para processamento.",
     },
     filesList: {
       label: "Arquivos para converter:",

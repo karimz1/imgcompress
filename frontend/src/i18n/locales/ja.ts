@@ -159,6 +159,8 @@ export const ja: TranslationSchema = {
         "任意の最大出力サイズ (MB) を設定します。JPEG、AVIF、WebP の出力に適用されます。",
     },
     upscale: {
+      vectorTargetLabel: "サイズのプリセット",
+      vectorLabel: "拡大",
       modelLabel: "AIモデル",
       models: {
         general: "汎用（写真）",
@@ -202,16 +204,30 @@ export const ja: TranslationSchema = {
       },
     },
     resizeWidth: {
+      vectorUpscaleActiveHint: "幅を指定するには{{enlargeLabel}}をオフにしてください。",
       label: "幅をリサイズ",
       tooltip:
         "元のアスペクト比を保ったまま、画像を指定した幅にリサイズします。",
-      upscaleActiveHint: "AIアップスケールがオンの間は使用されません。",
+      upscaleActiveHint: "拡大が有効な間は使用されません。",
       fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
     },
     dropzone: {
       dragActive: "画像または PDF をここにドロップ...",
       processing: "処理中はファイルをドロップできません...",
       idle: "画像または PDF をドラッグ&ドロップするか、クリックして選択",
+    },
+    fileTypes: {
+      vectorGraphic: "ベクター画像",
+      document: "文書",
+    },
+    vectorInfo: {
+      description: "ベクター画像は図形や線を保存します。",
+      sharpResize: "サイズ変更や切り抜きでも描かれた輪郭はくっきり保たれます。埋め込まれた写真はぼやける場合があります。",
+      pixelResize: "開くときにピクセル画像に変換します。拡大すると輪郭がぼやける場合があります。",
+      downloadHint: "ダウンロードはピクセル画像です。今後のサイズ変更のために元のファイルを保存してください。",
+    },
+    documentInfo: {
+      description: "処理のため各ページを画像に変換します。",
     },
     filesList: {
       label: "変換するファイル:",

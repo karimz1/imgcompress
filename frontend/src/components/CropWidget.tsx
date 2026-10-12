@@ -195,6 +195,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     [resetView],
   );
   const fit = useEditorFit({
+    file,
     imgUrl,
     crop: fitCrop,
     initialCrop,
