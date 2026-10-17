@@ -106,8 +106,8 @@ importers:
         specifier: ^4.3.1
         version: 4.3.3
       '@types/adm-zip':
-        specifier: ^0.5.8
-        version: 0.5.8
+        specifier: ^0.6.0
+        version: 0.6.0
       '@types/node':
         specifier: ^26.6.4
         version: 26.6.4
@@ -1143,8 +1143,9 @@ packages:
   '@tailwindcss/postcss@4.3.3':
     resolution: {integrity: sha512-JTSZZGQi1AyKirbLN3azmjVzef92tcX7h+iSqPdaeStyFpGpDlKvvpxeOE8njhbUanbRwr3z8DyzhICWnMtQeg==}
 
-  '@types/adm-zip@0.5.8':
-    resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
+  '@types/adm-zip@0.6.0':
+    resolution: {integrity: sha512-4BJwT30zsKqyYk+PgJS+LQzVrLh0bHragg9etHGg679uuBbNDbSaLsJy+DaJQZM8AvESHB+t3ruVzbrn6BUsMQ==}
+    deprecated: This is a stub types definition. adm-zip provides its own type definitions, so you do not need this installed.
 
   '@types/node@26.6.4':
     resolution: {integrity: sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg==}
@@ -2394,9 +2395,9 @@ snapshots:
       postcss: 8.5.26
       tailwindcss: 4.3.3
 
-  '@types/adm-zip@0.5.8':
+  '@types/adm-zip@0.6.0':
     dependencies:
-      '@types/node': 26.6.4
+      adm-zip: 0.6.1
 
   '@types/node@26.6.4':
     dependencies:
