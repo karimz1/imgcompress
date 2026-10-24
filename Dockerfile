@@ -166,7 +166,7 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
-FROM dhi.io/debian-base:trixie-debian13@sha256:1bc990cfdb9a1c0b76491bb03921af347e408107e6769d49d1fc5668ad30ba5c AS final-stage
+FROM dhi.io/debian-base:trixie-debian13@sha256:de80b468d8c492508f24b30e529accfaa8c59fe4505ddd72e969b324d276ad21 AS final-stage
 
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
