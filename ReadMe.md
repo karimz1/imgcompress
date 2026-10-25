@@ -20,37 +20,11 @@
     <a href="https://github.com/karimz1/imgcompress">
       <img src="https://img.shields.io/github/stars/karimz1/imgcompress?style=flat-square&color=f4d03f&label=Stars&logo=github&logoColor=black" alt="GitHub Stars" />
     </a>
+    <a href="https://github.com/sponsors/karimz1">
+      <img src="https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?style=flat-square&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub" />
+    </a>
     <a href="./TRANSLATIONS.md">
       <img src="https://img.shields.io/badge/Multi--language-12%20locales-16a34a?style=flat-square&logo=googletranslate&logoColor=white" alt="Multi-language support: 12 locales" />
-    </a>
-  </p>
-  
-<p><strong>Featured &amp; Listed on</strong></p>
-
- <p>
-  <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#readme">
-    <img src="https://awesome.re/mentioned-badge-flat.svg" alt="Mentioned in Awesome Self-Hosted" />
-  </a>
-  <a href="https://coolify.io/docs/services/imgcompress?utm_source=github.com">
-    <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as official Coolify service" />
-  </a>
-  <a href="https://alternativeto.net/software/imgcompress/about">
-    <img src="https://img.shields.io/badge/AlternativeTo-Listed-1e40af?style=flat-square" alt="Listed on AlternativeTo" />
-  </a>
-  <a href="https://selfhostedworld.com/software/imgcompress">
-    <img src="https://img.shields.io/badge/SelfHostedWorld-Listed-1e40af?style=flat-square" alt="ImgCompress listed on SelfHostedWorld" />
-  </a>
-  <a href="https://www.pitchhut.com/project/imgcompress-toolbox">
-    <img src="https://img.shields.io/badge/pitchhut-Listed-1e40af?style=flat-square" alt="ImgCompress listed on pitchhut" />
-  </a>
-
-</p>
-
----
-
-  <p>
-    <a href="https://buymeacoffee.com/karimz1">
-      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="41" />
     </a>
   </p>
 
@@ -65,6 +39,34 @@
   <br />
 
   <img src="./images/web-ui/web-ui-upload-configure.webp" alt="ImgCompress Web UI, upload and configure dashboard" width="100%" />
+
+  <br /><br />
+
+  <p><strong>Featured & Listed On</strong></p>
+
+  <p>
+    <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#readme">
+      <img src="https://awesome.re/mentioned-badge-flat.svg" alt="Mentioned in Awesome Self-Hosted" />
+    </a>
+    <a href="https://coolify.io/docs/services/imgcompress?utm_source=github.com">
+      <img src="https://img.shields.io/badge/Coolify-Official%20Service-8b5cf6?style=flat-square&logoColor=white" alt="Available as an official Coolify service" />
+    </a>
+    <a href="https://selfhostedworld.com/software/imgcompress">
+      <img src="https://img.shields.io/badge/SelfHostedWorld-Featured-1e40af?style=flat-square" alt="Featured on SelfHostedWorld" />
+    </a>
+    <a href="https://selfh.st/apps/?search=imgcompress">
+      <img src="https://img.shields.io/badge/selfh.st-Featured-1e40af?style=flat-square" alt="Featured on selfh.st" />
+    </a>
+    <a href="https://xcloud.host/imgcompress-hosting/">
+      <img src="https://img.shields.io/badge/xCloud-Featured-1e40af?style=flat-square" alt="Featured on xCloud" />
+    </a>
+    <a href="https://alternativeto.net/software/imgcompress/about">
+      <img src="https://img.shields.io/badge/AlternativeTo-Listed-1e40af?style=flat-square" alt="Listed on AlternativeTo" />
+    </a>
+    <a href="https://www.pitchhut.com/project/imgcompress-toolbox">
+      <img src="https://img.shields.io/badge/PitchHut-Listed-1e40af?style=flat-square" alt="Listed on PitchHut" />
+    </a>
+  </p>
 </div>
 
 ---
@@ -192,7 +194,7 @@ ImgCompress is built with a security-hardened, minimal image, aligned with commo
 | **DHI Base Images** | Using Docker Hardened Images from the official [DHI](https://www.docker.com/products/hardened-images/) project for build phases and runtime Image. |
 | **SBOM and Provenance** | The Docker Image is built with a full Software Bill of Materials (SBOM) and build provenance attestation. |
 
-<div **align**="right">
+<div align="right">
   <a href="https://github.com/AlexanderSlokov">
     <img src="https://img.shields.io/badge/Contributions_by-Aleksandr_Slokov-0f172a?style=for-the-badge&logo=shield&logoColor=white" alt="Contributions by Aleksandr Slokov" />
   </a>
@@ -219,7 +221,7 @@ Supported languages:
 - German
 - Hungarian
 
-<div **align**="right">
+<div align="right">
   <a href="https://github.com/karimz1/imgcompress/issues/653">
     <img src="https://img.shields.io/badge/i18 Featrue Contribution_by-nagyonmarci-0f172a?style=for-the-badge&logo=shield&logoColor=white" alt="Contributions by nagyonmarci" />
   </a>
@@ -227,14 +229,20 @@ Supported languages:
 
 ---
 
-## Featured On
+## Featured & Listed On
 
-ImgCompress is recognized by the self-hosted community and is part of curated lists and platforms that self-hosters already rely on:
+ImgCompress is recognized across the self-hosted community and featured on curated lists and deployment platforms:
 
-- **[Awesome Self-Hosted](https://github.com/awesome-selfhosted/awesome-selfhosted#readme)** [![Stars](https://img.shields.io/github/stars/awesome-selfhosted/awesome-selfhosted?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/awesome-selfhosted/awesome-selfhosted): community-curated index of self-hosted software, listed alongside the tools self-hosters already run in production. [Jump to the imgcompress entry](https://awesome-selfhosted.net/index.html#imgcompress).
-- **[Coolify](https://github.com/coollabsio/coolify)** [![Stars](https://img.shields.io/github/stars/coollabsio/coolify?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/coollabsio/coolify): open-source, self-hostable deployment platform. ImgCompress is available as an **official Coolify service**, so you can add it to your stack straight from the Coolify dashboard. [Jump to the imgcompress entry](https://coolify.io/docs/services/imgcompress?utm_source=github.com).
+- **[Awesome Self-Hosted](https://github.com/awesome-selfhosted/awesome-selfhosted#readme)** [![Stars](https://img.shields.io/github/stars/awesome-selfhosted/awesome-selfhosted?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/awesome-selfhosted/awesome-selfhosted): Community-curated index of self-hosted software.
+- **[Coolify](https://github.com/coollabsio/coolify)** [![Stars](https://img.shields.io/github/stars/coollabsio/coolify?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/coollabsio/coolify): Open-source PaaS — available as an **official Coolify service**.
+- **[SelfHostedWorld](https://selfhostedworld.com/software/imgcompress)** & **[selfh.st](https://selfh.st/apps/?search=imgcompress)**: Featured directories and registries for self-hosting enthusiasts.
+- **[xCloud](https://xcloud.host/imgcompress-hosting/)**, **[AlternativeTo](https://alternativeto.net/software/imgcompress/about)** & **[PitchHut](https://www.pitchhut.com/project/imgcompress-toolbox)**: Listed as a privacy-respecting local image processing alternative.
 
-> Know another platform that features ImgCompress, or want to add it to one? [Get in touch](https://www.karimzouine.com/#contact). Big thanks to the open-source community for getting ImgCompress noticed in the first place.
+> **A note from the creator:**  
+> A huge thank you to everyone who has supported ImgCompress and helped it reach more people! Seeing so many people embrace privacy-focused tools and use ImgCompress in their everyday workflows makes all the time and effort worthwhile. Thank you for being part of this journey! ❤️  
+> — **[Karim Zouine](https://www.karimzouine.com)**, Creator of ImgCompress
+
+> Know another platform featuring ImgCompress, or want to add it? [Get in touch](https://www.karimzouine.com/#contact).
 
 ---
 
@@ -262,6 +270,27 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 
 > [!NOTE]
 > **Meet [imgcompress-chan](https://imgcompress.karimzouine.com/docs/imgcompress-chan)**, the repo's custom helper bot. She auto-merges Dependabot PRs once CI passes, and if a frontend dependency update leaves a broken `pnpm-lock.yaml`.
+
+---
+
+## Support the Project
+
+ImgCompress is an independent open-source project built and maintained in my free time. If ImgCompress saves you time or server resources, consider supporting its continued development:
+
+<p align="center">
+  <a href="https://github.com/sponsors/karimz1">
+    <img src="https://img.shields.io/badge/Sponsor%20on-GitHub-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub" />
+  </a>
+  <a href="https://buymeacoffee.com/karimz1">
+    <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" />
+  </a>
+  <a href="https://www.paypal.com/paypalme/KarimZouine972">
+    <img src="https://img.shields.io/badge/Donate-PayPal-00457c?style=for-the-badge&logo=paypal&logoColor=white" alt="Donate via PayPal" />
+  </a>
+</p>
+
+*Donations are completely optional — starring the repo, sharing it, and contributing are already greatly appreciated!*
+
 ---
 
 ## License & Author
