@@ -33,8 +33,19 @@ export function useCropPanZoom({
   const liveRef = useRef({ scale: 1, zoom: 1, pan: { x: 0, y: 0 } });
 
   const setZoom = useCallback((next: number) => {
-    setZoomState(clampZoom(next));
-  }, []);
+    const nextZoom = clampZoom(next);
+    const { scale: s, zoom: previousZoom, pan: previousPan } = liveRef.current;
+    if (imgSize) {
+      const cx = s * imgSize.width / 2;
+      const cy = s * imgSize.height / 2;
+      const ratio = nextZoom / previousZoom;
+      setPanState(clampPan({
+        x: cx - (cx - previousPan.x) * ratio,
+        y: cy - (cy - previousPan.y) * ratio,
+      }, s, imgSize, nextZoom));
+    }
+    setZoomState(nextZoom);
+  }, [imgSize]);
 
   const setPan = useCallback((next: { x: number; y: number }) => {
     setPanState(next);

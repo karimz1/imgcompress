@@ -33,7 +33,7 @@ test('crop bitmap rendering is non-blocking across simultaneous browser contexts
         await expect(page.getByTestId('crop-dialog')).toBeVisible();
 
         const bitmapResponse = await bitmapPromise;
-        await expect(page.getByTestId('crop-width-input')).toBeVisible({
+        await expect(page.getByTestId('crop-selection')).toBeVisible({
           timeout: 60_000,
         });
 

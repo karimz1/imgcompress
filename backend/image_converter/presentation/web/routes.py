@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 import base64
+import os
 from io import BytesIO
 
-from flask import Blueprint, Response, request, jsonify, send_file, send_from_directory
+from flask import Blueprint, Response, request, jsonify, send_file
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.payload_expander_factory import create_payload_expander
@@ -29,6 +30,7 @@ api_blueprint = Blueprint("api", __name__)
 
 TEMP_DIR = _config.temporary_storage.directory
 EXPIRATION_TIME = _config.temporary_storage.max_age_seconds
+_ZIP_DOWNLOAD_NAME = "compressed_images.zip"
 logger = Logger(debug=False, json_output=False)
 
 resizer = ImageResizer()
@@ -94,6 +96,7 @@ def download_file():
     if target is None:
         return jsonify({"error": "File not available."}), 404
 
+    temp_folder_service.mark_activity(os.path.dirname(target.file_path))
     return send_file(
         target.file_path,
         as_attachment=True,
@@ -110,7 +113,12 @@ def download_all():
 
     if not result.is_successful:
         return jsonify({"error": result.error}), 400
-    return send_from_directory(TEMP_DIR, result.value, as_attachment=True, mimetype="application/zip")
+    return send_file(
+        result.value,
+        as_attachment=True,
+        download_name=_ZIP_DOWNLOAD_NAME,
+        mimetype="application/zip",
+    )
 
 
 @api_blueprint.route("/storage_info", methods=["GET"])
@@ -190,7 +198,11 @@ def fit_editor_bitmap():
     render = request.form.get("render") == "true"
     with_preview = request.form.get("preview") != "false"
     result = fit_preview_service.build(
-        request.files.get("file"), request.form, full_size=render, with_image=render or with_preview
+        request.files.get("file"),
+        request.form,
+        full_size=render,
+        with_image=render or with_preview,
+        background=request.files.get("fit_background"),
     )
     if not result.is_successful:
         return jsonify({"error": result.error}), 400

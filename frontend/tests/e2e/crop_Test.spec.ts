@@ -53,6 +53,7 @@ test('crop modal: canceling the close warning keeps the editor open', async ({ p
   await uploadFilesToDropzoneAsync(page, [SAMPLE]);
 
   await page.getByTestId('dropzone-crop-file-btn').first().click();
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await page.getByTestId('crop-width-input').fill('500');
   await expect(page.getByTestId('crop-dialog')).toBeVisible();
   await page.getByTestId('dialog-close').click();
@@ -96,6 +97,7 @@ test('crop modal: closing via Escape preserves the saved crop', async ({ page })
   await expect(page.getByTestId('dropzone-crop-badge')).toBeVisible();
 
   await page.getByTestId('dropzone-crop-file-btn').first().click();
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await page.getByTestId('crop-width-input').fill('500');
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('crop-discard-confirm-dialog')).toBeVisible();
@@ -118,7 +120,7 @@ test('crop badge × button removes the saved crop', async ({ page }) => {
   await expect(page.getByTestId('crop-remove-confirm-dialog')).toBeVisible();
   await page.getByTestId('crop-remove-confirm-btn').click();
   await expect(page.getByTestId('dropzone-crop-badge')).toHaveCount(0);
-  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Crop & resize');
+  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Edit image');
 });
 
 test('crop modal: remove saved crop from the editor', async ({ page }) => {
@@ -140,7 +142,7 @@ test('crop modal: remove saved crop from the editor', async ({ page }) => {
 
   await expect(page.getByTestId('crop-dialog')).toHaveCount(0);
   await expect(page.getByTestId('dropzone-crop-badge')).toHaveCount(0);
-  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Crop & resize');
+  await expect(page.getByTestId('dropzone-crop-file-btn')).toHaveText('Edit image');
 });
 
 test('crop modal: canceling remove saved crop keeps the crop editor open', async ({ page }) => {
@@ -172,6 +174,7 @@ test('crop modal: reset selection restores the default crop for the active prese
   const dimsLabel = page.getByTestId('crop-dims-label');
   const defaultText = await dimsLabel.textContent();
 
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await page.getByTestId('crop-width-input').fill('500');
   await page.getByTestId('crop-height-input').fill('400');
   await expect(dimsLabel).toHaveText('500 × 400 px');
@@ -180,29 +183,67 @@ test('crop modal: reset selection restores the default crop for the active prese
   await expect(dimsLabel).toHaveText(defaultText ?? '');
 });
 
-test('zoom does not affect saved crop dimensions', async ({ page }) => {
+test('zooming out keeps the image centered and preserves exported crop dimensions', async ({ page }) => {
   await page.goto('/');
   await setOutputFormatAsync(page, 'JPEG');
   await uploadFilesToDropzoneAsync(page, [SAMPLE]);
 
   await page.getByTestId('dropzone-crop-file-btn').first().click();
+  await expect(page.getByTestId('crop-width-input')).toBeHidden();
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await page.getByTestId('crop-width-input').fill('500');
   await page.getByTestId('crop-height-input').fill('400');
 
-  // Zoom with the mouse wheel over the preview (zoom is view-only; there are
-  // no zoom buttons anymore — desktop zooms via wheel, touch via pinch).
-  const box = await page.getByTestId('crop-selection').boundingBox();
-  if (box) {
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.wheel(0, -150);
-    await page.mouse.wheel(0, -150);
-  }
+  await page.getByTestId('crop-widget').evaluate(async (element) => {
+    await Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished));
+  });
+  const image = page.getByRole('img', { name: SAMPLE.fileName, exact: true });
+  const initial = await image.boundingBox();
+  if (!initial) throw new Error('Crop image is missing');
+  await page.getByTestId('crop-zoom-out').click();
+  await page.getByTestId('crop-zoom-out').click();
+  await expect(page.getByTestId('crop-zoom-label')).toHaveText('50%');
+  const smaller = await image.boundingBox();
+  if (!smaller) throw new Error('Zoomed crop image is missing');
+  expect(smaller.width / initial.width).toBeCloseTo(0.5, 2);
+  expect(Math.abs(smaller.x + smaller.width / 2 - initial.x - initial.width / 2)).toBeLessThan(2);
+  expect(Math.abs(smaller.y + smaller.height / 2 - initial.y - initial.height / 2)).toBeLessThan(2);
+  await expect(page.getByTestId('crop-dims-label')).toHaveText('500 × 400 px');
+
+  await page.getByTestId('crop-zoom-out').click();
+  await expect(page.getByTestId('crop-zoom-label')).toHaveText('25%');
+  await expect(page.getByTestId('crop-zoom-out')).toBeDisabled();
+  await page.getByTestId('crop-zoom-reset').click();
+  await expect(page.getByTestId('crop-zoom-label')).toHaveText('100%');
+  await page.mouse.move(initial.x + initial.width / 2, initial.y + initial.height / 2);
+  await page.mouse.wheel(0, 150);
+  await expect(page.getByTestId('crop-zoom-label')).toHaveText('75%');
+  await page.getByTestId('crop-zoom-out').click();
 
   await page.getByTestId('crop-save-btn').click();
 
   const badge = page.getByTestId('dropzone-crop-badge');
   await expect(badge).toContainText('500');
   await expect(badge).toContainText('400');
+
+  await clickConversionButtonAsync(page);
+  await expect(page.getByTestId('drawer-uploaded-file-item-link')).toHaveCount(1);
+  const downloads = await downloadFilesAndGetMetadataAsync(page, page.getByTestId('drawer-uploaded-file-item-link'));
+  expect(downloads[0].metadata.width).toBe(500);
+  expect(downloads[0].metadata.height).toBe(400);
+});
+
+test('changing only the view zoom closes without an unsaved-edit warning', async ({ page }) => {
+  await page.goto('/');
+  await setOutputFormatAsync(page, 'JPEG');
+  await uploadFilesToDropzoneAsync(page, [SAMPLE]);
+  await page.getByTestId('dropzone-crop-file-btn').first().click();
+  await page.getByTestId('crop-zoom-out').click();
+  await expect(page.getByTestId('crop-zoom-label')).toHaveText('75%');
+  await page.getByTestId('crop-discard-btn').click();
+  await expect(page.getByTestId('crop-dialog')).toBeHidden();
+  await expect(page.getByTestId('crop-discard-confirm-dialog')).toHaveCount(0);
+  await expect(page.getByTestId('dropzone-crop-badge')).toHaveCount(0);
 });
 
 test('crop is applied to the converted output and filename carries _cropped suffix', async ({ page }) => {
@@ -214,6 +255,7 @@ test('crop is applied to the converted output and filename carries _cropped suff
   await expect(page.getByTestId('crop-dialog')).toBeVisible();
   const widthInput = page.getByTestId('crop-width-input');
   const heightInput = page.getByTestId('crop-height-input');
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await widthInput.fill('400');
   await heightInput.fill('300');
   await page.getByTestId('crop-save-btn').click();

@@ -249,13 +249,15 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                 data-testid="dropzone-added-file-wrapper"
               >
                 <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
-                  <span
-                    className="max-w-full text-sm truncate"
-                    data-testid="dropzone-added-file"
-                  >
-                    {file.name}
-                  </span>
-                  <InputFileBadge filename={file.name} />
+                  <div className="flex min-w-0 max-w-full items-center gap-1">
+                    <span
+                      className="min-w-0 text-sm truncate"
+                      data-testid="dropzone-added-file"
+                    >
+                      {file.name}
+                    </span>
+                    <InputFileBadge filename={file.name} />
+                  </div>
                   {savedCrop && (
                     <Tooltip>
                       <TooltipTrigger asChild>

@@ -215,6 +215,7 @@ test("a failed batch keeps every previously saved edit", async ({ page }) => {
     { name: "second.webp", mimeType: "image/webp", buffer },
   ]);
   await page.getByTestId("dropzone-crop-file-btn").first().click();
+  await page.getByTestId("crop-precise-selection-toggle").click();
   await page.getByTestId("crop-width-input").fill("1000");
   await page.getByTestId("crop-save-btn").click();
   const previous = await page.getByTestId("dropzone-crop-badge").textContent();
@@ -296,6 +297,7 @@ test("Crop and Fit tabs keep separate drafts, and Save uses the selected tab", a
     "true",
   );
   await expect(page.getByTestId("crop-fit-controls")).toHaveCount(0);
+  await page.getByTestId("crop-precise-selection-toggle").click();
   await page.getByTestId("crop-width-input").fill("1000");
   await page.getByTestId("crop-widget").evaluate(async (element) => {
     await Promise.all(

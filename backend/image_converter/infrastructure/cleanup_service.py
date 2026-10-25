@@ -12,15 +12,24 @@ from backend.image_converter.application.dtos import (
 )
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
+from backend.image_converter.infrastructure import job_folder_lock
 
 
 _KIND_DIRECTORY = "directory"
 _KIND_ZIP = "zip"
 _ZIP_FOLDER_LABEL = "zip"
+# A job folder that is still locked but has not changed for this long belongs
+# to a hung request. Only age-based cleanup removes it; a forced cleanup never
+# touches a locked folder.
+ABANDONED_JOB_SECONDS = 24 * 60 * 60
 
 
 class CleanupService:
-    """Deletes expired temp conversion folders/ZIPs and reports what was kept."""
+    """Deletes expired temp conversion folders/ZIPs and reports what was kept.
+
+    Folders of running jobs are locked (see job_folder_lock) and always kept,
+    with or without ``force``. Age counts from the folder's last activity.
+    """
 
     def __init__(self, temp_dir: str, expiration_time: int, logger):
         self.temp_dir = temp_dir
@@ -99,16 +108,38 @@ class CleanupService:
         current_time: float,
     ) -> Result[bool]:
         try:
-            creation_time = os.path.getctime(dir_path)
-            if force or (current_time - creation_time > self.expiration_time):
+            idle_seconds = current_time - self._last_activity(dir_path)
+            if not force and idle_seconds <= self.expiration_time:
+                return Result.success(False)
+            acquired, lock_fd = job_folder_lock.try_exclusive(dir_path)
+            if not acquired and (force or idle_seconds <= ABANDONED_JOB_SECONDS):
+                self.logger.log(f"Kept temp folder of a running job: {dir_path}", "info")
+                return Result.success(False)
+            try:
                 shutil.rmtree(dir_path, ignore_errors=True)
-                self.logger.log(f"Deleted temp folder: {dir_path}", "info")
-                return Result.success(True)
+            finally:
+                job_folder_lock.release(lock_fd)
+            self.logger.log(f"Deleted temp folder: {dir_path}", "info")
+            return Result.success(True)
+        except FileNotFoundError:
+            # Another worker deleted it first.
             return Result.success(False)
         except Exception:
             tb = traceback.format_exc()
             self.logger.log(f"Error deleting folder {dir_path}: {tb}", "error")
             return Result.failure(tb)
+
+    @staticmethod
+    def _last_activity(dir_path: str) -> float:
+        """Newest mtime of the folder and its files; downloads touch the folder too."""
+        latest = os.path.getmtime(dir_path)
+        with os.scandir(dir_path) as entries:
+            for entry in entries:
+                try:
+                    latest = max(latest, entry.stat(follow_symlinks=False).st_mtime)
+                except FileNotFoundError:
+                    continue
+        return latest
 
     def _maybe_delete_zip(
         self,

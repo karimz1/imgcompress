@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from .dtos import CompressRequest, CompressResult
@@ -26,6 +27,9 @@ class CompressImagesUseCase:
 
     def execute(self, req: CompressRequest) -> CompressResult:
         processed, errors = [], []
+        # Output names already used in this batch, e.g. photo.png and photo.jpg
+        # both become photo.webp; later ones get a _1, _2, ... suffix.
+        reserved_names: set[str] = set()
         new_ext = req.image_format.get_file_extension()
         pdf_preset: Optional[PdfPreset] = None
         pdf_scale = "fit"
@@ -109,6 +113,7 @@ class CompressImagesUseCase:
                         dest_name = self._build_dest_name(
                             item.stem, new_ext, payload.page_index, upscaled=upscaled
                         )
+                        dest_name = self._reserve_dest_name(dest_name, reserved_names)
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         write_result = self.storage.write_bytes(dest_path, out)
                         if not write_result.is_successful:
@@ -138,6 +143,7 @@ class CompressImagesUseCase:
                             converter.removes_background,
                             upscaled=upscaled,
                         )
+                        dest_name = self._reserve_dest_name(dest_name, reserved_names)
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         result = converter.convert(
                             image_data=data,
@@ -170,6 +176,16 @@ class CompressImagesUseCase:
             return self.resizer.resize_image(data, width)
         return data
 
+
+    @staticmethod
+    def _reserve_dest_name(name: str, reserved_names: set[str]) -> str:
+        stem, extension = os.path.splitext(name)
+        candidate, counter = name, 0
+        while candidate in reserved_names:
+            counter += 1
+            candidate = f"{stem}_{counter}{extension}"
+        reserved_names.add(candidate)
+        return candidate
 
     _BG_REMOVED_SUFFIX = "_ai-bg-removed"
     _UPSCALED_SUFFIX = "_ai-upscaled"

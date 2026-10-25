@@ -281,6 +281,22 @@ function fitForm(bitmap: Blob, fit: FitOutput, crop?: Pick<CropConfig, "x" | "y"
   form.append("fit_width", String(fit.width));
   form.append("fit_height", String(fit.height));
   form.append("fit_mode", fit.mode);
+  if (fit.color) {
+    form.append("fit_color", fit.color);
+  }
+  if (fit.placement && fit.mode !== "crop") {
+    form.append("fit_scale", String(fit.placement.scale));
+    form.append("fit_x", String(fit.placement.x));
+    form.append("fit_y", String(fit.placement.y));
+  }
+  if (fit.background) {
+    if (fit.background.pattern !== "none") form.append("fit_pattern", fit.background.pattern);
+    if (fit.background.dim > 0) form.append("fit_dim", String(fit.background.dim));
+    // Sent with every request: the server keeps no copy between requests.
+    if (fit.background.image && fit.mode === "image") {
+      form.append("fit_background", fit.background.image.file, fit.background.image.file.name);
+    }
+  }
   if (crop) {
     form.append("crop_x", String(crop.x));
     form.append("crop_y", String(crop.y));
@@ -295,17 +311,41 @@ export async function previewFit(
   fit: FitOutput,
   crop?: Pick<CropConfig, "x" | "y" | "width" | "height">,
   signal?: AbortSignal,
-  sourceFile?: File
-): Promise<{ crop: CropConfig; preview: string }> {
+  sourceFile?: File,
+  withPreview = true
+): Promise<{ crop: CropConfig; preview: string | null }> {
   const bitmap = sourceFile && isSvgFile(sourceFile)
     ? sourceFile
     : await fetch(imageUrl, { signal }).then((response) => response.blob());
-  const response = await fetch("/api/crop/fit", { method: "POST", body: fitForm(bitmap, fit, crop), signal });
+  const form = fitForm(bitmap, fit, crop);
+  if (!withPreview) form.append("preview", "false");
+  const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
   if (!response.ok) throw new Error(await readBitmapError(response));
-  return response.json();
+  const result = await response.json();
+  return { crop: withBackgroundImage(result.crop, fit), preview: result.preview ?? null };
+}
+
+/**
+ * The server only echoes pattern and dim; the background picture stays in the
+ * browser, so it is put back onto the fit the server returned.
+ */
+function withBackgroundImage(crop: CropConfig, fit: FitOutput): CropConfig {
+  const image = fit.background?.image;
+  if (!image || !crop.fit) return crop;
+  return {
+    ...crop,
+    fit: {
+      ...crop.fit,
+      background: { pattern: "none", dim: 0, ...crop.fit.background, image },
+    },
+  };
 }
 
 export async function autoFitFile(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
+  return withBackgroundImage(await autoFitSelection(file, fit, signal), fit);
+}
+
+async function autoFitSelection(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
   if (isSvgFile(file)) {
     const form = fitForm(file, fit);
     form.append("preview", "false");

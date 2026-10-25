@@ -8,8 +8,15 @@ from urllib.request import urlopen
 from xml.etree.ElementTree import Element, tostring
 
 from backend.image_converter.core.internals.utilities import Result
-from backend.image_converter.domain.fit_to_size import FitAnchor, FitMode, FitToSize
+from backend.image_converter.domain.fit_to_size import (
+    PLACEABLE_FIT_MODES,
+    FitAnchor,
+    FitToSize,
+)
 from backend.image_converter.domain.upscaling import UpscaleTarget, plan_upscale
+
+# Longest side of an SVG drawn larger than the fit canvas for a placement.
+_MAX_PLACED_SIDE = 16384
 
 
 class ExternalSvgResourceError(ValueError):
@@ -258,10 +265,19 @@ class SvgRenderer:
 
         self._check_output_size((fit.width, fit.height))
         width, height = source_size
-        if fit.mode == FitMode.BLUR:
+        if fit.mode in PLACEABLE_FIT_MODES:
             # Only the contained foreground needs crisp pixels; the background
-            # is intentionally blurred by the shared fit implementation.
+            # is rendered by the shared fit implementation.
             scale = min(fit.width / width, fit.height / height)
+            if fit.placement is not None:
+                # Draw an enlarged image from vectors so it stays sharp, within
+                # the side and megapixel limits of a single raster.
+                contained = (width * scale, height * scale)
+                largest = _MAX_PLACED_SIDE / max(contained)
+                within_limit = (
+                    self._max_output_pixels() / (contained[0] * contained[1])
+                ) ** 0.5
+                scale *= max(1.0, min(fit.placement.scale, largest, within_limit))
             png = self._render_png(
                 tree, (max(1, round(width * scale)), max(1, round(height * scale)))
             )

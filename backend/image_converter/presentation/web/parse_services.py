@@ -41,6 +41,10 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         fit_height=request.form.get("fit_height", "").strip(),
         fit_mode=request.form.get("fit_mode", "").strip(),
         fit_anchor=request.form.get("fit_anchor", "").strip(),
+        fit_color=request.form.get("fit_color", "").strip(),
+        fit_scale=request.form.get("fit_scale", "").strip(),
+        fit_x=request.form.get("fit_x", "").strip(),
+        fit_y=request.form.get("fit_y", "").strip(),
     )
     return Result.success(form_data)
 

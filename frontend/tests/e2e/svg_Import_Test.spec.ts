@@ -110,6 +110,7 @@ test('crops an imported SVG and downloads the selected dimensions as PNG', async
   expect(response.status()).toBe(200);
   expect(response.headers()['content-type']).toContain('image/png');
   await expect(page.getByTestId('crop-dialog')).toBeVisible();
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await page.getByTestId('crop-width-input').fill('60');
   await page.getByTestId('crop-height-input').fill('40');
   await page.getByTestId('crop-save-btn').click();

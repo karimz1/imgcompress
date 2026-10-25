@@ -29,6 +29,9 @@ const ALLOWED_IDENTICAL_VALUES = new Set<string>([
   "Cmd",
   "Tab",
   "Enter",
+  "←↑↓→",
+  "+ ←↑↓→",
+  "Transparent",
 ]);
 
 type Tree = { [key: string]: unknown };

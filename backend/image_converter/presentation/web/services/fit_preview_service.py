@@ -1,9 +1,15 @@
+from dataclasses import replace
 from io import BytesIO
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from backend.image_converter.core.internals.utilities import Result
-from backend.image_converter.domain.fit_to_size import FitAnchor, FitMode, FitToSize
+from backend.image_converter.domain.fit_to_size import (
+    FitAnchor,
+    FitMode,
+    FitPattern,
+    FitToSize,
+)
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.domain.smart_crop import to_8bit
 from backend.image_converter.infrastructure.svg_renderer import (
@@ -17,21 +23,42 @@ from backend.image_converter.infrastructure.svg_renderer import (
 # for export (render=true) always returns the full size.
 PREVIEW_MAX_SIDE = 2048
 
+# A background picture for FitMode.IMAGE is read into memory for the one
+# request that needs it, so it is limited much more tightly than uploads.
+MAX_BACKGROUND_BYTES = 25 * 1024 * 1024
+# Raster formats Pillow decodes itself. No SVG, PSD or PDF: those need their
+# own renderers and are not worth that for a backdrop.
+BACKGROUND_FORMATS = ("PNG", "JPEG", "WEBP", "GIF", "BMP", "TIFF", "AVIF", "HEIF")
+
 
 class FitPreviewService:
     """Fit a decoded editor bitmap, using explicit crop bounds after Auto fit."""
 
-    def build(self, upload, form, full_size: bool = False, with_image: bool = True):
+    def build(
+        self,
+        upload,
+        form,
+        full_size: bool = False,
+        with_image: bool = True,
+        background=None,
+    ):
         """
         Returns the selection in source pixels and the fitted PNG. With
         ``with_image`` False only the selection is computed (PNG is None), which
-        is all "Auto fit all images" needs for each file.
+        is all "Auto fit all images" needs for each file. ``background`` is the
+        uploaded picture for fit mode image; other modes ignore it.
         """
         fit_result = FitToSize.from_strings_result(
             form.get("fit_width"),
             form.get("fit_height"),
             form.get("fit_mode"),
             "center",
+            form.get("fit_color"),
+            form.get("fit_scale"),
+            form.get("fit_x"),
+            form.get("fit_y"),
+            pattern=form.get("fit_pattern"),
+            dim=form.get("fit_dim"),
         )
         if not fit_result.is_successful:
             return Result.failure(fit_result.error)
@@ -40,6 +67,11 @@ class FitPreviewService:
             return Result.failure("Choose an output width and height.")
         if upload is None:
             return Result.failure("No editor bitmap uploaded.")
+        if fit.mode == FitMode.IMAGE and with_image:
+            loaded = self._load_background(background)
+            if not loaded.is_successful:
+                return Result.failure(loaded.error)
+            fit = replace(fit, background=replace(fit.background, image=loaded.value))
 
         try:
             svg_data = None
@@ -87,7 +119,14 @@ class FitPreviewService:
                         rendered = SvgRenderer().render(
                             upload.filename,
                             clipped,
-                            fit=FitToSize(*preview_size, fit.mode, FitAnchor.CENTER),
+                            fit=FitToSize(
+                                *preview_size,
+                                fit.mode,
+                                FitAnchor.CENTER,
+                                fit.color,
+                                fit.placement,
+                                fit.background,
+                            ),
                         )
                         if not rendered.is_successful:
                             return Result.failure(rendered.error)
@@ -120,6 +159,30 @@ class FitPreviewService:
                                 "width": fit.width,
                                 "height": fit.height,
                                 "mode": fit.mode.value,
+                                **({"color": fit.color} if fit.mode in (FitMode.SOLID, FitMode.TRANSPARENT) else {}),
+                                **(
+                                    {
+                                        "placement": {
+                                            "scale": fit.placement.scale,
+                                            "x": fit.placement.x,
+                                            "y": fit.placement.y,
+                                        }
+                                    }
+                                    if fit.placement is not None
+                                    else {}
+                                ),
+                                **(
+                                    {
+                                        "background": {
+                                            "pattern": fit.background.pattern.value,
+                                            "dim": fit.background.dim,
+                                        }
+                                    }
+                                    if fit.mode == FitMode.IMAGE
+                                    or fit.background.pattern != FitPattern.NONE
+                                    or fit.background.dim > 0
+                                    else {}
+                                ),
                             },
                         },
                         png,
@@ -134,6 +197,39 @@ class FitPreviewService:
             return Result.failure("Could not read the editor bitmap.")
 
     @staticmethod
+    def _load_background(upload) -> Result[Image.Image]:
+        """
+        Decodes the background picture of this request in memory. Nothing is
+        written to disk and nothing is shared, so parallel users cannot see or
+        clean up each other's backgrounds.
+        """
+        if upload is None:
+            return Result.failure("Choose a background image.")
+        stream = getattr(upload, "stream", upload)
+        data = stream.read(MAX_BACKGROUND_BYTES + 1)
+        if len(data) > MAX_BACKGROUND_BYTES:
+            return Result.failure(
+                f"The background image is too large (max {MAX_BACKGROUND_BYTES // (1024 * 1024)} MB)."
+            )
+        Image.init()
+        # Only formats whose plugin is installed; Pillow fails on unknown names.
+        formats = [name for name in BACKGROUND_FORMATS if name in Image.OPEN]
+        try:
+            with Image.open(BytesIO(data), formats=formats) as source:
+                image = to_8bit(ImageOps.exif_transpose(source))
+                image.load()
+                return Result.success(image)
+        except (
+            UnidentifiedImageError,
+            OSError,
+            ValueError,
+            Image.DecompressionBombError,
+        ):
+            return Result.failure(
+                "Could not read the background image. Use a PNG, JPEG, WebP, GIF, BMP or TIFF file."
+            )
+
+    @staticmethod
     def _crop_bounds(img, fit, form):
         keys = ("crop_x", "crop_y", "crop_width", "crop_height")
         if any(key in form for key in keys):
@@ -146,7 +242,7 @@ class FitPreviewService:
             if x + width > img.width or y + height > img.height:
                 return None
             return x, y, width, height
-        if fit.mode == FitMode.BLUR:
+        if fit.mode != FitMode.CROP:
             return 0, 0, img.width, img.height
 
         # Expose the automatic selection in source pixels so it can be edited

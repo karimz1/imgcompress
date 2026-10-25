@@ -9,7 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Moon, SlidersHorizontal, Sun } from "lucide-react";
+import { Minus, Moon, Plus, RotateCcw, SlidersHorizontal, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,9 @@ import {
   Handle,
   HANDLE_DEFS,
   Rect,
+  ZOOM_MAX,
+  ZOOM_MIN,
+  ZOOM_STEP,
 } from "@/components/crop/cropConstants";
 import {
   buildPercentClip,
@@ -63,6 +66,8 @@ import { useFitPreviewBox } from "@/components/crop/useFitPreviewBox";
 import { useCropPanZoom } from "@/components/crop/useCropPanZoom";
 import { useEditorFit } from "@/components/crop/useEditorFit";
 import { FitControls } from "@/components/crop/FitControls";
+import { FitPlacementControls } from "@/components/crop/FitPlacementControls";
+import { FitPlacementStage } from "@/components/crop/FitPlacementStage";
 import {
   CropEditorTabs,
   type EditorTab,
@@ -203,7 +208,32 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     onSelection: onFitSelection,
     onApplyToAll: onApplyFitToAll,
   });
-  const activeFit = fitting ? fit.applied : null;
+  const activeFit = fitting ? fit.output : null;
+  // Editor-only guide; it is never part of the output.
+  const [showGrid, setShowGrid] = useState(false);
+  const placing = !!activeFit && activeFit.mode !== "crop";
+  const stageTarget = useMemo(
+    () =>
+      placing && activeFit
+        ? { width: activeFit.width, height: activeFit.height }
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [placing, activeFit?.width, activeFit?.height],
+  );
+  const stageArea = useFitPreviewBox(previewWrapperRef, {
+    enabled: ready && placing,
+    imgSize: stageTarget,
+  });
+  // Leave room around the canvas for the resize handles.
+  const stageBox = stageArea
+    ? {
+        width: Math.max(1, stageArea.width - 32),
+        height: Math.max(
+          1,
+          Math.round(((stageArea.width - 32) * stageArea.height) / stageArea.width),
+        ),
+      }
+    : null;
   const editorBusy = fitting && (fit.working || fit.pending || !fit.applied);
   const fitRef = useRef<FitOutput | null>(activeFit);
   fitRef.current = activeFit;
@@ -385,6 +415,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     // accidental moves. Touch users resize via the handles and pan/zoom with two
     // fingers; letting this fall through also enables one-finger pan when zoomed.
     if (e.pointerType !== "mouse") return;
+    // Focus the selection so the arrow keys nudge it after a click.
+    (e.currentTarget as HTMLElement).focus({ preventScroll: true });
     if (spaceDown) {
       onContainerPointerDown(e);
       return;
@@ -450,6 +482,43 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       preset: fitting ? "free" : preset,
       ...(activeFit ? { fit: activeFit } : {}),
     });
+  };
+
+  const centerCropSelection = () => {
+    if (!crop || !imgSize) return;
+    setCrop(
+      clampCrop(
+        {
+          ...crop,
+          x: Math.round((imgSize.width - crop.width) / 2),
+          y: Math.round((imgSize.height - crop.height) / 2),
+        },
+        imgSize.width,
+        imgSize.height,
+      ),
+    );
+  };
+
+  // Arrow keys move the selection by one pixel of the original, Shift by ten.
+  const onSelectionKeyDown = (e: React.KeyboardEvent) => {
+    if (!crop || !imgSize || editorBusy) return;
+    const step = e.shiftKey ? 10 : 1;
+    const delta: Record<string, [number, number]> = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
+    };
+    const move = delta[e.key];
+    if (!move) return;
+    e.preventDefault();
+    setCrop(
+      clampCrop(
+        { ...crop, x: crop.x + move[0], y: crop.y + move[1] },
+        imgSize.width,
+        imgSize.height,
+      ),
+    );
   };
 
   const resetCropSelection = () => {
@@ -529,24 +598,8 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   );
 
   const renderCropDimensions = (suffix = "") => (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between gap-2">
-        <Label className="text-xs uppercase tracking-wide opacity-70">
-          {t("crop.dimensions")}
-        </Label>
-        {!fitting && (
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            onClick={resetCropSelection}
-            disabled={editorBusy}
-            data-testid={`crop-selection-reset-btn${suffix}`}
-          >
-            {t("crop.resetSelection")}
-          </Button>
-        )}
-      </div>
+    <div className="space-y-3">
+      <p className="text-xs leading-relaxed opacity-70">{t("crop.selectionHint")}</p>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <Label
@@ -587,17 +640,6 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           />
         </div>
       </div>
-      <p
-        className="text-xs opacity-70"
-        data-testid={`crop-dims-label${suffix}`}
-      >
-        {dimsLabel}
-      </p>
-      {imgSize && (
-        <p className="text-xs opacity-50">
-          {t("crop.original", { w: imgSize.width, h: imgSize.height })}
-        </p>
-      )}
     </div>
   );
 
@@ -637,7 +679,46 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
               </div>
             </div>
 
-            {renderCropDimensions(suffix)}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="space-y-1 text-xs opacity-70">
+                <p data-testid={`crop-dims-label${suffix}`}>{dimsLabel}</p>
+                {imgSize && <p>{t("crop.original", { w: imgSize.width, h: imgSize.height })}</p>}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={centerCropSelection}
+                  disabled={editorBusy}
+                  data-testid={`crop-selection-center-btn${suffix}`}
+                >
+                  {t("crop.centerSelection")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={resetCropSelection}
+                  disabled={editorBusy}
+                  data-testid={`crop-selection-reset-btn${suffix}`}
+                >
+                  {t("crop.resetSelection")}
+                </Button>
+              </div>
+            </div>
+            <details
+              className="rounded-md border border-current/10 p-3"
+              data-testid={`crop-precise-selection${suffix}`}
+            >
+              <summary
+                className="cursor-pointer text-sm font-medium"
+                data-testid={`crop-precise-selection-toggle${suffix}`}
+              >
+                {t("crop.preciseSelection")}
+              </summary>
+              <div className="pt-3">{renderCropDimensions(suffix)}</div>
+            </details>
             <CropShortcutsList surfaceClass={shortcutsSurface} />
           </>
         )}
@@ -657,6 +738,18 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                 suffix={suffix}
                 canApplyToAll={!!onApplyFitToAll}
               />
+              {fit.placementEnabled && fit.output && crop && (
+                <FitPlacementControls
+                  fit={fit.output}
+                  source={{ width: crop.width, height: crop.height }}
+                  placement={fit.placement}
+                  onChange={fit.setPlacement}
+                  disabled={editorBusy}
+                  showGrid={showGrid}
+                  onShowGridChange={setShowGrid}
+                  suffix={suffix}
+                />
+              )}
               {activeFit?.mode === "crop" && (
                 <details
                   className="rounded-md border border-current/10 p-3"
@@ -763,10 +856,25 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         <>
           <div
             ref={previewWrapperRef}
-            className="crop-editor-fade-in flex-1 min-h-0 min-w-0 flex items-center justify-center p-3"
+            className="crop-editor-fade-in relative flex-1 min-h-0 min-w-0 flex items-center justify-center p-3"
           >
-            {activeFit?.mode === "blur" ? (
-              fit.preview && <img src={fit.preview} alt={t("crop.fit.preview")} className="max-h-full max-w-full object-contain rounded-md" data-testid="crop-blur-canvas" />
+            {placing && activeFit ? (
+              stageBox && (
+                <FitPlacementStage
+                  imgUrl={imgUrl}
+                  imgSize={imgSize}
+                  crop={crop}
+                  fit={activeFit}
+                  placement={fit.placement}
+                  onChange={fit.setPlacement}
+                  preview={fit.preview}
+                  previewCurrent={fit.previewCurrent}
+                  box={stageBox}
+                  disabled={editorBusy || !fit.placementEnabled}
+                  previewAlt={t("crop.fit.preview")}
+                  showGrid={showGrid}
+                />
+              )
             ) : <div
               className="relative"
               style={{
@@ -812,7 +920,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   />
                   <div
                     className={cn(
-                      "absolute border-sky-400/85",
+                      "absolute border-sky-400/85 outline-none focus-visible:ring-2 focus-visible:ring-sky-300",
                       canPan ? "cursor-grab" : "cursor-move"
                     )}
                     style={{
@@ -824,6 +932,10 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                       borderWidth: `${borderPx}px`,
                     }}
                     onPointerDown={startMove}
+                    onKeyDown={onSelectionKeyDown}
+                    tabIndex={0}
+                    role="group"
+                    aria-label={t("crop.selectionKeyboard")}
                     data-testid="crop-selection"
                   >
                     <div className="pointer-events-none absolute inset-0">
@@ -866,6 +978,54 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                 </div>
               </div>
             </div>}
+            {(!activeFit || activeFit.mode === "crop") && (
+              <div
+                role="group"
+                aria-label={`${t("crop.zoom")} · ${t("crop.viewOnly")}`}
+                data-testid="crop-zoom-controls"
+                className={cn(
+                  "absolute bottom-3 left-1/2 z-20 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1 rounded-lg border p-1.5 shadow-sm",
+                  isDarkTheme ? "border-slate-700 bg-slate-950/95" : "border-slate-200 bg-white/95",
+                )}
+              >
+                <span className="hidden px-2 text-xs whitespace-nowrap opacity-70 sm:inline">{t("crop.viewOnly")}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0"
+                  onClick={() => setZoom(zoom - ZOOM_STEP)}
+                  disabled={zoom <= ZOOM_MIN}
+                  aria-label={t("crop.zoomOut")}
+                  title={t("crop.zoomOut")}
+                  data-testid="crop-zoom-out"
+                ><Minus className="size-4" aria-hidden="true" /></Button>
+                <output className="w-12 text-center text-xs tabular-nums" aria-live="polite" data-testid="crop-zoom-label">
+                  {Math.round(zoom * 100)}%
+                </output>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0"
+                  onClick={() => setZoom(zoom + ZOOM_STEP)}
+                  disabled={zoom >= ZOOM_MAX}
+                  aria-label={t("crop.zoomIn")}
+                  title={t("crop.zoomIn")}
+                  data-testid="crop-zoom-in"
+                ><Plus className="size-4" aria-hidden="true" /></Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0"
+                  onClick={resetView}
+                  aria-label={t("crop.resetZoomFull")}
+                  title={t("crop.resetZoomFull")}
+                  data-testid="crop-zoom-reset"
+                ><RotateCcw className="size-4" aria-hidden="true" /></Button>
+              </div>
+            )}
           </div>
 
           {/* Desktop: fixed right-hand control panel */}
