@@ -1,0 +1,69 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "docker.io/karimz1/imgcompress:nightly",
+  "ArtifactType": "container_image",
+  "Results": [
+    {
+      "Target": "docker.io/karimz1/imgcompress:nightly (debian 13.6)",
+      "Class": "os-pkgs",
+      "Type": "debian",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2026-3000",
+          "PkgName": "libssl3",
+          "InstalledVersion": "3.5.1-1",
+          "FixedVersion": "3.5.2-1",
+          "Status": "fixed",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-3000",
+          "Severity": "MEDIUM",
+          "Title": "openssl: example medium finding"
+        },
+        {
+          "VulnerabilityID": "CVE-2026-1000",
+          "PkgName": "zlib1g",
+          "InstalledVersion": "1:1.3.1-1",
+          "FixedVersion": "1:1.3.1-2",
+          "Status": "fixed",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-1000",
+          "Severity": "CRITICAL",
+          "Title": "zlib: example critical finding"
+        },
+        {
+          "VulnerabilityID": "CVE-2026-4000",
+          "PkgName": "tar",
+          "InstalledVersion": "1.35+dfsg-3",
+          "Status": "fixed",
+          "Severity": "LOW",
+          "Title": "tar: example low finding without a fixed version or URL"
+        }
+      ]
+    },
+    {
+      "Target": "container/venv/lib/python3.14/site-packages/pip-26.1.2.dist-info/METADATA",
+      "Class": "lang-pkgs",
+      "Type": "python-pkg",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2026-2000",
+          "PkgName": "pip",
+          "InstalledVersion": "26.1.2",
+          "FixedVersion": "26.1.3",
+          "Status": "fixed",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-2000",
+          "Severity": "HIGH",
+          "Title": "pip: example high finding"
+        },
+        {
+          "VulnerabilityID": "CVE-2026-2000",
+          "PkgName": "pip",
+          "InstalledVersion": "26.1.2",
+          "FixedVersion": "26.1.3",
+          "Status": "fixed",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-2000",
+          "Severity": "HIGH",
+          "Title": "pip: duplicate row Trivy emits for the same package"
+        }
+      ]
+    }
+  ]
+}
