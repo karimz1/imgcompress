@@ -57,9 +57,6 @@
     <a href="https://selfh.st/apps/?search=imgcompress">
       <img src="https://img.shields.io/badge/selfh.st-Featured-1e40af?style=flat-square" alt="Featured on selfh.st" />
     </a>
-    <a href="https://xcloud.host/imgcompress-hosting/">
-      <img src="https://img.shields.io/badge/xCloud-Featured-1e40af?style=flat-square" alt="Featured on xCloud" />
-    </a>
     <a href="https://alternativeto.net/software/imgcompress/about">
       <img src="https://img.shields.io/badge/AlternativeTo-Listed-1e40af?style=flat-square" alt="Listed on AlternativeTo" />
     </a>
@@ -236,7 +233,8 @@ ImgCompress is recognized across the self-hosted community and featured on curat
 - **[Awesome Self-Hosted](https://github.com/awesome-selfhosted/awesome-selfhosted#readme)** [![Stars](https://img.shields.io/github/stars/awesome-selfhosted/awesome-selfhosted?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/awesome-selfhosted/awesome-selfhosted): Community-curated index of self-hosted software.
 - **[Coolify](https://github.com/coollabsio/coolify)** [![Stars](https://img.shields.io/github/stars/coollabsio/coolify?style=flat-square&label=&color=f4d03f&logo=github&logoColor=black)](https://github.com/coollabsio/coolify): Open-source PaaS — available as an **official Coolify service**.
 - **[SelfHostedWorld](https://selfhostedworld.com/software/imgcompress)** & **[selfh.st](https://selfh.st/apps/?search=imgcompress)**: Featured directories and registries for self-hosting enthusiasts.
-- **[xCloud](https://xcloud.host/imgcompress-hosting/)**, **[AlternativeTo](https://alternativeto.net/software/imgcompress/about)** & **[PitchHut](https://www.pitchhut.com/project/imgcompress-toolbox)**: Listed as a privacy-respecting local image processing alternative.
+- **[xCloud](https://xcloud.host/imgcompress-hosting/)**: Offers one-click deployment of ImgCompress on a cloud server. **ImgCompress itself is free** — you only pay for the cloud server provided by xCloud. (I'm not affiliated with xCloud.)
+- **[AlternativeTo](https://alternativeto.net/software/imgcompress/about)** & **[PitchHut](https://www.pitchhut.com/project/imgcompress-toolbox)**: Listed as a privacy-respecting local image processing alternative.
 
 > **A note from the creator:**  
 > A huge thank you to everyone who has supported ImgCompress and helped it reach more people! Seeing so many people embrace privacy-focused tools and use ImgCompress in their everyday workflows makes all the time and effort worthwhile. Thank you for being part of this journey! ❤️  
