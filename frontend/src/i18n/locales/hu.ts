@@ -165,8 +165,12 @@ export const hu: TranslationSchema = {
       vectorLabel: "Nagyítás",
       modelLabel: "MI-modell",
       models: {
-        general: "Általános (fényképek)",
-        anime: "Anime (rajzolt képek)",
+        general: "Általános",
+        anime: "Anime",
+      },
+      modelHints: {
+        general: "Fényképek és vegyes képek",
+        anime: "Rajzok, anime, logók",
       },
       label: "MI-felskálázás",
       tooltip:
@@ -186,6 +190,11 @@ export const hu: TranslationSchema = {
         "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
       unavailableHint: "A felskálázó modell nincs telepítve.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
+      largeTargetHint: "A nagy célméretek tovább tartanak és több memóriát használnak.",
+      preview: {
+        unchanged: "{{size}} · változatlan marad",
+        tooLarge: "{{size}} meghaladja a(z) {{limit}} MP-es korlátot",
+      },
     },
     fitSize: {
       preset: {

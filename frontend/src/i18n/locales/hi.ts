@@ -165,8 +165,12 @@ export const hi: TranslationSchema = {
       vectorLabel: "बड़ा करें",
       modelLabel: "AI मॉडल",
       models: {
-        general: "सामान्य (फ़ोटो)",
-        anime: "ऐनिमे (चित्रित छवियाँ)",
+        general: "सामान्य",
+        anime: "ऐनिमे",
+      },
+      modelHints: {
+        general: "फ़ोटो और मिली-जुली छवियाँ",
+        anime: "ड्रॉइंग, ऐनिमे, लोगो",
       },
       label: "AI अपस्केलिंग",
       tooltip:
@@ -186,6 +190,11 @@ export const hi: TranslationSchema = {
         "चौड़ाई और ऊँचाई का अनुपात बनाए रखता है। चुने गए रिज़ॉल्यूशन के लिए पहले से पर्याप्त बड़ी इमेज वैसी ही रहती हैं। बड़ी इमेज और धीमे CPU में अधिक समय लगता है। 4× से अधिक बढ़ाने पर AI अपस्केलिंग के बाद सामान्य तरीके से आकार बदला जाता है।",
       unavailableHint: "अपस्केलिंग मॉडल इंस्टॉल नहीं है।",
       fitActiveHint: "सटीक आकार में फ़िट करें चालू रहने पर इसका उपयोग नहीं होता।",
+      largeTargetHint: "बड़े लक्ष्य में ज़्यादा समय और मेमोरी लगती है।",
+      preview: {
+        unchanged: "{{size}} · जैसा है वैसा रहेगा",
+        tooLarge: "{{size}} {{limit}} MP की सीमा से ज़्यादा है",
+      },
     },
     fitSize: {
       preset: {

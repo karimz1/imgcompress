@@ -165,8 +165,12 @@ export const esMX: TranslationSchema = {
       vectorLabel: "Ampliar",
       modelLabel: "Modelo de IA",
       models: {
-        general: "General (fotografías)",
-        anime: "Anime (ilustraciones)",
+        general: "General",
+        anime: "Anime",
+      },
+      modelHints: {
+        general: "Fotos e imágenes mixtas",
+        anime: "Dibujos, anime, logotipos",
       },
       label: "Ampliación con IA",
       tooltip:
@@ -186,6 +190,11 @@ export const esMX: TranslationSchema = {
         "Conserva las proporciones. Las imágenes que ya son lo bastante grandes para la resolución elegida se quedan igual. Las imágenes más grandes y las CPU más lentas necesitan más tiempo. Más allá de 4×, la ampliación con IA va seguida de un cambio de tamaño convencional.",
       unavailableHint: "El modelo de ampliación no está instalado.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
+      largeTargetHint: "Los tamaños grandes tardan más y usan más memoria.",
+      preview: {
+        unchanged: "{{size}} · se queda igual",
+        tooLarge: "{{size}} supera el límite de {{limit}} MP",
+      },
     },
     fitSize: {
       preset: {

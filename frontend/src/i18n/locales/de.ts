@@ -165,8 +165,12 @@ export const de: TranslationSchema = {
       vectorLabel: "Vergrößern",
       modelLabel: "KI-Modell",
       models: {
-        general: "Allgemein (Fotos)",
-        anime: "Anime (gezeichnete Bilder)",
+        general: "Allgemein",
+        anime: "Anime",
+      },
+      modelHints: {
+        general: "Fotos und gemischte Bilder",
+        anime: "Zeichnungen, Anime, Logos",
       },
       label: "KI-Hochskalierung",
       tooltip:
@@ -186,6 +190,11 @@ export const de: TranslationSchema = {
         "Behält das Seitenverhältnis bei. Bilder, die für die Zielauflösung bereits groß genug sind, bleiben unverändert. Größere Bilder und langsamere CPUs brauchen mehr Zeit. Über 4× folgt auf die KI-Hochskalierung eine normale Größenänderung.",
       unavailableHint: "Das Modell für die Hochskalierung ist nicht installiert.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
+      largeTargetHint: "Große Ziele dauern länger und brauchen mehr Speicher.",
+      preview: {
+        unchanged: "{{size}} · bleibt unverändert",
+        tooLarge: "{{size}} liegt über dem Limit von {{limit}} MP",
+      },
     },
     fitSize: {
       preset: {

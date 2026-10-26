@@ -165,8 +165,12 @@ export const ja: TranslationSchema = {
       vectorLabel: "拡大",
       modelLabel: "AIモデル",
       models: {
-        general: "汎用（写真）",
-        anime: "アニメ（イラスト）",
+        general: "汎用",
+        anime: "アニメ",
+      },
+      modelHints: {
+        general: "写真や混在した画像",
+        anime: "イラスト、アニメ、ロゴ",
       },
       label: "AIアップスケール",
       tooltip:
@@ -186,6 +190,11 @@ export const ja: TranslationSchema = {
         "縦横比を維持します。指定した解像度に対してすでに十分大きい画像はそのままです。大きい画像や遅いCPUでは処理に時間がかかります。4倍を超える拡大では、AI処理の後に通常のリサイズを行います。",
       unavailableHint: "アップスケール用のモデルがインストールされていません。",
       fitActiveHint: "「指定サイズに合わせる」がオンの間は使用されません。",
+      largeTargetHint: "大きなサイズは時間がかかり、メモリも多く使います。",
+      preview: {
+        unchanged: "{{size}}・そのまま",
+        tooLarge: "{{size}} は上限 {{limit}} MP を超えます",
+      },
     },
     fitSize: {
       preset: {

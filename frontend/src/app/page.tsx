@@ -41,6 +41,7 @@ import { DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, type UpscaleSettings } f
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
+import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
 
@@ -64,6 +65,7 @@ function HomePageContent() {
         setStorageManagementDisabled(disableStorage);
         setDevMode(config.DEV_MODE === "true");
         setMaxUploadSizeMb(config.MAX_UPLOAD_SIZE_MB);
+        setMaxOutputMegapixels(config.MAX_OUTPUT_MEGAPIXELS);
       } catch (err) {
         console.warn("Runtime config missing or invalid, defaulting flags off", err);
         setDisableLogo(false);

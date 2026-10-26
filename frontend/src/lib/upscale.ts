@@ -42,3 +42,15 @@ export function toUpscaleTarget(value: string): UpscaleTarget {
     ? (value as UpscaleTarget)
     : DEFAULT_UPSCALE_SETTINGS.target;
 }
+
+/** Short, language-neutral names for the size preview of files the browser cannot measure. */
+export const UPSCALE_TARGET_SHORT: Record<UpscaleTarget, string> = {
+  "2x": "2×",
+  "4x": "4×",
+  "8x": "8×",
+  "1080p": "Full HD",
+  "4k": "4K",
+  "6k": "6K",
+  "8k": "8K",
+  "16k": "16K",
+};

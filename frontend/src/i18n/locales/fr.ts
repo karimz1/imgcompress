@@ -165,8 +165,12 @@ export const fr: TranslationSchema = {
       vectorLabel: "Agrandir",
       modelLabel: "Modèle d’IA",
       models: {
-        general: "Général (photos)",
-        anime: "Anime (illustrations)",
+        general: "Général",
+        anime: "Anime",
+      },
+      modelHints: {
+        general: "Photos et images mixtes",
+        anime: "Dessins, anime, logos",
       },
       label: "Agrandissement par IA",
       tooltip:
@@ -186,6 +190,11 @@ export const fr: TranslationSchema = {
         "Conserve les proportions. Les images déjà assez grandes pour la résolution choisie restent inchangées. Les grandes images et les processeurs plus lents demandent plus de temps. Au-delà de 4×, l’agrandissement par IA est suivi d’un redimensionnement classique.",
       unavailableHint: "Le modèle d’agrandissement n’est pas installé.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
+      largeTargetHint: "Les grandes tailles prennent plus de temps et de mémoire.",
+      preview: {
+        unchanged: "{{size}} · reste tel quel",
+        tooLarge: "{{size}} dépasse la limite de {{limit}} MP",
+      },
     },
     fitSize: {
       preset: {

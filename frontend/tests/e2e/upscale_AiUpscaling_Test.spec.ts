@@ -12,6 +12,7 @@ import {
   setUpscaleAsync,
   uploadFilesToDropzoneAsync,
   uploadGeneratedImageToDropzoneAsync,
+  waitForSupportedFormatsCountAsync,
 } from './utls/helpers';
 import { downloadFilesAsync } from './utls/downloadHelper';
 import { ImageFileDto } from './utls/ImageFileDto';
@@ -25,6 +26,65 @@ const TRANSPARENT_PNG = new ImageFileDto('ico-datei.png');
 test.describe('AI upscaling', () => {
   test.beforeEach(async ({ request }) => {
     await clearStorageManagerAsync(request);
+  });
+
+  test('shows each image its own size before converting', async ({ page }) => {
+    const landscape = await sharp(SKYLINE_PHOTO).resize(1280, 720, { fit: 'cover' }).jpeg({ quality: 85 }).toBuffer();
+    const portrait = await buildLineCardAsync(400, 600);
+
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'JPEG');
+    await waitForSupportedFormatsCountAsync(page);
+    await page.getByTestId('dropzone-input').setInputFiles([
+      { name: 'skyline-720p.jpg', mimeType: 'image/jpeg', buffer: landscape },
+      { name: 'poster.png', mimeType: 'image/png', buffer: portrait },
+    ]);
+    await assertFilesPresentInDropzoneAsync(page, [new ImageFileDto('skyline-720p.jpg'), new ImageFileDto('poster.png')]);
+    await expect(page.getByTestId('upscale-size-preview')).toHaveCount(0);
+
+    await setUpscaleAsync(page, '4k');
+    await expect(page.getByTestId('upscale-model-option-general')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByTestId('upscale-model-option-general')).toContainText('Photos and mixed images');
+    await expect(page.getByTestId('upscale-model-option-anime')).toContainText('Drawings, anime, logos');
+    const row = (name: string) => page.getByTestId('dropzone-added-file-wrapper').filter({ hasText: name });
+    await expect(row('skyline-720p.jpg').getByTestId('upscale-size-preview')).toHaveText('1280×720 → 3840×2160');
+    // Portrait: 2160 / 400 is the tighter fit, so the short side fills the frame.
+    await expect(row('poster.png').getByTestId('upscale-size-preview')).toHaveText('400×600 → 2160×3240');
+    await expect(page.getByTestId('upscale-large-target-hint')).toHaveCount(0);
+
+    await setUpscaleAsync(page, '8k');
+    await expect(page.getByTestId('upscale-large-target-hint')).toHaveText('Large targets take longer and use more memory.');
+    await expect(row('skyline-720p.jpg').getByTestId('upscale-size-preview')).toHaveText('1280×720 → 7680×4320');
+
+    // What the preview promised is what the server makes.
+    await setUpscaleAsync(page, '4k');
+    await clickConversionButtonAsync(page);
+    const links = await assertDownloadLinksAsync(
+      page, [new ImageFileDto('skyline-720p.jpg'), new ImageFileDto('poster.png')], UPSCALED_SUFFIX,
+    );
+    const sizes = await Promise.all(
+      (await downloadFilesAsync(page, links)).map(async (file) => {
+        const { width, height } = await sharp(file).metadata();
+        return `${path.basename(file).split(UPSCALED_SUFFIX)[0]} ${width}×${height}`;
+      }),
+    );
+    expect(sizes.sort()).toEqual(['poster 2160×3240', 'skyline-720p 3840×2160']);
+  });
+
+  test('says when an image stays as it is or is too large', async ({ page }) => {
+    const big = await sharp({ create: { width: 4000, height: 3000, channels: 3, background: { r: 90, g: 120, b: 150 } } })
+      .png()
+      .toBuffer();
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'PNG');
+    await uploadGeneratedImageToDropzoneAsync(page, 'large-flat.png', 'image/png', big);
+    await setUpscaleAsync(page, '4k');
+    const preview = page.getByTestId('upscale-size-preview');
+    await expect(preview).toHaveText('4000×3000 · stays as is');
+    await expect(preview).toHaveAttribute('data-kind', 'unchanged');
+    await setUpscaleAsync(page, '4x');
+    await expect(preview).toHaveText('16000×12000 is over the 144 MP limit');
+    await expect(preview).toHaveAttribute('data-kind', 'tooLarge');
   });
 
   test('4x gives exact size and sharper edges than bicubic', async ({ page }) => {
@@ -176,11 +236,10 @@ test.describe('AI upscaling', () => {
       await setOutputFormatAsync(page, 'PNG');
       await uploadGeneratedImageToDropzoneAsync(page, card.fileName, 'image/png', source);
       await setUpscaleAsync(page, '4x');
-      const select = page.getByTestId('upscale-model-select');
-      await expect(select).toContainText('General');
+      await expect(page.getByTestId('upscale-model-option-general')).toHaveAttribute('aria-checked', 'true');
       if (model === 'anime') {
-        await select.click();
         await page.getByTestId('upscale-model-option-anime').click();
+        await expect(page.getByTestId('upscale-model-option-anime')).toHaveAttribute('aria-checked', 'true');
       }
       await page.getByTestId('upscale-info').focus();
       await expect(page.getByRole('tooltip')).toContainText(
@@ -206,8 +265,8 @@ test.describe('AI upscaling', () => {
     await page.goto('/');
     await setOutputFormatAsync(page, 'PNG');
     await setUpscaleAsync(page, '2x');
-    await page.getByTestId('upscale-model-select').click();
-    await expect(page.getByTestId('upscale-model-option-anime')).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByTestId('upscale-model-option-anime')).toBeDisabled();
+    await expect(page.getByTestId('upscale-model-option-general')).toHaveAttribute('aria-checked', 'true');
   });
 });
 

@@ -165,8 +165,12 @@ export const ptBR: TranslationSchema = {
       vectorLabel: "Ampliar",
       modelLabel: "Modelo de IA",
       models: {
-        general: "Geral (fotos)",
-        anime: "Anime (ilustrações)",
+        general: "Geral",
+        anime: "Anime",
+      },
+      modelHints: {
+        general: "Fotos e imagens mistas",
+        anime: "Desenhos, anime, logotipos",
       },
       label: "Ampliação com IA",
       tooltip:
@@ -186,6 +190,11 @@ export const ptBR: TranslationSchema = {
         "Mantém as proporções. Imagens que já são grandes o bastante para a resolução escolhida ficam como estão. Imagens maiores e CPUs mais lentas levam mais tempo. Acima de 4×, a ampliação com IA é seguida por um redimensionamento convencional.",
       unavailableHint: "O modelo de ampliação não está instalado.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
+      largeTargetHint: "Tamanhos grandes demoram mais e usam mais memória.",
+      preview: {
+        unchanged: "{{size}} · fica como está",
+        tooLarge: "{{size}} passa do limite de {{limit}} MP",
+      },
     },
     fitSize: {
       preset: {

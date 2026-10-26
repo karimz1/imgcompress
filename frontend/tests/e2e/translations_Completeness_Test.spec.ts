@@ -32,6 +32,9 @@ const ALLOWED_IDENTICAL_VALUES = new Set<string>([
   "←↑↓→",
   "+ ←↑↓→",
   "Transparent",
+  // AI model names: "Anime" in most languages, "General" in Spanish.
+  "Anime",
+  "General",
   // Screen size names and their technical details.
   "Full HD",
   "2K (QHD)",

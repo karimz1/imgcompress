@@ -165,8 +165,12 @@ export const zhCN: TranslationSchema = {
       vectorLabel: "放大",
       modelLabel: "AI 模型",
       models: {
-        general: "通用（照片）",
-        anime: "动漫（绘画图像）",
+        general: "通用",
+        anime: "动漫",
+      },
+      modelHints: {
+        general: "照片和混合图像",
+        anime: "绘画、动漫、标志",
       },
       label: "AI 放大",
       tooltip:
@@ -186,6 +190,11 @@ export const zhCN: TranslationSchema = {
         "保持宽高比。已经足够达到目标分辨率的图片保持不变。较大的图片和较慢的 CPU 需要更长时间。超过 4 倍的放大会先进行 AI 放大，再使用常规缩放。",
       unavailableHint: "未安装放大模型。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
+      largeTargetHint: "较大的目标尺寸耗时更长，占用内存更多。",
+      preview: {
+        unchanged: "{{size}} · 保持不变",
+        tooLarge: "{{size}} 超过 {{limit}} MP 上限",
+      },
     },
     fitSize: {
       preset: {

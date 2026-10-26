@@ -171,7 +171,7 @@ test('scales an SVG without requiring an installed AI model', async ({ page }) =
   await expect(page.getByTestId('upscale-switch')).toHaveAccessibleName('Enlarge');
   await expect(page.getByTestId('upscale-switch')).toBeEnabled();
   await page.getByTestId('upscale-switch').click();
-  await expect(page.getByTestId('upscale-model-select')).toHaveCount(0);
+  await expect(page.getByTestId('upscale-model-group')).toHaveCount(0);
   await page.getByTestId('upscale-target-select').click();
   await page.getByTestId('upscale-target-option-8x').click();
   await clickConversionButtonAsync(page);

@@ -162,8 +162,12 @@ export const en = {
       vectorLabel: "Enlarge",
       modelLabel: "AI model",
       models: {
-        general: "General (photos)",
-        anime: "Anime (drawn images)",
+        general: "General",
+        anime: "Anime",
+      },
+      modelHints: {
+        general: "Photos and mixed images",
+        anime: "Drawings, anime, logos",
       },
       label: "AI upscaling",
       tooltip:
@@ -183,6 +187,11 @@ export const en = {
         "Keeps the aspect ratio. Images already large enough for a resolution target stay unchanged. Larger images and slower CPUs take longer. Beyond 4×, AI upscaling is followed by standard resizing.",
       unavailableHint: "The upscaling model is not installed.",
       fitActiveHint: "Not used while Fit to exact size is on.",
+      largeTargetHint: "Large targets take longer and use more memory.",
+      preview: {
+        unchanged: "{{size}} · stays as is",
+        tooLarge: "{{size}} is over the {{limit}} MP limit",
+      },
     },
     fitSize: {
       preset: {

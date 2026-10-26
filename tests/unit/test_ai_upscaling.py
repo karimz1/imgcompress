@@ -824,6 +824,20 @@ def test_When_UpscalingConfigured_Expect_Values(tmp_path):
     assert config.upscaling.max_output_megapixels == 20
 
 
+def test_RuntimeConfig_Expect_TheOutputLimitForTheSizePreview(monkeypatch, tmp_path):
+    from flask import Flask
+
+    from backend.image_converter.presentation.web.static_routes import static_blueprint
+
+    config = _load_config(tmp_path, {"max_output_megapixels": 20})
+    monkeypatch.setattr(settings, "get", lambda: config)
+    app = Flask(__name__)
+    app.register_blueprint(static_blueprint)
+    body = app.test_client().get("/config/runtime.json").get_json()
+
+    assert body["MAX_OUTPUT_MEGAPIXELS"] == "20"
+
+
 @pytest.mark.parametrize(
     "upscaling",
     [{"threads": 0}, {"threads": "many"}, {"max_output_megapixels": 0}, {"max_output_megapixels": 179}],
