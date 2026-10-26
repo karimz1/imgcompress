@@ -44,7 +44,7 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
             </div>
           </div>
         )}
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground/70">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-foreground/60 dark:text-muted-foreground/80">
           {links.map((link, index) => {
             const Icon = link.icon || ExternalLink;
             return (
@@ -59,16 +59,16 @@ const PageFooter = (props: React.HTMLAttributes<HTMLDivElement>) => {
                   <Icon className="h-3 w-3" />
                 </a>
                 {index < links.length - 1 && (
-                  <span className="hidden sm:inline text-muted-foreground/30">•</span>
+                  <span className="hidden sm:inline" aria-hidden="true">•</span>
                 )}
               </React.Fragment>
             );
           })}
         </div>
         {installedVersion && (
-          <div className="text-xs text-muted-foreground/50 space-x-2">
+          <div className="text-xs text-foreground/60 dark:text-muted-foreground/80 space-x-2">
             <BuildDetails info={buildInfo} version={installedVersion} />
-            <span className="text-muted-foreground/30">•</span>
+            <span aria-hidden="true">•</span>
             <a
               href={APP_CONFIG.DOCS_RELEASE_NOTES_URL}
               target="_blank"
