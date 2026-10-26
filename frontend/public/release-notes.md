@@ -2,6 +2,8 @@
 
 ### Features
 
+- Add SVG import: Convert SVGs to PNG, JPEG, AVIF, WebP, ICO, or PDF in the web UI and CLI, with resizing and cropping. PNG preserves transparency. [#938](https://github.com/karimz1/imgcompress/pull/938)
+
 - Add local AI upscaling: Small photos, drawings lose detail when enlarged with ordinary resizing. Add an optional local upscaler to the web UI and CLI. [#907](https://github.com/karimz1/imgcompress/issues/907)
 
 - Add WebP export: ImgCompress was able read WebP, but now it can also export it. Add WebP so photos and graphics can be converted without another tool. [#905](https://github.com/karimz1/imgcompress/issues/905)

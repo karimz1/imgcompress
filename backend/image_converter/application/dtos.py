@@ -108,6 +108,10 @@ class CompressionFormData:
     fit_height: str = ""
     fit_mode: str = ""
     fit_anchor: str = ""
+    fit_color: str = ""
+    fit_scale: str = ""
+    fit_x: str = ""
+    fit_y: str = ""
 
 
 @dataclass(frozen=True)

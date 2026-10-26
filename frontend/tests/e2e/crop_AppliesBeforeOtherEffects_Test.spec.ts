@@ -23,6 +23,7 @@ async function saveCustomCropAsync(
   height: number
 ): Promise<void> {
   await page.getByTestId('dropzone-crop-file-btn').nth(fileIndex).click();
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await page.getByTestId('crop-width-input').fill(String(width));
   await page.getByTestId('crop-height-input').fill(String(height));
   await page.getByTestId('crop-save-btn').click();

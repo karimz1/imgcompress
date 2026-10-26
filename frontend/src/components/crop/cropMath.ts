@@ -9,8 +9,8 @@ export function clampPan(
   const overflowX = scale * imgSize.width * (zoom - 1);
   const overflowY = scale * imgSize.height * (zoom - 1);
   return {
-    x: Math.max(-overflowX, Math.min(0, pan.x)),
-    y: Math.max(-overflowY, Math.min(0, pan.y)),
+    x: overflowX < 0 ? -overflowX / 2 : Math.max(-overflowX, Math.min(0, pan.x)),
+    y: overflowY < 0 ? -overflowY / 2 : Math.max(-overflowY, Math.min(0, pan.y)),
   };
 }
 

@@ -161,6 +161,17 @@ function fileExtensionLower(file: File): string {
   return (file.name.split(".").pop() ?? "").toLowerCase();
 }
 
+export function isSvgFile(file: File): boolean {
+  return fileExtensionLower(file) === "svg";
+}
+
+export function sourceImageSize(image: HTMLImageElement): { width: number; height: number } {
+  return {
+    width: Number(image.dataset.sourceWidth) || image.naturalWidth,
+    height: Number(image.dataset.sourceHeight) || image.naturalHeight,
+  };
+}
+
 export function isBrowserNativeFormat(file: File): boolean {
   return BROWSER_NATIVE_EXTS.has(fileExtensionLower(file));
 }
@@ -210,7 +221,10 @@ async function loadImageViaBackendBitmap(file: File): Promise<HTMLImageElement> 
         logCropBitmap(
           `crop bitmap received on attempt ${attempt}/${CROP_BITMAP_MAX_ATTEMPTS}: ${(blob.size / 1024 / 1024).toFixed(1)} MB, type=${blob.type}`
         );
-        return await loadImageFromBlob(blob);
+        const image = await loadImageFromBlob(blob);
+        image.dataset.sourceWidth = res.headers.get("X-Image-Width") || "";
+        image.dataset.sourceHeight = res.headers.get("X-Image-Height") || "";
+        return image;
       }
     } catch (err) {
       logCropBitmap(
@@ -257,16 +271,32 @@ export function buildCroppedFilename(name: string, outputMime: string): string {
   const dot = name.lastIndexOf(".");
   const rawBase = dot > 0 ? name.slice(0, dot) : name;
   const base = rawBase.endsWith("_cropped") ? rawBase : `${rawBase}_cropped`;
-  const ext = outputMime === "image/jpeg" ? ".jpg" : ".png";
+  const ext = outputMime === "image/svg+xml" ? ".svg" : outputMime === "image/jpeg" ? ".jpg" : ".png";
   return `${base}${ext}`;
 }
 
 function fitForm(bitmap: Blob, fit: FitOutput, crop?: Pick<CropConfig, "x" | "y" | "width" | "height">): FormData {
   const form = new FormData();
-  form.append("file", bitmap, "editor-bitmap.png");
+  form.append("file", bitmap, bitmap instanceof File ? bitmap.name : "editor-bitmap.png");
   form.append("fit_width", String(fit.width));
   form.append("fit_height", String(fit.height));
   form.append("fit_mode", fit.mode);
+  if (fit.color) {
+    form.append("fit_color", fit.color);
+  }
+  if (fit.placement && fit.mode !== "crop") {
+    form.append("fit_scale", String(fit.placement.scale));
+    form.append("fit_x", String(fit.placement.x));
+    form.append("fit_y", String(fit.placement.y));
+  }
+  if (fit.background) {
+    if (fit.background.pattern !== "none") form.append("fit_pattern", fit.background.pattern);
+    if (fit.background.dim > 0) form.append("fit_dim", String(fit.background.dim));
+    // Sent with every request: the server keeps no copy between requests.
+    if (fit.background.image && fit.mode === "image") {
+      form.append("fit_background", fit.background.image.file, fit.background.image.file.name);
+    }
+  }
   if (crop) {
     form.append("crop_x", String(crop.x));
     form.append("crop_y", String(crop.y));
@@ -280,15 +310,49 @@ export async function previewFit(
   imageUrl: string,
   fit: FitOutput,
   crop?: Pick<CropConfig, "x" | "y" | "width" | "height">,
-  signal?: AbortSignal
-): Promise<{ crop: CropConfig; preview: string }> {
-  const bitmap = await fetch(imageUrl, { signal }).then((response) => response.blob());
-  const response = await fetch("/api/crop/fit", { method: "POST", body: fitForm(bitmap, fit, crop), signal });
+  signal?: AbortSignal,
+  sourceFile?: File,
+  withPreview = true
+): Promise<{ crop: CropConfig; preview: string | null }> {
+  const bitmap = sourceFile && isSvgFile(sourceFile)
+    ? sourceFile
+    : await fetch(imageUrl, { signal }).then((response) => response.blob());
+  const form = fitForm(bitmap, fit, crop);
+  if (!withPreview) form.append("preview", "false");
+  const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
   if (!response.ok) throw new Error(await readBitmapError(response));
-  return response.json();
+  const result = await response.json();
+  return { crop: withBackgroundImage(result.crop, fit), preview: result.preview ?? null };
+}
+
+/**
+ * The server only echoes pattern and dim; the background picture stays in the
+ * browser, so it is put back onto the fit the server returned.
+ */
+function withBackgroundImage(crop: CropConfig, fit: FitOutput): CropConfig {
+  const image = fit.background?.image;
+  if (!image || !crop.fit) return crop;
+  return {
+    ...crop,
+    fit: {
+      ...crop.fit,
+      background: { pattern: "none", dim: 0, ...crop.fit.background, image },
+    },
+  };
 }
 
 export async function autoFitFile(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
+  return withBackgroundImage(await autoFitSelection(file, fit, signal), fit);
+}
+
+async function autoFitSelection(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
+  if (isSvgFile(file)) {
+    const form = fitForm(file, fit);
+    form.append("preview", "false");
+    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
+    if (!response.ok) throw new Error(await readBitmapError(response));
+    return (await response.json()).crop;
+  }
   const image = await loadImageFromFile(file);
   try {
     // Only the selection is needed here; each editor renders its own preview when opened.
@@ -304,6 +368,35 @@ export async function autoFitFile(file: File, fit: FitOutput, signal?: AbortSign
 }
 
 export async function applyCropToFile(file: File, crop: CropConfig, signal?: AbortSignal): Promise<File> {
+  if (isSvgFile(file)) {
+    const safe = clampCrop(crop, crop.originalWidth, crop.originalHeight);
+    // Keep the source SVG embedded as vectors. Its viewport is expressed in
+    // the editor's original coordinates, independently of preview resolution.
+    const source = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error || new Error("Could not read SVG."));
+      reader.readAsDataURL(new Blob([file], { type: "image/svg+xml" }));
+    });
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${safe.width}" height="${safe.height}" viewBox="${safe.x} ${safe.y} ${safe.width} ${safe.height}"><image href="${source}" width="${crop.originalWidth}" height="${crop.originalHeight}"/></svg>`;
+    const selected = new File([svg], buildCroppedFilename(file.name, "image/svg+xml"), {
+      type: "image/svg+xml", lastModified: file.lastModified,
+    });
+    if (!crop.fit) return selected;
+    const form = fitForm(selected, crop.fit);
+    // The saved selection is already clipped into the SVG; preserve it
+    // instead of choosing a new automatic position during export.
+    form.append("crop_x", "0");
+    form.append("crop_y", "0");
+    form.append("crop_width", String(safe.width));
+    form.append("crop_height", String(safe.height));
+    form.append("render", "true");
+    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
+    if (!response.ok) throw new Error(await readBitmapError(response));
+    return new File([await response.blob()], buildCroppedFilename(file.name, "image/png"), {
+      type: "image/png", lastModified: file.lastModified,
+    });
+  }
   const img = await loadImageFromFile(file);
   try {
     const safe = clampCrop(crop, img.naturalWidth, img.naturalHeight);

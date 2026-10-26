@@ -55,10 +55,16 @@ def parse_arguments(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--fit-mode",
         type=str,
-        choices=["crop", "blur"],
+        choices=["crop", "blur", "solid", "transparent"],
         default="crop",
-        help="How --fit handles a different aspect ratio: crop the overflow, or fit the whole "
-             "image on a blurred copy of itself (default: crop)."
+        help="How --fit handles a different aspect ratio: crop the overflow, fit the whole "
+             "image on a blurred copy of itself, fill with a solid color, or keep background transparent (default: crop)."
+    )
+    parser.add_argument(
+        "--fit-color",
+        type=str,
+        default="#ffffff",
+        help="Background fill color in hex format (e.g. #ffffff) or 'transparent' when --fit-mode solid is used."
     )
     parser.add_argument(
         "--fit-anchor",

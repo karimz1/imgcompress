@@ -11,6 +11,7 @@ setup(
     install_requires=[
         'Pillow>=9.0.0',
         'pypdfium2>=4.30.0',
+        'CairoSVG==2.9.1',
     ],
     entry_points={
         'console_scripts': [

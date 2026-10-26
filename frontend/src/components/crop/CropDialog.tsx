@@ -4,6 +4,8 @@ import React, { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { autoFitFile, CropConfig, isCropUnsupportedFile } from "@/lib/crop";
+import { InputFileBadge } from "@/components/InputFileBadge";
+import { inputFileKind } from "@/lib/inputFileKind";
 import type { FitOutput } from "@/lib/fitToSize";
 import { BrandLogo } from "@/components/BrandLogo";
 import {
@@ -111,6 +113,15 @@ export const CropDialog: React.FC<CropDialogProps> = ({
           cropDialogContentClass
         )}
         data-testid="crop-dialog"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+        }}
+        onEscapeKeyDown={(event) => {
+          // Let open file details handle Escape before closing the editor.
+          if (document.querySelector('[data-file-kind-details][data-state$="open"]')) {
+            event.preventDefault();
+          }
+        }}
       >
         <DialogHeader className="shrink-0">
           <div className="flex items-center gap-3 pr-12">
@@ -125,17 +136,24 @@ export const CropDialog: React.FC<CropDialogProps> = ({
               />
             )}
             <div className="min-w-0 flex-1">
-              <DialogTitle className="text-sm font-medium leading-tight truncate">
-                {!disableLogo && (
-                  <>
-                    <span className="opacity-70">imgcompress</span>
-                    <span className="opacity-40 px-1.5">·</span>
-                  </>
+              <div className="flex min-w-0 items-center gap-1.5">
+                <DialogTitle className="min-w-0 text-sm font-medium leading-tight truncate">
+                  {!disableLogo && (
+                    <>
+                      <span className="opacity-70">imgcompress</span>
+                      <span className="opacity-40 px-1.5">·</span>
+                    </>
+                  )}
+                  <span>{t("crop.editorTitle")}</span>
+                  <span className="opacity-40 px-1.5">·</span>
+                  <span className="opacity-90">{openFile.name}</span>
+                </DialogTitle>
+                {inputFileKind(openFile.name) !== "image" && (
+                  <span className="shrink-0" data-testid="crop-file-info">
+                    <InputFileBadge filename={openFile.name} />
+                  </span>
                 )}
-                <span>{t("crop.editorTitle")}</span>
-                <span className="opacity-40 px-1.5">·</span>
-                <span className="opacity-90">{openFile.name}</span>
-              </DialogTitle>
+              </div>
               <DialogDescription className="sr-only">
                 {t("crop.editorDescription")}
               </DialogDescription>

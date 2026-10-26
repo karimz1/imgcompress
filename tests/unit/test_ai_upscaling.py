@@ -39,6 +39,7 @@ from backend.image_converter.infrastructure.upscale_model import (
     locate_model,
 )
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
+from backend.image_converter.presentation.web.services.temporary_folder_service import JobFolder
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
 from backend.image_converter.core.internals.utilities import Result
 from tests.unit.dummy_logger import DummyLogger
@@ -882,6 +883,9 @@ class _TempFolders:
         path = self.root / f"{prefix}{self.count}"
         path.mkdir()
         return str(path)
+
+    def create_job_dir(self, prefix: str) -> JobFolder:
+        return JobFolder(self.create_temp_dir(prefix))
 
 
 def test_When_CompressingPdfWithUpscale_Expect_Rejected():

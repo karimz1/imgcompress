@@ -29,7 +29,9 @@ def main(argv=None):
     fit = None
     if args.fit:
         width, _, height = args.fit.lower().partition("x")
-        fit_res = FitToSize.from_strings_result(width, height, args.fit_mode, args.fit_anchor)
+        fit_res = FitToSize.from_strings_result(
+            width, height, args.fit_mode, args.fit_anchor, getattr(args, "fit_color", None)
+        )
         if not fit_res.is_successful or fit_res.value is None:
             logger.log(f"Error: --fit expects WIDTHxHEIGHT, e.g. 1280x640. {fit_res.error or ''}".strip(), "error")
             sys.exit(1)

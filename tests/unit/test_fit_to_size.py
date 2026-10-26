@@ -12,6 +12,7 @@ from backend.image_converter.core.image_conversion_processor import ImageConvers
 from backend.image_converter.domain.fit_to_size import (
     MAX_FIT_DIMENSION,
     FitAnchor,
+    FitBackground,
     FitMode,
     FitToSize,
 )
@@ -20,6 +21,7 @@ from backend.image_converter.domain.smart_crop import find_crop_offset
 from backend.image_converter.presentation.web.services.compression_service import (
     CompressionService,
 )
+from backend.image_converter.presentation.web.services.temporary_folder_service import JobFolder
 from tests.unit.dummy_logger import DummyLogger
 
 
@@ -175,12 +177,19 @@ def test_When_ImageIsTinyOrAlreadyExact_Expect_NoError(size, window):
 # --- ImageResizer.fit_to_size --------------------------------------------------------
 
 
+def _fit_for_every_mode(width: int, height: int, mode: FitMode) -> FitToSize:
+    """Image mode needs a background picture; a thin one checks it is cover-fitted too."""
+    if mode == FitMode.IMAGE:
+        return FitToSize(width, height, mode, background=FitBackground(image=Image.new("RGB", (3, 2000))))
+    return FitToSize(width, height, mode)
+
+
 @pytest.mark.parametrize("mode", list(FitMode))
 @pytest.mark.parametrize("source_size", [(1536, 1024), (600, 900), (100, 40), (1280, 640)])
 def test_When_FittingAnySize_Expect_ExactTargetDimensions(mode, source_size):
     data = _encode(_stripes(source_size, vertical=True))
 
-    out = _decode(ImageResizer().fit_to_size(data, FitToSize(1280, 640, mode)))
+    out = _decode(ImageResizer().fit_to_size(data, _fit_for_every_mode(1280, 640, mode)))
 
     assert out.size == (1280, 640)
 
@@ -271,7 +280,7 @@ def test_When_SourceIsThinStrip_Expect_NoResizeBeyondTargetSize(monkeypatch, mod
     monkeypatch.setattr(Image.Image, "resize", spy)
     data = _encode(_stripes(source_size, vertical=source_size[0] > source_size[1]))
 
-    out = _decode(ImageResizer().fit_to_size(data, FitToSize(4096, 4096, mode)))
+    out = _decode(ImageResizer().fit_to_size(data, _fit_for_every_mode(4096, 4096, mode)))
 
     assert out.size == (4096, 4096)
     assert max(width * height for width, height in sizes) <= 4096 * 4096
@@ -353,6 +362,9 @@ class _TempFolders:
         path = self.root / f"{prefix}{self.count}"
         path.mkdir()
         return str(path)
+
+    def create_job_dir(self, prefix: str) -> JobFolder:
+        return JobFolder(self.create_temp_dir(prefix))
 
 
 def test_When_CompressingPdfWithFit_Expect_Rejected():
@@ -523,3 +535,35 @@ def test_When_CliGetsUpscaleAndFit_Expect_ProcessorReceivesBoth(monkeypatch):
     assert captured["upscale"] is UpscaleTarget.X4
     assert captured["fit"] == FitToSize(1280, 640, FitMode.CROP, FitAnchor.AUTO)
     assert captured["width"] is None
+
+
+def test_When_SolidModeRequested_Expect_PaddingFilledWithColor():
+    # 200x100 into 200x200 solid red (#ff0000)
+    source = Image.new("RGB", (200, 100), (0, 255, 0))
+    fit = FitToSize(200, 200, FitMode.SOLID, FitAnchor.CENTER, color="#ff0000")
+    out = _decode(ImageResizer().fit_to_size(_encode(source), fit))
+
+    assert out.size == (200, 200)
+    # Top padding should be red
+    assert out.getpixel((100, 10)) == (255, 0, 0)
+    # Center should be green
+    assert out.getpixel((100, 100)) == (0, 255, 0)
+    # Bottom padding should be red
+    assert out.getpixel((100, 190)) == (255, 0, 0)
+
+
+def test_When_TransparentModeRequested_Expect_PaddingHasZeroAlpha():
+    # 200x100 into 200x200 transparent
+    source = Image.new("RGBA", (200, 100), (0, 255, 0, 255))
+    fit = FitToSize(200, 200, FitMode.TRANSPARENT, FitAnchor.CENTER)
+    out = _decode(ImageResizer().fit_to_size(_encode(source), fit))
+
+    assert out.size == (200, 200)
+    assert out.mode == "RGBA"
+    # Top padding should be transparent
+    assert out.getpixel((100, 10))[3] == 0
+    # Center should be opaque green
+    assert out.getpixel((100, 100)) == (0, 255, 0, 255)
+    # Bottom padding should be transparent
+    assert out.getpixel((100, 190))[3] == 0
+
