@@ -109,7 +109,7 @@ Edit images right in the browser before you convert them. Everything is rendered
 
 Make small photos and drawings bigger and sharper, up to 16K. The AI is already built in: just switch it on. Pick **General** for photos or **Anime** for drawings, anime and logos. No special graphics card, no upload. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
 
-**Original vs. AI upscaled (Anime):** the same spot at the same size. Left: the original, just enlarged. Right: made bigger with AI.
+**Original vs. AI upscaled (Anime):** the same spot at the same size. Left: the original, just enlarged. Right: AI upscaling (Anime), done by the AI built into ImgCompress on your own computer. Nothing is uploaded, your images stay yours.
 
 | Original | AI upscaled (Anime) |
 |:---:|:---:|
@@ -118,7 +118,7 @@ Make small photos and drawings bigger and sharper, up to 16K. The AI is already 
 
 <sub>Original image: [Pixabay](https://pixabay.com/illustrations/ai-generated-girl-dystopia-ruins-9062885/), made bigger from 3100 to 8640 px.</sub>
 
-**A tiny drawing (118 × 104 px) made 4x bigger.** Left: normal enlargement. Right: AI upscaling with Anime. The second row zooms in on one fingernail.
+**A tiny drawing (118 × 104 px) made 4x bigger.** Left: normal enlargement. Right: AI upscaling (Anime), done by the AI built into ImgCompress on your own computer. Nothing is uploaded, your images stay yours. The second row zooms in on one fingernail.
 
 | Original | AI upscaled (Anime) |
 |:---:|:---:|
