@@ -85,30 +85,33 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 | **Local AI Upscaling** | Enlarge images 2x to 16K on your CPU, offline ([guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)) |
 | **Image Editor** | Crop, exact sizes, backgrounds, text and logos before converting ([guide](https://imgcompress.karimzouine.com/docs/image-editor)) |
 | **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
-| **Format Conversion** | HEIC to WebP, PSD to JPG, image batches to paginated PDF, and more |
+| **Format Conversion** | HEIC to WebP, PSD to JPG, [SVG to PNG](https://imgcompress.karimzouine.com/docs/svg-to-png), image batches to paginated PDF, and more ([WebP guide](https://imgcompress.karimzouine.com/docs/convert-to-webp)) |
 | **Web UI + CLI** | Browser dashboard for day-to-day use; CLI for scripting pipelines |
 | **Single Container** | Every codec and library pre-bundled, zero host dependencies |
 | **Air-Gap Ready** | Once pulled, runs fully offline. No internet required, ever |
 
+**What's new in v1.0:** the image editor, AI upscaling, SVG import, WebP export and more. See the **[release notes](https://imgcompress.karimzouine.com/docs/release-notes)**.
+
 ---
 
-## What's new in v1.0
+## Image editor
 
-ImgCompress now has a real image editor in the browser, plus a few things people kept asking for. Each item links to a short guide with screenshots.
+Edit images right in the browser before you convert them. Everything is rendered on your own server.
 
-<img src="images/web-ui/web-ui-editor-text.webp" alt="ImgCompress image editor: a YouTube thumbnail with the title "IMAGE EDITOR" next to the picture, Text & images tab open" width="100%" />
+<img src="images/web-ui/web-ui-editor-text.webp" alt="ImgCompress image editor: a YouTube thumbnail with the title IMAGE EDITOR next to the picture, Text &amp; images tab open" width="100%" />
 
-- **[Image editor](https://imgcompress.karimzouine.com/docs/image-editor):** crop, pick an exact size, add a background, text or a logo, and rotate anything. Undo, keyboard shortcuts and touch on tablets included.
-- **[YouTube thumbnails](https://imgcompress.karimzouine.com/docs/youtube-thumbnail):** presets for YouTube, Shorts and stories, Instagram, X, link previews, GitHub, Pinterest, Full HD, 2K and 4K.
+- **[Crop, resize and rotate](https://imgcompress.karimzouine.com/docs/image-editor):** pick an exact size, add a background, a logo or other pictures, and turn anything. Undo, keyboard shortcuts and touch on tablets included.
+- **[YouTube thumbnails and social media sizes](https://imgcompress.karimzouine.com/docs/youtube-thumbnail):** presets for YouTube, Shorts and stories, Instagram, X, link previews, GitHub, Pinterest, Full HD, 2K and 4K.
 - **[Add text to an image](https://imgcompress.karimzouine.com/docs/add-text-to-image):** titles, subtitles and watermarks with a choice of fonts, color, shadow and angle.
 - **[Smart crop](https://imgcompress.karimzouine.com/docs/smart-crop):** resize to an exact size and keep the important part in frame, or keep the whole image on a blurred background.
-- **[AI upscaling](https://imgcompress.karimzouine.com/docs/ai-upscaling):** enlarge photos or drawings up to 16K with a local AI model on the CPU.
-- **[SVG import](https://imgcompress.karimzouine.com/docs/svg-to-png):** turn SVG files into PNG, JPEG, WebP, AVIF, ICO or PDF at any size.
-- **[WebP export](https://imgcompress.karimzouine.com/docs/convert-to-webp):** small files, lossy or lossless.
-- **[Upload limit](https://imgcompress.karimzouine.com/docs/installation#upload-limit):** set `MAX_UPLOAD_SIZE_MB`; the upload area shows the limit.
-- **[Build details](https://imgcompress.karimzouine.com/docs/build-details):** the footer shows exactly which version or nightly you run.
 
-**AI upscaling, anime model:** a 118 × 104 px drawing taken to 4x. Left is a plain bicubic resize, right is the Anime model (`realesr-animevideov3`) in ImgCompress. The second row zooms in on one fingernail.
+---
+
+## AI image upscaling
+
+Enlarge small photos and drawings up to 16K with a local AI model (Real-ESRGAN) on your CPU. No GPU, no cloud upload. Pick the General model for photos or the Anime model for drawings, anime and logos. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
+
+**Original vs. AI-upscaled:** a 118 × 104 px drawing taken to 4x. Left is a plain bicubic resize, right is the Anime model (`realesr-animevideov3`) in ImgCompress. The second row zooms in on one fingernail.
 
 | Original | AI-upscaled (anime model) |
 |:---:|:---:|
@@ -145,7 +148,7 @@ Prefer Docker Compose? Ready-made configurations live in [`docker/compose/`](doc
 
 Step-by-step instructions for both are in the **[compose guide](docker/compose/README.md)**.
 
-Uploads can be up to 40 GB each by default, so big PSD and PDF files work. To lower that, set `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`), the same way as `DISABLE_LOGO`. For a public instance, use a smaller limit like 1 GB (`1024`).
+Uploads can be up to 40 GB each by default, so big PSD and PDF files work. To lower that, set `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`), the same way as `DISABLE_LOGO`. For a public instance, use a smaller limit like 1 GB (`1024`). More in the [upload limit guide](https://imgcompress.karimzouine.com/docs/installation#upload-limit).
 
 For environment variables and deploying without the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
