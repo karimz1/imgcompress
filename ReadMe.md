@@ -80,7 +80,7 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 
 | Feature | Details |
 |---|---|
-| **70+ Image Formats** | HEIC, HEIF, PSD, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60+ more |
+| **70+ Image Formats** | HEIC, HEIF, PSD, SVG, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60 more ([which are tested](https://imgcompress.karimzouine.com/#formats)) |
 | **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
 | **Local AI Upscaling** | Choose General or Anime. Real-ESRGAN enlarges images 2x, 4x, 8x, or to Full HD / 4K / 6K / 8K / 16K on your CPU, preserving the aspect ratio. Both models ship in the image; nothing is downloaded at runtime |
 | **Fit to Exact Size** | GitHub social preview (1280 × 640), Open Graph (1200 × 630), or any size. A dedicated editor tab with automatic previews, an adjustable crop, or a blurred background |
@@ -309,7 +309,7 @@ ImgCompress is recognized across the self-hosted community and featured on curat
 - [Installation & Configuration](https://imgcompress.karimzouine.com/docs/installation): Docker setup, environment variables, reverse proxy examples
 - [Developer Guide](https://imgcompress.karimzouine.com/docs/developers): VS Code Dev Containers, architecture overview, local env setup
 - [imgcompress-chan (Bot)](https://imgcompress.karimzouine.com/docs/imgcompress-chan): Custom helper bot that repairs Dependabot pnpm lockfiles and auto-merges dependency PRs
-- [E2E Testing with Playwright](https://imgcompress.karimzouine.com/docs/e2e): How offline stability is verified across all 70+ formats
+- [E2E Testing with Playwright](https://imgcompress.karimzouine.com/docs/e2e): How the app is tested end to end, offline
 - [Credits & Libraries](https://imgcompress.karimzouine.com/docs/credits): The open source projects that power ImgCompress
 - [Hall of Fame](https://imgcompress.karimzouine.com/docs/hall-of-fame): Sponsors and contributors
 
@@ -324,7 +324,7 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 
 - Read the **[Contributing Guide](contributing.md)** before opening a PR
 - Browse [`good-first-issue`](https://github.com/karimz1/imgcompress/labels/good-first-issue) labels for a starting point
-- Every change is verified by a Playwright E2E suite that covers all supported formats
+- Every change runs a Playwright E2E suite; 49 of the 71 input formats pass automated conversion tests
 - Maintainers: [release workflow](https://imgcompress.karimzouine.com/docs/release-workflow), [build details](https://imgcompress.karimzouine.com/docs/build-details) and [CI feature flags](https://imgcompress.karimzouine.com/docs/ci-feature-flags)
 
 > [!NOTE]
