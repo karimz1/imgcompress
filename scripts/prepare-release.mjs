@@ -141,21 +141,39 @@ function sectionFor(category, title) {
   return 'other';
 }
 
-// Notes written by hand in frontend/public/release-notes.md before tagging,
-// under a "## v1.0.0 — DateNeedsToBeReplaced" header. RCs of 1.0.0 use them too.
+// For each line: is it outside a fenced code block (fence lines count as inside)?
+function outsideFences(lines) {
+  let fence = null;
+  return lines.map((line) => {
+    const marker = /^\s*(`{3,}|~{3,})/.exec(line);
+    if (!marker) return !fence;
+    if (!fence) fence = marker[1];
+    else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = null;
+    return false;
+  });
+}
+
+// Notes written by hand in frontend/public/release-notes.md before tagging.
+// The top entry is used when it is for the tagged version, under a dated or a
+// "DateNeedsToBeReplaced" header. RCs of 1.0.0 use the v1.0.0 entry.
 export function pendingEntry(markdown, version) {
-  const escaped = version.split('-')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const lines = markdown.replace(/\r\n/g, '\n').split('\n');
-  const start = lines.findIndex((line) => new RegExp(`^##\\s+v?${escaped}\\s+[—-]\\s+DateNeedsToBeReplaced\\s*$`).test(line));
-  if (start < 0) return '';
-  const end = lines.findIndex((line, index) => index > start && /^##\s/.test(line));
-  return lines.slice(start + 1, end < 0 ? undefined : end).join('\n').trim();
+  const outside = outsideFences(lines);
+  const [start, end] = lines.map((line, index) => index).filter((index) => outside[index] && /^##\s/.test(lines[index]));
+  if (start === undefined) return '';
+  const header = /^##\s+v?(\S+)\s+[—-]\s+(?:\d{4}-\d{2}-\d{2}|DateNeedsToBeReplaced)\s*$/.exec(lines[start]);
+  if (header?.[1] !== version.split('-')[0]) return '';
+  return lines.slice(start + 1, end).join('\n').trim();
 }
 
 function nestUnder(markdown, level) {
-  const levels = [...markdown.matchAll(/^(#{1,6})\s/gm)].map((match) => match[1].length);
+  const lines = markdown.split('\n');
+  const outside = outsideFences(lines);
+  const levels = lines.filter((line, index) => outside[index]).map((line) => /^(#{1,6})\s/.exec(line)?.[1].length).filter(Boolean);
   const shift = levels.length ? level - Math.min(...levels) : 0;
-  return markdown.replace(/^(#{1,6})(?=\s)/gm, (hashes) => '#'.repeat(Math.min(6, hashes.length + shift)));
+  return lines.map((line, index) => (outside[index]
+    ? line.replace(/^(#{1,6})(?=\s)/, (hashes) => '#'.repeat(Math.min(6, hashes.length + shift)))
+    : line)).join('\n');
 }
 
 export function formatReleaseNotes(generated, { version, prerelease, date, repository, highlights = '' }) {

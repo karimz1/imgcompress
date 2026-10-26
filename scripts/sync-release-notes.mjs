@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 const VERSION_PATTERN = '\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?';
-// DateNeedsToBeReplaced marks notes written before tagging; the release replaces them.
+// Notes written before tagging use DateNeedsToBeReplaced or a planned date; the release replaces them.
 const HEADER = new RegExp(`^##\\s+v?(${VERSION_PATTERN})\\s+[—-]\\s+(?:\\d{4}-\\d{2}-\\d{2}|DateNeedsToBeReplaced)\\s*$`);
 
 function releaseHeaders(markdown) {
@@ -89,8 +89,9 @@ export function upsertReleaseNotes(markdown, release, { includePrerelease = fals
     pending: header.pending,
     markdown: markdown.slice(header.index, headers[index + 1]?.index ?? markdown.length).trim(),
   })).filter((existing) => existing.version !== entry.version
-    // Notes written before tagging belong to this release, RCs included.
-    && !(existing.pending && existing.version === entry.version.split('-')[0]));
+    // Notes written before tagging belong to this release, RCs included. An RC
+    // also replaces a dated entry of its stable version, which is not out yet.
+    && !((existing.pending || entry.prerelease) && existing.version === entry.version.split('-')[0]));
   entries.push(entry);
   entries.sort((a, b) => {
     if (promote && a.version === entry.version) return -1;

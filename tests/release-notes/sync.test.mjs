@@ -116,3 +116,26 @@ test('an RC image uses and replaces the hand-written notes of its stable version
   // main keeps the pending notes until the stable release is published.
   assert.equal(upsertReleaseNotes(pendingArchive, { ...release, tag_name: 'release_1.0.0-rc.1', prerelease: true, body }), pendingArchive);
 });
+
+test('dated hand-written notes are replaced by the published release without duplicates', () => {
+  const dated = pendingArchive.replace('DateNeedsToBeReplaced', '2026-10-26');
+  assert.equal(extractCurrentVersion(dated), '1.0.0');
+  const highlights = pendingEntry(dated, '1.0.0');
+  assert.equal(highlights, '### Features\n\n- Hand-written SVG import note.');
+  const body = formatReleaseNotes('', { version: '1.0.0', prerelease: false, date: '2026-10-27', repository: 'karimz1/imgcompress', highlights });
+  const result = upsertReleaseNotes(dated, { ...release, tag_name: 'release_1.0.0', published_at: '2026-10-27T10:00:00Z', body });
+  assert.ok(result.startsWith('## v1.0.0 — 2026-10-27\n\n### Features'));
+  assert.equal([...result.matchAll(/^## v1\.0\.0 /gm)].length, 1);
+  assert.equal([...result.matchAll(/Hand-written SVG import note/g)].length, 1);
+  assert.ok(result.endsWith(archive));
+
+  // An RC image replaces the dated entry of its stable version, so it never
+  // looks like 1.0.0 is already released.
+  const rcBody = formatReleaseNotes('', { version: '1.0.0-rc.1', prerelease: true, date: '2026-10-27', repository: 'karimz1/imgcompress', highlights: pendingEntry(dated, '1.0.0-rc.1') });
+  const rc = { ...release, tag_name: 'release_1.0.0-rc.1', prerelease: true, body: rcBody };
+  const image = upsertReleaseNotes(dated, rc, { includePrerelease: true, promote: true });
+  assert.equal(extractCurrentVersion(image), '1.0.0-rc.1');
+  assert.doesNotMatch(image, /^## v1\.0\.0 /m);
+  assert.equal([...image.matchAll(/Hand-written SVG import note/g)].length, 1);
+  assert.equal(upsertReleaseNotes(dated, rc), dated);
+});

@@ -189,3 +189,27 @@ test('first release omits the comparison base, empty notes and failed API calls 
   const request = githubRequest('test', async () => ({ ok: false, status: 403 }));
   await assert.rejects(() => request('repos/karimz1/imgcompress/releases'), /HTTP 403/);
 });
+
+test('the top entry of the tagged version leads the draft, dated or not', async () => {
+  const notes = (header) => `${header}\n\n### Features\n\n- Hand-written editor note.\n\n\`\`\`\n## v0.0.1 — 2026-01-01\n\`\`\`\n\n## v0.9.0 — 2026-08-22\n\n- PDF quality presets.\n`;
+  const request = async (route) => {
+    if (route.includes('/releases?')) return [{ tag_name: 'release_0.9.0' }];
+    if (route.includes('/compare/')) return { status: 'ahead' };
+    if (route === 'graphql') return { data: { repository: { pullRequest: { closingIssuesReferences: { nodes: [], pageInfo: { hasNextPage: false } } } } } };
+    if (route.endsWith('/generate-notes')) return { body: generated };
+    return {};
+  };
+  for (const header of ['## v1.0.0 — DateNeedsToBeReplaced', '## v1.0.0 — 2026-10-26']) {
+    for (const tag of ['release_1.0.0', 'release_1.0.0-rc.1']) {
+      const body = await releaseNotes({ repository: 'karimz1/imgcompress', tag, request, pending: notes(header) });
+      assert.match(body, /### Changelog\n\n#### Features\n\n- Hand-written editor note\.\n\n```\n## v0\.0\.1 — 2026-01-01\n```\n\n#### Bug Fixes/, `${header} / ${tag}`);
+      assert.doesNotMatch(body, /Fit images to an exact output size|PDF quality presets/);
+    }
+  }
+  // Another version on top, or only an older entry for it: GitHub's notes are used.
+  for (const [tag, pending] of [['release_1.0.1', notes('## v1.0.0 — 2026-10-26')], ['release_0.9.0', notes('## v1.0.0 — 2026-10-26')]]) {
+    const body = await releaseNotes({ repository: 'karimz1/imgcompress', tag, request, pending });
+    assert.match(body, /#### Features\n\n- Fit images to an exact output size/);
+    assert.doesNotMatch(body, /Hand-written/);
+  }
+});
