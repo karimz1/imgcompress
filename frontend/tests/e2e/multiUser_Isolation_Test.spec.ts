@@ -161,8 +161,8 @@ test('a second user cannot download the first user\'s ZIP by guessing its name',
     }
 });
 
-// The editor's background picture is sent with each request and kept nowhere
-// on the server, so users with the same file names never see each other's.
+// Editor pictures live in a per-session folder behind an unguessable token,
+// so users with the same file names never see each other's.
 test('users placing images on their own background picture at the same time only get their own', async ({ browser }) => {
     const backgroundOf = (index: number) => USERS[(index + 1) % USERS.length].colour;
     const sessions = await Promise.all(
@@ -171,8 +171,7 @@ test('users placing images on their own background picture at the same time only
             const { page } = session;
             await page.getByTestId('dropzone-crop-file-btn').click();
             await page.getByTestId('crop-tab-fit').click();
-            await page.getByTestId('fit-preset-select').click();
-            await page.getByTestId('fit-preset-option-custom').click();
+            await page.getByTestId('fit-preset-custom').click();
             await page.getByTestId('fit-width-input').fill('200');
             await page.getByTestId('fit-height-input').fill('200');
             const background = await sharp({
@@ -185,6 +184,8 @@ test('users placing images on their own background picture at the same time only
             // Same name for everyone.
             await chooser.setFiles({ name: 'background.png', mimeType: 'image/png', buffer: background });
             await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
+            // Picking the picture opens the background tab; the scale is in the size tab.
+            await page.getByTestId('crop-tab-fit').click();
             await page.getByTestId('fit-scale-input').fill('40');
             await expect(page.getByTestId('crop-blur-canvas')).toHaveAttribute('data-current', 'true');
             await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
@@ -211,5 +212,105 @@ test('users placing images on their own background picture at the same time only
         );
     } finally {
         await Promise.all(sessions.map(({ context }) => context.close()));
+    }
+});
+
+// Same for pictures placed on top: everyone uploads "sticker.png" in their own
+// colour at once, and each export carries only that user's sticker.
+test('users adding picture layers at the same time only get their own', async ({ browser }) => {
+    const stickerOf = (index: number) => USERS[(index + 2) % USERS.length].colour;
+    const sessions = await Promise.all(
+        USERS.map(async (_, index) => {
+            const session = await convertAsUser(browser, index);
+            const { page } = session;
+            await page.getByTestId('dropzone-crop-file-btn').click();
+            await page.getByTestId('crop-tab-fit').click();
+            await page.getByTestId('fit-preset-custom').click();
+            await page.getByTestId('fit-width-input').fill('200');
+            await page.getByTestId('fit-height-input').fill('200');
+            await page.getByTestId('fit-mode-transparent-btn').click();
+            await page.getByTestId('crop-tab-layers').click();
+            const sticker = await sharp({
+                create: { width: 50, height: 50, channels: 3, background: stickerOf(index) },
+            }).png().toBuffer();
+            const uploaded = page.waitForResponse((r) => r.url().endsWith('/api/editor/assets'));
+            await page.getByTestId('fit-picture-input').setInputFiles({ name: 'sticker.png', mimeType: 'image/png', buffer: sticker });
+            expect((await uploaded).ok(), `user ${index}: upload failed`).toBeTruthy();
+            await expect(page.getByTestId('fit-layer-row')).toHaveCount(1);
+            await expect(page.getByTestId('crop-blur-canvas')).toHaveAttribute('data-current', 'true');
+            await expect(page.getByTestId('crop-save-btn')).toBeEnabled();
+            await page.getByTestId('crop-save-btn').click();
+            return session;
+        })
+    );
+    try {
+        await clickConvertTogether(sessions);
+        await Promise.all(
+            sessions.map(async ({ page }, index) => {
+                const link = page.getByTestId('drawer-uploaded-file-item-link');
+                await expect(link).toHaveCount(1);
+                const [download] = await Promise.all([page.waitForEvent('download'), link.click()]);
+                const image = await describeImage(await fs.readFile((await download.path())!));
+                expect([image.width, image.height], `user ${index}: wrong size`).toEqual([200, 200]);
+                // New pictures start in the middle of the canvas.
+                expectColour(image.centre, stickerOf(index), `user ${index} sticker`);
+            })
+        );
+    } finally {
+        await Promise.all(sessions.map(({ context }) => context.close()));
+    }
+});
+
+test("a picture id from someone else's session cannot be used", async ({ browser }) => {
+    const owner = await browser.newContext();
+    const stranger = await browser.newContext();
+    try {
+        const picture = (colour: Rgb) =>
+            sharp({ create: { width: 20, height: 20, channels: 3, background: colour } }).png().toBuffer();
+        const upload = async (context: BrowserContext, colour: Rgb) => {
+            const response = await context.request.post('/api/editor/assets', {
+                multipart: { file: { name: 'secret.png', mimeType: 'image/png', buffer: await picture(colour) } },
+            });
+            expect(response.status()).toBe(200);
+            expect(response.headers()['cache-control']).toContain('no-store');
+            return (await response.json()) as { session: string; asset: string };
+        };
+        const mine = await upload(owner, USERS[0].colour);
+        const theirs = await upload(stranger, USERS[1].colour);
+        expect(theirs.session).not.toBe(mine.session);
+
+        const photo = await picture(USERS[2].colour);
+        const fitWith = (session: string, asset: string) =>
+            stranger.request.post('/api/crop/fit', {
+                multipart: {
+                    file: { name: 'photo.png', mimeType: 'image/png', buffer: photo },
+                    fit_width: '40',
+                    fit_height: '40',
+                    fit_mode: 'transparent',
+                    fit_session: session,
+                    fit_layers: JSON.stringify([
+                        { type: 'image', asset, x: 0.5, y: 0.5, width: 0.5, height: 0.5, rotation: 0, opacity: 1 },
+                    ]),
+                },
+            });
+        // Their own picture works, so the request itself is fine.
+        expect((await fitWith(theirs.session, theirs.asset)).status()).toBe(200);
+        // The owner's picture id in the stranger's own session is unknown there.
+        const wrongSession = await fitWith(theirs.session, mine.asset);
+        expect(wrongSession.ok()).toBeFalsy();
+        // A made-up session token finds nothing either.
+        const guessed = await fitWith('A'.repeat(32), mine.asset);
+        expect(guessed.ok()).toBeFalsy();
+        // Pictures are never listed or served: these paths only get the app page back.
+        for (const url of ['/api/editor/assets', `/api/editor/assets/${mine.asset}`, `/api/editor/assets/${mine.session}`]) {
+            const response = await stranger.request.get(url);
+            expect(response.headers()['content-type'] ?? '').not.toMatch(/^image\//);
+            const body = await response.body();
+            expect(body.includes(Buffer.from([0x89, 0x50, 0x4e, 0x47])), `${url} returned a PNG`).toBe(false);
+            expect(body.toString('utf8')).not.toContain(mine.asset);
+        }
+    } finally {
+        await owner.close();
+        await stranger.close();
     }
 });

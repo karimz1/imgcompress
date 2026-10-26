@@ -65,14 +65,29 @@ import { useCropImageLoader } from "@/components/crop/useCropImageLoader";
 import { useFitPreviewBox } from "@/components/crop/useFitPreviewBox";
 import { useCropPanZoom } from "@/components/crop/useCropPanZoom";
 import { useEditorFit } from "@/components/crop/useEditorFit";
-import { FitControls } from "@/components/crop/FitControls";
-import { FitPlacementControls } from "@/components/crop/FitPlacementControls";
+import { FitControls, FitStatus } from "@/components/crop/FitControls";
+import { FitLayersPanel } from "@/components/crop/FitLayersPanel";
+import { AngleRow, FitPlacementControls } from "@/components/crop/FitPlacementControls";
 import { FitPlacementStage } from "@/components/crop/FitPlacementStage";
+import { isTyping, StageToolbar } from "@/components/crop/StageToolbar";
+import { useCompactEditor } from "@/components/crop/useCompactEditor";
 import {
+  COMPACT_TABS,
   CropEditorTabs,
   type EditorTab,
 } from "@/components/crop/CropEditorTabs";
-import type { FitOutput } from "@/lib/fitToSize";
+import { DEFAULT_PLACEMENT, MAX_IMAGE_LAYERS, MAX_TEXT_LAYERS, type FitOutput } from "@/lib/fitToSize";
+
+/** Compares saved designs; object URLs change on every open, files by identity. */
+const fitSignature = (fit: FitOutput | null | undefined) =>
+  JSON.stringify(fit ?? null, (key, value) => {
+    if (key === "url") return undefined;
+    if (value instanceof Blob) {
+      const file = value as File;
+      return `${file.name ?? ""}:${value.size}:${file.lastModified ?? ""}`;
+    }
+    return value;
+  });
 
 export interface CropWidgetHandle {
   requestClose: () => void;
@@ -148,7 +163,13 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
       : null,
   );
   const [fitCrop, setFitCrop] = useState<Rect | null>(manualCrop);
-  const fitting = fitAvailable && activeTab === "fit";
+  const fitting = fitAvailable && activeTab !== "crop";
+  const compact = useCompactEditor();
+  const visibleTabs = compact ? COMPACT_TABS : undefined;
+  // A double-click on a stage text asks the layers panel to focus its field.
+  const [editRequest, setEditRequest] = useState(0);
+  const backgroundInput = useRef<HTMLInputElement | null>(null);
+  const backgroundInputMobile = useRef<HTMLInputElement | null>(null);
   const crop = fitting ? fitCrop : manualCrop;
   const setCrop = fitting ? setFitCrop : setManualCrop;
   const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
@@ -211,7 +232,39 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
   const activeFit = fitting ? fit.output : null;
   // Editor-only guide; it is never part of the output.
   const [showGrid, setShowGrid] = useState(false);
-  const placing = !!activeFit && activeFit.mode !== "crop";
+  // "Crop" mode picks the region on the size tab; the other tabs show the
+  // design with the image filling the canvas.
+  const baseLocked = activeFit?.mode === "crop" && activeTab !== "fit";
+  const placing = !!activeFit && (activeFit.mode !== "crop" || baseLocked);
+
+  // Small screens keep crop and size only; saved design settings stay.
+  useEffect(() => {
+    if (compact && !COMPACT_TABS.includes(activeTab)) setActiveTab("fit");
+  }, [compact, activeTab]);
+
+  const { undo, redo } = fit;
+  useEffect(() => {
+    if (!fitting) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || isTyping(e.target)) return;
+      const key = e.key.toLowerCase();
+      if (key !== "z" && key !== "y") return;
+      e.preventDefault();
+      if (fit.batchWorking) return;
+      if (key === "y" || e.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fitting, undo, redo, fit.batchWorking]);
+
+  const openTab = useCallback(
+    (tab: EditorTab) => {
+      if (compact && !COMPACT_TABS.includes(tab)) return;
+      setActiveTab(tab);
+    },
+    [compact],
+  );
   const stageTarget = useMemo(
     () =>
       placing && activeFit
@@ -234,6 +287,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         ),
       }
     : null;
+  const selectedLayer = fit.layers.find((l) => l.id === fit.selected) ?? null;
   const editorBusy = fitting && (fit.working || fit.pending || !fit.applied);
   const fitRef = useRef<FitOutput | null>(activeFit);
   fitRef.current = activeFit;
@@ -264,8 +318,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
     if (!baseline || !current) return false;
     return (
       presetRef.current !== baseline.preset ||
-      JSON.stringify(fitRef.current ?? undefined) !==
-        JSON.stringify(initialCrop?.fit) ||
+      fitSignature(fitRef.current) !== fitSignature(initialCrop?.fit) ||
       current.x !== baseline.crop.x ||
       current.y !== baseline.crop.y ||
       current.width !== baseline.crop.width ||
@@ -558,8 +611,17 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
           value={activeTab}
           onChange={(tab) => {
             setActiveTab(tab);
+            if (tab === "background" && fit.output?.mode === "image" && fit.backgroundImage) {
+              fit.setSelected("background");
+            } else if (
+              fit.selected === "background" ||
+              (fit.selected === "image" && tab !== "fit")
+            ) {
+              fit.setSelected(null);
+            }
             resetView();
           }}
+          tabs={visibleTabs}
           suffix={suffix}
           disabled={fit.batchWorking}
         />
@@ -724,49 +786,111 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         )}
       </div>
       {fitAvailable && (
-        <div
-          role="tabpanel"
-          id={`crop-editor-panel-fit${suffix}`}
-          aria-labelledby={`crop-editor-tab-fit${suffix}`}
-          hidden={!fitting}
-          className="space-y-4"
-        >
-          {fitting && (
-            <>
+        <>
+          <div
+            role="tabpanel"
+            id={`crop-editor-panel-fit${suffix}`}
+            aria-labelledby={`crop-editor-tab-fit${suffix}`}
+            hidden={activeTab !== "fit"}
+            className="space-y-4"
+          >
+            {fitting && (
+              <>
+                <FitControls
+                  fit={fit}
+                  suffix={suffix}
+                  section="size"
+                  backgroundInput={suffix ? backgroundInputMobile : backgroundInput}
+                  compact={compact}
+                  onNeedBackground={() => openTab("background")}
+                />
+                {compact && (
+                  <p
+                    className="rounded-md border border-dashed border-current/20 px-2.5 py-2 text-xs leading-snug opacity-75"
+                    data-testid={`crop-compact-note${suffix}`}
+                  >
+                    {t("crop.fit.compactNote")}
+                    {fit.layers.length > 0 && ` ${t("crop.fit.compactKept")}`}
+                  </p>
+                )}
+                {fit.placementEnabled && fit.output && crop && (
+                  <FitPlacementControls
+                    fit={fit.output}
+                    source={{ width: crop.width, height: crop.height }}
+                    placement={fit.placement}
+                    onChange={fit.setPlacement}
+                    disabled={editorBusy}
+                    showGrid={showGrid}
+                    onShowGridChange={setShowGrid}
+                    suffix={suffix}
+                  />
+                )}
+                {activeFit?.mode === "crop" && (
+                  // Fill frame turns too: the image stays centred and zooms to keep the frame full.
+                  <div className="rounded-md border border-current/10 p-3" data-testid={`fit-fill-rotation${suffix}`}>
+                    <AngleRow
+                      id={`fit-rotation${suffix}`}
+                      value={fit.placement?.rotation ?? 0}
+                      disabled={editorBusy || !fit.output}
+                      onChange={(rotation) => fit.setPlacement({ ...(fit.placement ?? DEFAULT_PLACEMENT), rotation })}
+                      testId="fit-rotation"
+                      suffix={suffix}
+                    />
+                  </div>
+                )}
+                {activeFit?.mode === "crop" && (
+                  <details
+                    className="rounded-md border border-current/10 p-3"
+                    data-testid={`crop-fit-selection-settings${suffix}`}
+                  >
+                    <summary
+                      className="cursor-pointer text-sm font-medium"
+                      data-testid={`crop-fit-adjust-selection${suffix}`}
+                    >
+                      {t("crop.fit.selection")}
+                    </summary>
+                    <div className="pt-3">{renderCropDimensions(suffix)}</div>
+                  </details>
+                )}
+              </>
+            )}
+          </div>
+          <div
+            role="tabpanel"
+            id={`crop-editor-panel-background${suffix}`}
+            aria-labelledby={`crop-editor-tab-background${suffix}`}
+            hidden={activeTab !== "background"}
+            className="space-y-4"
+          >
+            {/* Stays mounted while fitting: the mode buttons open its file picker.
+                Small screens have no background tab; their colour sits in the size tab. */}
+            {fitting && !compact && (
               <FitControls
                 fit={fit}
                 suffix={suffix}
-                canApplyToAll={!!onApplyFitToAll}
+                section="background"
+                backgroundInput={suffix ? backgroundInputMobile : backgroundInput}
               />
-              {fit.placementEnabled && fit.output && crop && (
-                <FitPlacementControls
-                  fit={fit.output}
-                  source={{ width: crop.width, height: crop.height }}
-                  placement={fit.placement}
-                  onChange={fit.setPlacement}
-                  disabled={editorBusy}
-                  showGrid={showGrid}
-                  onShowGridChange={setShowGrid}
-                  suffix={suffix}
-                />
-              )}
-              {activeFit?.mode === "crop" && (
-                <details
-                  className="rounded-md border border-current/10 p-3"
-                  data-testid={`crop-fit-selection-settings${suffix}`}
-                >
-                  <summary
-                    className="cursor-pointer text-sm font-medium"
-                    data-testid={`crop-fit-adjust-selection${suffix}`}
-                  >
-                    {t("crop.fit.selection")}
-                  </summary>
-                  <div className="pt-3">{renderCropDimensions(suffix)}</div>
-                </details>
-              )}
-            </>
-          )}
-        </div>
+            )}
+          </div>
+          <div
+            role="tabpanel"
+            id={`crop-editor-panel-layers${suffix}`}
+            aria-labelledby={`crop-editor-tab-layers${suffix}`}
+            hidden={activeTab !== "layers"}
+            className="space-y-4"
+          >
+            {activeTab === "layers" && (
+              <FitLayersPanel
+                fit={fit}
+                suffix={suffix}
+                editRequest={editRequest}
+                onEditHandled={() => setEditRequest(0)}
+              />
+            )}
+          </div>
+          {fitting && <FitStatus fit={fit} suffix={suffix} canApplyToAll={!!onApplyFitToAll} />}
+        </>
       )}
       {initialCrop && onClearCrop && (
         <Button
@@ -854,9 +978,29 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
         />
       ) : (
         <>
+          <div className="crop-editor-fade-in flex min-h-0 min-w-0 flex-1 flex-col">
+          {placing && (
+            <StageToolbar
+              canUndo={fit.canUndo}
+              canRedo={fit.canRedo}
+              onUndo={fit.undo}
+              onRedo={fit.redo}
+              layerSelected={selectedLayer !== null}
+              canDuplicate={
+                selectedLayer?.kind === "text"
+                  ? fit.layers.filter((l) => l.kind === "text").length < MAX_TEXT_LAYERS
+                  : fit.layers.filter((l) => l.kind === "image").length < MAX_IMAGE_LAYERS
+              }
+              onDuplicate={() => selectedLayer && fit.duplicateLayer(selectedLayer.id)}
+              onDelete={() => selectedLayer && fit.removeLayer(selectedLayer.id)}
+              compact={compact}
+              disabled={fit.batchWorking}
+              isDarkTheme={isDarkTheme}
+            />
+          )}
           <div
             ref={previewWrapperRef}
-            className="crop-editor-fade-in relative flex-1 min-h-0 min-w-0 flex items-center justify-center p-3"
+            className="relative flex-1 min-h-0 min-w-0 flex items-center justify-center p-3"
           >
             {placing && activeFit ? (
               stageBox && (
@@ -867,10 +1011,32 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                   fit={activeFit}
                   placement={fit.placement}
                   onChange={fit.setPlacement}
+                  backgroundPlacement={fit.backgroundPlacement}
+                  onBackgroundChange={fit.setBackgroundPlacement}
+                  layers={fit.layers}
+                  onLayerChange={fit.updateLayer}
+                  onRemoveLayer={fit.removeLayer}
+                  onDuplicateLayer={fit.duplicateLayer}
+                  onEditText={(id) => {
+                    fit.setSelected(id);
+                    openTab("layers");
+                    setEditRequest((n) => n + 1);
+                  }}
+                  selected={fit.selected}
+                  onSelect={(next) => {
+                    fit.setSelected(next);
+                    // In Fill frame the fit tab shows the selection, not the stage: stay and turn it here.
+                    if (next === "image") {
+                      if (!baseLocked) openTab("fit");
+                    }
+                    else if (next === "background") openTab("background");
+                    else if (next) openTab("layers");
+                  }}
+                  baseLocked={baseLocked}
                   preview={fit.preview}
                   previewCurrent={fit.previewCurrent}
                   box={stageBox}
-                  disabled={editorBusy || !fit.placementEnabled}
+                  disabled={editorBusy || (!baseLocked && !fit.placementEnabled)}
                   previewAlt={t("crop.fit.preview")}
                   showGrid={showGrid}
                 />
@@ -978,7 +1144,7 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
                 </div>
               </div>
             </div>}
-            {(!activeFit || activeFit.mode === "crop") && (
+            {!placing && (
               <div
                 role="group"
                 aria-label={`${t("crop.zoom")} · ${t("crop.viewOnly")}`}
@@ -1027,11 +1193,12 @@ const CropWidget = forwardRef<CropWidgetHandle, CropWidgetProps>(function CropWi
               </div>
             )}
           </div>
+          </div>
 
           {/* Desktop: fixed right-hand control panel */}
           <div
             className={cn(
-              "crop-editor-fade-in hidden lg:flex lg:w-80 shrink-0 flex-col gap-3 rounded-md border p-3 backdrop-blur-md overflow-hidden",
+              "crop-editor-fade-in hidden lg:flex lg:w-[22rem] shrink-0 flex-col gap-3 rounded-md border p-3 backdrop-blur-md overflow-hidden",
               controlPanelSurface,
             )}
             data-testid="crop-side-panel"

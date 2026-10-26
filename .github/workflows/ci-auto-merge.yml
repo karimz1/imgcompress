@@ -347,6 +347,13 @@ jobs:
             disable_storage_management: "true"
             scenario: "logo SHOWN  | storage HIDDEN"
             label: "logo-shown_storage-hidden"
+          # small upload limit           (MAX_UPLOAD_SIZE_MB=5; the other entries keep the 40 GB default)
+          # 5 MB sits between the 1.18 MB JPEG fixture (accepted) and the 37 MB PSD fixture (refused).
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            max_upload_size_mb: "5"
+            scenario: "logo SHOWN  | storage SHOWN | upload limit 5 MB"
+            label: "upload-limit-5mb"
     steps:
       - name: Check out code
         uses: actions/checkout@v7
@@ -388,6 +395,7 @@ jobs:
           echo "Scenario:                    ${{ matrix.scenario }}"
           echo "DISABLE_LOGO:                ${{ matrix.disable_logo }}   -> Logo $([ '${{ matrix.disable_logo }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
           echo "DISABLE_STORAGE_MANAGEMENT:  ${{ matrix.disable_storage_management }}   -> Storage management button $([ '${{ matrix.disable_storage_management }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
+          echo "MAX_UPLOAD_SIZE_MB:          ${{ matrix.max_upload_size_mb || '(default 40960)' }}"
           echo "::endgroup::"
           docker run --rm -d \
             --platform linux/amd64 \
@@ -395,6 +403,7 @@ jobs:
             --name app \
             -e DISABLE_LOGO=${{ matrix.disable_logo }} \
             -e DISABLE_STORAGE_MANAGEMENT=${{ matrix.disable_storage_management }} \
+            -e MAX_UPLOAD_SIZE_MB=${{ matrix.max_upload_size_mb }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for Application to be Ready (using localhost)
@@ -439,7 +448,7 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
             --name devcontainer_flags \
-            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts"
+            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts"
 
       - name: Stop Application Container
         if: always()

@@ -1,5 +1,6 @@
 {
   "DISABLE_LOGO": "false",
   "DISABLE_STORAGE_MANAGEMENT": "false",
-  "DEV_MODE": "false"
+  "DEV_MODE": "false",
+  "MAX_UPLOAD_SIZE_MB": "40960"
 }

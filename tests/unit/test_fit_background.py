@@ -1,6 +1,7 @@
 """Editor backgrounds: patterns, dimming and a custom background image."""
 
 import os
+from dataclasses import replace
 import tempfile
 from io import BytesIO
 
@@ -17,13 +18,13 @@ from backend.image_converter.domain.fit_to_size import (
     FitPattern,
     FitPlacement,
     FitToSize,
+    DEFAULT_BLUR_STRENGTH,
 )
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.presentation.web.services.compression_service import (
     CompressionService,
 )
 from backend.image_converter.presentation.web.services.fit_preview_service import (
-    MAX_BACKGROUND_BYTES,
     FitPreviewService,
 )
 from tests.unit.dummy_logger import DummyLogger
@@ -301,7 +302,12 @@ def test_When_BackgroundUploadIsAnSvg_Expect_Rejected():
     assert not result.is_successful
 
 
-def test_When_BackgroundUploadIsTooLarge_Expect_RejectedWithoutReadingItAll():
+def test_When_BackgroundUploadIsTooLarge_Expect_RejectedWithoutReadingItAll(monkeypatch):
+    from backend.image_converter.infrastructure import editor_asset_store
+
+    limit = 4 << 20
+    monkeypatch.setattr(editor_asset_store, "max_upload_bytes", lambda: limit)
+
     class Endless:
         read_bytes = 0
 
@@ -314,7 +320,7 @@ def test_When_BackgroundUploadIsTooLarge_Expect_RejectedWithoutReadingItAll():
     result = preview(Image.new("RGB", (100, 100)), background=stream, fit_mode="image")
     assert not result.is_successful
     assert "too large" in result.error.lower()
-    assert stream.read_bytes <= MAX_BACKGROUND_BYTES + (1 << 20)
+    assert stream.read_bytes <= limit + (1 << 20)
 
 
 def test_When_BackgroundUploadIsSentWithOtherModes_Expect_Ignored():
@@ -382,3 +388,145 @@ def test_When_CompressionFormAsksForImageMode_Expect_RejectedBecauseItNeedsTheEd
     result = service.compress(_form_data(ImageFormat.PNG, fit_width="100", fit_height="100", fit_mode="image"))
     assert not result.is_successful
     assert use_case.request is None
+
+
+# --- Blur strength and tint --------------------------------------------------
+
+
+def parse_extra(mode="blur", **fields):
+    return FitToSize.from_strings_result("400", "400", mode, "", "", "", "", "", **fields)
+
+
+def stripes(size=(120, 120), period=6):
+    """Hard black and white stripes; any blur greys them out."""
+    data = (np.arange(size[0]) // (period // 2) % 2 * 255).astype(np.uint8)
+    return Image.fromarray(np.tile(data, (size[1], 1))).convert("RGB")
+
+
+def with_background(fit, background):
+    return replace(fit, background=background)
+
+
+def contrast(image, box):
+    return float(np.asarray(image.crop(box).convert("L"), dtype=np.float32).std())
+
+
+def test_When_BlurIsLeftOut_Expect_NoneAndModeDefaults():
+    fit = parse_extra("blur").value
+    assert fit.background.blur is None
+    assert fit.background.blur_for(FitMode.BLUR) == DEFAULT_BLUR_STRENGTH
+    assert fit.background.blur_for(FitMode.IMAGE) == 0.0
+    assert fit.background.is_plain
+
+
+@pytest.mark.parametrize("mode,value", [("blur", "0.25"), ("image", "0")])
+def test_When_BlurEqualsTheModeDefault_Expect_StoredAsDefault(mode, value):
+    assert parse_extra(mode, blur=value).value.background.blur is None
+
+
+@pytest.mark.parametrize("raw,expected", [("0.6", 0.6), ("0", 0.0), ("1", 1.0), ("7", 1.0), ("-3", 0.0)])
+def test_When_BlurIsOutOfRange_Expect_Clamped(raw, expected):
+    assert parse_extra("blur", blur=raw).value.background.blur == expected
+
+
+@pytest.mark.parametrize("raw", ["abc", "nan", "inf", "-inf"])
+def test_When_BlurIsNotANumber_Expect_Failure(raw):
+    assert not parse_extra("blur", blur=raw).is_successful
+
+
+@pytest.mark.parametrize("mode", ["solid", "transparent", "crop"])
+def test_When_BlurIsGivenForAModeWithoutBlur_Expect_Failure(mode):
+    result = parse_extra(mode, blur="0.5")
+    assert not result.is_successful
+    assert "blur" in result.error.lower()
+
+
+def test_When_BlurRadiusIsMapped_Expect_DefaultUnchangedAndLinear():
+    base = max(2.0, 1200 * 0.025) * 600 / 1200
+    assert ImageResizer.blur_radius(1200, 630, (600, 315)) == base
+    assert ImageResizer.blur_radius(1200, 630, (600, 315), 0.25) == base
+    assert ImageResizer.blur_radius(1200, 630, (600, 315), 0.5) == pytest.approx(base * 2)
+    assert ImageResizer.blur_radius(1200, 630, (600, 315), 1.0) == pytest.approx(base * 4)
+    assert ImageResizer.blur_radius(1200, 630, (600, 315), 0.0) == 0.0
+
+
+def test_When_BlurIsExplicitDefault_Expect_ByteIdenticalOutput():
+    image = Image.new("RGB", (300, 120), GREEN)
+    plain = ImageResizer.fit_image(image, FitToSize(400, 200, FitMode.BLUR))
+    parsed = FitToSize.from_strings_result("400", "200", "blur", "", "", "", "", "", blur="0.25").value
+    assert np.array_equal(np.asarray(plain), np.asarray(ImageResizer.fit_image(image, parsed)))
+
+
+def test_When_BlurIsStronger_Expect_SofterBackground():
+    image = stripes()
+    corner = (0, 0, 60, 60)
+    sharp = render(with_background(tiny(FitMode.BLUR), FitBackground(blur=0.0)), image)
+    default = render(tiny(FitMode.BLUR), image)
+    strong = render(with_background(tiny(FitMode.BLUR), FitBackground(blur=1.0)), image)
+    assert contrast(sharp, corner) > contrast(default, corner) > contrast(strong, corner)
+
+
+def test_When_BackgroundImageIsBlurred_Expect_SofterThanSharpDefault():
+    background = stripes((200, 200), 10)
+    sharp = render(tiny(FitMode.IMAGE, image=background))
+    blurred_fit = tiny(FitMode.IMAGE, image=background)
+    blurred = render(with_background(blurred_fit, FitBackground(image=background, blur=0.5)))
+    corner = (0, 0, 80, 80)
+    assert contrast(sharp, corner) > 40
+    assert contrast(blurred, corner) < contrast(sharp, corner) / 2
+    # The image in front stays sharp.
+    assert blurred.getpixel((200, 200)) == GREEN
+
+
+def test_When_TintIsGiven_Expect_ParsedClampedAndValidated():
+    bg = parse_extra("solid", tint="0.4", tint_color="#3366FF").value.background
+    assert (bg.tint, bg.tint_color) == (0.4, "#3366ff")
+    assert parse_extra("solid", tint="5").value.background.tint == 1.0
+    assert parse_extra("solid", tint="-1").value.background.tint == 0.0
+    assert not parse_extra("solid", tint="x").is_successful
+    assert not parse_extra("solid", tint="0.3", tint_color="transparent").is_successful
+    assert not parse_extra("solid", tint="0.3", tint_color="#11223344").is_successful
+    assert not parse_extra("solid", tint="0.3", tint_color="url(x)").is_successful
+    assert not parse_extra("transparent", tint="0.3").is_successful
+    # No opacity means no tint; the colour alone changes nothing.
+    assert parse_extra("solid", tint_color="#ff0000").value.background.is_plain
+
+
+@pytest.mark.parametrize("mode", [FitMode.SOLID, FitMode.BLUR, FitMode.IMAGE])
+def test_When_BackgroundIsTinted_Expect_ColourMixedInButImageUntouched(mode):
+    image = Image.new("RGB", (100, 100), GREEN)
+    base_bg = Image.new("RGB", (50, 50), (200, 200, 200))
+    fit = tiny(mode, color="#c8c8c8", image=base_bg if mode == FitMode.IMAGE else None)
+    plain = render(with_background(fit, FitBackground(image=fit.background.image)), image)
+    tinted = render(
+        with_background(fit, FitBackground(image=fit.background.image, tint=0.5, tint_color="#ff0000")), image
+    )
+    before, after = plain.getpixel((5, 5)), tinted.getpixel((5, 5))
+    assert after == pytest.approx(((before[0] + 255) / 2, before[1] / 2, before[2] / 2), abs=2)
+    assert tinted.getpixel((200, 200)) == GREEN
+
+
+def test_When_TintAndPatternOnTransparentColour_Expect_AlphaKept():
+    fit = tiny(FitMode.SOLID, color="#ffffff80", pattern=FitPattern.CHECKER)
+    out = ImageResizer.fit_image(
+        Image.new("RGB", (100, 100), GREEN),
+        with_background(fit, FitBackground(FitPattern.CHECKER, tint=0.5, tint_color="#0000ff")),
+    )
+    assert out.mode == "RGBA"
+    assert out.getpixel((5, 5))[3] == 128
+
+
+def test_When_PreviewHasBlurAndTint_Expect_EchoedForSaving():
+    result = preview(Image.new("RGB", (100, 100)), fit_mode="blur", fit_blur="0.6", fit_tint="0.3", fit_tint_color="#ff8800")
+    assert result.is_successful, result.error
+    assert result.value[0]["fit"]["background"] == {
+        "pattern": "none",
+        "dim": 0.0,
+        "blur": 0.6,
+        "tint": {"color": "#ff8800", "opacity": 0.3},
+    }
+
+
+def test_When_PreviewHasDefaultBlur_Expect_NoBackgroundEchoed():
+    result = preview(Image.new("RGB", (100, 100)), fit_mode="blur", fit_blur="0.25", fit_tint="0")
+    assert "background" not in result.value[0]["fit"]

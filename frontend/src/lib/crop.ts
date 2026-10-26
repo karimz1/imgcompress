@@ -1,4 +1,5 @@
-import type { FitOutput } from "./fitToSize";
+import { editorSession, forgetEditorAssets, uploadEditorPicture } from "./editorAssets";
+import { DEFAULT_GRADIENT_ANGLE, layersPayload, layerVisible, type FitOutput } from "./fitToSize";
 
 export type RatioPresetId = "free" | "1:1" | "16:9" | "4:3";
 
@@ -275,7 +276,19 @@ export function buildCroppedFilename(name: string, outputMime: string): string {
   return `${base}${ext}`;
 }
 
-function fitForm(bitmap: Blob, fit: FitOutput, crop?: Pick<CropConfig, "x" | "y" | "width" | "height">): FormData {
+type CropBox = Pick<CropConfig, "x" | "y" | "width" | "height">;
+
+/**
+ * The form for /api/crop/fit. Pictures are sent by id from the editor session
+ * (uploaded once); ``withPictures`` false leaves them and the layers out, for
+ * requests that only compute the selection.
+ */
+async function fitForm(
+  bitmap: Blob,
+  fit: FitOutput,
+  crop: CropBox | undefined,
+  withPictures: boolean,
+): Promise<FormData> {
   const form = new FormData();
   form.append("file", bitmap, bitmap instanceof File ? bitmap.name : "editor-bitmap.png");
   form.append("fit_width", String(fit.width));
@@ -284,19 +297,66 @@ function fitForm(bitmap: Blob, fit: FitOutput, crop?: Pick<CropConfig, "x" | "y"
   if (fit.color) {
     form.append("fit_color", fit.color);
   }
-  if (fit.placement && fit.mode !== "crop") {
-    form.append("fit_scale", String(fit.placement.scale));
-    form.append("fit_x", String(fit.placement.x));
-    form.append("fit_y", String(fit.placement.y));
+  if (fit.placement) {
+    // Fill frame ("crop") takes only the tilt; the picture keeps covering the frame.
+    if (fit.mode !== "crop") {
+      form.append("fit_scale", String(fit.placement.scale));
+      form.append("fit_x", String(fit.placement.x));
+      form.append("fit_y", String(fit.placement.y));
+    }
+    if (fit.placement.rotation) form.append("fit_rotation", String(fit.placement.rotation));
   }
-  if (fit.background) {
-    if (fit.background.pattern !== "none") form.append("fit_pattern", fit.background.pattern);
-    if (fit.background.dim > 0) form.append("fit_dim", String(fit.background.dim));
-    // Sent with every request: the server keeps no copy between requests.
-    if (fit.background.image && fit.mode === "image") {
-      form.append("fit_background", fit.background.image.file, fit.background.image.file.name);
+  const pictures: Promise<void>[] = [];
+  const background = fit.background;
+  if (background) {
+    if (background.pattern !== "none") form.append("fit_pattern", background.pattern);
+    if (background.dim > 0) form.append("fit_dim", String(background.dim));
+    if (background.blur !== undefined) form.append("fit_blur", String(background.blur));
+    if (background.tint && background.tint.opacity > 0) {
+      form.append("fit_tint", String(background.tint.opacity));
+      form.append("fit_tint_color", background.tint.color);
+      if (background.tint.colorTo) {
+        form.append("fit_tint_color_to", background.tint.colorTo);
+        form.append("fit_tint_angle", String(background.tint.angle ?? DEFAULT_GRADIENT_ANGLE));
+      }
+    }
+    // A gradient needs an opaque start colour; a see-through one stays flat.
+    if (background.colorTo && fit.mode === "solid" && fit.color?.length === 7) {
+      form.append("fit_color_to", background.colorTo);
+      form.append("fit_gradient_angle", String(background.gradientAngle ?? DEFAULT_GRADIENT_ANGLE));
+    }
+    if (background.image && fit.mode === "image" && withPictures) {
+      const file = background.image.file;
+      pictures.push(
+        uploadEditorPicture(file).then(({ asset }) => form.append("fit_background_asset", asset)),
+      );
+    }
+    const layer = background.imagePlacement;
+    if (layer && fit.mode === "image") {
+      form.append("fit_bg_scale", String(layer.scale));
+      form.append("fit_bg_x", String(layer.x));
+      form.append("fit_bg_y", String(layer.y));
+      if (layer.rotation) form.append("fit_bg_rotation", String(layer.rotation));
     }
   }
+  const layers = withPictures ? (fit.layers ?? []).filter(layerVisible) : [];
+  if (layers.length) {
+    const assets = new Map<string, string>();
+    for (const layer of layers) {
+      if (layer.kind !== "image") continue;
+      pictures.push(
+        uploadEditorPicture(layer.picture.file).then(({ asset }) => {
+          assets.set(layer.id, asset);
+        }),
+      );
+    }
+    await Promise.all(pictures);
+    form.append("fit_layers", JSON.stringify(layersPayload(layers, (layer) => assets.get(layer.id) ?? "")));
+  } else {
+    await Promise.all(pictures);
+  }
+  const session = editorSession();
+  if (session && pictures.length) form.append("fit_session", session);
   if (crop) {
     form.append("crop_x", String(crop.x));
     form.append("crop_y", String(crop.y));
@@ -306,10 +366,34 @@ function fitForm(bitmap: Blob, fit: FitOutput, crop?: Pick<CropConfig, "x" | "y"
   return form;
 }
 
+/**
+ * Posts a fit. If the editor session expired in the meantime, its pictures
+ * upload again and the request is sent once more.
+ */
+async function postFit(
+  bitmap: Blob,
+  fit: FitOutput,
+  options: { crop?: CropBox; extra?: Record<string, string>; withPictures?: boolean },
+  signal?: AbortSignal,
+): Promise<Response> {
+  const withPictures = options.withPictures ?? true;
+  for (let attempt = 0; ; attempt++) {
+    const form = await fitForm(bitmap, fit, options.crop, withPictures);
+    for (const [key, value] of Object.entries(options.extra ?? {})) form.append(key, value);
+    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
+    if (response.status === 410 && attempt === 0) {
+      forgetEditorAssets();
+      continue;
+    }
+    if (!response.ok) throw new Error(await readBitmapError(response));
+    return response;
+  }
+}
+
 export async function previewFit(
   imageUrl: string,
   fit: FitOutput,
-  crop?: Pick<CropConfig, "x" | "y" | "width" | "height">,
+  crop?: CropBox,
   signal?: AbortSignal,
   sourceFile?: File,
   withPreview = true
@@ -317,50 +401,44 @@ export async function previewFit(
   const bitmap = sourceFile && isSvgFile(sourceFile)
     ? sourceFile
     : await fetch(imageUrl, { signal }).then((response) => response.blob());
-  const form = fitForm(bitmap, fit, crop);
-  if (!withPreview) form.append("preview", "false");
-  const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
-  if (!response.ok) throw new Error(await readBitmapError(response));
+  const response = await postFit(
+    bitmap,
+    fit,
+    { crop, extra: withPreview ? {} : { preview: "false" }, withPictures: withPreview },
+    signal,
+  );
   const result = await response.json();
-  return { crop: withBackgroundImage(result.crop, fit), preview: result.preview ?? null };
+  return { crop: withClientParts(result.crop, fit), preview: result.preview ?? null };
 }
 
 /**
- * The server only echoes pattern and dim; the background picture stays in the
- * browser, so it is put back onto the fit the server returned.
+ * The server echoes the settings but never the pictures, so the browser's
+ * own background picture and layers are put back onto the saved fit.
  */
-function withBackgroundImage(crop: CropConfig, fit: FitOutput): CropConfig {
+function withClientParts(crop: CropConfig, fit: FitOutput): CropConfig {
+  if (!crop.fit) return crop;
+  const { layers: _echoed, ...rest } = crop.fit;
+  const next: FitOutput = { ...rest, ...(fit.layers?.length ? { layers: fit.layers } : {}) };
   const image = fit.background?.image;
-  if (!image || !crop.fit) return crop;
-  return {
-    ...crop,
-    fit: {
-      ...crop.fit,
-      background: { pattern: "none", dim: 0, ...crop.fit.background, image },
-    },
-  };
+  if (image) next.background = { pattern: "none", dim: 0, ...next.background, image };
+  return { ...crop, fit: next };
 }
 
 export async function autoFitFile(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
-  return withBackgroundImage(await autoFitSelection(file, fit, signal), fit);
+  return withClientParts(await autoFitSelection(file, fit, signal), fit);
 }
 
 async function autoFitSelection(file: File, fit: FitOutput, signal?: AbortSignal): Promise<CropConfig> {
+  const options = { extra: { preview: "false" }, withPictures: false };
   if (isSvgFile(file)) {
-    const form = fitForm(file, fit);
-    form.append("preview", "false");
-    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
-    if (!response.ok) throw new Error(await readBitmapError(response));
+    const response = await postFit(file, fit, options, signal);
     return (await response.json()).crop;
   }
   const image = await loadImageFromFile(file);
   try {
     // Only the selection is needed here; each editor renders its own preview when opened.
     const bitmap = await fetch(image.src, { signal }).then((response) => response.blob());
-    const form = fitForm(bitmap, fit);
-    form.append("preview", "false");
-    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
-    if (!response.ok) throw new Error(await readBitmapError(response));
+    const response = await postFit(bitmap, fit, options, signal);
     return (await response.json()).crop;
   } finally {
     if (image.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
@@ -383,16 +461,14 @@ export async function applyCropToFile(file: File, crop: CropConfig, signal?: Abo
       type: "image/svg+xml", lastModified: file.lastModified,
     });
     if (!crop.fit) return selected;
-    const form = fitForm(selected, crop.fit);
     // The saved selection is already clipped into the SVG; preserve it
     // instead of choosing a new automatic position during export.
-    form.append("crop_x", "0");
-    form.append("crop_y", "0");
-    form.append("crop_width", String(safe.width));
-    form.append("crop_height", String(safe.height));
-    form.append("render", "true");
-    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
-    if (!response.ok) throw new Error(await readBitmapError(response));
+    const response = await postFit(
+      selected,
+      crop.fit,
+      { crop: { x: 0, y: 0, width: safe.width, height: safe.height }, extra: { render: "true" } },
+      signal,
+    );
     return new File([await response.blob()], buildCroppedFilename(file.name, "image/png"), {
       type: "image/png", lastModified: file.lastModified,
     });
@@ -402,10 +478,7 @@ export async function applyCropToFile(file: File, crop: CropConfig, signal?: Abo
     const safe = clampCrop(crop, img.naturalWidth, img.naturalHeight);
     if (crop.fit) {
       const bitmap = await fetch(img.src, { signal }).then((response) => response.blob());
-      const form = fitForm(bitmap, crop.fit, safe);
-      form.append("render", "true");
-      const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
-      if (!response.ok) throw new Error(await readBitmapError(response));
+      const response = await postFit(bitmap, crop.fit, { crop: safe, extra: { render: "true" } }, signal);
       return new File([await response.blob()], buildCroppedFilename(file.name, "image/png"), {
         type: "image/png",
         lastModified: file.lastModified,

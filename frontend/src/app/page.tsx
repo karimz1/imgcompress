@@ -40,12 +40,13 @@ import { useUpscaleModel } from "@/hooks/useUpscaleModel";
 import { DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, type UpscaleSettings } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
+import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
 
 
 function HomePageContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [disableLogo, setDisableLogo] = useState(false);
   const [configReady, setConfigReady] = useState(false);
   const [storageManagementDisabled, setStorageManagementDisabled] = useState(false);
@@ -62,6 +63,7 @@ function HomePageContent() {
           config.DISABLE_STORAGE_MANAGEMENT === "true";
         setStorageManagementDisabled(disableStorage);
         setDevMode(config.DEV_MODE === "true");
+        setMaxUploadSizeMb(config.MAX_UPLOAD_SIZE_MB);
       } catch (err) {
         console.warn("Runtime config missing or invalid, defaulting flags off", err);
         setDisableLogo(false);
@@ -228,10 +230,16 @@ function HomePageContent() {
 
       const supportedFiles: File[] = [];
       const unsupportedFiles: string[] = [];
+      const tooLargeFiles: string[] = [];
 
       acceptedFiles.forEach((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
         if (ext && formattedSupportedExtensions.includes(`.${ext}`)) {
+          // The server refuses uploads above MAX_UPLOAD_SIZE_MB, so say it right away.
+          if (file.size > maxUploadBytes()) {
+            tooLargeFiles.push(file.name);
+            return;
+          }
           supportedFiles.push(file);
         } else {
           unsupportedFiles.push(file.name);
@@ -248,9 +256,16 @@ function HomePageContent() {
         });
       }
 
+      if (tooLargeFiles.length > 0) {
+        const size = formatUploadLimit(i18n.language);
+        const messages = tooLargeFiles.map((fileName) => t("page.toast.fileTooLarge", { fileName, size }));
+        messages.forEach((message) => toast.error(message));
+        setError({ message: messages.join("\n") });
+      }
+
       setFiles((prev) => [...prev, ...supportedFiles]);
     },
-    [clearError, setError, formattedSupportedExtensions]
+    [clearError, setError, formattedSupportedExtensions, t, i18n]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -341,6 +356,17 @@ function HomePageContent() {
         return;
       }
       if (controller.signal.aborted) return;
+
+      // One request carries every file, and the server limit counts the whole request.
+      const batchBytes = processedFiles.reduce((sum, file) => sum + file.size, 0);
+      if (batchBytes > maxUploadBytes()) {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        const message = t("page.toast.batchTooLarge", { size: formatUploadLimit(i18n.language) });
+        setError({ message });
+        toast.error(message);
+        setIsLoading(false);
+        return;
+      }
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));

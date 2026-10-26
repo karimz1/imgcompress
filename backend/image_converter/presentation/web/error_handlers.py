@@ -1,10 +1,15 @@
 from flask import jsonify
 
+from backend.image_converter.config import settings
+
 
 def handle_request_entity_too_large(e):
+    """The request is above MAX_UPLOAD_SIZE_MB; it is refused before anything is stored."""
+    limit_mb = settings.get().uploads.max_file_size_mebibytes
     return jsonify({
         "error": "Payload Too Large",
-        "message": "The uploaded files exceed the maximum allowed size.",
+        "message": f"The upload is larger than the limit of {limit_mb} MB (MAX_UPLOAD_SIZE_MB).",
+        "max_upload_size_mb": limit_mb,
     }), 413
 
 

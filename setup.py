@@ -8,6 +8,10 @@ setup(
     author_email='mails.karimzouine@gmail.com',
     license='GPL-3.0-or-later',
     packages=find_packages(),
+    # Bundled editor fonts (text overlay); not a package, so list them.
+    package_data={
+        'backend.image_converter': ['assets/fonts/*/*.ttf', 'assets/fonts/*/OFL.txt'],
+    },
     install_requires=[
         'Pillow>=9.0.0',
         'pypdfium2>=4.30.0',

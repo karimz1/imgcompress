@@ -109,7 +109,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
     >
       <DialogContent
         className={cn(
-          "max-w-[95vw] w-[95vw] sm:max-w-[92vw] lg:max-w-[88vw] xl:max-w-[80vw] h-[92vh] max-h-[92vh] p-3 sm:p-4 flex flex-col gap-3 overflow-hidden border data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 origin-center",
+          "max-w-[95vw] w-[95vw] sm:max-w-[92vw] lg:w-[min(96vw,1800px)] lg:max-w-[min(96vw,1800px)] h-[92vh] max-h-[92vh] lg:h-[94vh] lg:max-h-[94vh] p-3 sm:p-4 flex flex-col gap-3 overflow-hidden border data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 origin-center",
           cropDialogContentClass
         )}
         data-testid="crop-dialog"
@@ -121,6 +121,9 @@ export const CropDialog: React.FC<CropDialogProps> = ({
           if (document.querySelector('[data-file-kind-details][data-state$="open"]')) {
             event.preventDefault();
           }
+          // With a layer selected on the stage, Escape only deselects it.
+          const stage = document.querySelector('[data-fit-stage][data-has-selection="true"]');
+          if (stage?.contains(document.activeElement)) event.preventDefault();
         }}
       >
         <DialogHeader className="shrink-0">

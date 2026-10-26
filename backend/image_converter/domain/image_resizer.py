@@ -1,16 +1,23 @@
+import math
+from io import BytesIO
+from typing import Optional
+
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
-from io import BytesIO
 
 from backend.image_converter.domain.fit_to_size import (
     PLACEABLE_FIT_MODES,
     FitAnchor,
     FitMode,
     FitPattern,
+    DEFAULT_BLUR_STRENGTH,
     FitPlacement,
     FitToSize,
 )
 from backend.image_converter.domain.smart_crop import find_crop_offset, to_8bit
+from backend.image_converter.domain.fit_layers import ImageLayer
+from backend.image_converter.domain.gradient import linear_gradient
+from backend.image_converter.domain.text_overlay import render_text_overlay
 
 # Blurred background for FitMode.BLUR: blur radius as a share of the longer
 # target side, and how much the background is darkened so the image in front
@@ -164,9 +171,50 @@ class ImageResizer:
         The editor preview uses this directly so it does not have to encode and
         decode the full-resolution selection in between.
         """
+        fitted = cls._fit_canvas(img, fit, output_size or (fit.width, fit.height))
+        return cls.draw_overlays(fitted, fit)
+
+    @classmethod
+    def draw_overlays(cls, canvas: Image.Image, fit: FitToSize) -> Image.Image:
+        """Extra layers in order, bottom first, then the single text of ``fit_text``."""
+        for layer in fit.layers:
+            if isinstance(layer, ImageLayer):
+                canvas = cls._draw_image_layer(canvas, layer)
+            else:
+                canvas = render_text_overlay(canvas, layer)
+        if fit.text is not None:
+            canvas = render_text_overlay(canvas, fit.text)
+        return canvas
+
+    @classmethod
+    def _draw_image_layer(cls, canvas: Image.Image, layer: ImageLayer) -> Image.Image:
+        """Draws a picture layer; transparency in the picture is kept."""
+        if layer.image is None:
+            raise ValueError("A picture layer has no picture.")
+        picture = to_8bit(layer.image).convert("RGBA")
+        if layer.opacity < 1:
+            opacity = layer.opacity
+            picture.putalpha(picture.getchannel("A").point(lambda a: round(a * opacity)))
+        if canvas.mode not in ("RGB", "RGBA"):
+            canvas = canvas.convert("RGBA")
+        else:
+            canvas = canvas.copy()
+        width, height = canvas.size
+        cls._draw_turned(
+            canvas,
+            picture,
+            (layer.x * width, layer.y * height),
+            (layer.width * width, layer.height * height),
+            layer.rotation,
+        )
+        return canvas
+
+    @classmethod
+    def _fit_canvas(
+        cls, img: Image.Image, fit: FitToSize, size: tuple[int, int]
+    ) -> Image.Image:
         if img.mode in ("P", "PA"):
             img = img.convert("RGBA" if cls._has_alpha(img) else "RGB")
-        size = output_size or (fit.width, fit.height)
         if fit.mode == FitMode.IMAGE and fit.background.image is None:
             raise ValueError("Fit mode image needs a background image.")
         if fit.mode in PLACEABLE_FIT_MODES and (
@@ -180,7 +228,38 @@ class ImageResizer:
         if fit.mode in (FitMode.SOLID, FitMode.TRANSPARENT):
             return cls._fit_on_solid_background(img, fit.width, fit.height, size, fit)
         box = cls.fit_crop_box(img, fit.width, fit.height, fit.anchor)
+        if fit.placement is not None and fit.placement.rotation:
+            return cls._fill_turned(img, box, size, fit.placement.rotation)
         return img.resize(size, Image.Resampling.LANCZOS, box=box)
+
+    @staticmethod
+    def _fill_turned(
+        img: Image.Image, box: tuple[float, float, float, float],
+        size: tuple[int, int], angle: float,
+    ) -> Image.Image:
+        """
+        Fill frame with a tilt: the filled picture is zoomed just enough that,
+        turned clockwise about its centre, it still covers every corner. The
+        editor shows the same with CSS scale() and rotate().
+        """
+        width, height = size
+        rad = math.radians(angle)
+        cos, sin = abs(math.cos(rad)), abs(math.sin(rad))
+        factor = max((width * cos + height * sin) / width, (width * sin + height * cos) / height)
+        big_size = (max(1, round(width * factor)), max(1, round(height * factor)))
+        big = img.resize(big_size, Image.Resampling.LANCZOS, box=box)
+        alpha = big.mode in ("RGBA", "LA")
+        if alpha:
+            big = big.convert("RGBa")
+        turned = big.rotate(
+            -angle, resample=Image.Resampling.BICUBIC,
+            center=(big.width / 2, big.height / 2),
+        )
+        if alpha:
+            turned = turned.convert("RGBA")
+        left = round((big.width - width) / 2)
+        top = round((big.height - height) / 2)
+        return turned.crop((left, top, left + width, top + height))
 
     @staticmethod
     def fit_crop_box(
@@ -243,14 +322,34 @@ class ImageResizer:
             return rgba, flat
         return None, img.convert("RGB")
 
+    @staticmethod
+    def blur_radius(
+        width: int, height: int, output_size: tuple[int, int], strength: float = DEFAULT_BLUR_STRENGTH
+    ) -> float:
+        """
+        Gaussian radius in output pixels for a blur ``strength`` (0..1). The
+        default strength gives exactly the radius blur mode always used; the
+        radius grows linearly with the strength, so 0 is no blur at all.
+        """
+        base = max(2.0, max(width, height) * _BLUR_RADIUS_SHARE) * max(output_size) / max(width, height)
+        if strength == DEFAULT_BLUR_STRENGTH:
+            return base
+        return base * strength / DEFAULT_BLUR_STRENGTH
+
     @classmethod
     def _blurred_background(
-        cls, flat: Image.Image, width: int, height: int, output_size: tuple[int, int]
+        cls,
+        flat: Image.Image,
+        width: int,
+        height: int,
+        output_size: tuple[int, int],
+        strength: float = DEFAULT_BLUR_STRENGTH,
     ) -> Image.Image:
         box = cls.fit_crop_box(flat, width, height, FitAnchor.CENTER)
         background = flat.resize(output_size, Image.Resampling.LANCZOS, box=box)
-        radius = max(2.0, max(width, height) * _BLUR_RADIUS_SHARE) * max(output_size) / max(width, height)
-        background = background.filter(ImageFilter.GaussianBlur(radius))
+        radius = cls.blur_radius(width, height, output_size, strength)
+        if radius > 0:
+            background = background.filter(ImageFilter.GaussianBlur(radius))
         return ImageEnhance.Brightness(background).enhance(_BLUR_BRIGHTNESS)
 
     @staticmethod
@@ -280,17 +379,38 @@ class ImageResizer:
         placement = fit.placement or FitPlacement()
         if fit.mode == FitMode.BLUR:
             rgba, flat = cls._flatten_for_blur(img)
-            canvas = cls._blurred_background(flat, fit.width, fit.height, output_size)
+            canvas = cls._blurred_background(
+                flat, fit.width, fit.height, output_size, fit.background.blur_for(fit.mode)
+            )
             foreground = rgba if rgba is not None else flat
         elif fit.mode == FitMode.IMAGE:
-            canvas = cls._image_background(fit.background.image, output_size)
+            canvas = cls._image_background(
+                fit.background.image, output_size, fit.background.image_placement
+            )
+            radius = cls.blur_radius(
+                fit.width, fit.height, output_size, fit.background.blur_for(fit.mode)
+            )
+            if radius > 0:
+                canvas = canvas.filter(ImageFilter.GaussianBlur(radius))
             foreground = img.convert("RGBA") if cls._has_alpha(img) else img.convert("RGB")
         else:
             if fit.mode == FitMode.TRANSPARENT or fit.color.strip().lower() == "transparent":
                 background = (0, 0, 0, 0)
             else:
                 background = cls._parse_rgba_hex(fit.color)
-            if background[3] < 255 or cls._has_alpha(img):
+            if fit.background.color_to and fit.mode == FitMode.SOLID:
+                canvas = linear_gradient(
+                    output_size,
+                    background[:3],
+                    cls._parse_rgba_hex(fit.background.color_to)[:3],
+                    fit.background.gradient_angle,
+                )
+                if cls._has_alpha(img):
+                    canvas = canvas.convert("RGBA")
+                    foreground = img.convert("RGBA")
+                else:
+                    foreground = img.convert("RGB")
+            elif background[3] < 255 or cls._has_alpha(img):
                 canvas = Image.new("RGBA", output_size, background)
                 foreground = img.convert("RGBA")
             else:
@@ -298,14 +418,31 @@ class ImageResizer:
                 foreground = img.convert("RGB")
             if fit.mode == FitMode.SOLID and fit.background.pattern != FitPattern.NONE:
                 canvas = cls._draw_pattern(canvas, fit, background)
+        if fit.background.tint > 0:
+            canvas = cls._tint(
+                canvas,
+                fit.background.tint_color,
+                fit.background.tint,
+                fit.background.tint_color_to,
+                fit.background.tint_angle,
+            )
         if fit.background.dim > 0:
             canvas = cls._dim(canvas, fit.background.dim)
         cls._paste_placed(canvas, foreground, fit, placement)
         return canvas
 
     @classmethod
-    def _image_background(cls, image: Image.Image, output_size: tuple[int, int]) -> Image.Image:
-        """The background picture scaled to cover the canvas, centred, opaque."""
+    def _image_background(
+        cls,
+        image: Image.Image,
+        output_size: tuple[int, int],
+        placement: Optional[FitPlacement] = None,
+    ) -> Image.Image:
+        """
+        The background picture, opaque. Without ``placement`` it covers the
+        canvas, centred; otherwise it is scaled relative to that size, moved
+        and turned, and uncovered areas stay white.
+        """
         image = to_8bit(image)
         if cls._has_alpha(image):
             rgba = image.convert("RGBA")
@@ -313,8 +450,45 @@ class ImageResizer:
             flat.paste(rgba.convert("RGB"), mask=rgba.getchannel("A"))
         else:
             flat = image.convert("RGB")
-        box = cls.fit_crop_box(flat, output_size[0], output_size[1], FitAnchor.CENTER)
-        return flat.resize(output_size, Image.Resampling.LANCZOS, box=box)
+        if placement is None:
+            box = cls.fit_crop_box(flat, output_size[0], output_size[1], FitAnchor.CENTER)
+            return flat.resize(output_size, Image.Resampling.LANCZOS, box=box)
+        width, height = output_size
+        ratio = max(width / flat.width, height / flat.height) * placement.scale
+        canvas = Image.new("RGB", output_size, (255, 255, 255))
+        cls._draw_turned(
+            canvas,
+            flat,
+            (placement.x * width, placement.y * height),
+            (flat.width * ratio, flat.height * ratio),
+            placement.rotation,
+        )
+        return canvas
+
+    @classmethod
+    def _tint(
+        cls,
+        canvas: Image.Image,
+        color: str,
+        opacity: float,
+        color_to: Optional[str] = None,
+        angle: float = 180.0,
+    ) -> Image.Image:
+        """
+        Lays ``color`` (or a gradient to ``color_to``) at ``opacity`` over the
+        colours; alpha stays as it is.
+        """
+        rgb = canvas.convert("RGB")
+        start = cls._parse_rgba_hex(color)[:3]
+        layer = (
+            linear_gradient(rgb.size, start, cls._parse_rgba_hex(color_to)[:3], angle)
+            if color_to
+            else Image.new("RGB", rgb.size, start)
+        )
+        tinted = Image.blend(rgb, layer, opacity)
+        if canvas.mode == "RGBA":
+            tinted.putalpha(canvas.getchannel("A"))
+        return tinted
 
     @staticmethod
     def _dim(canvas: Image.Image, dim: float) -> Image.Image:
@@ -387,6 +561,15 @@ class ImageResizer:
         )
         left, top = left * scale_x, top * scale_y
         placed_width, placed_height = placed_width * scale_x, placed_height * scale_y
+        if placement.rotation:
+            cls._draw_turned(
+                canvas,
+                img,
+                (left + placed_width / 2, top + placed_height / 2),
+                (placed_width, placed_height),
+                placement.rotation,
+            )
+            return
         x0, y0 = max(0, round(left)), max(0, round(top))
         x1 = min(canvas.width, round(left + placed_width))
         y1 = min(canvas.height, round(top + placed_height))
@@ -409,6 +592,66 @@ class ImageResizer:
             canvas.paste(part.convert("RGB"), (x0, y0), mask=part.getchannel("A"))
         else:
             canvas.paste(part, (x0, y0))
+
+    @staticmethod
+    def _draw_turned(
+        canvas: Image.Image,
+        img: Image.Image,
+        centre: tuple[float, float],
+        size: tuple[float, float],
+        angle: float,
+    ) -> None:
+        """
+        Draws ``img`` stretched to ``size`` canvas pixels, turned ``angle``
+        degrees clockwise about ``centre``. One affine resample of only the
+        covered part of the canvas: no full-size intermediate, whatever the
+        scale. Matches CSS ``rotate()`` about the element centre.
+        """
+        width, height = size
+        if width <= 0 or height <= 0:
+            return
+        rad = math.radians(angle)
+        cos, sin = math.cos(rad), math.sin(rad)
+        reach_x = abs(width / 2 * cos) + abs(height / 2 * sin)
+        reach_y = abs(width / 2 * sin) + abs(height / 2 * cos)
+        x0 = max(0, math.floor(centre[0] - reach_x))
+        y0 = max(0, math.floor(centre[1] - reach_y))
+        x1 = min(canvas.width, math.ceil(centre[0] + reach_x))
+        y1 = min(canvas.height, math.ceil(centre[1] + reach_y))
+        if x1 <= x0 or y1 <= y0:
+            return
+        source = img.convert("RGBA")
+        # A strong reduction first, so the bicubic resample does not alias.
+        if width < source.width / 2 and height < source.height / 2:
+            source = source.resize(
+                (max(1, round(width * 2)), max(1, round(height * 2))),
+                Image.Resampling.LANCZOS,
+            )
+        # One transparent pixel around the picture gives smooth turned edges.
+        padded = Image.new("RGBA", (source.width + 2, source.height + 2), (0, 0, 0, 0))
+        padded.paste(source, (1, 1))
+        step_x, step_y = source.width / width, source.height / height
+        # Canvas point -> picture point: undo the move, the turn, the scale.
+        dx, dy = x0 - centre[0], y0 - centre[1]
+        coefficients = (
+            step_x * cos,
+            step_x * sin,
+            step_x * (cos * dx + sin * dy) + padded.width / 2,
+            -step_y * sin,
+            step_y * cos,
+            step_y * (-sin * dx + cos * dy) + padded.height / 2,
+        )
+        part = padded.transform(
+            (x1 - x0, y1 - y0),
+            Image.Transform.AFFINE,
+            coefficients,
+            resample=Image.Resampling.BICUBIC,
+            fillcolor=(0, 0, 0, 0),
+        )
+        if canvas.mode == "RGBA":
+            canvas.alpha_composite(part, dest=(x0, y0))
+        else:
+            canvas.paste(part.convert("RGB"), (x0, y0), mask=part.getchannel("A"))
 
     @classmethod
     def _fit_on_solid_background(

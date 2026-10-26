@@ -12,6 +12,11 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
+from backend.image_converter.infrastructure.editor_asset_store import (
+    EXPIRED_ERROR,
+    SESSION_FULL_ERROR,
+    EditorAssetStore,
+)
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.presentation.web.parse_services import extract_form_data
@@ -59,6 +64,7 @@ crop_preview_service = CropPreviewService(
 )
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
 fit_preview_service = FitPreviewService()
+editor_assets = EditorAssetStore(TEMP_DIR)
 backend_diagnostics_service = BackendDiagnosticsService(
     logger,
     TEMP_DIR,
@@ -203,15 +209,39 @@ def fit_editor_bitmap():
         full_size=render,
         with_image=render or with_preview,
         background=request.files.get("fit_background"),
+        assets=editor_assets,
     )
     if not result.is_successful:
-        return jsonify({"error": result.error}), 400
+        # 410: the editor session expired; the editor uploads its pictures again.
+        status = 410 if result.error == EXPIRED_ERROR else 400
+        return jsonify({"error": result.error}), status
     crop, png = result.value
     if render:
         return send_file(BytesIO(png), mimetype="image/png")
     if not with_preview:
         return jsonify({"crop": crop})
     return jsonify({"crop": crop, "preview": "data:image/png;base64," + base64.b64encode(png).decode("ascii")})
+
+
+@api_blueprint.route("/editor/assets", methods=["POST"])
+def upload_editor_asset():
+    """Stores a background or layer picture once for this editor session."""
+    temp_folder_service.cleanup()
+    session = request.form.get("session") or None
+    result = editor_assets.add(session, request.files.get("file"))
+    if not result.is_successful:
+        # 410 and 409 tell the editor to start a new session and upload again.
+        status = {EXPIRED_ERROR: 410, SESSION_FULL_ERROR: 409}.get(result.error, 400)
+        return jsonify({"error": result.error}), status
+    session, asset = result.value
+    response = jsonify({
+        "session": session,
+        "asset": asset.asset_id,
+        "width": asset.width,
+        "height": asset.height,
+    })
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @api_blueprint.route("/crop/bitmap", methods=["POST"])

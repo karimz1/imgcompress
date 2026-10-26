@@ -1,4 +1,4 @@
-"""Builds `AppConfig` from `app.json` (with feature-flag env overrides).
+"""Builds `AppConfig` from `app.json` (with feature-flag and upload-limit env overrides).
 
 The loader is the *only* module that knows the JSON key paths and the env-var
 names. Everywhere else in the codebase reads typed attributes off `AppConfig`.
@@ -65,6 +65,10 @@ _OVERRIDES = (
 )
 
 
+# Self-hosters set the upload limit (MiB) in docker-compose; it wins over app.json.
+MAX_UPLOAD_SIZE_ENV = "MAX_UPLOAD_SIZE_MB"
+
+
 def load_from_file(path: Path) -> AppConfig:
     raw = _read_json_object(path)
     errors: list[str] = []
@@ -75,7 +79,9 @@ def load_from_file(path: Path) -> AppConfig:
         max_age_seconds=reader.require_int(("temporary_storage", "max_age_seconds"), minimum=1),
     )
     uploads = UploadsConfig(
-        max_file_size_mebibytes=reader.require_int(("uploads", "max_file_size_mebibytes"), minimum=1),
+        max_file_size_mebibytes=reader.require_int_with_env(
+            ("uploads", "max_file_size_mebibytes"), MAX_UPLOAD_SIZE_ENV, minimum=1
+        ),
     )
     web = WebConfig(
         host=reader.require_str(("web", "host")),
@@ -226,6 +232,15 @@ class _Reader:
             return default
         return raw
 
+    def require_int_with_env(
+        self, path: Tuple[str, ...], env_var: str, *, minimum: int
+    ) -> int:
+        """Like ``require_int``; a set env var wins over the JSON value."""
+        env_value = _read_env_int(env_var, minimum, self._errors)
+        if env_value is not None:
+            return env_value
+        return self.require_int(path, minimum=minimum)
+
     def require_bool(self, path: Tuple[str, ...]) -> bool:
         return self._read(
             path,
@@ -360,3 +375,16 @@ def _read_env_bool(name: str, errors: list[str]) -> Optional[bool]:
         f"true/false/1/0/yes/no/on/off, got '{raw}'"
     )
     return None
+
+
+def _read_env_int(name: str, minimum: int, errors: list[str]) -> Optional[int]:
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return None
+    normalized = raw.strip()
+    if not (normalized.isascii() and normalized.isdigit()) or int(normalized) < minimum:
+        errors.append(
+            f"environment variable '{name}' must be a whole number >= {minimum}, got '{raw}'"
+        )
+        return None
+    return int(normalized)

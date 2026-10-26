@@ -38,7 +38,6 @@ const selectors = {
   compressionModeSizeBtn: '[data-testid="compression-mode-size-btn"]',
   upscaleSwitch: '[data-testid="upscale-switch"]',
   upscaleTargetSelect: '[data-testid="upscale-target-select"]',
-  fitPresetSelect: '[data-testid="fit-preset-select"]',
   fitWidthInput: '[data-testid="fit-width-input"]',
   fitHeightInput: '[data-testid="fit-height-input"]'
 };
@@ -223,9 +222,8 @@ export async function setFitToSizeAsync(page: Page, options: FitToSizeOptions): 
   await page.getByTestId('dropzone-crop-file-btn').first().click();
   await expect(page.getByTestId('crop-dialog')).toBeVisible();
   await page.getByTestId('crop-tab-fit').click();
-  await page.locator(selectors.fitPresetSelect).click();
-  await page.getByTestId(`fit-preset-option-${options.preset}`).click();
-  await expect(page.locator(selectors.fitPresetSelect)).toBeVisible();
+  await page.getByTestId(`fit-preset-${options.preset}`).click();
+  await expect(page.getByTestId(`fit-preset-${options.preset}`)).toHaveAttribute('aria-checked', 'true');
 
   if (options.preset === 'custom') {
     await page.locator(selectors.fitWidthInput).fill(String(options.width));

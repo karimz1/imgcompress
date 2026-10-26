@@ -324,4 +324,13 @@ class SvgRenderer:
         cropped_tree = Tree(
             bytestring=cropped, unsafe=False, url_fetcher=_fetch_embedded_resource
         )
-        return self._render_png(cropped_tree, (fit.width, fit.height))
+        png = self._render_png(cropped_tree, (fit.width, fit.height))
+        if fit.text is None and not fit.layers:
+            return png
+        from backend.image_converter.domain.image_resizer import ImageResizer
+
+        with Image.open(BytesIO(png)) as image:
+            image.load()
+            buffer = BytesIO()
+            ImageResizer.draw_overlays(image, fit).save(buffer, format="PNG")
+            return buffer.getvalue()

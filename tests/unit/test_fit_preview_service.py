@@ -144,6 +144,30 @@ def test_large_custom_size_gets_a_scaled_preview_but_renders_at_full_size():
     assert Image.open(BytesIO(full.value[1])).size == (4000, 3000)
 
 
+@pytest.mark.parametrize(
+    "size, preview_size",
+    [
+        ((1920, 1080), (1920, 1080)),
+        ((2560, 1440), (2048, 1152)),
+        ((3840, 2160), (2048, 1152)),
+    ],
+)
+def test_screen_presets_preview_as_a_proxy_and_export_at_the_exact_size(size, preview_size):
+    """Full HD, 2K and 4K presets: small preview while editing, exact pixels on export."""
+    image = Image.new("RGB", (1200, 900), "green")
+    fields = {"fit_width": str(size[0]), "fit_height": str(size[1]), "fit_mode": "blur"}
+    preview = render(image, **fields)
+    assert preview.is_successful
+    assert Image.open(BytesIO(preview.value[1])).size == preview_size
+
+    bitmap = BytesIO()
+    image.save(bitmap, format="PNG")
+    bitmap.seek(0)
+    full = FitPreviewService().build(FileStorage(stream=bitmap), fields, full_size=True)
+    assert full.is_successful
+    assert Image.open(BytesIO(full.value[1])).size == size
+
+
 @pytest.mark.parametrize("mode", ["crop", "blur"])
 def test_large_preview_never_allocates_the_export_canvas(monkeypatch, mode):
     sizes = []

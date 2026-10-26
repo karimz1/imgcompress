@@ -32,6 +32,13 @@ const ALLOWED_IDENTICAL_VALUES = new Set<string>([
   "←↑↓→",
   "+ ←↑↓→",
   "Transparent",
+  // Screen size names and their technical details.
+  "Full HD",
+  "2K (QHD)",
+  "4K (UHD)",
+  "1080p, 16:9",
+  // Same word in Spanish and Portuguese ("Abriendo el editor", "Abrindo o editor").
+  "editor",
 ]);
 
 type Tree = { [key: string]: unknown };

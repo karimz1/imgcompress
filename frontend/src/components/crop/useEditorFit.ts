@@ -1,21 +1,67 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { previewFit, type CropConfig } from "@/lib/crop";
 import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type SetStateAction,
+} from "react";
+import { previewFit, type CropConfig } from "@/lib/crop";
+import { uploadEditorPicture } from "@/lib/editorAssets";
+import { maxUploadBytes } from "@/lib/uploadLimit";
+import {
+  clampBackgroundPlacement,
+  clampLayer,
   clampPlacement,
   DEFAULT_FIT_SETTINGS,
+  DEFAULT_TEXT,
   FIT_PRESETS,
+  layerVisible,
+  MAX_IMAGE_LAYERS,
+  MAX_TEXT_LAYERS,
+  newLayerId,
+  pictureLayerFor,
+  placementFor,
   placementSupported,
   resolveFitBackground,
   resolveFitSize,
   sameBackground,
+  TEXT_STYLES,
+  type EditorPicture,
+  type FitBackground,
   type FitBackgroundImage,
+  type FitLayer,
   type FitOutput,
   type FitPlacement,
   type FitSettings,
+  type TextLayer,
+  type TextStyleId,
 } from "@/lib/fitToSize";
 import type { Rect } from "./cropConstants";
+
+/** What the stage has selected: the image, the background picture or a layer id. */
+export type StageSelection = "image" | "background" | string | null;
+
+
+/** A change of the same kind within this time is one undo step (a drag, a slider). */
+const MERGE_MS = 600;
+const MAX_HISTORY = 100;
+
+interface Snapshot {
+  settings: FitSettings;
+  placement: FitPlacement | null;
+  backgroundPlacement: FitPlacement | null;
+  backgroundImage: FitBackgroundImage | null;
+  layers: FitLayer[];
+}
+
+const layerKey = (layer: FitLayer) =>
+  layer.kind === "image"
+    ? [layer.picture.id, layer.x, layer.y, layer.width, layer.height, layer.rotation, layer.opacity]
+    : [layer.text, layer.font_id, layer.size, layer.color, layer.bold, layer.italic, layer.opacity,
+       layer.x, layer.y, layer.shadow, layer.align, layer.rotation ?? 0];
 
 const previewKey = (fit: FitOutput, crop: Rect) =>
   JSON.stringify([
@@ -23,15 +69,33 @@ const previewKey = (fit: FitOutput, crop: Rect) =>
     fit.height,
     fit.mode,
     fit.color ?? "",
-    fit.placement ? [fit.placement.scale, fit.placement.x, fit.placement.y] : null,
-    fit.background
-      ? [fit.background.pattern, fit.background.dim, fit.background.image?.id ?? null]
+    fit.placement
+      ? [fit.placement.scale, fit.placement.x, fit.placement.y, fit.placement.rotation ?? 0]
       : null,
+    fit.background
+      ? [
+          fit.background.pattern,
+          fit.background.dim,
+          fit.background.image?.id ?? null,
+          fit.background.blur ?? null,
+          fit.background.tint ?? null,
+          fit.background.colorTo ?? null,
+          fit.background.gradientAngle ?? null,
+          fit.background.imagePlacement ?? null,
+        ]
+      : null,
+    (fit.layers ?? []).filter(layerVisible).map(layerKey),
     crop.x,
     crop.y,
     crop.width,
     crop.height,
   ]);
+
+/** The background picture's placement lives in its own state, like the image's. */
+const withoutLayer = (background: FitBackground): FitBackground => {
+  const { imagePlacement: _layer, ...rest } = background;
+  return rest;
+};
 
 /** Size and mode decide the selection; colour and placement only repaint it. */
 const sameLayout = (a: FitOutput, b: FitOutput) =>
@@ -61,7 +125,7 @@ export function useEditorFit({
   onApplyToAll?: (fit: FitOutput, signal: AbortSignal) => Promise<void>;
   active: boolean;
 }) {
-  const [settings, setSettings] = useState<FitSettings>(() => {
+  const [settings, setSettingsState] = useState<FitSettings>(() => {
     const fit = initialCrop?.fit;
     if (!fit) return DEFAULT_FIT_SETTINGS;
     const preset = Object.entries(FIT_PRESETS).find(
@@ -79,10 +143,19 @@ export function useEditorFit({
           : DEFAULT_FIT_SETTINGS.color,
       pattern: fit.background?.pattern ?? DEFAULT_FIT_SETTINGS.pattern,
       dim: fit.background?.dim ?? DEFAULT_FIT_SETTINGS.dim,
+      blur: fit.background?.blur ?? DEFAULT_FIT_SETTINGS.blur,
+      tint: fit.background?.tint?.opacity ?? DEFAULT_FIT_SETTINGS.tint,
+      tintColor: fit.background?.tint?.color ?? DEFAULT_FIT_SETTINGS.tintColor,
+      fillGradient: !!fit.background?.colorTo,
+      colorTo: fit.background?.colorTo ?? DEFAULT_FIT_SETTINGS.colorTo,
+      gradientAngle: fit.background?.gradientAngle ?? DEFAULT_FIT_SETTINGS.gradientAngle,
+      tintGradient: !!fit.background?.tint?.colorTo,
+      tintColorTo: fit.background?.tint?.colorTo ?? DEFAULT_FIT_SETTINGS.tintColorTo,
+      tintAngle: fit.background?.tint?.angle ?? DEFAULT_FIT_SETTINGS.tintAngle,
     };
   });
   // Kept when switching modes, so going back to "image" does not ask again.
-  const [backgroundImage, setBackgroundImage] = useState<FitBackgroundImage | null>(
+  const [backgroundImage, setBackgroundImageState] = useState<FitBackgroundImage | null>(
     initialCrop?.fit?.background?.image ?? null,
   );
   const [applied, setApplied] = useState<FitOutput | null>(() => {
@@ -93,13 +166,38 @@ export function useEditorFit({
           height: fit.height,
           mode: fit.mode,
           color: fit.color,
-          ...(fit.background ? { background: fit.background } : {}),
+          ...(fit.background ? { background: withoutLayer(fit.background) } : {}),
         }
       : null;
   });
   const [placement, setPlacementState] = useState<FitPlacement | null>(
     initialCrop?.fit?.placement ?? null,
   );
+  // The background picture's own move, zoom and turn ("image" mode only).
+  const [backgroundPlacement, setBackgroundPlacementState] = useState<FitPlacement | null>(
+    initialCrop?.fit?.background?.imagePlacement ?? null,
+  );
+  // Object URLs made here; freed when the editor closes. A saved fit keeps the
+  // files, so reopening makes new URLs for them.
+  const objectUrls = useRef<string[]>([]);
+  const urlFor = useCallback((file: File) => {
+    const url = URL.createObjectURL(file);
+    objectUrls.current.push(url);
+    return url;
+  }, []);
+  useEffect(() => () => objectUrls.current.forEach((url) => URL.revokeObjectURL(url)), []);
+  // Texts are kept while being typed, even when still empty.
+  const [layers, setLayersState] = useState<FitLayer[]>(() => {
+    const pictures = new Map<string, EditorPicture>();
+    return (initialCrop?.fit?.layers ?? []).map((layer) => {
+      if (layer.kind !== "image") return layer;
+      const known = pictures.get(layer.picture.id);
+      const picture = known ?? { ...layer.picture, url: urlFor(layer.picture.file) };
+      pictures.set(picture.id, picture);
+      return { ...layer, picture };
+    });
+  });
+  const [selected, setSelected] = useState<StageSelection>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [automaticCrop, setAutomaticCrop] = useState<Rect | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -118,8 +216,31 @@ export function useEditorFit({
   const targetHeight = size?.height;
   const color = fitColor(settings);
   const background = useMemo(
-    () => resolveFitBackground(settings.mode, settings.pattern, settings.dim, backgroundImage),
-    [settings.mode, settings.pattern, settings.dim, backgroundImage],
+    () =>
+      resolveFitBackground(settings.mode, settings.pattern, settings.dim, backgroundImage, {
+        blur: settings.blur,
+        tint: settings.tint,
+        tintColor: settings.tintColor,
+        colorTo: settings.fillGradient ? settings.colorTo : null,
+        gradientAngle: settings.gradientAngle,
+        tintColorTo: settings.tintGradient ? settings.tintColorTo : null,
+        tintAngle: settings.tintAngle,
+      }),
+    [
+      settings.mode,
+      settings.pattern,
+      settings.dim,
+      backgroundImage,
+      settings.blur,
+      settings.tint,
+      settings.tintColor,
+      settings.fillGradient,
+      settings.colorTo,
+      settings.gradientAngle,
+      settings.tintGradient,
+      settings.tintColorTo,
+      settings.tintAngle,
+    ],
   );
   const desired = useMemo<FitOutput | null>(
     () =>
@@ -134,20 +255,92 @@ export function useEditorFit({
         : null,
     [targetWidth, targetHeight, settings.mode, color, background],
   );
+  const snapshot: Snapshot = { settings, placement, backgroundPlacement, backgroundImage, layers };
+  const snapshotRef = useRef(snapshot);
+  snapshotRef.current = snapshot;
+  const history = useRef({
+    past: [] as Snapshot[],
+    future: [] as Snapshot[],
+    kind: null as string | null,
+    at: 0,
+  });
+  const [, setHistoryVersion] = useState(0);
+  /** Remembers the state before a change; repeated changes of one kind merge. */
+  const record = useCallback((kind: string) => {
+    const h = history.current;
+    const now = Date.now();
+    const merge = h.kind === kind && now - h.at < MERGE_MS;
+    h.kind = kind;
+    h.at = now;
+    if (merge) return;
+    h.past.push(snapshotRef.current);
+    if (h.past.length > MAX_HISTORY) h.past.shift();
+    h.future = [];
+    setHistoryVersion((value) => value + 1);
+  }, []);
+  const restore = useCallback((next: Snapshot) => {
+    setSettingsState(next.settings);
+    setPlacementState(next.placement);
+    setBackgroundPlacementState(next.backgroundPlacement);
+    setBackgroundImageState(next.backgroundImage);
+    setLayersState(next.layers);
+    setSelected((current) =>
+      current && current !== "image" && current !== "background" &&
+      !next.layers.some((layer) => layer.id === current)
+        ? null
+        : current,
+    );
+  }, []);
+  const undo = useCallback(() => {
+    const h = history.current;
+    const previous = h.past.pop();
+    if (!previous) return;
+    h.future.push(snapshotRef.current);
+    h.kind = null;
+    restore(previous);
+    setHistoryVersion((value) => value + 1);
+  }, [restore]);
+  const redo = useCallback(() => {
+    const h = history.current;
+    const next = h.future.pop();
+    if (!next) return;
+    h.past.push(snapshotRef.current);
+    h.kind = null;
+    restore(next);
+    setHistoryVersion((value) => value + 1);
+  }, [restore]);
+  const setSettings = useCallback(
+    (next: SetStateAction<FitSettings>) => {
+      record("settings");
+      setSettingsState(next);
+    },
+    [record],
+  );
+  const setBackgroundImage = useCallback(
+    (next: FitBackgroundImage | null) => {
+      record("background-image");
+      setBackgroundImageState(next);
+    },
+    [record],
+  );
   const desiredRef = useRef(desired);
   desiredRef.current = desired;
   const placementRef = useRef(placement);
   placementRef.current = placement;
+  const layersRef = useRef({ backgroundPlacement, layers });
+  layersRef.current = { backgroundPlacement, layers };
 
-  const output = useMemo<FitOutput | null>(
-    () =>
-      applied
-        ? placement && placementSupported(applied.mode)
-          ? { ...applied, placement }
-          : applied
-        : null,
-    [applied, placement],
-  );
+  const output = useMemo<FitOutput | null>(() => {
+    if (!applied) return null;
+    let next: FitOutput = applied;
+    const placed = placementFor(applied.mode, placement);
+    if (placed) next = { ...next, placement: placed };
+    if (backgroundPlacement && applied.mode === "image" && applied.background?.image) {
+      next = { ...next, background: { ...applied.background, imagePlacement: backgroundPlacement } };
+    }
+    if (layers.length) next = { ...next, layers };
+    return next;
+  }, [applied, placement, backgroundPlacement, layers]);
   const pending = !!applied && (!desired || !sameLayout(desired, applied));
   // Image mode without a picture yet: the selection can be found, but there is
   // nothing to render until one is chosen.
@@ -238,8 +431,16 @@ export function useEditorFit({
     setWorking(true);
     setError(null);
     try {
-      const current = placementSupported(target.mode) ? placementRef.current : null;
-      const request = current ? { ...target, placement: current } : target;
+      const current = placementFor(target.mode, placementRef.current);
+      const layers = layersRef.current;
+      let request: FitOutput = current ? { ...target, placement: current } : target;
+      if (layers.backgroundPlacement && target.mode === "image" && target.background?.image) {
+        request = {
+          ...request,
+          background: { ...target.background, imagePlacement: layers.backgroundPlacement },
+        };
+      }
+      if (layers.layers.length) request = { ...request, layers: layers.layers };
       const result = await previewFit(
         imgUrl,
         request,
@@ -282,9 +483,130 @@ export function useEditorFit({
     }
   }, [active, imgUrl, layoutChanged, targetWidth, targetHeight, settings.mode, autoFit]);
 
-  const setPlacement = useCallback((next: FitPlacement | null) => {
-    setPlacementState(next ? clampPlacement(next) : null);
-  }, []);
+  const setPlacement = useCallback(
+    (next: FitPlacement | null) => {
+      record("placement");
+      setPlacementState(next ? clampPlacement(next) : null);
+    },
+    [record],
+  );
+  const setBackgroundPlacement = useCallback(
+    (next: FitPlacement | null) => {
+      record("background-placement");
+      setBackgroundPlacementState(next ? clampBackgroundPlacement(next) : null);
+    },
+    [record],
+  );
+
+  // Layers: bottom first, like the export draws them.
+  const commitLayers = useCallback(
+    (kind: string, change: (layers: FitLayer[]) => FitLayer[]) => {
+      record(kind);
+      setLayersState((current) => change(current));
+    },
+    [record],
+  );
+  const updateLayer = useCallback(
+    (id: string, patch: Partial<TextLayer> | Partial<FitLayer>, kind?: string) =>
+      commitLayers(kind ?? `layer:${id}`, (current) =>
+        current.map((layer) =>
+          layer.id === id ? clampLayer({ ...layer, ...patch } as FitLayer) : layer,
+        ),
+      ),
+    [commitLayers],
+  );
+  const textCount = layers.filter((layer) => layer.kind === "text").length;
+  const pictureCount = layers.length - textCount;
+  const canAddText = textCount < MAX_TEXT_LAYERS;
+  const canAddPicture = pictureCount < MAX_IMAGE_LAYERS;
+  const addText = useCallback(
+    (style: TextStyleId, text: string) => {
+      if (!canAddText) return null;
+      const layer: TextLayer = {
+        ...DEFAULT_TEXT,
+        ...TEXT_STYLES[style],
+        text,
+        kind: "text",
+        id: newLayerId("text"),
+      };
+      commitLayers("add", (current) => [...current, layer]);
+      setSelected(layer.id);
+      return layer.id;
+    },
+    [canAddText, commitLayers],
+  );
+  /** Uploads the picture first, so a broken file fails here and not in the preview. */
+  const addPicture = useCallback(
+    async (file: File) => {
+      if (!canAddPicture) return null;
+      if (file.size > maxUploadBytes()) throw new Error("too-large");
+      const { width, height } = await uploadEditorPicture(file);
+      const canvas = desiredRef.current ?? { width: 1, height: 1 };
+      const picture: EditorPicture = {
+        id: newLayerId("image"),
+        file,
+        name: file.name,
+        url: urlFor(file),
+        width,
+        height,
+      };
+      const offset = (layersRef.current.layers.length % 4) * 0.03;
+      const layer = pictureLayerFor(picture, canvas, offset);
+      commitLayers("add", (current) => [...current, layer]);
+      setSelected(layer.id);
+      return layer.id;
+    },
+    [canAddPicture, commitLayers, urlFor],
+  );
+  const removeLayer = useCallback(
+    (id: string) => {
+      commitLayers("remove", (current) => current.filter((layer) => layer.id !== id));
+      setSelected((current) => (current === id ? null : current));
+    },
+    [commitLayers],
+  );
+  const duplicateLayer = useCallback(
+    (id: string) => {
+      const source = layersRef.current.layers.find((layer) => layer.id === id);
+      if (!source) return null;
+      const full = source.kind === "text" ? !canAddText : !canAddPicture;
+      if (full) return null;
+      const copy = clampLayer({
+        ...source,
+        id: newLayerId(source.kind),
+        x: source.x + 0.02,
+        y: source.y + 0.02,
+        hidden: false,
+      } as FitLayer);
+      commitLayers("duplicate", (current) => {
+        const index = current.findIndex((layer) => layer.id === id);
+        return [...current.slice(0, index + 1), copy, ...current.slice(index + 1)];
+      });
+      setSelected(copy.id);
+      return copy.id;
+    },
+    [canAddPicture, canAddText, commitLayers],
+  );
+  /** ``step`` 1 brings the layer forward (drawn later), -1 sends it back. */
+  const moveLayer = useCallback(
+    (id: string, step: 1 | -1) =>
+      commitLayers("order", (current) => {
+        const index = current.findIndex((layer) => layer.id === id);
+        const target = index + step;
+        if (index < 0 || target < 0 || target >= current.length) return current;
+        const next = [...current];
+        [next[index], next[target]] = [next[target], next[index]];
+        return next;
+      }),
+    [commitLayers],
+  );
+  const toggleLayer = useCallback(
+    (id: string) =>
+      commitLayers("visibility", (current) =>
+        current.map((layer) => (layer.id === id ? { ...layer, hidden: !layer.hidden } : layer)),
+      ),
+    [commitLayers],
+  );
 
   const retryPreview = () => {
     if (!applied || pending) {
@@ -323,6 +645,24 @@ export function useEditorFit({
     output,
     placement,
     setPlacement,
+    backgroundPlacement,
+    setBackgroundPlacement,
+    layers,
+    updateLayer,
+    addText,
+    addPicture,
+    removeLayer,
+    duplicateLayer,
+    moveLayer,
+    toggleLayer,
+    canAddText,
+    canAddPicture,
+    selected,
+    setSelected,
+    undo,
+    redo,
+    canUndo: history.current.past.length > 0,
+    canRedo: history.current.future.length > 0,
     backgroundImage,
     setBackgroundImage,
     needsBackground,

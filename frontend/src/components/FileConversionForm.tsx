@@ -36,6 +36,7 @@ import {
   type UpscaleSettings, type UpscaleModelStatus,
 } from "@/lib/upscale";
 import { cn } from "@/lib/utils";
+import { formatUploadLimit, useMaxUploadSizeMb } from "@/lib/uploadLimit";
 
 interface FileConversionFormProps {
   isLoading: boolean;
@@ -158,7 +159,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 }) => {
   const [confirmCropRemoveFor, setConfirmCropRemoveFor] = useState<string | null>(null);
   const { isDarkTheme } = useMountedTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const onlySvgFiles = files.length > 0 && files.every(isSvgFile);
   const upscaleLabel = t(onlySvgFiles ? "form.upscale.vectorLabel" : "form.upscale.label");
 
@@ -398,6 +399,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     />
   );
 
+  const maxUploadSizeMb = useMaxUploadSizeMb();
+  const uploadLimitText = useMemo(
+    () => formatUploadLimit(i18n.language),
+    // The text follows the limit from the runtime config and the language.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [maxUploadSizeMb, i18n.language],
+  );
+
   const renderDropZone = useMemo(
     () => (
       <div
@@ -419,9 +428,15 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         ) : (
           <p>{t("form.dropzone.idle")}</p>
         )}
+        <p
+          className={cn("mt-1 text-xs", isDarkTheme ? "text-gray-400" : "text-slate-500")}
+          data-testid="dropzone-max-size"
+        >
+          {t("form.dropzone.maxSize", { size: uploadLimitText })}
+        </p>
       </div>
     ),
-    [getInputProps, getRootProps, isDarkTheme, isDragActive, isLoading, t]
+    [getInputProps, getRootProps, isDarkTheme, isDragActive, isLoading, t, uploadLimitText]
   );
 
   return (

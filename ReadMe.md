@@ -82,14 +82,31 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 |---|---|
 | **70+ Image Formats** | HEIC, HEIF, PSD, SVG, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60 more ([which are tested](https://imgcompress.karimzouine.com/#formats)) |
 | **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
-| **Local AI Upscaling** | Choose General or Anime. Real-ESRGAN enlarges images 2x, 4x, 8x, or to Full HD / 4K / 6K / 8K / 16K on your CPU, preserving the aspect ratio. Both models ship in the image; nothing is downloaded at runtime |
-| **Fit to Exact Size** | GitHub social preview (1280 × 640), Open Graph (1200 × 630), or any size. A dedicated editor tab with automatic previews, an adjustable crop, or a blurred background |
+| **Local AI Upscaling** | Enlarge images 2x to 16K on your CPU, offline ([guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)) |
+| **Image Editor** | Crop, exact sizes, backgrounds, text and logos before converting ([guide](https://imgcompress.karimzouine.com/docs/image-editor)) |
 | **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, image batches to paginated PDF, and more |
-| **Per-File Cropping** | Crop each upload before conversion with ratio presets (Free, 1:1, 16:9, 4:3) or custom pixel dimensions |
 | **Web UI + CLI** | Browser dashboard for day-to-day use; CLI for scripting pipelines |
 | **Single Container** | Every codec and library pre-bundled, zero host dependencies |
 | **Air-Gap Ready** | Once pulled, runs fully offline. No internet required, ever |
+
+---
+
+## What's new in v1.0
+
+ImgCompress now has a real image editor in the browser, plus a few things people kept asking for. Each item links to a short guide with screenshots.
+
+<img src="images/web-ui/web-ui-editor-text.webp" alt="ImgCompress image editor: a thumbnail with a tilted title on a blurred background, Text & images tab open" width="100%" />
+
+- **[Image editor](https://imgcompress.karimzouine.com/docs/image-editor):** crop, pick an exact size, add a background, text or a logo, and rotate anything. Undo, keyboard shortcuts and touch on tablets included.
+- **[YouTube thumbnails](https://imgcompress.karimzouine.com/docs/youtube-thumbnail):** presets for YouTube, Shorts and stories, Instagram, X, link previews, GitHub, Pinterest, Full HD, 2K and 4K.
+- **[Add text to an image](https://imgcompress.karimzouine.com/docs/add-text-to-image):** titles, subtitles and watermarks with your own font, color, shadow and angle.
+- **[Smart crop](https://imgcompress.karimzouine.com/docs/smart-crop):** resize to an exact size and keep the important part in frame, or keep the whole image on a blurred background.
+- **[AI upscaling](https://imgcompress.karimzouine.com/docs/ai-upscaling):** enlarge photos or drawings up to 16K with a local AI model on the CPU.
+- **[SVG import](https://imgcompress.karimzouine.com/docs/svg-to-png):** turn SVG files into PNG, JPEG, WebP, AVIF, ICO or PDF at any size.
+- **[WebP export](https://imgcompress.karimzouine.com/docs/convert-to-webp):** small files, lossy or lossless.
+- **[Upload limit](https://imgcompress.karimzouine.com/docs/installation#upload-limit):** set `MAX_UPLOAD_SIZE_MB`; the upload area shows the limit.
+- **[Build details](https://imgcompress.karimzouine.com/docs/build-details):** the footer shows exactly which version or nightly you run.
 
 ---
 
@@ -100,86 +117,6 @@ Stop uploading personal or client photos to cloud-based removers. ImgCompress sh
 | Original | Background Removed |
 |:---:|:---:|
 | <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="380" alt="Original sunset landscape photo"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="380" alt="Same photo with background removed by local AI"/> |
-
----
-
-## SVG Import (since v1.0.0)
-
-Upload or drag and drop an `.svg` file, then choose PNG, JPEG, AVIF, WebP, ICO, or PDF as the output format. SVGs also work in CLI conversions and directory batches. PNG preserves transparency; JPEG places transparent areas on white. Resize and crop settings work as usual.
-
-SVGs render locally with CairoSVG directly at the requested width or fit size, including CSS styling, gradients, and alpha transparency. Without a size setting, their document dimensions (or `viewBox` dimensions) are used. Cropping retains the vector source until export; editor previews do not reduce the quality of the original SVG. Upscale targets enlarge SVGs directly from vectors without an AI model, keeping logos and line art sharp. Embedded bitmap images still retain their original resolution. Use self-contained SVGs with embedded resources; external image files and stylesheets are rejected.
-
----
-
-## AI Upscaling (since v1.0.0)
-
-Enlarge images with local AI while preserving their aspect ratio. Choose **General** (`realesr-general-x4v3`) for photos and mixed content, or **Anime** (`realesr-animevideov3`) for drawn images. Both models run on the CPU and work offline.
-
-| Original | AI-upscaled |
-|:---:|:---:|
-| <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/anime-nails-original.webp" width="380" alt="Small anime drawing of a hand with turquoise nails, enlarged 4x with plain bicubic resizing"/> | <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/anime-nails-upscaled.webp" width="380" alt="Same drawing upscaled 4x by the local AI model, with sharper outlines"/> |
-| <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/pagoda-photo-original.webp" width="380" alt="Small photo of a lit pagoda, enlarged 4x with plain bicubic resizing"/> | <img src="images/ai-upscaler-examples/models/realesr-general-x4v3/pagoda-photo-upscaled.webp" width="380" alt="Same photo upscaled 4x by the local AI model, with crisper edges on the roofs"/> |
-
-Both rows start from a small image (about 120 px wide) taken to 4x. Left is a normal bicubic resize, right is the General model in ImgCompress.
-
----
-
-## Fit to Exact Size (since v1.0.0)
-
-Open the **Crop & resize** editor and select the **Fit to size** tab to create images at exact pixel dimensions for **GitHub social previews (1280 × 640)**, **Open Graph link previews (1200 × 630)**, or a custom size. A preview appears automatically and updates when you change the size or mode:
-
-- **Crop to fill:** Places a visible crop box automatically, looking for text, faces, and other detail. Move or resize the box to adjust the result; the output preview updates with your selection.
-- **Blurred background:** Keeps the whole image and fills the empty space with a blurred, slightly darker copy.
-
-### Demo: one original, two GitHub social previews
-
-Both examples below use the same **1536 × 1024** original and produce a **1280 × 640** preview.
-
-<p align="center">
-  <img src="images/exact-image-resize/imgcompress-og-image.webp" width="380" alt="Original 1536 by 1024 pixel ImgCompress artwork with the title, message, mascot, and format icons"/><br/>
-  <strong>Original · 1536 × 1024</strong>
-</p>
-
-| Crop to fill · 1280 × 640 | Blurred background · 1280 × 640 |
-|:---:|:---:|
-| <img src="images/exact-image-resize/keep-important-content-automatic/cut_imgcompress-og-image.jpg" width="380" alt="ImgCompress artwork automatically cropped to 1280 by 640 pixels, keeping the title, main message, and mascot's face visible"/> | <img src="images/exact-image-resize/blurred-background/blurred-imgcompress-og-image.jpg" width="380" alt="Complete ImgCompress artwork fitted into a 1280 by 640 pixel preview with blurred background on the left and right"/> |
-| **Auto fit** preserves the title, main message, and mascot's face while trimming surrounding artwork. | The whole image stays visible, including the format icons. A blurred copy fills the sides. |
-
-### How to use it
-
-1. Upload your image and choose an image output format.
-2. Click **Crop & resize** on the file.
-3. Open **Fit to size** and select **GitHub social preview (1280 × 640)**, **Open Graph link preview (1200 × 630)**, or **Custom size**, then choose **Crop to fill** or **Blurred background**.
-4. Inspect the automatic preview. Move or resize the crop box if needed; **Adjust crop** also offers pixel dimensions. After a manual adjustment, **Auto fit** resets the framing.
-5. Click **Save**, then convert and download. The saved selection and output size are used during conversion.
-
-Previews are at most 2048 px per side. For bigger sizes the editor shows the preview size next to the export size, for example *Preview 2048 × 1152 px · exports at full size 4096 × 2304 px*. The download is always full size.
-
-For a batch, **Auto fit all images** prepares a separate automatic result for every file using the selected size and mode. Open any file's editor to review or adjust it before converting.
-
-Use the **Crop** tab for a manual crop without a fixed output size. Switching tabs keeps both drafts while the editor is open; **Save** applies the active tab. Saved fits reopen in **Fit to size** with their framing intact.
-
----
-
-## Per-File Cropping (since v0.7.0)
-
-Every upload gets its own crop overlay before conversion. Pick a ratio preset (Free, 1:1, 16:9, 4:3) or type exact pixel width and height. Selections are saved per file, so one batch can mix square thumbnails with 16:9 covers without re-uploading.
-
-<img src="images/web-ui/web-ui-crop-feature.webp" alt="ImgCompress crop overlay with aspect-ratio presets, zoom slider, pixel dimensions, and keyboard shortcuts" width="100%" />
-
-### How to use it
-
-1. Drop your images into the upload area as usual.
-2. On any file row, click the crop icon to open the editor.
-3. Pick an aspect ratio preset (1:1, 4:3, 16:9, …) or set width and height manually.
-4. Zoom and crop to frame the shot exactly the way you want it.
-5. Click **Save** to keep the crop, **Discard** to back out, or **Remove** to clear a previously saved crop.
-6. Convert as normal. The crop is applied first, then your chosen format, quality, resize, and background-removal settings.
-
-> [!NOTE]
-> **Server-rendered formats:** Some formats (e.g. PSD, EPS) are rendered server-side into a crop-friendly bitmap so you can still crop them in the browser.
-
-Step-by-step guide with screenshots: **[Image Editor guide](https://imgcompress.karimzouine.com/docs/image-editor)**.
 
 ---
 
@@ -200,6 +137,8 @@ Prefer Docker Compose? Ready-made configurations live in [`docker/compose/`](doc
 - **[proxied.docker-compose.yaml](docker/compose/proxied.docker-compose.yaml)** for hosting under a domain with HTTPS, behind a Traefik reverse proxy with TLS, security headers, and optional Let's Encrypt.
 
 Step-by-step instructions for both are in the **[compose guide](docker/compose/README.md)**.
+
+Uploads can be up to 40 GB each by default, so big PSD and PDF files work. To lower that, set `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`), the same way as `DISABLE_LOGO`.
 
 For environment variables and deploying without the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 

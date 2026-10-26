@@ -163,8 +163,7 @@ test("invalid dimensions and preview failures cannot save a new fit", async ({
   await page.getByTestId("dropzone-crop-file-btn").click();
   await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
-  await page.getByTestId("fit-preset-select").click();
-  await page.getByTestId("fit-preset-option-custom").click();
+  await page.getByTestId("fit-preset-custom").click();
   await page.getByTestId("fit-width-input").fill("8193");
   await expect(page.getByTestId("crop-save-btn")).toBeDisabled();
   await page.route("**/api/crop/fit", (route) =>
@@ -352,14 +351,12 @@ test("preset, custom dimensions, and mode changes refresh automatically", async 
   await page.getByTestId("dropzone-crop-file-btn").click();
   await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
-  await page.getByTestId("fit-preset-select").click();
-  await page.getByTestId("fit-preset-option-open-graph").click();
+  await page.getByTestId("fit-preset-open-graph").click();
   await expect(page.getByTestId("crop-fit-output-size")).toContainText(
     "1200 × 630",
   );
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
-  await page.getByTestId("fit-preset-select").click();
-  await page.getByTestId("fit-preset-option-custom").click();
+  await page.getByTestId("fit-preset-custom").click();
   await page.getByTestId("fit-width-input").fill("800");
   await page.getByTestId("fit-height-input").fill("400");
   await page.getByTestId("fit-width-input").fill("320");
@@ -389,8 +386,7 @@ test("a scaled-down preview says so, and the export keeps the full size", async 
   // 1280 × 640 fits in the preview, so there is nothing to explain.
   await expect(page.getByTestId("crop-fit-preview-scaled")).toHaveCount(0);
 
-  await page.getByTestId("fit-preset-select").click();
-  await page.getByTestId("fit-preset-option-custom").click();
+  await page.getByTestId("fit-preset-custom").click();
   await page.getByTestId("fit-width-input").fill("800");
   await page.getByTestId("fit-height-input").fill("400");
   await expect(page.getByTestId("crop-fit-output-size")).toContainText(
@@ -452,7 +448,7 @@ test("preview retry keeps an adjusted crop instead of automatically reframing it
   ).toBeGreaterThan(20);
 });
 
-test("laptop layout keeps tabs, preview and Save visible in the side panel", async ({
+test("laptop layout: a big dialog with the room for the picture; tabs, preview and Save visible", async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -460,11 +456,27 @@ test("laptop layout keeps tabs, preview and Save visible in the side panel", asy
   await page.getByTestId("dropzone-crop-file-btn").click();
   await expect(page.getByTestId("crop-side-panel")).toBeVisible();
   await expect(page.getByTestId("crop-mobile-bar")).toBeHidden();
+  // Nearly the whole screen (96 % × 94 %), still a dialog; the extra width goes to the picture.
+  const dialog = (await page.getByTestId("crop-dialog").boundingBox())!;
+  expect(Math.abs(dialog.width - 1280 * 0.96)).toBeLessThan(3);
+  expect(Math.abs(dialog.height - 800 * 0.94)).toBeLessThan(3);
+  const panel = (await page.getByTestId("crop-side-panel").boundingBox())!;
+  expect(panel.width).toBeLessThan(400);
+  expect(dialog.width - panel.width).toBeGreaterThan(800);
   await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  // Size presets now sit above the output preview, so the side panel scrolls;
+  // tabs stay at the top and Save stays pinned at the bottom.
+  await expect(page.getByTestId("crop-tab-fit")).toBeInViewport();
+  await expect(page.getByTestId("crop-save-btn")).toBeInViewport();
+  await page.getByTestId("crop-fit-preview").scrollIntoViewIfNeeded();
   await expect(page.getByTestId("crop-fit-preview")).toBeInViewport();
   await expect(page.getByTestId("crop-save-btn")).toBeInViewport();
   await page.screenshot({ path: testInfo.outputPath("laptop-fit-tab.png") });
+
+  // On a very wide screen the dialog stops at 1800 px.
+  await page.setViewportSize({ width: 2400, height: 1300 });
+  await expect.poll(async () => Math.round((await page.getByTestId("crop-dialog").boundingBox())!.width)).toBe(1800);
 });
 
 async function convert(page: Page): Promise<string> {

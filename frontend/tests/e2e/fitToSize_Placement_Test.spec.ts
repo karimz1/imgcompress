@@ -58,8 +58,7 @@ async function openSquareFit(page: Page, mode: "blur" | "solid" | "transparent" 
   await page.getByTestId("dropzone-input").setInputFiles(original);
   await page.getByTestId("dropzone-crop-file-btn").click();
   await page.getByTestId("crop-tab-fit").click();
-  await page.getByTestId("fit-preset-select").click();
-  await page.getByTestId("fit-preset-option-custom").click();
+  await page.getByTestId("fit-preset-custom").click();
   await page.getByTestId("fit-width-input").fill("800");
   await page.getByTestId("fit-height-input").fill("800");
   if (mode === "image") {
@@ -151,6 +150,13 @@ async function frameRect(page: Page): Promise<number[]> {
   return (value ?? "").split(",").map(Number);
 }
 
+/** Colour, blur, tint and patterns live in the background tab; size and placement in the size tab. */
+async function showTab(page: Page, tab: "fit" | "background") {
+  const button = page.getByTestId(`crop-tab-${tab}`);
+  if ((await button.getAttribute("aria-selected")) !== "true") await button.click();
+  await expect(button).toHaveAttribute("aria-selected", "true");
+}
+
 /** Presses `key` `count` times on the focused placement stage. */
 async function press(page: Page, key: string, count: number) {
   for (let i = 0; i < count; i++) await page.keyboard.press(key);
@@ -162,6 +168,7 @@ test("changing the solid colour sends one preview request and never loops", asyn
   await openSquareFit(page, "solid");
   const start = (await fitRequests(page)).length;
   const since = async () => (await fitRequests(page)).slice(start);
+  await showTab(page, "background");
 
   // Dragging the native picker fires many input events in a row.
   await page.getByTestId("fit-color-picker").evaluate((input: HTMLInputElement) => {
@@ -224,6 +231,7 @@ test("an older preview response never replaces a newer one", async ({ page }) =>
     }
   });
   const start = (await fitRequests(page)).length;
+  await showTab(page, "background");
   delayNext = true;
   await page.getByTestId("fit-color-swatch-000000").click();
   await slowStarted;
@@ -245,11 +253,13 @@ test("dragging and resizing the image changes the preview and the export the sam
   page,
 }, testInfo) => {
   await openSquareFit(page, "solid");
+  await showTab(page, "background");
   await page.getByTestId("fit-color-swatch-000000").click();
   await expect
     .poll(async () => regionMean(await readPreview(page), 0, 0, 800, 100))
     .toEqual([0, 0, 0, 255]);
   const before = await readPreview(page);
+  await showTab(page, "fit");
   const start = (await fitRequests(page)).length;
 
   const stage = (await page.getByTestId("fit-placement-stage").boundingBox())!;
@@ -490,6 +500,7 @@ test("Ctrl + wheel zooms at the cursor; Ctrl + plus, minus and 0 zoom from the k
 test("pattern and darkening: same pixels in the preview and the export", async ({ page }) => {
   await openSquareFit(page, "solid");
   const start = (await fitRequests(page)).length;
+  await showTab(page, "background");
   await page.getByTestId("fit-pattern-dots").click();
   await expect(page.getByTestId("fit-pattern-dots")).toHaveAttribute("aria-checked", "true");
   await expect(page.getByTestId("fit-pattern-layer")).toHaveAttribute("data-pattern", "dots");
@@ -540,7 +551,10 @@ test("background image: covers the canvas, can be darkened and exports like the 
   expect(right.slice(0, 3).map(Math.round)).toEqual([30, 30, 220]);
   const sent = (await fitRequests(page)).at(-1)!;
   expect(sent.fields.fit_mode).toBe("image");
-  expect(sent.fields.fit_background).toMatch(/^backdrop\.png:\d+$/);
+  // Uploaded once to this editor session; previews only name it.
+  expect(sent.fields.fit_background_asset).toMatch(/^[A-Za-z0-9_-]{16,}$/);
+  expect(sent.fields.fit_session).toMatch(/^[A-Za-z0-9_-]{24,}$/);
+  expect(sent.fields).not.toHaveProperty("fit_background");
 
   await page.getByTestId("fit-dim-slider").fill("0.5");
   await expect
@@ -561,6 +575,92 @@ test("background image: covers the canvas, can be darkened and exports like the 
   const exported = await convert(page);
   const metadata = await sharp(exported).metadata();
   expect([metadata.width, metadata.height]).toEqual([800, 800]);
+  expect(await pixelDifference(preview, exported)).toBeLessThan(1);
+});
+
+/** Standard deviation of the grey values in a region: lower means softer. */
+async function regionStdev(image: Buffer, left: number, top: number, width: number, height: number) {
+  const region = await sharp(image).extract({ left, top, width, height }).greyscale().png().toBuffer();
+  return (await sharp(region).stats()).channels[0].stdev;
+}
+
+test("blur strength: default sends nothing, stronger blur is softer, export matches", async ({ page }) => {
+  await openSquareFit(page, "blur");
+  await showTab(page, "background");
+  await expect(page.getByTestId("fit-blur-value")).toHaveText("25%");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  // Untouched, nothing new goes to the server, so old output stays identical.
+  expect((await fitRequests(page)).at(-1)!.fields).not.toHaveProperty("fit_blur");
+  // Make room above and below the image so the background shows.
+  await showTab(page, "fit");
+  await page.getByTestId("fit-scale-input").fill("50");
+  await page.getByTestId("fit-scale-input").press("Enter");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await showTab(page, "background");
+
+  await page.getByTestId("fit-blur-slider").fill("0");
+  await expect(page.getByTestId("fit-blur-value")).toHaveText("0%");
+  await expect.poll(async () => (await fitRequests(page)).at(-1)?.fields.fit_blur).toBe("0");
+  const sharpPreview = await readPreview(page);
+  await page.getByTestId("fit-blur-slider").fill("1");
+  await expect.poll(async () => (await fitRequests(page)).at(-1)?.fields.fit_blur).toBe("1");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  const softPreview = await readPreview(page);
+  const sharpness = await regionStdev(sharpPreview, 0, 0, 800, 150);
+  const softness = await regionStdev(softPreview, 0, 0, 800, 150);
+  expect(softness).toBeLessThan(sharpness * 0.8);
+
+  await page.getByTestId("crop-save-btn").click();
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await showTab(page, "background");
+  await expect(page.getByTestId("fit-blur-value")).toHaveText("100%");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await page.getByTestId("crop-save-btn").click();
+  const exported = await convert(page);
+  expect(await pixelDifference(softPreview, exported)).toBeLessThan(1);
+});
+
+test("tint and blur on a background image: colour mixed in, image untouched, export matches", async ({
+  page,
+}) => {
+  await openSquareFit(page, "image");
+  await expect(page.getByTestId("fit-blur-value")).toHaveText("0%");
+  await expect(page.getByTestId("fit-tint-value")).toHaveText("0%");
+  await showTab(page, "fit");
+  await page.getByTestId("fit-scale-input").fill("40");
+  await page.getByTestId("fit-scale-input").press("Enter");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  await showTab(page, "background");
+
+  // A swatch turns the tint on at 30 %; then set it to 50 %.
+  await page.getByTestId("fit-tint-swatch-ffffff").click();
+  await expect(page.getByTestId("fit-tint-value")).toHaveText("30%");
+  await page.getByTestId("fit-tint-slider").fill("0.5");
+  await expect(page.getByTestId("fit-tint-layer")).toBeVisible();
+  await expect.poll(async () => (await fitRequests(page)).at(-1)?.fields.fit_tint).toBe("0.5");
+  expect((await fitRequests(page)).at(-1)!.fields.fit_tint_color).toBe("#ffffff");
+  // Red 220/30/30 halfway to white is about 238/143/143.
+  const tinted = [238, 143, 143];
+  await expect
+    .poll(async () => {
+      const mean = await regionMean(await readPreview(page), 20, 20, 100, 100);
+      return Math.max(...tinted.map((value, index) => Math.abs(mean[index] - value)));
+    })
+    .toBeLessThanOrEqual(2);
+
+  await page.getByTestId("fit-blur-slider").fill("0.5");
+  await expect.poll(async () => (await fitRequests(page)).at(-1)?.fields.fit_blur).toBe("0.5");
+  await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
+  const preview = await readPreview(page);
+  // Far from the red/blue edge the blur changes nothing; the edge goes soft.
+  const corner = (await regionMean(preview, 20, 20, 60, 60)).slice(0, 3).map(Math.round);
+  expect(corner.map((value, index) => Math.abs(value - tinted[index]) <= 3)).toEqual([true, true, true]);
+  const edge = await regionMean(preview, 395, 20, 10, 60);
+  expect(edge[0]).toBeLessThan(230);
+  expect(edge[0]).toBeGreaterThan(160);
+
+  await page.getByTestId("crop-save-btn").click();
+  const exported = await convert(page);
   expect(await pixelDifference(preview, exported)).toBeLessThan(1);
 });
 

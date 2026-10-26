@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Crosshair, Expand, Grid3x3, RotateCcw, Shrink } from "lucide-react";
+import { Crosshair, Expand, Grid3x3, RotateCcw, RotateCw, Shrink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -17,6 +17,8 @@ import {
   DEFAULT_PLACEMENT,
   MAX_PLACEMENT_SCALE,
   MIN_PLACEMENT_SCALE,
+  normalizeAngle,
+  snapAngle,
   type FitOutput,
   type FitPlacement,
 } from "@/lib/fitToSize";
@@ -36,7 +38,7 @@ export function useModifierLabel(): string {
 }
 
 /** A number input that keeps what is being typed and commits valid numbers. */
-function NumberField({
+export function NumberField({
   id,
   label,
   value,
@@ -193,7 +195,7 @@ export function FitPlacementControls({
             label={t("crop.fit.placement.fit")}
             tip={t("crop.fit.placement.fitTip", { mod })}
             disabled={disabled}
-            onClick={() => onChange({ scale: 1, x: 0.5, y: 0.5 })}
+            onClick={() => onChange({ scale: 1, x: 0.5, y: 0.5, rotation: current.rotation })}
             testId={`fit-placement-fit-btn${suffix}`}
           />
           <ToolButton
@@ -201,7 +203,9 @@ export function FitPlacementControls({
             label={t("crop.fit.placement.fill")}
             tip={t("crop.fit.placement.fillTip")}
             disabled={disabled}
-            onClick={() => onChange({ scale: coverScale(source, canvas), x: 0.5, y: 0.5 })}
+            onClick={() =>
+              onChange({ scale: coverScale(source, canvas), x: 0.5, y: 0.5, rotation: current.rotation })
+            }
             testId={`fit-placement-fill-btn${suffix}`}
           />
           <ToolButton
@@ -252,10 +256,106 @@ export function FitPlacementControls({
             </TooltipContent>
           </Tooltip>
         </div>
+        <AngleRow
+          id={`fit-rotation${suffix}`}
+          value={current.rotation ?? 0}
+          disabled={disabled}
+          onChange={(rotation) => onChange({ ...current, rotation })}
+          testId="fit-rotation"
+          suffix={suffix}
+        />
         <p className="text-[11px] leading-snug opacity-70" data-testid={`fit-placement-hint${suffix}`}>
           {t("crop.fit.placement.hint", { mod })}
         </p>
       </div>
     </TooltipProvider>
+  );
+}
+
+/**
+ * Turn slider, degree field and a reset, shared by every element that turns:
+ * the image, the background picture, text and picture layers. Shift keeps to
+ * 15° steps, like the turn handle on the stage.
+ */
+export function AngleRow({
+  id,
+  value,
+  disabled,
+  onChange,
+  testId,
+  suffix,
+}: {
+  id: string;
+  value: number;
+  disabled: boolean;
+  onChange: (angle: number) => void;
+  testId: string;
+  suffix: string;
+}) {
+  const { t } = useTranslation();
+  const shown = Math.round(value * 10) / 10;
+  const shift = useRef(false);
+  const track = (e: { shiftKey: boolean }) => {
+    shift.current = e.shiftKey;
+  };
+  // Shift with the arrow keys goes to the next 15° step, in the slider and the field.
+  const stepKeys = (e: React.KeyboardEvent) => {
+    track(e);
+    const direction =
+      e.key === "ArrowUp" || e.key === "ArrowRight" ? 1 : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -1 : 0;
+    if (!e.shiftKey || !direction || disabled) return;
+    e.preventDefault();
+    const steps = direction > 0 ? Math.floor(shown / 15 + 1e-6) + 1 : Math.ceil(shown / 15 - 1e-6) - 1;
+    onChange(normalizeAngle(steps * 15));
+  };
+  return (
+    <div className="space-y-1" onKeyDownCapture={stepKeys} onKeyUpCapture={track}>
+      <Label htmlFor={`${id}-slider`} className="flex items-center gap-1.5 text-xs opacity-80">
+        <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />
+        {t("crop.fit.placement.rotation")}
+      </Label>
+      <div className="flex min-w-0 items-center gap-2">
+        <input
+          id={`${id}-slider`}
+          type="range"
+          min={-180}
+          max={180}
+          step={1}
+          disabled={disabled}
+          value={shown}
+          onPointerDown={track}
+          onPointerMove={track}
+          onChange={(e) => {
+            const angle = Number(e.target.value);
+            onChange(shift.current ? snapAngle(angle, true) : angle);
+          }}
+          title={t("crop.fit.placement.rotationTip")}
+          className="h-1.5 min-w-0 flex-1 cursor-pointer accent-blue-500 disabled:cursor-default disabled:opacity-40"
+          data-testid={`${testId}-slider${suffix}`}
+        />
+        <NumberField
+          id={id}
+          label={t("crop.fit.placement.rotationField")}
+          value={shown}
+          min={-360}
+          max={360}
+          disabled={disabled}
+          testId={`${testId}-input${suffix}`}
+          onCommit={(angle) => onChange(normalizeAngle(angle))}
+        />
+        <span className="-ml-1 text-xs opacity-70" aria-hidden="true">°</span>
+        <button
+          type="button"
+          disabled={disabled || shown === 0}
+          onClick={() => onChange(0)}
+          aria-label={t("crop.fit.placement.rotationReset")}
+          title={t("crop.fit.placement.rotationReset")}
+          className="rounded p-1 opacity-70 hover:bg-black/5 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-30 dark:hover:bg-white/10"
+          data-testid={`${testId}-reset${suffix}`}
+        >
+          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
   );
 }

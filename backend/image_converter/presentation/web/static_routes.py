@@ -13,11 +13,13 @@ def _flag(value: bool) -> str:
 
 @static_blueprint.route("/config/runtime.json")
 def serve_runtime_config():
-    features = settings.get().features
+    config = settings.get()
+    features = config.features
     return jsonify({
         "DISABLE_LOGO": _flag(not features.is_logo_enabled),
         "DISABLE_STORAGE_MANAGEMENT": _flag(not features.is_storage_management_enabled),
         "DEV_MODE": _flag(features.is_dev_mode_enabled),
+        "MAX_UPLOAD_SIZE_MB": str(config.uploads.max_file_size_mebibytes),
     })
 
 
