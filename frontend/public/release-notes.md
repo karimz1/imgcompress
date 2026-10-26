@@ -1,14 +1,46 @@
-## v1.0.0 — DateNeedsToBeReplaced
+## v1.0.0 — 2026-10-26
 
 ### Features
 
-- Add SVG import: Convert SVGs to PNG, JPEG, AVIF, WebP, ICO, or PDF in the web UI and CLI, with resizing and cropping. PNG preserves transparency. [#938](https://github.com/karimz1/imgcompress/pull/938)
+- Image editor: Crop, pick an exact output size, add a background, text and pictures, and rotate any of them. Drag, resize and turn things right on the canvas, with snapping, a grid, undo and keyboard shortcuts. Works with touch on tablets, including iPad in landscape. On phones you get crop and size, and your design stays as it is. [Guide](https://imgcompress.karimzouine.com/docs/image-editor)
 
-- Add local AI upscaling: Small photos, drawings lose detail when enlarged with ordinary resizing. Add an optional local upscaler to the web UI and CLI. [#907](https://github.com/karimz1/imgcompress/issues/907)
+- Fit images to an exact output size: Presets for YouTube thumbnails, Shorts and stories, Instagram, X, link previews, GitHub social previews, Pinterest, Full HD, 2K and 4K, or your own size. Crop to fill, or keep the whole image on a blurred, solid, transparent or picture background. [#906](https://github.com/karimz1/imgcompress/issues/906)
 
-- Add WebP export: ImgCompress was able read WebP, but now it can also export it. Add WebP so photos and graphics can be converted without another tool. [#905](https://github.com/karimz1/imgcompress/issues/905)
+- Smart crop: When cropping to a fixed size, ImgCompress keeps the important part in frame and avoids cutting through text or faces. [Guide](https://imgcompress.karimzouine.com/docs/smart-crop)
 
-- Fit images to an exact output size: Now it is way easier to do an export for example for GitHub social previews and Open Graph links. It allows for Crop to fill and Blurred background. [#906](https://github.com/karimz1/imgcompress/issues/906)
+- Backgrounds: Blur, solid color, gradients with ready-made presets, or your own picture that you can move, scale, rotate, darken, blur and tint. Dots, stripes, grid lines or a checkerboard on a solid color.
+
+- Text and image layers: Up to 5 texts and 5 images per design, for titles, watermarks or a logo. Four bundled fonts, bold and italic, color, shadow, opacity and alignment. [Guide](https://imgcompress.karimzouine.com/docs/add-text-to-image)
+
+- Add local AI upscaling: Small photos and drawings lose detail when enlarged with ordinary resizing. An optional upscaler now runs a local AI model on the CPU, in the web UI and CLI, up to 16K. Nothing leaves your server. [#907](https://github.com/karimz1/imgcompress/issues/907)
+
+- Add SVG import: Convert SVGs to PNG, JPEG, AVIF, WebP, ICO or PDF in the web UI and CLI, with resizing and cropping. PNG keeps transparency. [#938](https://github.com/karimz1/imgcompress/pull/938)
+
+- Add WebP export: ImgCompress could already read WebP, now it can also export it, lossy or lossless. [#905](https://github.com/karimz1/imgcompress/issues/905)
+
+- Upload limit: Set `MAX_UPLOAD_SIZE_MB` in Docker or Compose to cap the size of each upload. It is optional, the default is 40 GB so big PSD and PDF files work. The upload area shows the limit. For a public instance we recommend 1 GB (`1024`). [Guide](https://imgcompress.karimzouine.com/docs/installation#upload-limit)
+
+- Build details in the footer: The footer shows exactly which version, RC or nightly you run. Click it for the build time, source commit and a Copy details button for bug reports. Update notices compare against the installed build. [#913](https://github.com/karimz1/imgcompress/issues/913)
+
+### Bug Fixes
+
+- Cleanup and "Delete all" no longer remove files of a job that is still running. Folders of running jobs are locked across all workers, and their age counts from the last activity, so a file you are downloading is not deleted underneath you.
+- Downloads only serve finished conversion results. Uploaded originals and other temp files can no longer be downloaded by folder name.
+
+### Other Changes
+
+- Releases: A `release_*` tag now prepares a GitHub release draft with generated notes, RC tags publish test images without touching `latest`, and published notes are synced into the app's "What's new". [#911](https://github.com/karimz1/imgcompress/issues/911) [#912](https://github.com/karimz1/imgcompress/issues/912)
+- Docs: Every v1.0 feature has a short guide with screenshots on the [docs site](https://imgcompress.karimzouine.com/docs/web-ui).
+
+### Security Patches
+
+This release also includes **security fixes** to keep `imgcompress` up to date with the latest CVE reports and security alerts from Docker Hub and GitHub.
+
+- [chore(docker): refresh 1 DHI base image digest - #939](https://github.com/karimz1/imgcompress/pull/939)
+- [chore(docker): refresh 2 DHI base image digests - #964](https://github.com/karimz1/imgcompress/pull/964)
+- [chore(docker): refresh 2 DHI base image digests - #965](https://github.com/karimz1/imgcompress/pull/965)
+- [chore(deps): bump next from 16.3.8 to 16.4.1 - #967](https://github.com/karimz1/imgcompress/pull/967)
+- More dependency updates for the frontend and Python packages.
 
 ## v0.9.0 — 2026-08-22
 
