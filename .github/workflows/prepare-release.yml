@@ -1,0 +1,47 @@
+name: Prepare release draft
+
+on:
+  push:
+    tags: ['release_*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag, e.g. release_0.10.0-rc.1'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-draft-${{ inputs.tag || github.ref_name }}
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    # Deleting a tag also sends a push event; there is nothing to prepare then.
+    if: github.event_name != 'push' || !github.event.deleted
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # create the draft release
+      issues: read
+      pull-requests: read
+    steps:
+      # The script always comes from main, so an older tag still gets the current logic.
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Generate notes and create draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: node scripts/prepare-release.mjs

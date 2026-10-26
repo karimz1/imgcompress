@@ -5,7 +5,7 @@ IMAGE_REF ?= $(REGISTRY)/$(IMAGE):$(TAG)
 LOCAL_PLATFORM ?= linux/amd64
 BUILDX_BUILDER ?= imgcompress-builder
 
-.PHONY: build build-local scan trivy lint unit integration e2e feature-flags local simci ensure-builder
+.PHONY: build build-local scan trivy lint unit integration e2e feature-flags local simci ensure-builder release-draft release-tests
 
 ensure-builder:
 	@./scripts/ensureBuildxBuilder.sh $(BUILDX_BUILDER)
@@ -66,3 +66,12 @@ local: lint
 # runs lint + tests inside it, builds the app image, runs E2E.
 simci: lint
 	./scripts/simulateCiTests.sh
+
+# Normally a tag push prepares the draft. This recovers a missed run or prepares
+# a draft for an existing tag; reviewed drafts are never overwritten.
+release-draft:
+	@test -n "$(RELEASE_TAG)" || (echo "Usage: make release-draft RELEASE_TAG=release_0.10.0-rc.1" >&2; exit 1)
+	gh workflow run prepare-release.yml -f tag="$(RELEASE_TAG)"
+
+release-tests:
+	node --test tests/releases/*.test.mjs

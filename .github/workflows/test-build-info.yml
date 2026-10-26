@@ -1,0 +1,40 @@
+name: Test build metadata
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/scripts/write-build-info.mjs'
+      - 'frontend/src/lib/build-info.ts'
+      - 'tests/build-info/**'
+      - 'Dockerfile'
+      - '.github/workflows/test-build-info.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/scripts/write-build-info.mjs'
+      - 'frontend/src/lib/build-info.ts'
+      - 'tests/build-info/**'
+      - 'Dockerfile'
+      - '.github/workflows/test-build-info.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Run build metadata tests
+        run: node --test tests/build-info/*.test.mjs

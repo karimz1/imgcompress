@@ -1,0 +1,66 @@
+name: Sync published release notes
+
+on:
+  release:
+    types: [published, edited]
+
+permissions:
+  contents: read
+
+# published and edited can arrive together; let them commit one after another.
+concurrency:
+  group: sync-release-notes
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: >-
+      !github.event.release.draft && !github.event.release.prerelease &&
+      startsWith(github.event.release.tag_name, 'release_') &&
+      !contains(github.event.release.tag_name, '-')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # push the notes commit to main
+    steps:
+      # Keeps the token in the git config, the push below needs it. Only main's
+      # own script runs here, nothing from the release tag.
+      - name: Check out main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Copy approved notes to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ github.event.release.id }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_JSON_PATH: ${{ runner.temp }}/published-release.json
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            # Refresh reviewed text on retries and after concurrent edits.
+            gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" > "$RELEASE_JSON_PATH"
+            node scripts/sync-release-notes.mjs
+            if git diff --quiet -- frontend/public/release-notes.md; then
+              exit 0
+            fi
+            git add frontend/public/release-notes.md
+            git commit -m "docs: update release notes for ${RELEASE_TAG}"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push attempt ${attempt} failed, retrying."
+            sleep $((attempt * 5))
+          done
+          echo 'Could not sync release notes after three attempts.' >&2
+          exit 1
