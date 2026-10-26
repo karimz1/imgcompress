@@ -109,12 +109,20 @@ Edit images right in the browser before you convert them. Everything is rendered
 
 Make small photos and drawings bigger and sharper, up to 16K. The AI is already built in: just switch it on. Pick **General** for photos or **Anime** for drawings, anime and logos. No special graphics card, no upload. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
 
-**Original vs. AI-upscaled:** a small drawing (118 × 104 px) made 4x bigger. Left: normal enlargement. Right: AI upscaling with Anime. The second row zooms in on one fingernail.
+**Original vs. AI upscaled (Anime):** the same spot at the same size. Left: the original, just enlarged. Right: made bigger with AI.
 
-| Original | AI-upscaled (anime model) |
+| Original | AI upscaled (Anime) |
 |:---:|:---:|
-| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original.webp" width="300" alt="Anime drawing of a hand with turquoise fingernails, enlarged 4x the normal way, soft blurry outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled.webp" width="300" alt="The same anime hand made 4x bigger with AI upscaling (Anime), clean dark outlines around the fingers and nails"/> |
-| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original-zoom.webp" width="300" alt="Close-up of one turquoise fingernail after normal enlargement, the nail edge is blurred"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled-zoom.webp" width="300" alt="Close-up of the same fingernail after AI upscaling (Anime), sharp nail outline and highlight"/> |
+| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-face-original.webp" width="300" alt="Anime girl's face and eyes from the original image, enlarged the normal way, soft and slightly blurry lines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-face-upscaled.webp" width="300" alt="The same face after AI upscaling with Anime, clean sharp lines around the eyes and hair"/> |
+| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-eye-original.webp" width="300" alt="Close-up of one eye from the original image, enlarged the normal way, fuzzy outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-eye-upscaled.webp" width="300" alt="The same eye after AI upscaling with Anime, crisp eyelashes and outlines"/> |
+
+<sub>Original image: [Pixabay](https://pixabay.com/illustrations/ai-generated-girl-dystopia-ruins-9062885/), made bigger from 3100 to 8640 px.</sub>
+
+**A tiny drawing (118 × 104 px) made 4x bigger.** Left: normal enlargement. Right: AI upscaling with Anime.
+
+| Original | AI upscaled (Anime) |
+|:---:|:---:|
+| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original.webp" width="200" alt="Anime drawing of a hand with turquoise fingernails, enlarged 4x the normal way, soft blurry outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled.webp" width="200" alt="The same anime hand made 4x bigger with AI upscaling (Anime), clean dark outlines around the fingers and nails"/> |
 
 ---
 
