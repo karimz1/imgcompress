@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createBuildInfo } from '../../frontend/scripts/write-build-info.mjs';
-import { parseBuildInfo } from '../../frontend/src/lib/build-info.ts';
+import { footerVersion, parseBuildInfo } from '../../frontend/src/lib/build-info.ts';
 
 const input = { markdown: '## v0.9.0 — 2026-08-22\n- Stable release', commit: '9db1e75049562d315e06eec95252c0e515b8c52a', date: '2026-10-09T11:00:00Z', ref: 'refs/heads/main' };
 
@@ -33,6 +33,13 @@ test('local images get a build timestamp without pretending to be a nightly', ()
   const info = createBuildInfo({ markdown: input.markdown, now: new Date(input.date) });
   assert.equal(info.channel, 'local');
   assert.equal(info.commit, null);
+});
+
+test('the footer label names the kind of build from its UTC build time', () => {
+  assert.equal(footerVersion(createBuildInfo(input)), '0.9.0-nightly-20261009110000');
+  assert.equal(footerVersion(createBuildInfo({ ...input, ref: 'release_1.0.0-rc.1' })), '1.0.0-rc.1');
+  assert.equal(footerVersion(createBuildInfo({ ...input, ref: 'release_1.0.0' })), '1.0.0');
+  assert.equal(footerVersion(createBuildInfo({ markdown: input.markdown, now: new Date('2026-10-26T13:46:10.900+02:00') })), '0.9.0-local-20261026114610');
 });
 
 test('invalid metadata fails safely and a missing file can fall back to the old footer', () => {

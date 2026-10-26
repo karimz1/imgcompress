@@ -23,9 +23,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await page.route('**/build-info.json', (route) => route.fulfill({ json: metadata }));
     await page.goto('/');
     const trigger = page.getByTestId('build-details-trigger');
-    await expect(trigger).toContainText('Version 0.9.0');
-    await expect(trigger).toContainText('Nightly');
-    await expect(trigger).toContainText('9db1e75');
+    await expect(trigger).toHaveText('Version 0.9.0-nightly-20261009110000');
     await trigger.click();
     const dialog = page.getByTestId('build-details-dialog');
     await expect(dialog).toBeVisible();
@@ -45,8 +43,9 @@ test('an RC shows its actual version instead of the previous stable notes', asyn
     ...metadata, version: '0.10.0-rc.1', channel: 'rc', buildId: '0.10.0-rc.1-rc.20261009110000+9db1e75',
   } }));
   await page.goto('/');
-  await expect(page.getByTestId('build-details-trigger')).toContainText('Version 0.10.0-rc.1');
-  await expect(page.getByTestId('build-details-trigger')).toContainText('Release candidate');
+  await expect(page.getByTestId('build-details-trigger')).toHaveText('Version 0.10.0-rc.1');
+  await page.getByTestId('build-details-trigger').click();
+  await expect(page.getByTestId('build-details-dialog')).toContainText('Release candidate');
   await expect(page.getByText('Update available', { exact: false })).not.toBeVisible();
 });
 
@@ -99,17 +98,17 @@ test('copy details includes the installed build and its source link', async ({ p
   expect(copied).toContain(`https://github.com/karimz1/imgcompress/commit/${commit}`);
 });
 
-test('a stable release keeps the quiet version label', async ({ page }) => {
+test('a stable release shows its version with a stable tag', async ({ page }) => {
+  const buildId = '0.9.0-stable.20261009110000+9db1e75';
   await page.route('**/build-info.json', (route) => route.fulfill({ json: {
-    ...metadata, channel: 'stable', buildId: '0.9.0-stable.20261009110000+9db1e75', ref: 'release_0.9.0',
+    ...metadata, channel: 'stable', buildId, ref: 'release_0.9.0',
   } }));
   await page.goto('/');
   const trigger = page.getByTestId('build-details-trigger');
-  await expect(trigger).toContainText('Version 0.9.0');
-  await expect(trigger).not.toContainText('9db1e75');
-  await expect(trigger).not.toContainText('Stable');
+  await expect(trigger).toHaveText('Version 0.9.0Stable');
+  await expect(trigger.getByText('Stable', { exact: true })).toBeVisible();
   await trigger.click();
-  await expect(page.getByTestId('build-details-dialog')).toContainText('Stable');
+  await expect(page.getByTestId('build-details-dialog')).toContainText(buildId);
 });
 
 test('a local build without a commit shows no source link', async ({ page }) => {
@@ -117,6 +116,7 @@ test('a local build without a commit shows no source link', async ({ page }) => 
     ...metadata, channel: 'local', commit: null, ref: null, buildId: '0.9.0-local.20261009110000',
   } }));
   await page.goto('/');
+  await expect(page.getByTestId('build-details-trigger')).toHaveText('Version 0.9.0-local-20261009110000');
   await page.getByTestId('build-details-trigger').click();
   const dialog = page.getByTestId('build-details-dialog');
   await expect(dialog).toContainText('Local build');

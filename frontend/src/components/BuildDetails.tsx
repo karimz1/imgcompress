@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Check, Copy, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { type BuildInfo } from "@/lib/build-info";
+import { type BuildInfo, footerVersion } from "@/lib/build-info";
 import { APP_CONFIG } from "@/lib/config";
 
 export function BuildDetails({ info, version }: { info: BuildInfo | null; version: string }) {
@@ -15,10 +15,8 @@ export function BuildDetails({ info, version }: { info: BuildInfo | null; versio
   if (!info) return <span>{t("footer.version", { version })}</span>;
 
   const date = new Date(info.builtAt);
-  const buildDate = new Intl.DateTimeFormat(i18n.language, { year: "numeric", month: "short", day: "numeric" }).format(date);
   const buildTime = new Intl.DateTimeFormat(i18n.language, { dateStyle: "medium", timeStyle: "long" }).format(date);
   const channel = t(`footer.build.channels.${info.channel}`);
-  const preview = info.channel === "nightly" || info.channel === "rc";
   const commitUrl = info.commit ? `${APP_CONFIG.GITHUB_REPO_URL}/commit/${info.commit}` : null;
 
   const copyDetails = async () => {
@@ -40,13 +38,9 @@ export function BuildDetails({ info, version }: { info: BuildInfo | null; versio
           aria-label={t("footer.build.open")}
           className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-md px-1 py-1 text-xs hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span>{t("footer.version", { version })}</span>
-          {preview && (
-            <>
-              <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-0.5 text-sky-700 dark:text-sky-300">{channel}</span>
-              <time dateTime={info.builtAt}>{buildDate}</time>
-              {info.commit && <span className="font-mono">{info.commit.slice(0, 7)}</span>}
-            </>
+          <span>{t("footer.version", { version: footerVersion(info) })}</span>
+          {info.channel === "stable" && (
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-emerald-700 dark:text-emerald-300">{channel}</span>
           )}
           <Info className="h-3 w-3" aria-hidden="true" />
         </button>

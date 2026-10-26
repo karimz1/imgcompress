@@ -21,3 +21,11 @@ export function parseBuildInfo(value: unknown): BuildInfo | null {
   if (info.commit !== null && (typeof info.commit !== 'string' || !/^[a-f0-9]{7,64}$/i.test(info.commit))) return null;
   return info as BuildInfo;
 }
+
+// Nightly and local builds carry their UTC build time, so two builds of the
+// same version can be told apart at a glance.
+export function footerVersion(info: BuildInfo): string {
+  if (info.channel === 'rc' || info.channel === 'stable') return info.version;
+  const timestamp = new Date(info.builtAt).toISOString().replace(/[-:T]/g, '').slice(0, 14);
+  return `${info.version}-${info.channel}-${timestamp}`;
+}
