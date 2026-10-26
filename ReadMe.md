@@ -108,6 +108,13 @@ ImgCompress now has a real image editor in the browser, plus a few things people
 - **[Upload limit](https://imgcompress.karimzouine.com/docs/installation#upload-limit):** set `MAX_UPLOAD_SIZE_MB`; the upload area shows the limit.
 - **[Build details](https://imgcompress.karimzouine.com/docs/build-details):** the footer shows exactly which version or nightly you run.
 
+**AI upscaling, anime model:** a 118 × 104 px drawing taken to 4x. Left is a plain bicubic resize, right is the Anime model (`realesr-animevideov3`) in ImgCompress. The second row zooms in on one fingernail.
+
+| Original | AI-upscaled (anime model) |
+|:---:|:---:|
+| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original.webp" width="300" alt="Anime drawing of a hand with turquoise fingernails, enlarged 4x with plain bicubic resizing, soft blurry outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled.webp" width="300" alt="The same anime hand upscaled 4x with the local AI anime model, clean dark outlines around the fingers and nails"/> |
+| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original-zoom.webp" width="300" alt="Close-up of one turquoise fingernail after bicubic resizing, the nail edge is blurred"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled-zoom.webp" width="300" alt="Close-up of the same fingernail after AI upscaling with the anime model, sharp nail outline and highlight"/> |
+
 ---
 
 ## AI Background Removal: Local & Private
