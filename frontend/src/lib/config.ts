@@ -8,7 +8,7 @@ export const APP_CONFIG = {
   DOCS_WEB_UI_URL: "https://imgcompress.karimzouine.com/web-ui/",
   DOCS_OFFLINE_PRIVACY: "https://imgcompress.karimzouine.com/docs/privacy#keeping-your-server-offline",
   DOCS_RELEASE_NOTES_URL: "https://imgcompress.karimzouine.com/release-notes/",
-  DOCS_UPDATE_GUIDE_URL: "https://imgcompress.karimzouine.com/installation/#maintenance-updates",
+  DOCS_UPDATE_GUIDE_URL: "https://imgcompress.karimzouine.com/docs/installation#update",
 
   // GitHub URLs
   GITHUB_REPO_URL: "https://github.com/karimz1/imgcompress",

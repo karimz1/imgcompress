@@ -70,7 +70,7 @@ export const en = {
         ico: "ICO (preserves transparency)",
       },
       tooltip:
-        "PNG: Preserves transparency (alpha) and is best for images with transparent backgrounds.\nJPEG: Ideal for images without transparency and produces smaller file sizes.\nAVIF: Modern format with superior compression and quality, supports transparency.\nWebP: Small files with wide browser support, supports transparency and an optional lossless mode.\nPDF: Export images into PDFs with optional page presets, margins, and multi-page splitting.\nICO: Commonly used for favicons and application icons, supports transparency (alpha). Recommended to use PNG as the source when converting to ICO.",
+        "PNG: keeps see-through areas. Best for logos and images with a transparent background.\nJPEG: great for photos, with small files.\nAVIF: a modern format with very small files and great quality. Keeps see-through areas.\nWebP: small files that work everywhere. Keeps see-through areas.\nPDF: puts your images into a PDF, with page sizes, margins and splitting of long images.\nICO: for website and app icons. Keeps see-through areas. Works best with a PNG as the starting image.",
     },
     pdfPreset: {
       label: "PDF Page Preset",
@@ -127,7 +127,7 @@ export const en = {
     webpLossless: {
       label: "Lossless WebP",
       tooltip:
-        "Keeps every pixel exactly as in the source. Files are larger than lossy WebP, so quality and max file size are not available.\nGood for screenshots, logos, and graphics with text.",
+        "Keeps every pixel exactly like the original. Files get bigger, so Quality and Max file size are turned off.\nGood for screenshots, logos and images with text.",
     },
     compressionMode: {
       label: "{{format}} settings mode",
@@ -135,9 +135,9 @@ export const en = {
       bySize: "Set by File Size",
     },
     rembg: {
-      label: "Remove background with local AI ({{model}})",
+      label: "Remove background with AI",
       tooltip:
-        "Local AI removes background (no internet required).\nSlower processing, may show small edge artifacts.",
+        "The AI is already built in: nothing to install, and it works without internet.\nIt takes a bit longer, and edges may not be perfect.",
     },
     quality: {
       label: "Quality",
@@ -171,7 +171,7 @@ export const en = {
       },
       label: "AI upscaling",
       tooltip:
-        "Local AI ({{model}}) enlarges images and reconstructs edges and fine detail. No internet required.\nSlower processing on the CPU; small artifacts may appear, especially in faces.",
+        "The built-in AI makes images bigger and keeps edges and small details sharp. Nothing to install, and it works without internet.\nIt takes a while, and faces may show small flaws.",
       targetLabel: "Upscale to",
       options: {
         "2x": "2× larger",
@@ -184,10 +184,10 @@ export const en = {
         "16k": "16K (fits 15360 × 8640)",
       },
       hint:
-        "Keeps the aspect ratio. Images already large enough for a resolution target stay unchanged. Larger images and slower CPUs take longer. Beyond 4×, AI upscaling is followed by standard resizing.",
-      unavailableHint: "The upscaling model is not installed.",
+        "The image keeps its shape. Images that are already big enough stay as they are. Bigger results and older computers take longer. Above 4×, the AI goes first and a normal resize finishes the job.",
+      unavailableHint: "AI upscaling is not included in this version.",
       fitActiveHint: "Not used while Fit to exact size is on.",
-      largeTargetHint: "Large targets take longer and use more memory.",
+      largeTargetHint: "Very big results take longer.",
       preview: {
         unchanged: "{{size}} · stays as is",
         tooLarge: "{{size}} is over the {{limit}} MP limit",
@@ -251,7 +251,7 @@ export const en = {
       vectorUpscaleActiveHint: "Turn off {{enlargeLabel}} to enter a specific width.",
       label: "Resize Width",
       tooltip:
-        "Resizes the image(s) to the desired width while preserving the original aspect ratio.",
+        "Changes the width. The height changes with it, so the image keeps its shape.",
       upscaleActiveHint: "Not used while upscaling is on.",
       fitActiveHint: "Not used while Fit to exact size is on.",
     },
@@ -357,7 +357,7 @@ export const en = {
     checking: "Checking...",
     whyTitle: "Why this exists?",
     whyDesc:
-      "Verifies container health and network isolation for security. No images or metadata ever leave your machine.",
+      "Checks that ImgCompress is running and whether it can reach the internet. No images or data ever leave your computer.",
     learnMore: "Learn more about offline usage →",
     backendLastCheck: "Backend Last Check:",
     internetLastCheck: "Internet Last Check:",
@@ -723,7 +723,7 @@ export const en = {
     loading: {
       serverWords: ["Please", "wait", "a", "bit,", "I'm", "almost", "ready"],
       localWords: ["Opening", "the", "editor"],
-      serverMessage: "{{label}} needs a server-rendered bitmap before cropping. Preparing it now.",
+      serverMessage: "{{label}} needs a quick preparation before you can crop it. Preparing it now.",
       localMessage: "Opening {{label}} in the editor.",
     },
     failure: {
@@ -734,8 +734,8 @@ export const en = {
       closeButton: "Close",
       reportButton: "Report this issue",
       causes: {
-        backendNotReachable: "The backend service isn't reachable yet. If you just rebuilt the container, give it a few seconds to come up and try again.",
-        networkDropped: "The connection to the backend dropped mid-upload. Check that the container is still running and try again.",
+        backendNotReachable: "ImgCompress isn't ready yet. If you just restarted it, wait a few seconds and try again.",
+        networkDropped: "The connection was lost during the upload. Check that ImgCompress is still running and try again.",
         variantNotSupported: "This file may be a {{label}} variant the decoder can't read (multi-layer, non-standard color mode, encrypted, etc.). Re-exporting from the source app as a flat {{label}} or a regular PNG / JPG usually fixes this.",
         missingLibraries: "{{label}} files always go through the backend's decoder. If the decoder is missing native libraries (e.g. libheif for HEIC), the build may have skipped them — re-running the build with the optional codecs enabled usually resolves it.",
         reportIssue: "If none of the above fits, copy the technical details below and open a ticket — the trace shows exactly which step failed.",

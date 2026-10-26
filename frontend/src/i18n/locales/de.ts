@@ -72,7 +72,7 @@ export const de: TranslationSchema = {
         ico: "ICO (erhält Transparenz)",
       },
       tooltip:
-        "PNG: Erhält Transparenz (Alpha) und ist ideal für Bilder mit transparentem Hintergrund.\nJPEG: Ideal für Bilder ohne Transparenz und erzeugt kleinere Dateien.\nAVIF: Modernes Format mit hervorragender Komprimierung und Qualität, unterstützt Transparenz.\nWebP: Kleine Dateien mit breiter Browser-Unterstützung, unterstützt Transparenz und einen optionalen verlustfreien Modus.\nPDF: Exportiert Bilder in PDFs mit optionalen Seitenvorgaben, Rändern und Aufteilung auf mehrere Seiten.\nICO: Wird häufig für Favicons und Anwendungssymbole verwendet, unterstützt Transparenz (Alpha). Für die Konvertierung zu ICO wird PNG als Quelle empfohlen.",
+        "PNG: behält durchsichtige Bereiche. Ideal für Logos und Bilder mit transparentem Hintergrund.\nJPEG: ideal für Fotos, mit kleinen Dateien.\nAVIF: ein modernes Format mit sehr kleinen Dateien und toller Qualität. Behält durchsichtige Bereiche.\nWebP: kleine Dateien, die überall funktionieren. Behält durchsichtige Bereiche.\nPDF: packt deine Bilder in ein PDF, mit Seitengrößen, Rändern und Aufteilen langer Bilder.\nICO: für Website- und App-Symbole. Behält durchsichtige Bereiche. Klappt am besten mit einem PNG als Ausgangsbild.",
     },
     pdfPreset: {
       label: "PDF-Seitenvorgabe",
@@ -130,7 +130,7 @@ export const de: TranslationSchema = {
     webpLossless: {
       label: "Verlustfreies WebP",
       tooltip:
-        "Behält jedes Pixel exakt wie im Original. Die Dateien sind größer als bei verlustbehaftetem WebP, daher sind Qualität und maximale Dateigröße nicht verfügbar.\nGut für Screenshots, Logos und Grafiken mit Text.",
+        "Behält jedes Pixel genau wie im Original. Die Dateien werden größer, deshalb sind Qualität und Max. Dateigröße ausgeschaltet.\nGut für Screenshots, Logos und Bilder mit Text.",
     },
     compressionMode: {
       label: "{{format}}-Einstellungsmodus",
@@ -138,9 +138,9 @@ export const de: TranslationSchema = {
       bySize: "Nach Dateigröße festlegen",
     },
     rembg: {
-      label: "Hintergrund mit lokaler KI entfernen ({{model}})",
+      label: "Hintergrund mit KI entfernen",
       tooltip:
-        "Lokale KI entfernt den Hintergrund (kein Internet erforderlich).\nLangsamere Verarbeitung, kleine Kantenartefakte können auftreten.",
+        "Die KI ist schon eingebaut: nichts zu installieren, und sie funktioniert ohne Internet.\nEs dauert etwas länger, und die Kanten sind vielleicht nicht perfekt.",
     },
     quality: {
       label: "Qualität",
@@ -174,7 +174,7 @@ export const de: TranslationSchema = {
       },
       label: "KI-Hochskalierung",
       tooltip:
-        "Vergrößert Bilder mit lokaler KI ({{model}}), die Kanten und feine Details rekonstruiert. Kein Internet erforderlich.\nLangsamere Verarbeitung auf der CPU; kleine Artefakte können auftreten, besonders bei Gesichtern.",
+        "Die eingebaute KI macht Bilder größer und hält Kanten und kleine Details scharf. Nichts zu installieren, und sie funktioniert ohne Internet.\nEs dauert eine Weile, und Gesichter können kleine Fehler zeigen.",
       targetLabel: "Hochskalieren auf",
       options: {
         "2x": "2× größer",
@@ -187,10 +187,10 @@ export const de: TranslationSchema = {
         "16k": "16K (passt in 15360 × 8640)",
       },
       hint:
-        "Behält das Seitenverhältnis bei. Bilder, die für die Zielauflösung bereits groß genug sind, bleiben unverändert. Größere Bilder und langsamere CPUs brauchen mehr Zeit. Über 4× folgt auf die KI-Hochskalierung eine normale Größenänderung.",
-      unavailableHint: "Das Modell für die Hochskalierung ist nicht installiert.",
+        "Das Bild behält seine Form. Bilder, die schon groß genug sind, bleiben, wie sie sind. Größere Ergebnisse und ältere Computer brauchen länger. Über 4× arbeitet zuerst die KI, dann macht eine normale Größenänderung den Rest.",
+      unavailableHint: "KI-Hochskalierung ist in dieser Version nicht enthalten.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
-      largeTargetHint: "Große Ziele dauern länger und brauchen mehr Speicher.",
+      largeTargetHint: "Sehr große Ergebnisse dauern länger.",
       preview: {
         unchanged: "{{size}} · bleibt unverändert",
         tooLarge: "{{size}} liegt über dem Limit von {{limit}} MP",
@@ -254,7 +254,7 @@ export const de: TranslationSchema = {
       vectorUpscaleActiveHint: "Schalte {{enlargeLabel}} aus, um eine bestimmte Breite einzugeben.",
       label: "Breite ändern",
       tooltip:
-        "Ändert die Größe der Bilder auf die gewünschte Breite und behält dabei das ursprüngliche Seitenverhältnis bei.",
+        "Ändert die Breite. Die Höhe passt sich an, so behält das Bild seine Form.",
       upscaleActiveHint: "Wird nicht verwendet, solange die Hochskalierung aktiv ist.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
     },
@@ -360,7 +360,7 @@ export const de: TranslationSchema = {
     checking: "Wird geprüft...",
     whyTitle: "Warum gibt es das?",
     whyDesc:
-      "Prüft Containerzustand und Netzwerkisolierung zur Sicherheit. Keine Bilder oder Metadaten verlassen jemals deinen Rechner.",
+      "Prüft, ob ImgCompress läuft und ob es das Internet erreicht. Keine Bilder oder Daten verlassen jemals deinen Computer.",
     learnMore: "Mehr über Offline-Nutzung erfahren →",
     backendLastCheck: "Letzte Backend-Prüfung:",
     internetLastCheck: "Letzte Internetprüfung:",
@@ -726,7 +726,7 @@ export const de: TranslationSchema = {
     loading: {
       serverWords: ["Bitte", "warte", "kurz,", "ich", "bin", "fast", "bereit"],
       localWords: ["Editor", "wird", "geöffnet"],
-      serverMessage: "{{label}} benötigt vor dem Zuschneiden eine serverseitig gerenderte Bitmap. Sie wird jetzt vorbereitet.",
+      serverMessage: "{{label}} muss kurz vorbereitet werden, bevor du es zuschneiden kannst. Wird jetzt vorbereitet.",
       localMessage: "{{label}} wird im Editor geöffnet.",
     },
     failure: {
@@ -737,8 +737,8 @@ export const de: TranslationSchema = {
       closeButton: "Schließen",
       reportButton: "Dieses Problem melden",
       causes: {
-        backendNotReachable: "Der Backend-Dienst ist noch nicht erreichbar. Wenn du den Container gerade neu gebaut hast, warte ein paar Sekunden und versuche es erneut.",
-        networkDropped: "Die Verbindung zum Backend ist während des Uploads abgebrochen. Prüfe, ob der Container noch läuft, und versuche es erneut.",
+        backendNotReachable: "ImgCompress ist noch nicht bereit. Wenn du es gerade neu gestartet hast, warte ein paar Sekunden und versuche es erneut.",
+        networkDropped: "Die Verbindung ist während des Uploads abgebrochen. Prüfe, ob ImgCompress noch läuft, und versuche es erneut.",
         variantNotSupported: "Diese Datei könnte eine {{label}}-Variante sein, die der Decoder nicht lesen kann (mehrschichtig, nicht standardisierter Farbmodus, verschlüsselt usw.). Ein Export aus der Quellanwendung als flaches {{label}} oder normales PNG/JPG behebt dies meist.",
         missingLibraries: "{{label}}-Dateien laufen immer durch den Decoder des Backends. Wenn dem Decoder native Bibliotheken fehlen (z. B. libheif für HEIC), löst ein erneuter Build mit aktivierten optionalen Codecs das Problem meist.",
         reportIssue: "Wenn nichts davon passt, kopiere die technischen Details unten und öffne ein Ticket - der Trace zeigt genau, welcher Schritt fehlgeschlagen ist.",

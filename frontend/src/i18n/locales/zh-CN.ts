@@ -72,7 +72,7 @@ export const zhCN: TranslationSchema = {
         ico: "ICO（保留透明度）",
       },
       tooltip:
-        "PNG：保留透明度（Alpha），最适合透明背景图片。\nJPEG：适合没有透明度的图片，可生成更小的文件。\nAVIF：现代格式，压缩率和质量更好，并支持透明度。\nWebP：文件小且浏览器支持广泛，支持透明度和可选的无损模式。\nPDF：将图片导出为 PDF，可选择页面预设、边距和多页拆分。\nICO：常用于收藏夹图标和应用图标，支持透明度（Alpha）。转换为 ICO 时建议使用 PNG 作为源文件。",
+        "PNG：保留透明区域。最适合标志和透明背景的图片。\nJPEG：适合照片，文件小。\nAVIF：新式格式，文件很小，画质很好。保留透明区域。\nWebP：文件小，到处都能用。保留透明区域。\nPDF：把图片放进 PDF，可选页面尺寸、边距，并能拆分长图。\nICO：用于网站和应用图标。保留透明区域。最好用 PNG 作为原图。",
     },
     pdfPreset: {
       label: "PDF 页面预设",
@@ -130,7 +130,7 @@ export const zhCN: TranslationSchema = {
     webpLossless: {
       label: "无损 WebP",
       tooltip:
-        "完全保留原图的每个像素。文件比有损 WebP 更大，因此无法设置质量和最大文件大小。\n适合截图、徽标和带文字的图形。",
+        "每个像素都与原图完全一样。文件会更大，所以质量和最大文件大小会关闭。\n适合截图、标志和带文字的图片。",
     },
     compressionMode: {
       label: "{{format}} 设置模式",
@@ -138,9 +138,9 @@ export const zhCN: TranslationSchema = {
       bySize: "按文件大小设置",
     },
     rembg: {
-      label: "使用本地 AI 移除背景（{{model}}）",
+      label: "用 AI 移除背景",
       tooltip:
-        "本地 AI 会移除背景（无需互联网）。\n处理较慢，边缘可能出现少量瑕疵。",
+        "AI 已经内置：无需安装，没有网络也能用。\n会稍慢一些，边缘可能不够完美。",
     },
     quality: {
       label: "质量",
@@ -174,7 +174,7 @@ export const zhCN: TranslationSchema = {
       },
       label: "AI 放大",
       tooltip:
-        "本地 AI（{{model}}）放大图片，重建边缘和细节。无需互联网。\nCPU 处理较慢；可能出现轻微瑕疵，尤其是在面部。",
+        "内置 AI 会把图片变大，并让边缘和小细节保持清晰。无需安装，没有网络也能用。\n需要一些时间，人脸上可能出现小瑕疵。",
       targetLabel: "放大到",
       options: {
         "2x": "放大 2 倍",
@@ -187,10 +187,10 @@ export const zhCN: TranslationSchema = {
         "16k": "16K（适配 15360 × 8640）",
       },
       hint:
-        "保持宽高比。已经足够达到目标分辨率的图片保持不变。较大的图片和较慢的 CPU 需要更长时间。超过 4 倍的放大会先进行 AI 放大，再使用常规缩放。",
-      unavailableHint: "未安装放大模型。",
+        "图片保持原来的形状。已经足够大的图片保持不变。结果越大、电脑越旧，耗时越长。超过 4× 时，先由 AI 放大，再用普通缩放完成。",
+      unavailableHint: "此版本不包含 AI 放大。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
-      largeTargetHint: "较大的目标尺寸耗时更长，占用内存更多。",
+      largeTargetHint: "很大的结果需要更长时间。",
       preview: {
         unchanged: "{{size}} · 保持不变",
         tooLarge: "{{size}} 超过 {{limit}} MP 上限",
@@ -254,7 +254,7 @@ export const zhCN: TranslationSchema = {
       vectorUpscaleActiveHint: "关闭“{{enlargeLabel}}”即可输入指定宽度。",
       label: "调整宽度",
       tooltip:
-        "将图片调整到所需宽度，同时保留原始宽高比。",
+        "改变宽度。高度会随之变化，所以图片保持原来的形状。",
       upscaleActiveHint: "开启放大时不使用。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
     },
@@ -359,7 +359,7 @@ export const zhCN: TranslationSchema = {
     checking: "检查中...",
     whyTitle: "为什么会有这个？",
     whyDesc:
-      "出于安全考虑，验证容器健康状态和网络隔离。任何图片或元数据都不会离开你的机器。",
+      "检查 ImgCompress 是否正常运行，以及能否连接互联网。图片和数据永远不会离开你的电脑。",
     learnMore: "了解更多离线使用 →",
     backendLastCheck: "后端上次检查：",
     internetLastCheck: "互联网上次检查：",
@@ -725,7 +725,7 @@ export const zhCN: TranslationSchema = {
     loading: {
       serverWords: ["请", "稍等", "一下，", "我", "快", "准备", "好了"],
       localWords: ["正在", "打开", "编辑器"],
-      serverMessage: "{{label}} 在裁剪前需要服务器渲染的位图。正在准备。",
+      serverMessage: "{{label}} 需要先快速准备一下才能裁剪。正在准备。",
       localMessage: "正在编辑器中打开 {{label}}。",
     },
     failure: {
@@ -736,8 +736,8 @@ export const zhCN: TranslationSchema = {
       closeButton: "关闭",
       reportButton: "报告此问题",
       causes: {
-        backendNotReachable: "后端服务尚不可访问。如果你刚刚重建了容器，请等待几秒钟让它启动，然后重试。",
-        networkDropped: "上传过程中与后端的连接中断。检查容器是否仍在运行，然后重试。",
+        backendNotReachable: "ImgCompress 还没准备好。如果你刚重启它，请等几秒再试。",
+        networkDropped: "上传时连接断开了。请检查 ImgCompress 是否仍在运行，然后重试。",
         variantNotSupported: "此文件可能是解码器无法读取的 {{label}} 变体（多图层、非标准颜色模式、加密等）。通常从源应用重新导出为扁平的 {{label}} 或普通 PNG/JPG 可以解决此问题。",
         missingLibraries: "{{label}} 文件始终会经过后端解码器。如果解码器缺少原生库（例如 HEIC 所需的 libheif），使用可选编解码器重新构建通常可以解决。",
         reportIssue: "如果以上都不符合，请复制下面的技术详情并创建工单。跟踪信息会准确显示哪一步失败。",

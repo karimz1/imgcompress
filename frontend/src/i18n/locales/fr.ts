@@ -72,7 +72,7 @@ export const fr: TranslationSchema = {
         ico: "ICO (conserve la transparence)",
       },
       tooltip:
-        "PNG : conserve la transparence (alpha) et convient aux images avec arrière-plan transparent.\nJPEG : idéal pour les images sans transparence et produit des fichiers plus petits.\nAVIF : format moderne avec une excellente compression et une bonne qualité, avec prise en charge de la transparence.\nWebP : fichiers légers largement pris en charge par les navigateurs, gère la transparence et propose un mode sans perte optionnel.\nPDF : exporte les images en PDF avec des préréglages de page, marges et découpe multipage optionnels.\nICO : souvent utilisé pour les favicons et les icônes d'application, avec prise en charge de la transparence (alpha). Utilisez de préférence un PNG comme source pour convertir en ICO.",
+        "PNG : garde les zones transparentes. Idéal pour les logos et les images à fond transparent.\nJPEG : idéal pour les photos, avec des fichiers légers.\nAVIF : un format moderne, fichiers très légers et belle qualité. Garde les zones transparentes.\nWebP : des fichiers légers qui marchent partout. Garde les zones transparentes.\nPDF : met vos images dans un PDF, avec formats de page, marges et découpage des images longues.\nICO : pour les icônes de sites et d'applications. Garde les zones transparentes. Fonctionne mieux à partir d'un PNG.",
     },
     pdfPreset: {
       label: "Préréglage de page PDF",
@@ -130,7 +130,7 @@ export const fr: TranslationSchema = {
     webpLossless: {
       label: "WebP sans perte",
       tooltip:
-        "Conserve chaque pixel exactement comme dans l'original. Les fichiers sont plus lourds qu'en WebP avec perte, la qualité et la taille maximale ne sont donc pas disponibles.\nIdéal pour les captures d'écran, les logos et les graphiques contenant du texte.",
+        "Garde chaque pixel exactement comme dans l'original. Les fichiers sont plus lourds, donc Qualité et Taille maximale sont désactivées.\nIdéal pour les captures d'écran, les logos et les images avec du texte.",
     },
     compressionMode: {
       label: "Mode de réglage {{format}}",
@@ -138,9 +138,9 @@ export const fr: TranslationSchema = {
       bySize: "Régler par taille de fichier",
     },
     rembg: {
-      label: "Supprimer l'arrière-plan avec l'IA locale ({{model}})",
+      label: "Supprimer l'arrière-plan avec l'IA",
       tooltip:
-        "L'IA locale supprime l'arrière-plan (aucun internet requis).\nTraitement plus lent, de petits artefacts de bord peuvent apparaître.",
+        "L'IA est déjà intégrée : rien à installer, et elle fonctionne sans internet.\nCela prend un peu plus de temps, et les bords ne seront pas toujours parfaits.",
     },
     quality: {
       label: "Qualité",
@@ -174,7 +174,7 @@ export const fr: TranslationSchema = {
       },
       label: "Agrandissement par IA",
       tooltip:
-        "L’IA locale ({{model}}) agrandit les images et reconstruit les contours et les détails fins. Aucune connexion Internet nécessaire.\nLe traitement sur le processeur est plus lent ; de petits artefacts peuvent apparaître, surtout sur les visages.",
+        "L'IA intégrée agrandit les images et garde les bords et les petits détails nets. Rien à installer, et elle fonctionne sans internet.\nCela prend un moment, et les visages peuvent montrer de petits défauts.",
       targetLabel: "Agrandir en",
       options: {
         "2x": "2× plus grand",
@@ -187,10 +187,10 @@ export const fr: TranslationSchema = {
         "16k": "16K (tient dans 15360 × 8640)",
       },
       hint:
-        "Conserve les proportions. Les images déjà assez grandes pour la résolution choisie restent inchangées. Les grandes images et les processeurs plus lents demandent plus de temps. Au-delà de 4×, l’agrandissement par IA est suivi d’un redimensionnement classique.",
-      unavailableHint: "Le modèle d’agrandissement n’est pas installé.",
+        "L'image garde sa forme. Les images déjà assez grandes restent telles quelles. Les grands résultats et les ordinateurs plus anciens prennent plus de temps. Au-delà de 4×, l'IA passe d'abord, puis un redimensionnement normal termine le travail.",
+      unavailableHint: "L'agrandissement par IA n'est pas inclus dans cette version.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
-      largeTargetHint: "Les grandes tailles prennent plus de temps et de mémoire.",
+      largeTargetHint: "Les très grands résultats prennent plus de temps.",
       preview: {
         unchanged: "{{size}} · reste tel quel",
         tooLarge: "{{size}} dépasse la limite de {{limit}} MP",
@@ -254,7 +254,7 @@ export const fr: TranslationSchema = {
       vectorUpscaleActiveHint: "Désactivez {{enlargeLabel}} pour saisir une largeur précise.",
       label: "Redimensionner la largeur",
       tooltip:
-        "Redimensionne l'image ou les images à la largeur souhaitée en conservant le rapport d'aspect d'origine.",
+        "Change la largeur. La hauteur suit, donc l'image garde sa forme.",
       upscaleActiveHint: "Non utilisé tant que l’agrandissement est activé.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
     },
@@ -360,7 +360,7 @@ export const fr: TranslationSchema = {
     checking: "Vérification...",
     whyTitle: "Pourquoi cela existe ?",
     whyDesc:
-      "Vérifie la santé du conteneur et l'isolation réseau pour la sécurité. Aucune image ni métadonnée ne quitte jamais votre machine.",
+      "Vérifie qu'ImgCompress fonctionne et s'il peut accéder à internet. Aucune image ni donnée ne quitte jamais votre ordinateur.",
     learnMore: "En savoir plus sur l'utilisation hors ligne →",
     backendLastCheck: "Dernière vérification du backend :",
     internetLastCheck: "Dernière vérification internet :",
@@ -726,7 +726,7 @@ export const fr: TranslationSchema = {
     loading: {
       serverWords: ["Merci", "de", "patienter,", "je", "suis", "presque", "prêt"],
       localWords: ["Ouverture", "de", "l'éditeur"],
-      serverMessage: "{{label}} nécessite une image bitmap rendue par le serveur avant le recadrage. Préparation en cours.",
+      serverMessage: "{{label}} doit être préparé rapidement avant de pouvoir être recadré. Préparation en cours.",
       localMessage: "Ouverture de {{label}} dans l'éditeur.",
     },
     failure: {
@@ -737,8 +737,8 @@ export const fr: TranslationSchema = {
       closeButton: "Fermer",
       reportButton: "Signaler ce problème",
       causes: {
-        backendNotReachable: "Le service backend n'est pas encore joignable. Si vous venez de reconstruire le conteneur, attendez quelques secondes puis réessayez.",
-        networkDropped: "La connexion au backend a été interrompue pendant l'envoi. Vérifiez que le conteneur fonctionne encore puis réessayez.",
+        backendNotReachable: "ImgCompress n'est pas encore prêt. Si vous venez de le redémarrer, attendez quelques secondes puis réessayez.",
+        networkDropped: "La connexion a été perdue pendant l'envoi. Vérifiez qu'ImgCompress fonctionne encore puis réessayez.",
         variantNotSupported: "Ce fichier peut être une variante {{label}} que le décodeur ne peut pas lire (multicalque, mode couleur non standard, chiffré, etc.). Le réexporter depuis l'application source en {{label}} aplati ou en PNG/JPG classique résout souvent le problème.",
         missingLibraries: "Les fichiers {{label}} passent toujours par le décodeur du backend. Si le décodeur manque de bibliothèques natives (par exemple libheif pour HEIC), une reconstruction avec les codecs optionnels activés résout généralement le problème.",
         reportIssue: "Si aucun cas ne correspond, copiez les détails techniques ci-dessous et ouvrez un ticket : la trace indique exactement l'étape qui a échoué.",

@@ -72,7 +72,7 @@ export const ptBR: TranslationSchema = {
         ico: "ICO (preserva transparência)",
       },
       tooltip:
-        "PNG: preserva transparência (alfa) e é melhor para imagens com fundos transparentes.\nJPEG: ideal para imagens sem transparência e gera arquivos menores.\nAVIF: formato moderno com compressão e qualidade superiores, com suporte a transparência.\nWebP: Arquivos pequenos com amplo suporte nos navegadores, suporta transparência e um modo sem perdas opcional.\nPDF: exporta imagens para PDFs com predefinições de página, margens e divisão em várias páginas opcionais.\nICO: usado com frequência para favicons e ícones de aplicativos, com suporte a transparência (alfa). Recomenda-se usar PNG como origem ao converter para ICO.",
+        "PNG: mantém as áreas transparentes. Ideal para logos e imagens com fundo transparente.\nJPEG: ótimo para fotos, com arquivos pequenos.\nAVIF: um formato moderno com arquivos bem pequenos e ótima qualidade. Mantém as áreas transparentes.\nWebP: arquivos pequenos que funcionam em qualquer lugar. Mantém as áreas transparentes.\nPDF: coloca suas imagens em um PDF, com tamanhos de página, margens e divisão de imagens longas.\nICO: para ícones de sites e apps. Mantém as áreas transparentes. Funciona melhor partindo de um PNG.",
     },
     pdfPreset: {
       label: "Predefinição de página PDF",
@@ -130,7 +130,7 @@ export const ptBR: TranslationSchema = {
     webpLossless: {
       label: "WebP sem perdas",
       tooltip:
-        "Mantém cada pixel exatamente como no original. Os arquivos ficam maiores do que no WebP com perdas, por isso qualidade e tamanho máximo de arquivo não estão disponíveis.\nBom para capturas de tela, logotipos e gráficos com texto.",
+        "Mantém cada pixel exatamente como no original. Os arquivos ficam maiores, por isso Qualidade e Tamanho máximo ficam desligados.\nBom para capturas de tela, logos e imagens com texto.",
     },
     compressionMode: {
       label: "Modo de configurações de {{format}}",
@@ -138,9 +138,9 @@ export const ptBR: TranslationSchema = {
       bySize: "Definir por tamanho de arquivo",
     },
     rembg: {
-      label: "Remover fundo com IA local ({{model}})",
+      label: "Remover fundo com IA",
       tooltip:
-        "A IA local remove o fundo (sem necessidade de internet).\nProcessamento mais lento, pode mostrar pequenos artefatos nas bordas.",
+        "A IA já vem incluída: nada para instalar, e funciona sem internet.\nDemora um pouco mais, e as bordas podem não ficar perfeitas.",
     },
     quality: {
       label: "Qualidade",
@@ -174,7 +174,7 @@ export const ptBR: TranslationSchema = {
       },
       label: "Ampliação com IA",
       tooltip:
-        "A IA local ({{model}}) amplia as imagens e reconstrói bordas e detalhes finos. Não precisa de internet.\nO processamento na CPU é mais lento; podem aparecer pequenos artefatos, especialmente em rostos.",
+        "A IA incluída deixa as imagens maiores e mantém bordas e pequenos detalhes nítidos. Nada para instalar, e funciona sem internet.\nDemora um pouco, e rostos podem mostrar pequenas falhas.",
       targetLabel: "Ampliar para",
       options: {
         "2x": "2× maior",
@@ -187,10 +187,10 @@ export const ptBR: TranslationSchema = {
         "16k": "16K (cabe em 15360 × 8640)",
       },
       hint:
-        "Mantém as proporções. Imagens que já são grandes o bastante para a resolução escolhida ficam como estão. Imagens maiores e CPUs mais lentas levam mais tempo. Acima de 4×, a ampliação com IA é seguida por um redimensionamento convencional.",
-      unavailableHint: "O modelo de ampliação não está instalado.",
+        "A imagem mantém sua forma. Imagens que já são grandes o bastante ficam como estão. Resultados maiores e computadores mais antigos demoram mais. Acima de 4×, a IA vem primeiro e um redimensionamento normal termina o trabalho.",
+      unavailableHint: "A ampliação com IA não está incluída nesta versão.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
-      largeTargetHint: "Tamanhos grandes demoram mais e usam mais memória.",
+      largeTargetHint: "Resultados muito grandes demoram mais.",
       preview: {
         unchanged: "{{size}} · fica como está",
         tooLarge: "{{size}} passa do limite de {{limit}} MP",
@@ -254,7 +254,7 @@ export const ptBR: TranslationSchema = {
       vectorUpscaleActiveHint: "Desative {{enlargeLabel}} para inserir uma largura específica.",
       label: "Redimensionar largura",
       tooltip:
-        "Redimensiona a(s) imagem(ns) para a largura desejada preservando a proporção original.",
+        "Muda a largura. A altura muda junto, então a imagem mantém sua forma.",
       upscaleActiveHint: "Não é usado enquanto a ampliação está ativada.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
     },
@@ -360,7 +360,7 @@ export const ptBR: TranslationSchema = {
     checking: "Verificando...",
     whyTitle: "Por que isso existe?",
     whyDesc:
-      "Verifica a saúde do contêiner e o isolamento de rede por segurança. Nenhuma imagem ou metadado sai da sua máquina.",
+      "Verifica se o ImgCompress está funcionando e se ele consegue acessar a internet. Nenhuma imagem ou dado sai do seu computador.",
     learnMore: "Saiba mais sobre uso offline →",
     backendLastCheck: "Última verificação do backend:",
     internetLastCheck: "Última verificação da internet:",
@@ -726,7 +726,7 @@ export const ptBR: TranslationSchema = {
     loading: {
       serverWords: ["Aguarde", "um", "pouco,", "estou", "quase", "tudo", "pronto"],
       localWords: ["Abrindo", "o", "editor"],
-      serverMessage: "{{label}} precisa de um bitmap renderizado pelo servidor antes do corte. Preparando agora.",
+      serverMessage: "{{label}} precisa de uma preparação rápida antes de você poder recortar. Preparando agora.",
       localMessage: "Abrindo {{label}} no editor.",
     },
     failure: {
@@ -737,8 +737,8 @@ export const ptBR: TranslationSchema = {
       closeButton: "Fechar",
       reportButton: "Relatar este problema",
       causes: {
-        backendNotReachable: "O serviço backend ainda não está acessível. Se você acabou de reconstruir o contêiner, aguarde alguns segundos para ele iniciar e tente novamente.",
-        networkDropped: "A conexão com o backend caiu durante o envio. Verifique se o contêiner ainda está em execução e tente novamente.",
+        backendNotReachable: "O ImgCompress ainda não está pronto. Se você acabou de reiniciá-lo, espere alguns segundos e tente novamente.",
+        networkDropped: "A conexão caiu durante o envio. Verifique se o ImgCompress ainda está funcionando e tente novamente.",
         variantNotSupported: "Este arquivo pode ser uma variante de {{label}} que o decodificador não consegue ler (múltiplas camadas, modo de cor não padrão, criptografado etc.). Reexportar no aplicativo de origem como {{label}} plano ou PNG/JPG comum geralmente resolve.",
         missingLibraries: "Arquivos {{label}} sempre passam pelo decodificador do backend. Se o decodificador estiver sem bibliotecas nativas (por exemplo, libheif para HEIC), reconstruir com os codecs opcionais habilitados geralmente resolve.",
         reportIssue: "Se nada disso se aplicar, copie os detalhes técnicos abaixo e abra um chamado: o rastreamento mostra exatamente qual etapa falhou.",

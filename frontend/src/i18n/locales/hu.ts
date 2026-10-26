@@ -72,7 +72,7 @@ export const hu: TranslationSchema = {
         ico: "ICO (átlátszóság megőrzése)",
       },
       tooltip:
-        "PNG: Megőrzi az átlátszóságot (alfa), ezért átlátszó hátterű képekhez ideális.\nJPEG: Átlátszóság nélküli képekhez ajánlott, általában kisebb fájlméretet ad.\nAVIF: Modern formátum kiváló tömörítéssel és minőséggel, átlátszóságot is támogat.\nWebP: Kis fájlméret széles böngészőtámogatással, támogatja az átlátszóságot és egy opcionális veszteségmentes módot.\nPDF: Képek exportálása PDF-be opcionális oldalbeállításokkal, margókkal és többoldalas felosztással.\nICO: Faviconokhoz és alkalmazásikonokhoz használatos, támogatja az átlátszóságot (alfa). ICO készítéséhez PNG forrás ajánlott.",
+        "PNG: megtartja az átlátszó részeket. Logókhoz és átlátszó hátterű képekhez a legjobb.\nJPEG: fotókhoz kiváló, kis fájlokkal.\nAVIF: modern formátum, nagyon kis fájlok és remek minőség. Megtartja az átlátszó részeket.\nWebP: kis fájlok, amelyek mindenhol működnek. Megtartja az átlátszó részeket.\nPDF: a képeidet PDF-be teszi, oldalméretekkel, margókkal és a hosszú képek felosztásával.\nICO: weboldal- és alkalmazásikonokhoz. Megtartja az átlátszó részeket. Akkor a legjobb, ha PNG-ből indulsz.",
     },
     pdfPreset: {
       label: "PDF oldalbeállítás",
@@ -130,7 +130,7 @@ export const hu: TranslationSchema = {
     webpLossless: {
       label: "Veszteségmentes WebP",
       tooltip:
-        "Minden pixelt pontosan az eredetinek megfelelően megőriz. A fájlok nagyobbak, mint a veszteséges WebP esetén, ezért a minőség és a maximális fájlméret nem állítható.\nKépernyőképekhez, logókhoz és szöveges grafikákhoz ajánlott.",
+        "Minden pixelt pontosan úgy tart meg, mint az eredetiben. A fájlok nagyobbak lesznek, ezért a Minőség és a Cél fájlméret ki van kapcsolva.\nKépernyőképekhez, logókhoz és szöveges képekhez jó.",
     },
     compressionMode: {
       label: "{{format}} beállítási módja",
@@ -138,9 +138,9 @@ export const hu: TranslationSchema = {
       bySize: "Fájlméret alapján",
     },
     rembg: {
-      label: "Háttér eltávolítása helyi AI-val ({{model}})",
+      label: "Háttér eltávolítása MI-vel",
       tooltip:
-        "A helyi AI eltávolítja a hátteret (internet nem szükséges).\nLassabb feldolgozás, és kisebb élhibák előfordulhatnak.",
+        "Az MI már be van építve: semmit nem kell telepíteni, és internet nélkül is működik.\nKicsit tovább tart, és a szélek nem mindig tökéletesek.",
     },
     quality: {
       label: "Minőség",
@@ -174,7 +174,7 @@ export const hu: TranslationSchema = {
       },
       label: "MI-felskálázás",
       tooltip:
-        "A helyi MI ({{model}}) nagyítja a képeket, és rekonstruálja az éleket és a finom részleteket. Nem igényel internetet.\nA processzoron lassabb a feldolgozás; apró képhibák jelenhetnek meg, különösen az arcokon.",
+        "A beépített MI nagyobbá teszi a képeket, és élesen tartja a széleket és az apró részleteket. Semmit nem kell telepíteni, és internet nélkül is működik.\nEltart egy ideig, és az arcokon apró hibák jelenhetnek meg.",
       targetLabel: "Felskálázás erre",
       options: {
         "2x": "2× nagyobb",
@@ -187,10 +187,10 @@ export const hu: TranslationSchema = {
         "16k": "16K (belefér: 15360 × 8640)",
       },
       hint:
-        "Megtartja a képarányt. A célfelbontáshoz már elég nagy képek változatlanok maradnak. A nagyobb képek és a lassabb processzorok több időt igényelnek. 4× fölött az MI-felskálázást hagyományos átméretezés követi.",
-      unavailableHint: "A felskálázó modell nincs telepítve.",
+        "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. A nagyobb eredmények és a régebbi gépek tovább tartanak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
+      unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
-      largeTargetHint: "A nagy célméretek tovább tartanak és több memóriát használnak.",
+      largeTargetHint: "A nagyon nagy eredmények tovább tartanak.",
       preview: {
         unchanged: "{{size}} · változatlan marad",
         tooLarge: "{{size}} meghaladja a(z) {{limit}} MP-es korlátot",
@@ -254,7 +254,7 @@ export const hu: TranslationSchema = {
       vectorUpscaleActiveHint: "Kapcsold ki a {{enlargeLabel}} beállítást a pontos szélesség megadásához.",
       label: "Átméretezés szélesség alapján",
       tooltip:
-        "A kép(ek) átméretezése a kívánt szélességre, az eredeti képarány megtartásával.",
+        "Megváltoztatja a szélességet. A magasság vele együtt változik, így a kép megtartja az alakját.",
       upscaleActiveHint: "Nem használatos, amíg a felskálázás be van kapcsolva.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
     },
@@ -360,7 +360,7 @@ export const hu: TranslationSchema = {
     checking: "Ellenőrzés...",
     whyTitle: "Miért van ez itt?",
     whyDesc:
-      "Ellenőrzi a konténer állapotát és a hálózati izolációt a biztonság érdekében. Semmilyen kép vagy metaadat nem hagyja el a gépedet.",
+      "Ellenőrzi, hogy az ImgCompress fut-e, és eléri-e az internetet. Képek vagy adatok soha nem hagyják el a számítógépedet.",
     learnMore: "Tudj meg többet az offline használatról →",
     backendLastCheck: "Háttérrendszer utolsó ellenőrzése:",
     internetLastCheck: "Internet utolsó ellenőrzése:",
@@ -727,7 +727,7 @@ export const hu: TranslationSchema = {
     loading: {
       serverWords: ["Kérlek,", "várj", "egy", "kicsit,", "hamarosan", "kész", "vagyok"],
       localWords: ["A", "szerkesztő", "megnyitása"],
-      serverMessage: "A {{label}} fájl kivágásához a szervernek előbb bittérképet kell készítenie. Előkészítés folyamatban.",
+      serverMessage: "A(z) {{label}} fájlt vágás előtt gyorsan elő kell készíteni. Előkészítés folyamatban.",
       localMessage: "{{label}} megnyitása a szerkesztőben.",
     },
     failure: {
@@ -738,8 +738,8 @@ export const hu: TranslationSchema = {
       closeButton: "Bezárás",
       reportButton: "Hiba bejelentése",
       causes: {
-        backendNotReachable: "A háttérszolgáltatás még nem érhető el. Ha éppen újraépítetted a konténert, várj néhány másodpercet, majd próbáld újra.",
-        networkDropped: "A feltöltés közben megszakadt a kapcsolat a háttérrendszerrel. Ellenőrizd, hogy fut-e a konténer, majd próbáld újra.",
+        backendNotReachable: "Az ImgCompress még nem áll készen. Ha most indítottad újra, várj néhány másodpercet, és próbáld újra.",
+        networkDropped: "A feltöltés közben megszakadt a kapcsolat. Ellenőrizd, hogy az ImgCompress még fut-e, majd próbáld újra.",
         variantNotSupported: "Ez a fájl olyan {{label}} változat lehet, amelyet a dekóder nem tud olvasni (többrétegű, nem szabványos színmód, titkosított stb.). Próbáld meg a forrásalkalmazásból lapított {{label}} vagy sima PNG / JPG formátumban exportálni.",
         missingLibraries: "A {{label}} fájlok mindig a háttér dekóderén mennek át. Ha a dekóderből hiányoznak a natív könyvtárak (pl. libheif HEIC esetén), az opcionális kodekekkel való újraépítés általában megoldja a problémát.",
         reportIssue: "Ha egyik sem illik az esetre, másold ki az alábbi technikai részleteket, és nyiss egy hibajegyet – a nyomkövetés pontosan megmutatja, hol a hiba.",

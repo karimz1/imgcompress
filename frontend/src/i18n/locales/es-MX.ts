@@ -72,7 +72,7 @@ export const esMX: TranslationSchema = {
         ico: "ICO (conserva transparencia)",
       },
       tooltip:
-        "PNG: Conserva la transparencia (alfa) y es ideal para imágenes con fondos transparentes.\nJPEG: Ideal para imágenes sin transparencia y produce archivos más pequeños.\nAVIF: Formato moderno con compresión y calidad superiores; admite transparencia.\nWebP: Archivos pequeños con amplio soporte en navegadores, admite transparencia y un modo sin pérdida opcional.\nPDF: Exporta imágenes a PDF con ajustes opcionales de página, márgenes y división en varias páginas.\nICO: Se usa comúnmente para favicons e iconos de aplicaciones; admite transparencia (alfa). Se recomienda usar PNG como origen al convertir a ICO.",
+        "PNG: conserva las zonas transparentes. Ideal para logos e imágenes con fondo transparente.\nJPEG: ideal para fotos, con archivos pequeños.\nAVIF: un formato moderno con archivos muy pequeños y gran calidad. Conserva las zonas transparentes.\nWebP: archivos pequeños que funcionan en todas partes. Conserva las zonas transparentes.\nPDF: pone tus imágenes en un PDF, con tamaños de página, márgenes y división de imágenes largas.\nICO: para íconos de sitios web y apps. Conserva las zonas transparentes. Funciona mejor si partes de un PNG.",
     },
     pdfPreset: {
       label: "Preajuste de página PDF",
@@ -130,7 +130,7 @@ export const esMX: TranslationSchema = {
     webpLossless: {
       label: "WebP sin pérdida",
       tooltip:
-        "Conserva cada píxel exactamente como en el original. Los archivos son más grandes que con WebP con pérdida, por lo que la calidad y el tamaño máximo de archivo no están disponibles.\nIdeal para capturas de pantalla, logotipos y gráficos con texto.",
+        "Conserva cada píxel exactamente como en el original. Los archivos son más grandes, por eso Calidad y Tamaño máximo se desactivan.\nIdeal para capturas de pantalla, logos e imágenes con texto.",
     },
     compressionMode: {
       label: "Modo de ajustes de {{format}}",
@@ -138,9 +138,9 @@ export const esMX: TranslationSchema = {
       bySize: "Definir por tamaño de archivo",
     },
     rembg: {
-      label: "Eliminar fondo con IA local ({{model}})",
+      label: "Quitar el fondo con IA",
       tooltip:
-        "La IA local elimina el fondo (no requiere internet).\nProcesamiento más lento; puede mostrar pequeños artefactos en los bordes.",
+        "La IA ya viene incluida: no hay nada que instalar y funciona sin internet.\nTarda un poco más y los bordes pueden no quedar perfectos.",
     },
     quality: {
       label: "Calidad",
@@ -174,7 +174,7 @@ export const esMX: TranslationSchema = {
       },
       label: "Ampliación con IA",
       tooltip:
-        "La IA local ({{model}}) amplía las imágenes y reconstruye bordes y detalles finos. No necesita internet.\nEl procesamiento en la CPU es más lento; pueden aparecer pequeños defectos, especialmente en los rostros.",
+        "La IA incluida agranda las imágenes y mantiene nítidos los bordes y los detalles pequeños. No hay nada que instalar y funciona sin internet.\nTarda un rato y las caras pueden mostrar pequeños defectos.",
       targetLabel: "Ampliar a",
       options: {
         "2x": "2× más grande",
@@ -187,10 +187,10 @@ export const esMX: TranslationSchema = {
         "16k": "16K (cabe en 15360 × 8640)",
       },
       hint:
-        "Conserva las proporciones. Las imágenes que ya son lo bastante grandes para la resolución elegida se quedan igual. Las imágenes más grandes y las CPU más lentas necesitan más tiempo. Más allá de 4×, la ampliación con IA va seguida de un cambio de tamaño convencional.",
-      unavailableHint: "El modelo de ampliación no está instalado.",
+        "La imagen conserva su forma. Las imágenes que ya son lo bastante grandes se quedan igual. Los resultados más grandes y las computadoras más antiguas tardan más. Por encima de 4×, primero trabaja la IA y luego un cambio de tamaño normal termina el trabajo.",
+      unavailableHint: "La ampliación con IA no está incluida en esta versión.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
-      largeTargetHint: "Los tamaños grandes tardan más y usan más memoria.",
+      largeTargetHint: "Los resultados muy grandes tardan más.",
       preview: {
         unchanged: "{{size}} · se queda igual",
         tooLarge: "{{size}} supera el límite de {{limit}} MP",
@@ -254,7 +254,7 @@ export const esMX: TranslationSchema = {
       vectorUpscaleActiveHint: "Desactiva {{enlargeLabel}} para ingresar un ancho específico.",
       label: "Cambiar ancho",
       tooltip:
-        "Cambia el tamaño de la(s) imagen(es) al ancho deseado conservando la relación de aspecto original.",
+        "Cambia el ancho. La altura cambia con él, así la imagen conserva su forma.",
       upscaleActiveHint: "No se usa mientras la ampliación está activa.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
     },
@@ -360,7 +360,7 @@ export const esMX: TranslationSchema = {
     checking: "Verificando...",
     whyTitle: "¿Por qué existe esto?",
     whyDesc:
-      "Verifica la salud del contenedor y el aislamiento de red por seguridad. Ninguna imagen ni metadato sale jamás de tu máquina.",
+      "Comprueba que ImgCompress está funcionando y si puede conectarse a internet. Ninguna imagen ni dato sale nunca de tu computadora.",
     learnMore: "Conoce más sobre el uso sin conexión →",
     backendLastCheck: "Última verificación del backend:",
     internetLastCheck: "Última verificación de internet:",
@@ -726,7 +726,7 @@ export const esMX: TranslationSchema = {
     loading: {
       serverWords: ["Espera", "un", "momento,", "ya", "casi", "estoy", "listo"],
       localWords: ["Abriendo", "el", "editor"],
-      serverMessage: "{{label}} necesita un mapa de bits renderizado por el servidor antes de recortar. Preparándolo ahora.",
+      serverMessage: "{{label}} necesita una preparación rápida antes de que puedas recortarlo. Preparándolo ahora.",
       localMessage: "Abriendo {{label}} en el editor.",
     },
     failure: {
@@ -737,8 +737,8 @@ export const esMX: TranslationSchema = {
       closeButton: "Cerrar",
       reportButton: "Reportar este problema",
       causes: {
-        backendNotReachable: "El servicio backend aún no está disponible. Si acabas de reconstruir el contenedor, dale unos segundos para iniciar e inténtalo de nuevo.",
-        networkDropped: "La conexión con el backend se perdió durante la carga. Revisa que el contenedor siga ejecutándose e inténtalo de nuevo.",
+        backendNotReachable: "ImgCompress todavía no está listo. Si acabas de reiniciarlo, espera unos segundos e inténtalo de nuevo.",
+        networkDropped: "La conexión se perdió durante la carga. Revisa que ImgCompress siga funcionando e inténtalo de nuevo.",
         variantNotSupported: "Este archivo puede ser una variante de {{label}} que el decodificador no puede leer (multicapa, modo de color no estándar, cifrado, etc.). Reexportarlo desde la app de origen como {{label}} plano o PNG/JPG normal suele corregirlo.",
         missingLibraries: "Los archivos {{label}} siempre pasan por el decodificador del backend. Si al decodificador le faltan bibliotecas nativas (por ejemplo libheif para HEIC), reconstruir con los códecs opcionales habilitados suele resolverlo.",
         reportIssue: "Si nada de lo anterior aplica, copia los detalles técnicos de abajo y abre un ticket: el rastro muestra exactamente qué paso falló.",

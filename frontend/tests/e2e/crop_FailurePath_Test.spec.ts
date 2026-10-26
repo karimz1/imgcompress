@@ -160,7 +160,7 @@ test('crop modal: missing crop bitmap route explains backend availability', asyn
     'after 3 attempts'
   );
   await expect(page.getByTestId('crop-load-failure-causes')).toContainText(
-    "The backend service isn't reachable yet"
+    "ImgCompress isn't ready yet"
   );
 });
 
@@ -173,6 +173,6 @@ test('crop modal: crop bitmap network failure explains dropped connection', asyn
     'after 3 attempts'
   );
   await expect(page.getByTestId('crop-load-failure-causes')).toContainText(
-    'The connection to the backend dropped mid-upload'
+    'The connection was lost during the upload'
   );
 });

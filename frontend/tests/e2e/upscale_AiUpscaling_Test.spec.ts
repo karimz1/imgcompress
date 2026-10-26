@@ -53,7 +53,7 @@ test.describe('AI upscaling', () => {
     await expect(page.getByTestId('upscale-large-target-hint')).toHaveCount(0);
 
     await setUpscaleAsync(page, '8k');
-    await expect(page.getByTestId('upscale-large-target-hint')).toHaveText('Large targets take longer and use more memory.');
+    await expect(page.getByTestId('upscale-large-target-hint')).toHaveText('Very big results take longer.');
     await expect(row('skyline-720p.jpg').getByTestId('upscale-size-preview')).toHaveText('1280×720 → 7680×4320');
 
     // What the preview promised is what the server makes.
@@ -242,9 +242,8 @@ test.describe('AI upscaling', () => {
         await expect(page.getByTestId('upscale-model-option-anime')).toHaveAttribute('aria-checked', 'true');
       }
       await page.getByTestId('upscale-info').focus();
-      await expect(page.getByRole('tooltip')).toContainText(
-        model === 'anime' ? 'realesr-animevideov3' : 'realesr-general-x4v3'
-      );
+      await expect(page.getByRole('tooltip')).toContainText('The built-in AI makes images bigger');
+      await expect(page.getByRole('tooltip')).not.toContainText('realesr');
       await expect(page.getByRole('tooltip').locator('a')).toHaveCount(0);
       const output = await convertAndDownloadSingleAsync(page, card, '.png');
       const metadata = await sharp(output).metadata();
