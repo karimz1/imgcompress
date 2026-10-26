@@ -115,15 +115,17 @@ test('draft notes follow the v0.9.0 layout', () => {
   assert.match(body, /^- \[chore\(docker\): refresh 2 DHI base image digests - #965\]\(https:\/\/github\.com\/karimz1\/imgcompress\/pull\/965\)$/m);
   assert.match(body, /- and 7 dependency updates, see the \[full changelog\]/);
   assert.match(body, /https:\/\/hub\.docker\.com\/r\/karimz1\/imgcompress\/tags/);
-  assert.match(body, /\[Installation & Update Guide\]\(https:\/\/imgcompress\.karimzouine\.com\/installation\/\)/);
+  assert.match(body, /\[Installation & Update Guide\]\(https:\/\/imgcompress\.karimzouine\.com\/docs\/installation\)/);
+  assert.doesNotMatch(body, /karimzouine\.com\/installation/);
   assert.match(body, /```\nkarimz1\/imgcompress:1\.0\.0\n```/);
-  assert.doesNotMatch(body, /<!--|What's Changed|release candidate/);
+  assert.doesNotMatch(body, /<!--|What's Changed|release candidate|Pre-release/);
 });
 
-test('RC drafts open with the release candidate notice', () => {
+const RC_NOTICE = "> **Pre-release for testing.** This release candidate is for people who want to try what's coming in the next stable version early. I'm still testing it myself, so you may run into bugs. If you just want a stable app, keep using `karimz1/imgcompress:latest`. This RC doesn't change `latest`. Found a bug? Please [open an issue](https://github.com/karimz1/imgcompress/issues).";
+
+test('RC drafts open with the pre-release notice for testers', () => {
   const body = formatReleaseNotes(generated, { ...meta, version: '1.0.0-rc.1', prerelease: true });
-  assert.deepEqual(body.split('\n').slice(0, 3), ['## v1.0.0-rc.1 — 2026-10-27', '',
-    'This is a release candidate for testing. The stable release follows once it has been tested.']);
+  assert.deepEqual(body.split('\n').slice(0, 4), ['## v1.0.0-rc.1 — 2026-10-27', '', RC_NOTICE, '']);
   assert.match(body, /karimz1\/imgcompress:1\.0\.0-rc\.1/);
 });
 
@@ -157,7 +159,7 @@ test('new RC notes compare with the last stable release and the draft stays unpu
     return options.body;
   };
   const body = await releaseNotes({ repository: 'karimz1/imgcompress', tag: 'release_0.10.0-rc.2', request, now: new Date('2026-10-27T10:00:00Z') });
-  assert.match(body, /^## v0\.10\.0-rc\.2 — 2026-10-27\n\nThis is a release candidate/);
+  assert.match(body, /^## v0\.10\.0-rc\.2 — 2026-10-27\n\n> \*\*Pre-release for testing\.\*\*/);
   const created = await createDraft({ repository: 'karimz1/imgcompress', tag: 'release_0.10.0-rc.2', body, request });
   assert.equal(created.draft, true);
   assert.equal(created.prerelease, true);
@@ -211,5 +213,47 @@ test('the top entry of the tagged version leads the draft, dated or not', async 
     const body = await releaseNotes({ repository: 'karimz1/imgcompress', tag, request, pending });
     assert.match(body, /#### Features\n\n- Fit images to an exact output size/);
     assert.doesNotMatch(body, /Hand-written/);
+  }
+});
+
+test('hand-written sections merge with the generated ones, so no heading or PR shows up twice', async () => {
+  const pending = [
+    '## v1.0.0 — DateNeedsToBeReplaced', '',
+    '### Features', '', '- Image editor.', '',
+    '### Bug Fixes', '', '- Cleanup keeps running jobs.', '- Footer version [#920](https://github.com/karimz1/imgcompress/pull/920)', '',
+    '### Security Patches', '',
+    'This release also includes **security fixes** to keep `imgcompress` up to date with the latest CVE reports and security alerts from Docker Hub and GitHub.', '',
+    '- [chore(docker): refresh 2 DHI base image digests - #965](https://github.com/karimz1/imgcompress/pull/965)',
+    '- [chore(deps): bump next from 16.3.8 to 16.4.1 - #967](https://github.com/karimz1/imgcompress/pull/967)',
+    '- More dependency updates for the frontend and Python packages.', '',
+    'You can review the latest Docker image tags and related security information here:',
+    'https://hub.docker.com/r/karimz1/imgcompress/tags', '',
+    '## v0.9.0 — 2026-08-22', '', '- Old.', '',
+  ].join('\n');
+  const extra = generated.replace('### Bug Fixes\n', '### Bug Fixes\n* fix: keep EXIF orientation by @karimz1 in https://github.com/karimz1/imgcompress/pull/921\n')
+    .replace('### Security Patches\n', '### Security Patches\n* chore(docker): refresh 1 DHI base image digest by @imgcompress-chan in https://github.com/karimz1/imgcompress/pull/939\n');
+  const request = async (route) => {
+    if (route.includes('/releases?')) return [{ tag_name: 'release_0.9.0' }];
+    if (route.includes('/compare/')) return { status: 'ahead' };
+    if (route === 'graphql') return { data: { repository: { pullRequest: { closingIssuesReferences: { nodes: [], pageInfo: { hasNextPage: false } } } } } };
+    if (route.endsWith('/generate-notes')) return { body: extra };
+    return {};
+  };
+  for (const tag of ['release_1.0.0-rc.1', 'release_1.0.0']) {
+    const body = await releaseNotes({ repository: 'karimz1/imgcompress', tag, request, pending });
+    const headings = body.split('\n').filter((line) => line.startsWith('#'));
+    assert.deepEqual(headings.slice(1), ['### Changelog', '#### Features', '#### Bug Fixes', '#### Other Changes',
+      '#### Security Patches', '#### New Contributors', '### Setup & Updates', '### Pinned Version'], tag);
+    const count = (pattern) => body.split('\n').filter((line) => pattern.test(line)).length;
+    for (const number of [920, 921, 939, 965, 967]) assert.equal(count(new RegExp(`/pull/${number}\\)`)), 1, `#${number} in ${tag}`);
+    assert.equal(count(/security fixes/), 1);
+    assert.equal(count(/^You can review the latest Docker image tags/), 1);
+    assert.equal(count(/^https:\/\/hub\.docker\.com\/r\/karimz1\/imgcompress\/tags$/), 1);
+    assert.match(body, /#### Bug Fixes\n\n- Cleanup keeps running jobs\.\n- Footer version \[#920\].*\n- fix: keep EXIF orientation \[#921\]/);
+    assert.match(body, /#### Security Patches\n\nThis release also includes[^\n]*\n\n- \[chore\(docker\): refresh 2 DHI base image digests - #965\]/);
+    // The hand-written line about dependency updates gets the changelog link instead of a second summary.
+    assert.match(body, /pull\/967\)\n- \[chore\(docker\): refresh 1 DHI base image digest - #939\]\(.*\)\n- More dependency updates for the frontend and Python packages, see the \[full changelog\]\(https:\/\/github\.com\/karimz1\/imgcompress\/compare\/release_0\.9\.0\.\.\.release_1\.0\.0\)\.\n\nYou can review/);
+    assert.doesNotMatch(body, /and 7 dependency updates|Old\./);
+    assert.equal(body.includes('Pre-release for testing'), tag.includes('-rc'));
   }
 });

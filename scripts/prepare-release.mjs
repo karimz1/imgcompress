@@ -176,6 +176,25 @@ function nestUnder(markdown, level) {
     : line)).join('\n');
 }
 
+const RC_NOTICE = "> **Pre-release for testing.** This release candidate is for people who want to try what's coming in the next stable version early. I'm still testing it myself, so you may run into bugs. If you just want a stable app, keep using `karimz1/imgcompress:latest`. This RC doesn't change `latest`. Found a bug? Please [open an issue](https://github.com/karimz1/imgcompress/issues).";
+const SECURITY_INTRO = 'This release also includes **security fixes** to keep `imgcompress` up to date with the latest CVE reports and security alerts from Docker Hub and GitHub.';
+const DOCKER_TAGS = 'You can review the latest Docker image tags and related security information here:';
+const TITLES = { features: 'Features', fixes: 'Bug Fixes', other: 'Other Changes', security: 'Security Patches' };
+
+// Splits hand-written notes at their #### headings, so a section like
+// Security Patches merges with GitHub's instead of showing up twice.
+function splitSections(markdown) {
+  const lines = markdown.split('\n');
+  const outside = outsideFences(lines);
+  const sections = [{ title: '', lines: [] }];
+  lines.forEach((line, index) => {
+    const heading = outside[index] && /^####\s+(.+?)\s*$/.exec(line);
+    if (heading) sections.push({ title: heading[1], lines: [] });
+    else sections[sections.length - 1].lines.push(line);
+  });
+  return sections.map((section) => ({ ...section, text: section.lines.join('\n').trim() }));
+}
+
 export function formatReleaseNotes(generated, { version, prerelease, date, repository, highlights = '' }) {
   const sections = { features: [], fixes: [], security: [], dependencies: [], other: [] };
   const contributors = [];
@@ -194,39 +213,65 @@ export function formatReleaseNotes(generated, { version, prerelease, date, repos
     if (changelog) { fullChangelog = changelog[1]; continue; }
     if (inContributors) { contributors.push(line.replace(/^\s*\*\s+/, '- ')); continue; }
     const pull = PULL_LINE.exec(line);
-    if (!pull) { if (/^\s*[-*]\s/.test(line)) sections.other.push(line.replace(/^\s*\*\s+/, '- ')); continue; }
+    if (!pull) { if (/^\s*[-*]\s/.test(line)) sections.other.push({ line: line.replace(/^\s*\*\s+/, '- ') }); continue; }
     const [, title, url, number, closes] = pull;
     const section = sectionFor(category, title);
     const suffix = closes ? ` (Closes ${closes})` : '';
-    sections[section].push(section === 'security' || section === 'dependencies'
+    sections[section].push({ number, line: section === 'security' || section === 'dependencies'
       ? `- [${title} - #${number}](${url})`
-      : `- ${title} [#${number}](${url})${suffix}`);
+      : `- ${title} [#${number}](${url})${suffix}` });
   }
 
+  // PRs already named in the hand-written notes are not listed again.
+  const mentioned = new Set([...highlights.matchAll(/\/pull\/(\d+)\b/g)].map((match) => match[1]));
+  const fresh = (key) => sections[key].filter((item) => !mentioned.has(item.number)).map((item) => item.line);
+  const handWritten = highlights ? splitSections(nestUnder(highlights, 4)) : [];
+  const own = (key) => handWritten.find((section) => section.title.toLowerCase() === TITLES[key].toLowerCase())?.text || '';
+  const known = Object.values(TITLES).map((title) => title.toLowerCase());
+
   const out = [`## v${version} — ${date}`, ''];
-  if (prerelease) out.push('This is a release candidate for testing. The stable release follows once it has been tested.', '');
+  if (prerelease) out.push(RC_NOTICE, '');
   out.push('### Changelog', '');
-  const list = (title, items) => { if (items.length) out.push(`#### ${title}`, '', ...items, ''); };
+  const list = (title, ...parts) => {
+    const text = parts.flat().filter(Boolean).join('\n');
+    if (text) out.push(`#### ${title}`, '', text, '');
+  };
   // Hand-written notes replace the PR titles of the features.
-  if (highlights) out.push(nestUnder(highlights, 4), '');
-  else list('Features', sections.features);
-  list('Bug Fixes', sections.fixes);
-  list('Other Changes', sections.other);
-  const dependencies = sections.dependencies.length > 5
-    ? [`- and ${sections.dependencies.length} dependency updates${fullChangelog ? `, see the [full changelog](${fullChangelog})` : ''}`]
-    : sections.dependencies;
-  if (sections.security.length || dependencies.length) {
-    out.push('#### Security Patches', '',
-      'This release also includes **security fixes** to keep `imgcompress` up to date with the latest CVE reports and security alerts from Docker Hub and GitHub.', '',
-      ...sections.security, ...dependencies, '',
-      'You can review the latest Docker image tags and related security information here:',
-      `https://hub.docker.com/r/${repository.split('/')[0].toLowerCase()}/imgcompress/tags`, '');
+  if (handWritten[0]?.text) out.push(handWritten[0].text, '');
+  if (highlights) list(TITLES.features, own('features'));
+  else list(TITLES.features, fresh('features'));
+  for (const section of handWritten.slice(1)) {
+    if (!known.includes(section.title.toLowerCase())) list(section.title, section.text);
+  }
+  list(TITLES.fixes, own('fixes'), fresh('fixes'));
+  list(TITLES.other, own('other'), fresh('other'));
+
+  const hub = `https://hub.docker.com/r/${repository.split('/')[0].toLowerCase()}/imgcompress/tags`;
+  const ownSecurity = own('security').split('\n')
+    .filter((line) => ![SECURITY_INTRO, DOCKER_TAGS, hub].includes(line.trim())).join('\n').trim();
+  const security = ownSecurity ? ownSecurity.split('\n') : [];
+  let dependencies = fresh('dependencies');
+  if (dependencies.length > 5) {
+    const link = fullChangelog ? `, see the [full changelog](${fullChangelog})` : '';
+    // A hand-written line about dependency updates gets the link instead of a
+    // second summary, and moves to the end of the list.
+    const index = security.findIndex((line) => /^\s*[-*]\s/.test(line) && !/\/pull\//.test(line) && /dependency updates/i.test(line));
+    if (index >= 0) {
+      dependencies = [security.splice(index, 1)[0].replace(/\.?\s*$/, `${link}.`)];
+    } else {
+      dependencies = [`- and ${dependencies.length} dependency updates${link}`];
+    }
+  }
+  const patches = [...security, ...fresh('security'), ...dependencies];
+  if (patches.length) {
+    out.push(`#### ${TITLES.security}`, '', SECURITY_INTRO, '', ...patches, '',
+      DOCKER_TAGS, hub, '');
   }
   if (contributors.length) out.push('#### New Contributors', '', ...contributors, '');
   if (fullChangelog) out.push(`**Full Changelog**: ${fullChangelog}`, '');
   out.push('### Setup & Updates', '',
     'To install the latest version or learn how to update `imgcompress`, follow the official guide:', '',
-    '[Installation & Update Guide](https://imgcompress.karimzouine.com/installation/)', '',
+    '[Installation & Update Guide](https://imgcompress.karimzouine.com/docs/installation)', '',
     '### Pinned Version', '',
     'If you need to pin your deployment to this specific release, use:', '',
     '```', `karimz1/imgcompress:${version}`, '```', '');
