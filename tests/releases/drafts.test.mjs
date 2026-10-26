@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { addIssueLinks, isNewestStable, parseReleaseTag, prepareRelease, previousStableRelease, githubRequest } from '../../scripts/prepare-release.mjs';
-import { imageTags } from '../../scripts/docker-image-tags.mjs';
+import { addIssueLinks, createDraft, formatReleaseNotes, isNewestStable, parseReleaseTag, previousStableRelease, githubRequest, releaseNotes } from '../../scripts/prepare-release.mjs';
+import { imageTags, latestPromotion } from '../../scripts/docker-image-tags.mjs';
 
 test('release tags support stable, RC, and historical four-part versions', () => {
   assert.deepEqual(parseReleaseTag('release_0.10.0-rc.1'), { version: '0.10.0-rc.1', prerelease: true });
@@ -11,13 +11,25 @@ test('release tags support stable, RC, and historical four-part versions', () =>
   }
 });
 
-test('RCs never update latest, even if the release was incorrectly marked stable', () => {
-  assert.deepEqual(imageTags({ owner: 'KarimZ1', tag: 'release_0.10.0-rc.1' }).tags,
-    ['karimz1/imgcompress:0.10.0-rc.1', 'ghcr.io/karimz1/imgcompress:0.10.0-rc.1']);
-  assert.equal(imageTags({ owner: 'karimz1', tag: 'release_0.10.0', prerelease: true }).tags.length, 2);
-  assert.equal(imageTags({ owner: 'karimz1', tag: 'release_0.10.0' }).tags.filter((tag) => tag.endsWith(':latest')).length, 2);
-  assert.ok(imageTags({ owner: 'karimz1', ref: 'refs/heads/main' }).tags.every((tag) => tag.endsWith(':nightly')));
-  assert.throws(() => imageTags({ owner: 'karimz1', ref: 'refs/tags/release_0.10.0' }));
+test('builds push only the version or nightly tag, never latest', () => {
+  assert.deepEqual(imageTags({ owner: 'KarimZ1', tag: 'release_1.0.0-rc.1' }),
+    { version: '1.0.0-rc.1', prerelease: true, tags: ['karimz1/imgcompress:1.0.0-rc.1', 'ghcr.io/karimz1/imgcompress:1.0.0-rc.1'] });
+  assert.deepEqual(imageTags({ owner: 'karimz1', tag: 'release_1.0.0' }).tags,
+    ['karimz1/imgcompress:1.0.0', 'ghcr.io/karimz1/imgcompress:1.0.0']);
+  assert.ok(imageTags({ owner: 'karimz1' }).tags.every((tag) => tag.endsWith(':nightly')));
+  assert.throws(() => imageTags({ owner: 'karimz1', tag: 'v1.0.0' }));
+});
+
+test('publishing moves latest for the newest stable only, never for RCs', () => {
+  const stable = latestPromotion({ owner: 'karimz1', tag: 'release_1.0.0' });
+  assert.equal(stable.latest, true);
+  assert.deepEqual(stable.retags, [
+    { from: 'karimz1/imgcompress:1.0.0', to: 'karimz1/imgcompress:latest' },
+    { from: 'ghcr.io/karimz1/imgcompress:1.0.0', to: 'ghcr.io/karimz1/imgcompress:latest' },
+  ]);
+  assert.deepEqual(latestPromotion({ owner: 'karimz1', tag: 'release_1.0.0-rc.1' }).retags, []);
+  // Marked as pre-release on GitHub even though the tag looks stable.
+  assert.equal(latestPromotion({ owner: 'karimz1', tag: 'release_1.0.0', prerelease: true }).latest, false);
 });
 
 test('only the newest stable release moves latest, so backports and reruns cannot roll it back', () => {
@@ -30,12 +42,12 @@ test('only the newest stable release moves latest, so backports and reruns canno
   assert.equal(isNewestStable(releases, 'release_0.10.0'), true);
   assert.equal(isNewestStable(releases, 'release_0.9.1'), false);
   assert.equal(isNewestStable(releases, 'release_0.11.0-rc.1'), false);
-  const backport = imageTags({ owner: 'karimz1', tag: 'release_0.9.1', releases });
+  const backport = latestPromotion({ owner: 'karimz1', tag: 'release_0.9.1', releases });
   assert.equal(backport.latest, false);
-  assert.deepEqual(backport.tags, ['karimz1/imgcompress:0.9.1', 'ghcr.io/karimz1/imgcompress:0.9.1']);
-  const current = imageTags({ owner: 'karimz1', tag: 'release_0.10.0', releases });
+  assert.deepEqual(backport.retags, []);
+  const current = latestPromotion({ owner: 'karimz1', tag: 'release_0.10.0', releases });
   assert.equal(current.latest, true);
-  assert.ok(current.tags.includes('karimz1/imgcompress:latest'));
+  assert.ok(current.retags.some((retag) => retag.to === 'karimz1/imgcompress:latest'));
 });
 
 test('comparison skips RCs, drafts, future versions, and unrelated histories', async () => {
@@ -69,57 +81,103 @@ test('linked tickets are added to PR bullets with paginated GraphQL results', as
   assert.equal(result.split('\n')[2], body.split('\n')[2]);
 });
 
-test('an existing reviewed draft is returned without generating or changing notes', async () => {
-  const existing = { tag_name: 'release_0.10.0', draft: true, body: 'My reviewed wording' };
-  const routes = [];
-  const result = await prepareRelease({ repository: 'karimz1/imgcompress', tag: existing.tag_name, request: async (route, options) => {
-    routes.push(route);
-    assert.equal(options, undefined);
-    return route.includes('/releases?') ? [existing] : {};
-  } });
-  assert.equal(result.body, existing.body);
-  assert.equal(routes.length, 2);
+const generated = [
+  '<!-- Release notes generated using configuration in .github/release.yml at main -->',
+  '',
+  "## What's Changed",
+  '### Features',
+  '* Fit images to an exact output size by @karimz1 in https://github.com/karimz1/imgcompress/pull/908 (Closes [#906](https://github.com/karimz1/imgcompress/issues/906))',
+  '### Bug Fixes',
+  '* fix(footer): show the build version by @karimz1 in https://github.com/karimz1/imgcompress/pull/920',
+  '### Security Patches',
+  '* chore(docker): refresh 2 DHI base image digests by @imgcompress-chan in https://github.com/karimz1/imgcompress/pull/965',
+  '### Dependencies',
+  ...Array.from({ length: 7 }, (_, i) => `* chore(deps): bump lib${i} by @dependabot[bot] in https://github.com/karimz1/imgcompress/pull/${970 + i}`),
+  '### Other Changes',
+  '* feat: add SVG import by @karimz1 in https://github.com/karimz1/imgcompress/pull/938',
+  '* docs: tidy the README by @karimz1 in https://github.com/karimz1/imgcompress/pull/940',
+  '',
+  '## New Contributors',
+  '* @someone made their first contribution in https://github.com/karimz1/imgcompress/pull/799',
+  '',
+  '**Full Changelog**: https://github.com/karimz1/imgcompress/compare/release_0.9.0...release_1.0.0',
+].join('\n');
+const meta = { version: '1.0.0', prerelease: false, date: '2026-10-27', repository: 'karimz1/imgcompress' };
+
+test('draft notes follow the v0.9.0 layout', () => {
+  const body = formatReleaseNotes(generated, meta);
+  const headings = body.split('\n').filter((line) => line.startsWith('#'));
+  assert.deepEqual(headings, ['## v1.0.0 — 2026-10-27', '### Changelog', '#### Features', '#### Bug Fixes', '#### Other Changes',
+    '#### Security Patches', '#### New Contributors', '### Setup & Updates', '### Pinned Version']);
+  assert.match(body, /^- Fit images to an exact output size \[#908\]\(https:\/\/github\.com\/karimz1\/imgcompress\/pull\/908\) \(Closes \[#906\]/m);
+  // A feat: prefix counts as a feature even without a label.
+  assert.match(body, /#### Features\n\n- Fit images.*\n- feat: add SVG import \[#938\]/);
+  assert.match(body, /^- \[chore\(docker\): refresh 2 DHI base image digests - #965\]\(https:\/\/github\.com\/karimz1\/imgcompress\/pull\/965\)$/m);
+  assert.match(body, /- and 7 dependency updates, see the \[full changelog\]/);
+  assert.match(body, /https:\/\/hub\.docker\.com\/r\/karimz1\/imgcompress\/tags/);
+  assert.match(body, /\[Installation & Update Guide\]\(https:\/\/imgcompress\.karimzouine\.com\/installation\/\)/);
+  assert.match(body, /```\nkarimz1\/imgcompress:1\.0\.0\n```/);
+  assert.doesNotMatch(body, /<!--|What's Changed|release candidate/);
 });
 
-test('new RC draft uses the stable comparison and keeps the native changelog', async () => {
-  let created;
-  await prepareRelease({ repository: 'karimz1/imgcompress', tag: 'release_0.10.0-rc.2', request: async (route, options) => {
+test('RC drafts open with the release candidate notice', () => {
+  const body = formatReleaseNotes(generated, { ...meta, version: '1.0.0-rc.1', prerelease: true });
+  assert.deepEqual(body.split('\n').slice(0, 3), ['## v1.0.0-rc.1 — 2026-10-27', '',
+    'This is a release candidate for testing. The stable release follows once it has been tested.']);
+  assert.match(body, /karimz1\/imgcompress:1\.0\.0-rc\.1/);
+});
+
+test('a release without security changes has no security section', () => {
+  const body = formatReleaseNotes('### Features\n* New thing by @karimz1 in https://github.com/karimz1/imgcompress/pull/1', meta);
+  assert.doesNotMatch(body, /Security Patches/);
+  assert.match(body, /- New thing \[#1\]/);
+});
+
+test('an existing reviewed draft is returned without changing it', async () => {
+  const existing = { tag_name: 'release_0.10.0', draft: true, body: 'My reviewed wording' };
+  const methods = [];
+  const result = await createDraft({ repository: 'karimz1/imgcompress', tag: existing.tag_name, body: 'new text', request: async (route, options) => {
+    methods.push(options?.method ?? 'GET');
+    return [existing];
+  } });
+  assert.equal(result.body, existing.body);
+  assert.deepEqual(methods, ['GET']);
+});
+
+test('new RC notes compare with the last stable release and the draft stays unpublished', async () => {
+  const request = async (route, options) => {
     if (route.includes('/git/ref/')) return {};
     if (route.includes('/releases?')) return [{ tag_name: 'release_0.9.0' }, { tag_name: 'release_0.10.0-rc.1', prerelease: true }];
     if (route.includes('/compare/')) return { status: 'ahead' };
+    if (route === 'graphql') return { data: { repository: { pullRequest: { closingIssuesReferences: { nodes: [], pageInfo: { hasNextPage: false } } } } } };
     if (route.endsWith('/generate-notes')) {
       assert.equal(options.body.previous_tag_name, 'release_0.9.0');
-      return { body: "## What's Changed\n* New feature\n\n## New Contributors\n* @someone\n\n**Full Changelog**: https://github.com/karimz1/imgcompress/compare/release_0.9.0...release_0.10.0-rc.2" };
+      return { body: generated };
     }
-    created = options.body;
-    return created;
-  } });
+    return options.body;
+  };
+  const body = await releaseNotes({ repository: 'karimz1/imgcompress', tag: 'release_0.10.0-rc.2', request, now: new Date('2026-10-27T10:00:00Z') });
+  assert.match(body, /^## v0\.10\.0-rc\.2 — 2026-10-27\n\nThis is a release candidate/);
+  const created = await createDraft({ repository: 'karimz1/imgcompress', tag: 'release_0.10.0-rc.2', body, request });
   assert.equal(created.draft, true);
   assert.equal(created.prerelease, true);
   assert.equal(created.make_latest, 'false');
-  assert.match(created.body, /Full Changelog/);
-  assert.match(created.body, /New Contributors/);
-  assert.match(created.body, /imgcompress:0.10.0-rc.2/);
+  assert.equal(created.body, body);
 });
 
 test('a backport draft is not marked as the latest release', async () => {
   let created;
-  await prepareRelease({ repository: 'karimz1/imgcompress', tag: 'release_0.9.2', request: async (route, options) => {
+  await createDraft({ repository: 'karimz1/imgcompress', tag: 'release_0.9.2', body: '- Fix', request: async (route, options) => {
     if (route.includes('/releases?')) return [{ tag_name: 'release_0.10.0' }, { tag_name: 'release_0.9.1' }];
-    if (route.includes('/compare/')) return { status: route.includes('release_0.9.1') ? 'ahead' : 'diverged' };
-    if (route.endsWith('/generate-notes')) {
-      assert.equal(options.body.previous_tag_name, 'release_0.9.1');
-      return { body: '* Fix' };
-    }
-    if (route.endsWith('/releases')) created = options.body;
-    return created ?? {};
+    created = options.body;
+    return created;
   } });
   assert.equal(created.prerelease, false);
   assert.equal(created.make_latest, 'false');
 });
 
-test('first release omits the comparison base and failed API calls are surfaced', async () => {
-  await prepareRelease({ repository: 'karimz1/imgcompress', tag: 'release_0.1.0', request: async (route, options) => {
+test('first release omits the comparison base, empty notes and failed API calls fail', async () => {
+  await releaseNotes({ repository: 'karimz1/imgcompress', tag: 'release_0.1.0', request: async (route, options) => {
     if (route.includes('/releases?')) return [];
     if (route.endsWith('/generate-notes')) {
       assert.equal('previous_tag_name' in options.body, false);
@@ -127,6 +185,7 @@ test('first release omits the comparison base and failed API calls are surfaced'
     }
     return {};
   } });
+  await assert.rejects(() => createDraft({ repository: 'karimz1/imgcompress', tag: 'release_0.1.0', body: ' ', request: async () => [] }), /empty/);
   const request = githubRequest('test', async () => ({ ok: false, status: 403 }));
   await assert.rejects(() => request('repos/karimz1/imgcompress/releases'), /HTTP 403/);
 });

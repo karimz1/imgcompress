@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { releaseEntry, upsertReleaseNotes } from '../../scripts/sync-release-notes.mjs';
+import { formatReleaseNotes, pendingEntry } from '../../scripts/prepare-release.mjs';
 import { extractCurrentVersion } from '../../frontend/src/lib/release-version.ts';
 
 const release = {
@@ -59,7 +60,7 @@ test('legacy headers are not duplicated and fenced Markdown stays intact', () =>
   const body = '## v0.10.0 — 2026-10-01\r\n\r\n### Features\r\n- Change\r\n\r\n```markdown\r\n## Example heading\r\n```';
   const result = releaseEntry({ ...release, body }).markdown;
   assert.equal([...result.matchAll(/^## v0\.10\.0 /gm)].length, 1);
-  assert.match(result, /#### Features/);
+  assert.match(result, /^### Features$/m);
   assert.match(result, /```markdown\n## Example heading\n```/);
 });
 
@@ -80,4 +81,38 @@ test('the app uses the first release header and retains historical versions', ()
   assert.equal(extractCurrentVersion('### v8.0.0 — 2026-10-09\n\n' + archive), '0.9.0');
   assert.equal(extractCurrentVersion('## 0.2.7.2 — 2025-12-20\n- Old patch'), '0.2.7.2');
   assert.equal(extractCurrentVersion('No release entries'), null);
+});
+
+const pendingArchive = '## v1.0.0 — DateNeedsToBeReplaced\n\n### Features\n\n- Hand-written SVG import note.\n\n' + archive;
+
+test('hand-written notes for the tagged version lead the draft and are replaced in the app', () => {
+  const highlights = pendingEntry(pendingArchive, '1.0.0');
+  assert.equal(highlights, '### Features\n\n- Hand-written SVG import note.');
+  assert.equal(pendingEntry(pendingArchive, '1.0.1'), '');
+  const generated = '### Features\n* feat: add SVG import by @karimz1 in https://github.com/karimz1/imgcompress/pull/938';
+  const body = formatReleaseNotes(generated, { version: '1.0.0', prerelease: false, date: '2026-10-27', repository: 'karimz1/imgcompress', highlights });
+  assert.match(body, /### Changelog\n\n#### Features\n\n- Hand-written SVG import note\./);
+  assert.doesNotMatch(body, /feat: add SVG import/);
+
+  const published = { ...release, tag_name: 'release_1.0.0', published_at: '2026-10-27T10:00:00Z', body };
+  const result = upsertReleaseNotes(pendingArchive, published);
+  assert.doesNotMatch(result, /DateNeedsToBeReplaced/);
+  assert.ok(result.startsWith('## v1.0.0 — 2026-10-27\n\n### Features\n\n- Hand-written SVG import note.'));
+  assert.match(result, /^### Pinned Version$/m);
+  assert.doesNotMatch(result, /Changelog\n/);
+  assert.ok(result.endsWith(archive));
+  assert.equal(extractCurrentVersion(result), '1.0.0');
+});
+
+test('an RC image uses and replaces the hand-written notes of its stable version', () => {
+  const highlights = pendingEntry(pendingArchive, '1.0.0-rc.1');
+  assert.match(highlights, /Hand-written SVG import note/);
+  const body = formatReleaseNotes('', { version: '1.0.0-rc.1', prerelease: true, date: '2026-10-27', repository: 'karimz1/imgcompress', highlights });
+  const image = upsertReleaseNotes(pendingArchive, { ...release, tag_name: 'release_1.0.0-rc.1', prerelease: true, body },
+    { includePrerelease: true, promote: true });
+  assert.equal(extractCurrentVersion(image), '1.0.0-rc.1');
+  assert.doesNotMatch(image, /DateNeedsToBeReplaced|\n\n\n/);
+  assert.equal([...image.matchAll(/Hand-written SVG import note/g)].length, 1);
+  // main keeps the pending notes until the stable release is published.
+  assert.equal(upsertReleaseNotes(pendingArchive, { ...release, tag_name: 'release_1.0.0-rc.1', prerelease: true, body }), pendingArchive);
 });

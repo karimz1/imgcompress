@@ -67,11 +67,11 @@ local: lint
 simci: lint
 	./scripts/simulateCiTests.sh
 
-# Normally a tag push prepares the draft. This recovers a missed run or prepares
-# a draft for an existing tag; reviewed drafts are never overwritten.
+# Normally a tag push builds the version image and then prepares the draft.
+# This reruns both for an unpublished tag; reviewed drafts are never overwritten.
 release-draft:
-	@test -n "$(RELEASE_TAG)" || (echo "Usage: make release-draft RELEASE_TAG=release_0.10.0-rc.1" >&2; exit 1)
-	gh workflow run prepare-release.yml -f tag="$(RELEASE_TAG)"
+	@test -n "$(RELEASE_TAG)" || (echo "Usage: make release-draft RELEASE_TAG=release_1.0.0-rc.1" >&2; exit 1)
+	gh workflow run deploy-docker-image.yml --ref main -f tag="$(RELEASE_TAG)"
 
 release-tests:
 	node --test tests/releases/*.test.mjs
