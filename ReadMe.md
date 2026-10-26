@@ -2,7 +2,7 @@
   <img src="./images/logo-mini-2.webp" alt="ImgCompress logo" height="80px" />
   <h1>ImgCompress</h1>
   <p><strong>Every image format. Zero cloud.</strong></p>
-  <p>Convert 70+ formats, crop per file, compress in bulk, and remove backgrounds with local AI. UI in 12 languages.<br/>Everything runs inside your container, so your files never leave your server.</p>
+  <p>Make images smaller, convert 70+ formats, edit them, make them bigger with AI and remove backgrounds. In 12 languages.<br/>Everything runs on your own computer, so your files stay with you.</p>
 
   <p>
     <a href="https://imgcompress.karimzouine.com/">
@@ -70,9 +70,7 @@
 
 ## What is ImgCompress?
 
-ImgCompress is a **self-hosted image processing server** that runs entirely inside a single Docker container. It handles compression, format conversion, and AI-powered background removal, all locally on your own hardware. No cloud APIs, no third-party uploads, no tracking.
-
-Built for people, homelab enthusiasts, and anyone who values privacy and owns their data.
+ImgCompress is an **easy image app for everyone, no IT knowledge needed**: set it up once on your own computer or server, then do everything in a modern web page, with no command line. It makes images smaller, converts **70+ formats** (HEIC, PSD, SVG, PDF and more), lets you **edit** them (crop, exact sizes, text, logos, thumbnails), makes small images **bigger and sharper with AI** up to 16K, and **removes backgrounds**. The AI is already built in, and everything runs on your own computer: private, no cloud, works offline, free and open source.
 
 ---
 
@@ -81,14 +79,14 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 | Feature | Details |
 |---|---|
 | **70+ Image Formats** | HEIC, HEIF, PSD, SVG, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60 more ([which are tested](https://imgcompress.karimzouine.com/#formats)) |
-| **Local AI Background Removal** | Bundled model runs on your CPU. No API key, no subscription, no upload |
-| **Local AI Upscaling** | Enlarge images 2x to 16K on your CPU, offline ([guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)) |
+| **AI Background Removal** | Built in and ready to use. No account, no subscription, no upload |
+| **AI Upscaling** | Make small images bigger and sharper, up to 16K, offline ([guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)) |
 | **Image Editor** | Crop, exact sizes, backgrounds, text and logos before converting ([guide](https://imgcompress.karimzouine.com/docs/image-editor)) |
-| **Bulk Compression** | Multi-core parallel processing across entire photo libraries |
+| **Bulk Compression** | Make a whole folder of photos smaller in one go |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, [SVG to PNG](https://imgcompress.karimzouine.com/docs/svg-to-png), image batches to paginated PDF, and more ([WebP guide](https://imgcompress.karimzouine.com/docs/convert-to-webp)) |
-| **Web UI + CLI** | Browser dashboard for day-to-day use; CLI for scripting pipelines |
-| **Single Container** | Every codec and library pre-bundled, zero host dependencies |
-| **Air-Gap Ready** | Once pulled, runs fully offline. No internet required, ever |
+| **Web App + CLI** | An easy web page for everyday use, plus a command line for automation |
+| **One Container** | Everything is included. Nothing else to install |
+| **Works Offline** | After the first download, no internet is needed, ever |
 
 **What's new in v1.0:** the image editor, AI upscaling, SVG import, WebP export and more. See the **[release notes](https://imgcompress.karimzouine.com/docs/release-notes)**.
 
@@ -109,30 +107,30 @@ Edit images right in the browser before you convert them. Everything is rendered
 
 ## AI image upscaling
 
-Enlarge small photos and drawings up to 16K with a local AI model (Real-ESRGAN) on your CPU. No GPU, no cloud upload. Pick the General model for photos or the Anime model for drawings, anime and logos. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
+Make small photos and drawings bigger and sharper, up to 16K. The AI is already built in: just switch it on. Pick **General** for photos or **Anime** for drawings, anime and logos. No special graphics card, no upload. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
 
-**Original vs. AI-upscaled:** a 118 × 104 px drawing taken to 4x. Left is a plain bicubic resize, right is the Anime model (`realesr-animevideov3`) in ImgCompress. The second row zooms in on one fingernail.
+**Original vs. AI-upscaled:** a small drawing (118 × 104 px) made 4x bigger. Left: normal enlargement. Right: AI upscaling with Anime. The second row zooms in on one fingernail.
 
 | Original | AI-upscaled (anime model) |
 |:---:|:---:|
-| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original.webp" width="300" alt="Anime drawing of a hand with turquoise fingernails, enlarged 4x with plain bicubic resizing, soft blurry outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled.webp" width="300" alt="The same anime hand upscaled 4x with the local AI anime model, clean dark outlines around the fingers and nails"/> |
-| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original-zoom.webp" width="300" alt="Close-up of one turquoise fingernail after bicubic resizing, the nail edge is blurred"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled-zoom.webp" width="300" alt="Close-up of the same fingernail after AI upscaling with the anime model, sharp nail outline and highlight"/> |
+| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original.webp" width="300" alt="Anime drawing of a hand with turquoise fingernails, enlarged 4x the normal way, soft blurry outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled.webp" width="300" alt="The same anime hand made 4x bigger with AI upscaling (Anime), clean dark outlines around the fingers and nails"/> |
+| <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-original-zoom.webp" width="300" alt="Close-up of one turquoise fingernail after normal enlargement, the nail edge is blurred"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/anime-nails-upscaled-zoom.webp" width="300" alt="Close-up of the same fingernail after AI upscaling (Anime), sharp nail outline and highlight"/> |
 
 ---
 
 ## AI Background Removal: Local & Private
 
-Stop uploading personal or client photos to cloud-based removers. ImgCompress ships a bundled AI model that runs background removal **on your own hardware**. No API call, no subscription, no file ever leaves your server.
+Remove the background from a photo in one click, without uploading it anywhere. The AI is already built in and runs **on your own computer**. Nothing to install, no account, no subscription.
 
 | Original | Background Removed |
 |:---:|:---:|
-| <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="380" alt="Original sunset landscape photo"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="380" alt="Same photo with background removed by local AI"/> |
+| <img src="images/image-remover-examples/landscape-with-sunset-yixing-original.avif" width="380" alt="Original sunset landscape photo"/> | <img src="images/image-remover-examples/landscape-with-sunset-yixing-ai-transparency.avif" width="380" alt="Same photo with background removed by the built-in AI"/> |
 
 ---
 
 ## Quick Start
 
-Pull the image, open `localhost:3001`, start converting. About 60 seconds total.
+Copy this command, run it once, then open `localhost:3001` in your browser. That's it, about 60 seconds. You only need [Docker](https://docs.docker.com/get-started/get-docker/).
 
 ```bash
 docker run -d \
@@ -143,14 +141,14 @@ docker run -d \
 
 Prefer Docker Compose? Ready-made configurations live in [`docker/compose/`](docker/compose/):
 
-- **[advanced.docker-compose.yaml](docker/compose/advanced.docker-compose.yaml)** for home or LAN use. Reachable from any device on your network out of the box, with container best practices applied (log rotation, healthcheck, no-new-privileges).
-- **[proxied.docker-compose.yaml](docker/compose/proxied.docker-compose.yaml)** for hosting under a domain with HTTPS, behind a Traefik reverse proxy with TLS, security headers, and optional Let's Encrypt.
+- **[advanced.docker-compose.yaml](docker/compose/advanced.docker-compose.yaml)** for use at home: open it from any device on your network. Safe defaults are already set.
+- **[proxied.docker-compose.yaml](docker/compose/proxied.docker-compose.yaml)** for your own web address with HTTPS (uses Traefik and, if you like, free Let's Encrypt certificates).
 
 Step-by-step instructions for both are in the **[compose guide](docker/compose/README.md)**.
 
-Uploads can be up to 40 GB each by default, so big PSD and PDF files work. To lower that, set `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`), the same way as `DISABLE_LOGO`. For a public instance, use a smaller limit like 1 GB (`1024`). More in the [upload limit guide](https://imgcompress.karimzouine.com/docs/installation#upload-limit).
+Each upload can be up to 40 GB, so big PSD and PDF files work. To set a smaller limit, add `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`). If other people can reach your copy over the internet, a smaller limit like 1 GB (`1024`) is a good idea. More in the [upload limit guide](https://imgcompress.karimzouine.com/docs/installation#upload-limit).
 
-For environment variables and deploying without the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
+For more settings, such as hiding the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
 ---
 
@@ -173,7 +171,7 @@ The community has now pulled the image tens of thousands of times, which shows t
 
 ### Why Docker?
 
-I chose Docker because it keeps your computer clean. Instead of you having to install 70 different messy libraries on your system, I packed everything into one **Ready-to-go Box** that you can run anywhere called **imgcompress**. It just works.
+I chose Docker because it keeps your computer clean. Instead of installing 70 different tools yourself, you get one **ready-to-go box** called **imgcompress** that runs anywhere. It just works.
 
 ---
 
@@ -181,16 +179,16 @@ I chose Docker because it keeps your computer clean. Instead of you having to in
 
 | | |
 |---|---|
-| **No cloud processing** | Conversions, compression, and AI inference all run locally. Images never leave your machine. |
-| **No telemetry** | No analytics, no crash reporting, no feature flags phoning home. Completely silent on the network after startup. |
-| **Offline after pull** | Once the image is pulled, no internet connection is ever needed again. No license checks, no expiry. |
-| **Open source** | GPL-3.0. Audit the code, fork it, self-host it forever. |
+| **No cloud** | Converting, compressing and the AI all run on your own computer. Your images never leave it. |
+| **No tracking** | No analytics and no data sent home. After it starts, it stays quiet on the network. |
+| **Works offline** | After the first download, it never needs the internet again. No license checks, no expiry. |
+| **Free and open source** | GPL-3.0. Anyone can read the code, and you can use it for free, forever. |
 
 ---
 
 ## Security-Hardened Docker Image
 
-ImgCompress is built with a security-hardened, minimal image, aligned with common container security standards out of the box.
+ImgCompress keeps only what it needs, so there is less that can go wrong. For the technically curious, here are the details:
 
 | | |
 |---|---|
