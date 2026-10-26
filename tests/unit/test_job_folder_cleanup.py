@@ -61,6 +61,26 @@ def test_running_job_blocks_exclusive_lock_until_released(tmp_path):
     job_folder_lock.release(fd)
 
 
+def test_lock_refuses_a_link_to_a_folder(tmp_path):
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    os.symlink(target, tmp_path / "converted_link")
+
+    with pytest.raises(OSError):
+        job_folder_lock.hold_shared(str(tmp_path / "converted_link"))
+    with pytest.raises(OSError):
+        job_folder_lock.try_exclusive(str(tmp_path / "converted_link"))
+
+
+def test_lock_refuses_a_file(tmp_path):
+    (tmp_path / "converted_file").write_bytes(b"x")
+
+    with pytest.raises(NotADirectoryError):
+        job_folder_lock.hold_shared(str(tmp_path / "converted_file"))
+    with pytest.raises(NotADirectoryError):
+        job_folder_lock.try_exclusive(str(tmp_path / "converted_file"))
+
+
 def test_release_is_idempotent(tmp_path):
     job = TemporaryFolderService(str(tmp_path), 3600, _Logger()).create_job_dir("source_")
     job.release()

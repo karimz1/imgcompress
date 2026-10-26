@@ -35,6 +35,7 @@ from backend.image_converter.config import settings
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.domain.smart_crop import to_8bit
 from backend.image_converter.infrastructure import job_folder_lock
+from backend.image_converter.infrastructure.safe_path import direct_child
 
 SESSION_PREFIX = "source_editor_"
 _SESSION_TOKEN = re.compile(r"[A-Za-z0-9_-]{32}")
@@ -128,9 +129,9 @@ class EditorSession:
         if not isinstance(asset_id, str) or not _ASSET_ID.fullmatch(asset_id):
             return Result.failure("Invalid picture id.")
         name = f"{asset_id}.src" if full_size else f"{asset_id}.proxy.png"
-        target = self.path / name
         # Only regular files directly in this folder; never follow links.
-        if target.parent != self.path or not target.is_file() or target.is_symlink():
+        target = direct_child(self.path, name)
+        if target is None or not os.path.isfile(target):
             return Result.failure(EXPIRED_ERROR)
         try:
             handle = open(target, "rb")
@@ -224,7 +225,8 @@ class EditorAssetStore:
             return
         try:
             fd = job_folder_lock.hold_shared(str(folder))
-        except (FileNotFoundError, NotADirectoryError):
+        except OSError:
+            # Gone, or swapped for a link or a file since it was checked.
             yield Result.failure(EXPIRED_ERROR)
             return
         try:
@@ -239,10 +241,10 @@ class EditorAssetStore:
     def _session_folder(self, session: object) -> Optional[Path]:
         if not isinstance(session, str) or not _SESSION_TOKEN.fullmatch(session):
             return None
-        folder = self.base_dir / f"{SESSION_PREFIX}{session}"
-        if folder.parent != self.base_dir or folder.is_symlink() or not folder.is_dir():
+        folder = direct_child(self.base_dir, f"{SESSION_PREFIX}{session}")
+        if folder is None or not os.path.isdir(folder):
             return None
-        return folder
+        return Path(folder)
 
     def _create_session(self) -> str:
         self.base_dir.mkdir(parents=True, exist_ok=True)

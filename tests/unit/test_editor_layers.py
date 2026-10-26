@@ -387,6 +387,54 @@ def test_When_SessionFolderIsASymlink_Expect_Refused(store, tmp_path):
         assert not opened.is_successful
 
 
+def test_When_SessionFolderLinksOutsideTheTempDir_Expect_RefusedAndNothingWritten(tmp_path):
+    base = tmp_path / "temp"
+    base.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = "d" * 32
+    os.symlink(outside, base / f"{SESSION_PREFIX}{link}")
+    store = EditorAssetStore(str(base))
+    with store.open(link) as opened:
+        assert not opened.is_successful and opened.error == EXPIRED_ERROR
+    result = store.add(link, upload(Image.new("RGB", (2, 2))))
+    assert not result.is_successful and list(outside.iterdir()) == []
+
+
+@pytest.mark.parametrize("session", ["/" + "a" * 31, "\\" + "a" * 31, "a" * 31 + "\x00", "." * 32])
+def test_When_SessionIsAbsoluteOrHasOddCharacters_Expect_Expired(store, session):
+    with store.open(session) as opened:
+        assert not opened.is_successful and opened.error == EXPIRED_ERROR
+
+
+def test_When_SessionPathIsAFile_Expect_Expired(store, tmp_path):
+    token = "e" * 32
+    (tmp_path / f"{SESSION_PREFIX}{token}").write_bytes(b"x")
+    with store.open(token) as opened:
+        assert not opened.is_successful and opened.error == EXPIRED_ERROR
+
+
+def test_When_TempDirIsReachedThroughALink_Expect_SessionsWork(tmp_path):
+    real = tmp_path / "real"
+    real.mkdir()
+    os.symlink(real, tmp_path / "link")
+    store = EditorAssetStore(str(tmp_path / "link"))
+    session, asset = store_picture(store, Image.new("RGB", (4, 4), RED))
+    with store.open(session) as opened:
+        assert opened.value.load(asset.asset_id, True).value.getpixel((0, 0)) == RED
+
+
+def test_When_PictureIsALinkToAFileOutside_Expect_Expired(store, tmp_path):
+    session, _ = store_picture(store, Image.new("RGB", (2, 2)))
+    secret = tmp_path.parent / f"{tmp_path.name}-secret.png"
+    Image.new("RGB", (2, 2), GREEN).save(secret)
+    asset = "f" * 22
+    os.symlink(secret, tmp_path / f"{SESSION_PREFIX}{session}" / f"{asset}.src")
+    with store.open(session) as opened:
+        loaded = opened.value.load(asset, True)
+    assert not loaded.is_successful and loaded.error == EXPIRED_ERROR
+
+
 def test_When_UploadIsNotAPicture_Expect_RejectedAndNothingStored(store, tmp_path):
     for data in (b"not an image", b"<svg xmlns='http://www.w3.org/2000/svg'/>", b"%PDF-1.4"):
         result = store.add(None, FileStorage(stream=BytesIO(data), filename="x.png"))
