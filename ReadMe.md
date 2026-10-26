@@ -100,7 +100,7 @@ ImgCompress now has a real image editor in the browser, plus a few things people
 
 - **[Image editor](https://imgcompress.karimzouine.com/docs/image-editor):** crop, pick an exact size, add a background, text or a logo, and rotate anything. Undo, keyboard shortcuts and touch on tablets included.
 - **[YouTube thumbnails](https://imgcompress.karimzouine.com/docs/youtube-thumbnail):** presets for YouTube, Shorts and stories, Instagram, X, link previews, GitHub, Pinterest, Full HD, 2K and 4K.
-- **[Add text to an image](https://imgcompress.karimzouine.com/docs/add-text-to-image):** titles, subtitles and watermarks with your own font, color, shadow and angle.
+- **[Add text to an image](https://imgcompress.karimzouine.com/docs/add-text-to-image):** titles, subtitles and watermarks with a choice of fonts, color, shadow and angle.
 - **[Smart crop](https://imgcompress.karimzouine.com/docs/smart-crop):** resize to an exact size and keep the important part in frame, or keep the whole image on a blurred background.
 - **[AI upscaling](https://imgcompress.karimzouine.com/docs/ai-upscaling):** enlarge photos or drawings up to 16K with a local AI model on the CPU.
 - **[SVG import](https://imgcompress.karimzouine.com/docs/svg-to-png):** turn SVG files into PNG, JPEG, WebP, AVIF, ICO or PDF at any size.
