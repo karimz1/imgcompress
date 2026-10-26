@@ -66,6 +66,8 @@ for reg, entry in list(auths.items()):
 with open(dst, "w") as fh:
     json.dump({"auths": auths}, fh)
 PY
+# The staged copy holds inline registry credentials: owner-only access.
+chmod 600 "$SHARED_DOCKER_CONFIG"
 
 run_stage() {
   stage_name="$1"

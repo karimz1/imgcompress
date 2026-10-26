@@ -43,12 +43,12 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.11"
 
@@ -68,29 +68,29 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
         run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build local application image
         id: build-app
         continue-on-error: true
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: &app-build-1
           context: .
           platforms: linux/amd64
@@ -105,7 +105,7 @@ jobs:
 
       - name: Retry build (dhi.io sometimes times out)
         if: steps.build-app.outcome == 'failure'
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: *app-build-1
 
       - name: Run Trivy image scan
@@ -117,7 +117,7 @@ jobs:
 
       - name: Upload Trivy scan result
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: trivy-scan-result
           path: scan-result.log
@@ -134,27 +134,27 @@ jobs:
         platform: [ "linux/amd64", "linux/arm64" ]
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
         run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Dev Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: ${{ matrix.platform }}
@@ -202,29 +202,29 @@ jobs:
         platform: [ "linux/amd64" ] # works only on amd64 for now; a fix for arm64 is in progress
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
         run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Application Container for ${{ matrix.platform }}
         id: build-app
         continue-on-error: true
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: &app-build-2
           context: .
           platforms: ${{ matrix.platform }}
@@ -239,7 +239,7 @@ jobs:
 
       - name: Retry build (dhi.io sometimes times out)
         if: steps.build-app.outcome == 'failure'
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: *app-build-2
 
       - name: Run Application Container (Host Networking) for ${{ matrix.platform }}
@@ -268,7 +268,7 @@ jobs:
           echo "Application is up! Continuing..."
 
       - name: Build Dev Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: ${{ matrix.platform }}
@@ -287,7 +287,6 @@ jobs:
             --entrypoint /bin/sh \
             --network host \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
@@ -314,7 +313,7 @@ jobs:
 
       - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
         if: failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true')
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: e2e-test-results-${{ env.ARCH }}
           path: e2e-test-results-${{ env.ARCH }}.zip
@@ -356,22 +355,22 @@ jobs:
             label: "upload-limit-5mb"
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Build Application Container
         id: build-app
         continue-on-error: true
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: &app-build-3
           context: .
           platforms: linux/amd64
@@ -386,7 +385,7 @@ jobs:
 
       - name: Retry build (dhi.io sometimes times out)
         if: steps.build-app.outcome == 'failure'
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: *app-build-3
 
       - name: Start app — ${{ matrix.scenario }}
@@ -425,7 +424,7 @@ jobs:
           echo "Application is up! Continuing..."
 
       - name: Build Dev Container
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: linux/amd64
@@ -472,7 +471,7 @@ jobs:
 
       - name: Upload feature-flags artifact — ${{ matrix.scenario }}
         if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: feature-flags-${{ matrix.label }}
           path: feature-flags-${{ matrix.label }}.zip
@@ -494,22 +493,22 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Build Application Container
         id: build-app
         continue-on-error: true
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: &app-build-4
           context: .
           platforms: linux/amd64
@@ -524,7 +523,7 @@ jobs:
 
       - name: Retry build (dhi.io sometimes times out)
         if: steps.build-app.outcome == 'failure'
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with: *app-build-4
 
       - name: Run Application Container (Host Networking)
@@ -554,7 +553,7 @@ jobs:
           echo "Application is up! Continuing..."
 
       - name: Build Dev Container
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: linux/amd64
@@ -640,7 +639,7 @@ jobs:
     steps:
       - name: Mint imgcompress-chan token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
           private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
