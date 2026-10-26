@@ -240,6 +240,11 @@ export const en = {
         image: "Background image",
         imageHint:
           "Keeps the whole image on top of a picture you choose. The picture is only kept for this editing session and then deleted.",
+        backgroundLink: {
+          solid: "Change the color in the Background tab",
+          blur: "Adjust blur and darkening in the Background tab",
+          image: "Change the picture in the Background tab",
+        },
       },
     },
     resizeWidth: {

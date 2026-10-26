@@ -243,6 +243,11 @@ export const fr: TranslationSchema = {
         image: "Image de fond",
         imageHint:
           "Garde l’image entière par-dessus une image de votre choix. Celle-ci n’est conservée que pendant cette session d’édition, puis supprimée.",
+        backgroundLink: {
+          solid: "Changer la couleur dans l’onglet Arrière-plan",
+          blur: "Régler le flou et l’assombrissement dans l’onglet Arrière-plan",
+          image: "Changer l’image dans l’onglet Arrière-plan",
+        },
       },
     },
     resizeWidth: {

@@ -243,6 +243,11 @@ export const esMX: TranslationSchema = {
         image: "Imagen de fondo",
         imageHint:
           "Mantiene toda la imagen sobre una imagen que elijas. Esa imagen solo se guarda durante esta sesión de edición y luego se elimina.",
+        backgroundLink: {
+          solid: "Cambia el color en la pestaña Fondo",
+          blur: "Ajusta el desenfoque y el oscurecimiento en la pestaña Fondo",
+          image: "Cambia la imagen en la pestaña Fondo",
+        },
       },
     },
     resizeWidth: {

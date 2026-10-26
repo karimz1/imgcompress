@@ -243,6 +243,11 @@ export const hu: TranslationSchema = {
         image: "Háttérkép",
         imageHint:
           "A teljes kép egy általad választott kép fölött marad. Ezt csak a mostani szerkesztés idejére tároljuk, utána töröljük.",
+        backgroundLink: {
+          solid: "A színt a Háttér lapon módosíthatod",
+          blur: "Az elmosást és a sötétítést a Háttér lapon állíthatod",
+          image: "A képet a Háttér lapon cserélheted",
+        },
       },
     },
     resizeWidth: {

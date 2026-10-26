@@ -243,6 +243,11 @@ export const zhCN: TranslationSchema = {
         image: "背景图片",
         imageHint:
           "将整张图片放在你选择的图片上方。所选图片只在本次编辑期间临时保存，之后即被删除。",
+        backgroundLink: {
+          solid: "在“背景”标签页中更改颜色",
+          blur: "在“背景”标签页中调整模糊和变暗",
+          image: "在“背景”标签页中更换图片",
+        },
       },
     },
     resizeWidth: {

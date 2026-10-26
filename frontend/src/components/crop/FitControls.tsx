@@ -9,7 +9,9 @@ import {
   ArrowUpRight,
   ImagePlus,
   Loader2,
+  Palette,
   RotateCcw,
+  SlidersHorizontal,
   WandSparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -861,6 +863,54 @@ function PresetTile({
   );
 }
 
+/**
+ * Modes whose look is set in the background tab: the size tab links there and
+ * focuses the control people look for first.
+ */
+const BACKGROUND_LINKS: Partial<Record<FitMode, { icon: LucideIcon; target: string }>> = {
+  solid: { icon: Palette, target: "fit-color-input" },
+  blur: { icon: SlidersHorizontal, target: "fit-blur-slider" },
+  image: { icon: ImagePlus, target: "fit-background-choose-btn" },
+};
+
+function BackgroundLink({
+  mode,
+  suffix,
+  onOpen,
+}: {
+  mode: FitMode;
+  suffix: string;
+  onOpen: () => void;
+}) {
+  const { t } = useTranslation();
+  const link = BACKGROUND_LINKS[mode];
+  if (!link) return null;
+  const Icon = link.icon;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onOpen();
+        // The tab panel is shown on the next render; then focus its control.
+        window.setTimeout(() => {
+          const control = document.querySelector<HTMLElement>(`[data-testid="${link.target}${suffix}"]`);
+          control?.scrollIntoView({ block: "center" });
+          control?.focus();
+        }, 0);
+      }}
+      className="group flex min-h-11 w-full items-center gap-2 rounded-md px-2 text-left text-xs font-medium text-blue-600 transition-colors hover:bg-blue-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-400"
+      data-testid={`fit-mode-background-link${suffix}`}
+    >
+      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-1">{t(`form.fitSize.mode.backgroundLink.${mode}`)}</span>
+      <ArrowRight
+        className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
+        aria-hidden="true"
+      />
+    </button>
+  );
+}
+
 /** No background settings for this mode: say so instead of an empty tab. */
 const hasBackgroundSettings = (mode: FitMode) =>
   mode === "solid" || patternSupported(mode) || dimSupported(mode) || mode === "image";
@@ -1040,6 +1090,9 @@ export function FitControls({
       <p className="text-xs opacity-70">
         {t(`form.fitSize.mode.${fit.settings.mode}Hint`)}
       </p>
+      {!compact && onNeedBackground && (
+        <BackgroundLink mode={fit.settings.mode} suffix={suffix} onOpen={onNeedBackground} />
+      )}
       {compact && fit.settings.mode === "solid" && (
         <FitColorPicker
           color={fit.settings.color}

@@ -236,6 +236,35 @@ test("picture limit comes from the server setting MAX_UPLOAD_SIZE_MB and the mes
   await expect(page.getByTestId("fit-background-error")).toHaveText(/\b1\s?MB\b/);
 });
 
+test("solid color: the hint in the size tab leads to the color, and the export has it", async ({ page }) => {
+  await page.getByTestId("dropzone-input").setInputFiles(original);
+  await page.getByTestId("dropzone-crop-file-btn").click();
+  await showTab(page, "fit");
+  await page.getByTestId("fit-preset-custom").click();
+  await page.getByTestId("fit-width-input").fill("800");
+  await page.getByTestId("fit-height-input").fill("800");
+  await page.getByTestId("fit-mode-solid-btn").click();
+  await expect(page.getByTestId("crop-fit-output-size")).toContainText("800 × 800");
+  await page.getByTestId("fit-scale-input").fill("40");
+  await page.getByTestId("fit-scale-input").press("Enter");
+
+  // The color is not in this tab; the hint says where it is and goes there.
+  const hint = page.getByTestId("fit-mode-background-link");
+  await expect(hint).toHaveText("Change the color in the Background tab");
+  await hint.click();
+  await expect(page.getByTestId("crop-tab-background")).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId("fit-color-input")).toBeFocused();
+
+  await page.getByTestId("fit-color-input").fill("#1e90ff");
+  await expect.poll(async () => (await lastFitRequest(page))?.fit_color).toBe("#1e90ff");
+  const preview = await readPreview(page);
+  // The image sits in the middle at 40 %; the corners show the fill.
+  for (const [left, top] of [[0, 0], [780, 0], [0, 780], [780, 780]]) {
+    expectNear(await regionMean(preview, left, top, 20, 20), [...rgb("#1e90ff"), 255], 2, `corner ${left},${top}`);
+  }
+  await expectExportMatches(page, preview);
+});
+
 test("solid fill gradient: preset and direction, preview matches the stage and the export", async ({ page }) => {
   await openSolidCanvas(page, "000000", 30);
   await page.getByTestId("fit-gradient-toggle").check();

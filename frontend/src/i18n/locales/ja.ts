@@ -243,6 +243,11 @@ export const ja: TranslationSchema = {
         image: "背景画像",
         imageHint:
           "選んだ画像の上に元の画像全体を配置します。選んだ画像はこの編集中だけ一時保存され、その後削除されます。",
+        backgroundLink: {
+          solid: "色は「背景」タブで変更",
+          blur: "ぼかしと暗さは「背景」タブで調整",
+          image: "画像は「背景」タブで変更",
+        },
       },
     },
     resizeWidth: {

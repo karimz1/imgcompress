@@ -243,6 +243,11 @@ export const ptBR: TranslationSchema = {
         image: "Imagem de fundo",
         imageHint:
           "Mantém a imagem inteira sobre uma imagem que você escolher. Ela só fica guardada durante esta sessão de edição e depois é apagada.",
+        backgroundLink: {
+          solid: "Altere a cor na aba Fundo",
+          blur: "Ajuste o desfoque e o escurecimento na aba Fundo",
+          image: "Altere a imagem na aba Fundo",
+        },
       },
     },
     resizeWidth: {

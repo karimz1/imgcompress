@@ -243,6 +243,11 @@ export const de: TranslationSchema = {
         image: "Hintergrundbild",
         imageHint:
           "Das ganze Bild liegt auf einem Bild deiner Wahl. Dieses wird nur für die aktuelle Bearbeitung zwischengespeichert und danach gelöscht.",
+        backgroundLink: {
+          solid: "Farbe im Hintergrund-Tab ändern",
+          blur: "Unschärfe und Abdunkeln im Hintergrund-Tab einstellen",
+          image: "Bild im Hintergrund-Tab ändern",
+        },
       },
     },
     resizeWidth: {
