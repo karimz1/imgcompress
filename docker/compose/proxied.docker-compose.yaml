@@ -162,6 +162,7 @@ services:
       # Set to true to remove the mascot and enable a minimal, mascot-free UI
       - DISABLE_LOGO=${IMGCOMPRESS_DISABLE_LOGO:-false}
       # Optional: largest upload per file in MB, also for editor pictures. Default 40960 (40 GB) for big PSD/PDF files; remove the line to keep it.
+      # For a public instance, use a smaller limit like 1 GB (1024).
       - MAX_UPLOAD_SIZE_MB=${IMGCOMPRESS_MAX_UPLOAD_SIZE_MB:-40960}
       # Storage management is disabled by default in this proxied setup:
       # the app has no login, so it would let any visitor browse and manage

@@ -138,7 +138,7 @@ Prefer Docker Compose? Ready-made configurations live in [`docker/compose/`](doc
 
 Step-by-step instructions for both are in the **[compose guide](docker/compose/README.md)**.
 
-Uploads can be up to 40 GB each by default, so big PSD and PDF files work. To lower that, set `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`), the same way as `DISABLE_LOGO`.
+Uploads can be up to 40 GB each by default, so big PSD and PDF files work. To lower that, set `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`), the same way as `DISABLE_LOGO`. For a public instance, use a smaller limit like 1 GB (`1024`).
 
 For environment variables and deploying without the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
