@@ -46,6 +46,9 @@ test.beforeEach(async ({ page, request }) => {
   test.info().annotations.push({ type: "runtime-config", description: `MAX_UPLOAD_SIZE_MB=${limitMb}` });
   await clearStorageManagerAsync(request);
   await page.goto("/");
+  // The page reads the limit from /config/runtime.json after it loads. Wait
+  // until the drawer shows it, so the files below are checked against it.
+  await expect(page.getByTestId("dropzone-max-size")).toHaveText(`Max. ${limitMb} MB per file`);
   await setOutputFormatAsync(page, "PNG");
 });
 

@@ -144,3 +144,63 @@ def test_When_RequestIsAboveTheLimit_Expect_413WithTheLimitInTheAnswer(monkeypat
     assert body["error"] == "Payload Too Large"
     assert body["max_upload_size_mb"] == 1
     assert "1 MB" in body["message"]
+
+
+class _CountingStream(BytesIO):
+    """The request body as the server reads it; counts what was read."""
+
+    def __init__(self, data: bytes):
+        super().__init__(data)
+        self.read_bytes = 0
+
+    def read(self, size=-1):
+        chunk = super().read(size)
+        self.read_bytes += len(chunk)
+        return chunk
+
+
+def _refusing_app(monkeypatch, limit: str) -> Flask:
+    use_limit(monkeypatch, limit)
+    from backend.image_converter.presentation.web.error_handlers import handle_request_entity_too_large
+
+    app = Flask(__name__)
+    app.config["MAX_CONTENT_LENGTH"] = settings.get().uploads.max_file_size_bytes
+    app.register_error_handler(413, handle_request_entity_too_large)
+
+    @app.route("/upload", methods=["POST"])
+    def upload():
+        return {"files": len(request.files)}
+
+    return app
+
+
+def test_When_RequestIsAboveTheLimit_Expect_BodyReadBeforeTheAnswer(monkeypatch):
+    # A server that answers and closes while the client is still sending makes
+    # the client's system reset the connection: the client gets "EPIPE" or
+    # "connection reset" instead of the 413. So the refused body is read first.
+    app = _refusing_app(monkeypatch, "1")
+    body = _CountingStream(b"\0" * (3 * BYTES_PER_MEBIBYTE))
+
+    response = app.test_client().post(
+        "/upload", input_stream=body, content_length=len(body.getvalue()),
+        content_type="multipart/form-data; boundary=x",
+    )
+
+    assert response.status_code == 413
+    assert body.read_bytes == len(body.getvalue())
+
+
+def test_When_RefusedBodyIsHuge_Expect_AnsweredWithoutReadingIt(monkeypatch):
+    from backend.image_converter.presentation.web import error_handlers
+
+    monkeypatch.setattr(error_handlers, "REFUSED_BODY_READ_MAX_BYTES", 2 * BYTES_PER_MEBIBYTE)
+    app = _refusing_app(monkeypatch, "1")
+    body = _CountingStream(b"\0" * (3 * BYTES_PER_MEBIBYTE))
+
+    response = app.test_client().post(
+        "/upload", input_stream=body, content_length=len(body.getvalue()),
+        content_type="multipart/form-data; boundary=x",
+    )
+
+    assert response.status_code == 413
+    assert body.read_bytes == 0
