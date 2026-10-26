@@ -96,7 +96,7 @@ Built for people, homelab enthusiasts, and anyone who values privacy and owns th
 
 ImgCompress now has a real image editor in the browser, plus a few things people kept asking for. Each item links to a short guide with screenshots.
 
-<img src="images/web-ui/web-ui-editor-text.webp" alt="ImgCompress image editor: a YouTube thumbnail with a bold title next to the picture, Text & images tab open" width="100%" />
+<img src="images/web-ui/web-ui-editor-text.webp" alt="ImgCompress image editor: a YouTube thumbnail with the title "IMAGE EDITOR" next to the picture, Text & images tab open" width="100%" />
 
 - **[Image editor](https://imgcompress.karimzouine.com/docs/image-editor):** crop, pick an exact size, add a background, text or a logo, and rotate anything. Undo, keyboard shortcuts and touch on tablets included.
 - **[YouTube thumbnails](https://imgcompress.karimzouine.com/docs/youtube-thumbnail):** presets for YouTube, Shorts and stories, Instagram, X, link previews, GitHub, Pinterest, Full HD, 2K and 4K.
