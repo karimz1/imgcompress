@@ -265,3 +265,22 @@ def test_When_FinishedJobIsPolled_Expect_ItsResultFolderStaysFresh(setup):
     os.utime(dest, (old, old))
     assert setup.status(job_id, token).status_code == 200
     assert time.time() - dest.stat().st_mtime < 60
+
+
+def test_When_JobFolderIsALinkToSomewhereElse_Expect_ItIsNeverReadOrTouched(tmp_path):
+    temp_dir = tmp_path / "temp"
+    temp_dir.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    store = ConversionJobStore(str(temp_dir))
+    job = store.create()
+    job.finish("done")
+    # Someone swaps the job folder for a link to a folder outside the temp dir.
+    os.rename(temp_dir / f"job_{job.job_id}" / "status.json", outside / "status.json")
+    os.rmdir(temp_dir / f"job_{job.job_id}")
+    os.symlink(outside, temp_dir / f"job_{job.job_id}")
+    before = os.stat(outside).st_mtime_ns
+
+    assert store.read(job.job_id, job.token) is None
+    store.touch(job.job_id)
+    assert os.stat(outside).st_mtime_ns == before
