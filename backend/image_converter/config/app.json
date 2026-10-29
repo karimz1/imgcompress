@@ -1,7 +1,7 @@
 {
   "temporary_storage": {
     "directory": "/tmp",
-    "max_age_seconds": 3600
+    "max_age_seconds": 172800
   },
   "uploads": {
     "max_file_size_mebibytes": 40960

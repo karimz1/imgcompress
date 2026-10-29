@@ -80,7 +80,7 @@ class ConversionJobService:
             return None
         self.store.touch(job_id)
         if state.get("status") == DONE and state.get("dest_folder"):
-            # Results are kept for temporary_storage.max_age_seconds (1 hour by
+            # Results are kept for temporary_storage.max_age_seconds (48 hours by
             # default) after the last look, so someone who comes back later
             # still finds them; every poll restarts that clock.
             TemporaryFolderService.mark_activity(state["dest_folder"])
