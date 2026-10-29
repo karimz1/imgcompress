@@ -14,6 +14,10 @@
 
 - Add local AI upscaling: Small photos and drawings lose detail when enlarged with ordinary resizing. An optional upscaler now runs a local AI model on the CPU, in the web UI and CLI, up to 16K. Nothing leaves your server. [#907](https://github.com/karimz1/imgcompress/issues/907)
 
+- Conversions keep running in the background: Every conversion now runs as a job on your server. Switch apps, lock your phone, close the tab or reload the page, and your result is waiting when you come back. Finished results are kept for at least an hour. Each job has its own secret key, so on a shared server nobody else can see your files. This also fixes "Load failed" on iPhone during long AI upscales.
+
+- Faster AI upscaling: The upscaler works on bigger pieces of the image at once, which makes it about 1.2 to 1.4 times faster on the CPU with the same quality. The progress bar now shows each file and how far the upscale is.
+
 - Add SVG import: Convert SVGs to PNG, JPEG, AVIF, WebP, ICO or PDF in the web UI and CLI, with resizing and cropping. PNG keeps transparency. [#938](https://github.com/karimz1/imgcompress/pull/938)
 
 - Add WebP export: ImgCompress could already read WebP, now it can also export it, lossy or lossless. [#905](https://github.com/karimz1/imgcompress/issues/905)
