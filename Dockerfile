@@ -75,6 +75,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     \
+    # DHI renamed its packages to +deb13uN+dhiX but still lists the old +dhiN
+    # builds, which sort higher and now return 403. Prefer the renamed ones.
+    printf 'Package: *\nPin: version *+deb13u*\nPin-Priority: 1001\n' > /etc/apt/preferences.d/dhi-deb13u; \
+    \
     # Stub SysV init helpers so postinst scripts don't crash in a container.
     # x11-common (a ghostscript transitive dep) calls both update-rc.d and invoke-rc.d
     # in its postinst, but neither exists in a minimal image without sysvinit/openrc.
@@ -197,6 +201,9 @@ COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d99
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
+    # DHI renamed its packages to +deb13uN+dhiX but still lists the old +dhiN
+    # builds, which sort higher and now return 403. Prefer the renamed ones.
+    printf 'Package: *\nPin: version *+deb13u*\nPin-Priority: 1001\n' > /etc/apt/preferences.d/dhi-deb13u; \
     i=0; \
     until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
         i=$((i+1)); \
