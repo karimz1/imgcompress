@@ -188,7 +188,7 @@ export const en = {
         "16k": "16K (fits 15360 × 8640)",
       },
       hint:
-        "The image keeps its shape. Images that are already big enough stay as they are. Bigger results and older computers take longer. Above 4×, the AI goes first and a normal resize finishes the job.",
+        "The image keeps its shape. Images that are already big enough stay as they are. Bigger results and slower servers take longer. Above 4×, the AI goes first and a normal resize finishes the job.",
       unavailableHint: "AI upscaling is not included in this version.",
       fitActiveHint: "Not used while Fit to exact size is on.",
       largeTargetHint: "Very big results take longer.",
@@ -361,7 +361,7 @@ export const en = {
     checking: "Checking...",
     whyTitle: "Why this exists?",
     whyDesc:
-      "Checks that ImgCompress is running and whether it can reach the internet. No images or data ever leave your computer.",
+      "Checks that ImgCompress is running and whether it can reach the internet. No images or data ever leave your server.",
     learnMore: "Learn more about offline usage →",
     backendLastCheck: "Backend Last Check:",
     internetLastCheck: "Internet Last Check:",

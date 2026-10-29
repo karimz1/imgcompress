@@ -191,7 +191,7 @@ export const fr: TranslationSchema = {
         "16k": "16K (tient dans 15360 × 8640)",
       },
       hint:
-        "L'image garde sa forme. Les images déjà assez grandes restent telles quelles. Les grands résultats et les ordinateurs plus anciens prennent plus de temps. Au-delà de 4×, l'IA passe d'abord, puis un redimensionnement normal termine le travail.",
+        "L'image garde sa forme. Les images déjà assez grandes restent telles quelles. Les grands résultats et les serveurs plus lents prennent plus de temps. Au-delà de 4×, l'IA passe d'abord, puis un redimensionnement normal termine le travail.",
       unavailableHint: "L'agrandissement par IA n'est pas inclus dans cette version.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
       largeTargetHint: "Les très grands résultats prennent plus de temps.",
@@ -364,7 +364,7 @@ export const fr: TranslationSchema = {
     checking: "Vérification...",
     whyTitle: "Pourquoi cela existe ?",
     whyDesc:
-      "Vérifie qu'ImgCompress fonctionne et s'il peut accéder à internet. Aucune image ni donnée ne quitte jamais votre ordinateur.",
+      "Vérifie qu'ImgCompress fonctionne et s'il peut accéder à internet. Aucune image ni donnée ne quitte jamais votre serveur.",
     learnMore: "En savoir plus sur l'utilisation hors ligne →",
     backendLastCheck: "Dernière vérification du backend :",
     internetLastCheck: "Dernière vérification internet :",

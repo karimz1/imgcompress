@@ -191,7 +191,7 @@ export const de: TranslationSchema = {
         "16k": "16K (passt in 15360 × 8640)",
       },
       hint:
-        "Das Bild behält seine Form. Bilder, die schon groß genug sind, bleiben, wie sie sind. Größere Ergebnisse und ältere Computer brauchen länger. Über 4× arbeitet zuerst die KI, dann macht eine normale Größenänderung den Rest.",
+        "Das Bild behält seine Form. Bilder, die schon groß genug sind, bleiben, wie sie sind. Größere Ergebnisse und langsamere Server brauchen länger. Über 4× arbeitet zuerst die KI, dann macht eine normale Größenänderung den Rest.",
       unavailableHint: "KI-Hochskalierung ist in dieser Version nicht enthalten.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
       largeTargetHint: "Sehr große Ergebnisse dauern länger.",
@@ -364,7 +364,7 @@ export const de: TranslationSchema = {
     checking: "Wird geprüft...",
     whyTitle: "Warum gibt es das?",
     whyDesc:
-      "Prüft, ob ImgCompress läuft und ob es das Internet erreicht. Keine Bilder oder Daten verlassen jemals deinen Computer.",
+      "Prüft, ob ImgCompress läuft und ob es das Internet erreicht. Keine Bilder oder Daten verlassen jemals deinen Server.",
     learnMore: "Mehr über Offline-Nutzung erfahren →",
     backendLastCheck: "Letzte Backend-Prüfung:",
     internetLastCheck: "Letzte Internetprüfung:",

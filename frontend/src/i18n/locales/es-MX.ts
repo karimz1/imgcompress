@@ -191,7 +191,7 @@ export const esMX: TranslationSchema = {
         "16k": "16K (cabe en 15360 × 8640)",
       },
       hint:
-        "La imagen conserva su forma. Las imágenes que ya son lo bastante grandes se quedan igual. Los resultados más grandes y las computadoras más antiguas tardan más. Por encima de 4×, primero trabaja la IA y luego un cambio de tamaño normal termina el trabajo.",
+        "La imagen conserva su forma. Las imágenes que ya son lo bastante grandes se quedan igual. Los resultados más grandes y los servidores más lentos tardan más. Por encima de 4×, primero trabaja la IA y luego un cambio de tamaño normal termina el trabajo.",
       unavailableHint: "La ampliación con IA no está incluida en esta versión.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
       largeTargetHint: "Los resultados muy grandes tardan más.",
@@ -364,7 +364,7 @@ export const esMX: TranslationSchema = {
     checking: "Verificando...",
     whyTitle: "¿Por qué existe esto?",
     whyDesc:
-      "Comprueba que ImgCompress está funcionando y si puede conectarse a internet. Ninguna imagen ni dato sale nunca de tu computadora.",
+      "Comprueba que ImgCompress está funcionando y si puede conectarse a internet. Ninguna imagen ni dato sale nunca de tu servidor.",
     learnMore: "Conoce más sobre el uso sin conexión →",
     backendLastCheck: "Última verificación del backend:",
     internetLastCheck: "Última verificación de internet:",

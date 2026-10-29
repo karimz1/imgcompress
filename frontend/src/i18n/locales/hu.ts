@@ -191,7 +191,7 @@ export const hu: TranslationSchema = {
         "16k": "16K (belefér: 15360 × 8640)",
       },
       hint:
-        "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. A nagyobb eredmények és a régebbi gépek tovább tartanak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
+        "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. A nagyobb eredmények és a lassabb szerverek tovább tartanak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
       unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
       largeTargetHint: "A nagyon nagy eredmények tovább tartanak.",
@@ -364,7 +364,7 @@ export const hu: TranslationSchema = {
     checking: "Ellenőrzés...",
     whyTitle: "Miért van ez itt?",
     whyDesc:
-      "Ellenőrzi, hogy az ImgCompress fut-e, és eléri-e az internetet. Képek vagy adatok soha nem hagyják el a számítógépedet.",
+      "Ellenőrzi, hogy az ImgCompress fut-e, és eléri-e az internetet. Képek vagy adatok soha nem hagyják el a szerveredet.",
     learnMore: "Tudj meg többet az offline használatról →",
     backendLastCheck: "Háttérrendszer utolsó ellenőrzése:",
     internetLastCheck: "Internet utolsó ellenőrzése:",

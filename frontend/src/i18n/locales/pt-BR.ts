@@ -191,7 +191,7 @@ export const ptBR: TranslationSchema = {
         "16k": "16K (cabe em 15360 × 8640)",
       },
       hint:
-        "A imagem mantém sua forma. Imagens que já são grandes o bastante ficam como estão. Resultados maiores e computadores mais antigos demoram mais. Acima de 4×, a IA vem primeiro e um redimensionamento normal termina o trabalho.",
+        "A imagem mantém sua forma. Imagens que já são grandes o bastante ficam como estão. Resultados maiores e servidores mais lentos demoram mais. Acima de 4×, a IA vem primeiro e um redimensionamento normal termina o trabalho.",
       unavailableHint: "A ampliação com IA não está incluída nesta versão.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
       largeTargetHint: "Resultados muito grandes demoram mais.",
@@ -364,7 +364,7 @@ export const ptBR: TranslationSchema = {
     checking: "Verificando...",
     whyTitle: "Por que isso existe?",
     whyDesc:
-      "Verifica se o ImgCompress está funcionando e se ele consegue acessar a internet. Nenhuma imagem ou dado sai do seu computador.",
+      "Verifica se o ImgCompress está funcionando e se ele consegue acessar a internet. Nenhuma imagem ou dado sai do seu servidor.",
     learnMore: "Saiba mais sobre uso offline →",
     backendLastCheck: "Última verificação do backend:",
     internetLastCheck: "Última verificação da internet:",

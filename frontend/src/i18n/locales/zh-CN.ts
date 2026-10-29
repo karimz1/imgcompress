@@ -191,7 +191,7 @@ export const zhCN: TranslationSchema = {
         "16k": "16K（适配 15360 × 8640）",
       },
       hint:
-        "图片保持原来的形状。已经足够大的图片保持不变。结果越大、电脑越旧，耗时越长。超过 4× 时，先由 AI 放大，再用普通缩放完成。",
+        "图片保持原来的形状。已经足够大的图片保持不变。结果越大、服务器越慢，耗时越长。超过 4× 时，先由 AI 放大，再用普通缩放完成。",
       unavailableHint: "此版本不包含 AI 放大。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
       largeTargetHint: "很大的结果需要更长时间。",
@@ -363,7 +363,7 @@ export const zhCN: TranslationSchema = {
     checking: "检查中...",
     whyTitle: "为什么会有这个？",
     whyDesc:
-      "检查 ImgCompress 是否正常运行，以及能否连接互联网。图片和数据永远不会离开你的电脑。",
+      "检查 ImgCompress 是否正常运行，以及能否连接互联网。图片和数据永远不会离开你的服务器。",
     learnMore: "了解更多离线使用 →",
     backendLastCheck: "后端上次检查：",
     internetLastCheck: "互联网上次检查：",

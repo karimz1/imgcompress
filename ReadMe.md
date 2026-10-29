@@ -2,7 +2,7 @@
   <img src="./images/logo-mini-2.webp" alt="ImgCompress logo" height="80px" />
   <h1>ImgCompress</h1>
   <p><strong>Every image format. Zero cloud.</strong></p>
-  <p>Make images smaller, convert 70+ formats, edit them, make them bigger with AI and remove backgrounds. In 12 languages.<br/>Everything runs on your own computer, so your files stay with you.</p>
+  <p>Make images smaller, convert 70+ formats, edit them, make them bigger with AI and remove backgrounds. In 12 languages.<br/>Everything runs inside your container, so your files never leave your server.</p>
 
   <p>
     <a href="https://imgcompress.karimzouine.com/">
@@ -70,7 +70,7 @@
 
 ## What is ImgCompress?
 
-ImgCompress is an **easy image app for everyone, no IT knowledge needed**: set it up once on your own computer or server, then do everything in a modern web page, with no command line. It makes images smaller, converts **70+ formats** (HEIC, PSD, SVG, PDF and more), lets you **edit** them (crop, exact sizes, text, logos, thumbnails), makes small images **bigger and sharper with AI** up to 16K, and **removes backgrounds**. The AI is already built in, and everything runs on your own computer: private, no cloud, works offline, free and open source.
+ImgCompress is a **self-hosted image app in a single Docker container**, easy for everyone with no IT knowledge needed: set it up once on your own server, NAS or PC, then do everything in a modern web page, with no command line. It makes images smaller, converts **70+ formats** (HEIC, PSD, SVG, PDF and more), lets you **edit** them (crop, exact sizes, text, logos, thumbnails), makes small images **bigger and sharper with AI** up to 16K, and **removes backgrounds**. The AI is already built in, and everything runs locally inside your container on your own hardware: private, no cloud APIs, works offline, free and open source.
 
 ---
 
@@ -107,9 +107,9 @@ Edit images right in the browser before you convert them. Everything is rendered
 
 ## AI image upscaling
 
-Make small photos and drawings bigger and sharper, up to 16K. The AI is already built in: just switch it on. Pick **General** for photos or **Anime** for drawings, anime and logos. No special graphics card, no upload. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
+Make small photos and drawings bigger and sharper, up to 16K. The AI is already built in: just switch it on. Pick **General** for photos or **Anime** for drawings, anime and logos. It runs on your server's CPU, so no graphics card is needed, and nothing is uploaded. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
 
-**Original vs. AI upscaled (Anime):** the same spot at the same size. Left: the original, just enlarged. Right: AI upscaling (Anime), done by the AI built into ImgCompress on your own computer. Nothing is uploaded, your images stay yours.
+**Original vs. AI upscaled (Anime):** the same spot at the same size. Left: the original, just enlarged. Right: AI upscaling (Anime), done by the AI built into ImgCompress, inside your own container. Nothing is uploaded, your images never leave your server.
 
 | Original | AI upscaled (Anime) |
 |:---:|:---:|
@@ -118,7 +118,7 @@ Make small photos and drawings bigger and sharper, up to 16K. The AI is already 
 
 <sub>Original image: [Pixabay](https://pixabay.com/illustrations/ai-generated-girl-dystopia-ruins-9062885/), made bigger from 3100 to 8640 px.</sub>
 
-**A tiny drawing (118 × 104 px) made 4x bigger.** Left: normal enlargement. Right: AI upscaling (Anime), done by the AI built into ImgCompress on your own computer. Nothing is uploaded, your images stay yours. The second row zooms in on one fingernail.
+**A tiny drawing (118 × 104 px) made 4x bigger.** Left: normal enlargement. Right: AI upscaling (Anime), done by the AI built into ImgCompress, inside your own container. Nothing is uploaded, your images never leave your server. The second row zooms in on one fingernail.
 
 | Original | AI upscaled (Anime) |
 |:---:|:---:|
@@ -129,7 +129,7 @@ Make small photos and drawings bigger and sharper, up to 16K. The AI is already 
 
 ## AI Background Removal: Local & Private
 
-Remove the background from a photo in one click, without uploading it anywhere. The AI is already built in and runs **on your own computer**. Nothing to install, no account, no subscription.
+Remove the background from a photo in one click, without uploading it anywhere. The AI is already built in and runs **on your own hardware**, inside your container. No file ever leaves your server. Nothing to install, no account, no subscription.
 
 | Original | Background Removed |
 |:---:|:---:|
@@ -188,7 +188,7 @@ I chose Docker because it keeps your computer clean. Instead of installing 70 di
 
 | | |
 |---|---|
-| **No cloud** | Converting, compressing and the AI all run on your own computer. Your images never leave it. |
+| **No cloud** | Converting, compressing and the AI all run locally inside your container. Your images never leave your server. |
 | **No tracking** | No analytics and no data sent home. After it starts, it stays quiet on the network. |
 | **Works offline** | After the first download, it never needs the internet again. No license checks, no expiry. |
 | **Free and open source** | GPL-3.0. Anyone can read the code, and you can use it for free, forever. |
