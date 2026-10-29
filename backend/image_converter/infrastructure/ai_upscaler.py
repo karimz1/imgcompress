@@ -41,6 +41,7 @@ from typing import Callable, Optional
 import numpy as np
 from PIL import Image, ImageCms, ImageOps
 
+from backend.image_converter.infrastructure import job_progress
 from backend.image_converter.config.app_config import DEFAULT_MAX_OUTPUT_MEGAPIXELS
 from backend.image_converter.domain.upscaling import MODEL_SCALE, UpscaleModel, UpscalePlan, UpscaleTarget, plan_upscale
 from backend.image_converter.infrastructure.upscale_model import locate_model
@@ -66,6 +67,8 @@ _LOCK_FILE = Path(tempfile.gettempdir()) / "imgcompress-upscale.lock"
 @contextmanager
 def _exclusive_inference():
     """Serialises the complete upscale, including decoding and TIFF encoding."""
+    # Shown while another upscale holds the lock; cleared once this one starts.
+    job_progress.report(waiting=True)
     with _inference_lock:
         try:
             import fcntl
@@ -73,10 +76,12 @@ def _exclusive_inference():
             lock_file = open(_LOCK_FILE, "a")
         except (ImportError, OSError):
             # Not POSIX or no writable temp dir: the thread lock is all we have.
+            job_progress.report(waiting=False)
             yield
             return
         with lock_file:
             fcntl.flock(lock_file, fcntl.LOCK_EX)
+            job_progress.report(waiting=False)
             try:
                 yield
             finally:
@@ -314,6 +319,7 @@ class AiUpscaler:
                             self._place_resized(output, tile_image, (x0, y0, x1, y1), (px0, py0), (width, height))
 
                     done += 1
+                    job_progress.report(tiles_done=done, tiles_total=total)
                     if total > _PROGRESS_EVERY and (done % _PROGRESS_EVERY == 0 or done == total):
                         self.logger.log(f"AI upscaling: {done}/{total} tiles", "info")
             return output
