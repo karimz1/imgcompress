@@ -479,3 +479,29 @@ export async function assertDownloadUnavailableDialogAsync(page: Page): Promise<
   await page.locator(selectors.downloadUnavailableDialogCloseBtn).click();
   await expect(dialog).toBeHidden();
 }
+
+
+export interface FinishedJob {
+  id: string;
+  converted_files: string[];
+}
+
+/**
+ * Conversions run as background jobs: POST /api/jobs, then the page polls
+ * GET /api/jobs/<id>. Resolves with the poll answer that reports "done".
+ */
+export function waitForFinishedJobAsync(page: Page): Promise<FinishedJob> {
+  return page
+    .waitForResponse(async (response) => {
+      if (response.request().method() !== 'GET' || !/\/api\/jobs\/[^/]+$/.test(new URL(response.url()).pathname)) {
+        return false;
+      }
+      if (!response.ok()) return false;
+      const body = await response.json().catch(() => null);
+      return body?.status === 'done';
+    })
+    .then(async (response) => {
+      const body = await response.json();
+      return { id: body.id as string, converted_files: body.result.converted_files as string[] };
+    });
+}
