@@ -76,8 +76,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     set -eux; \
     \
     # DHI renamed its packages to +deb13uN+dhiX but still lists the old +dhiN
-    # builds, which sort higher and now return 403. Prefer the renamed ones.
-    printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 1100\n' > /etc/apt/preferences.d/dhi-deb13u; \
+    # builds, which sort higher and now return 403. Prefer the renamed ones,
+    # below 1000 so apt never downgrades what the base image ships.
+    printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
     \
     # Stub SysV init helpers so postinst scripts don't crash in a container.
     # x11-common (a ghostscript transitive dep) calls both update-rc.d and invoke-rc.d
@@ -202,8 +203,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     # DHI renamed its packages to +deb13uN+dhiX but still lists the old +dhiN
-    # builds, which sort higher and now return 403. Prefer the renamed ones.
-    printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 1100\n' > /etc/apt/preferences.d/dhi-deb13u; \
+    # builds, which sort higher and now return 403. Prefer the renamed ones,
+    # below 1000 so apt never downgrades what the base image ships.
+    printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
     i=0; \
     until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
         i=$((i+1)); \
