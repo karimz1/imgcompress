@@ -255,3 +255,13 @@ def test_When_JobIsRunning_Expect_CleanupKeepsItAndRemovesItLater(tmp_path):
     cleanup.cleanup_temp_folders()
     assert store.read(job.job_id, job.token) is None
     assert not os.listdir(tmp_path)
+
+
+def test_When_FinishedJobIsPolled_Expect_ItsResultFolderStaysFresh(setup):
+    job_id, token = _started(setup)
+    setup.wait_done()
+    (dest,) = [p for p in setup.tmp_path.iterdir() if p.name.startswith("converted_")]
+    old = time.time() - 3000
+    os.utime(dest, (old, old))
+    assert setup.status(job_id, token).status_code == 200
+    assert time.time() - dest.stat().st_mtime < 60

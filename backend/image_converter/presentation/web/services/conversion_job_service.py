@@ -20,6 +20,7 @@ from backend.image_converter.infrastructure.conversion_job_store import (
     ConversionJobStore,
     RunningJob,
 )
+from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 from backend.image_converter.presentation.web.services.compression_service import (
     CompressionService,
     PreparedCompression,
@@ -78,6 +79,11 @@ class ConversionJobService:
         if state is None:
             return None
         self.store.touch(job_id)
+        if state.get("status") == DONE and state.get("dest_folder"):
+            # Results are kept for temporary_storage.max_age_seconds (1 hour by
+            # default) after the last look, so someone who comes back later
+            # still finds them; every poll restarts that clock.
+            TemporaryFolderService.mark_activity(state["dest_folder"])
         return _public_view(state)
 
     def result_folder(self, job_id: Optional[str], token: Optional[str]) -> Optional[str]:
