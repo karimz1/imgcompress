@@ -27,6 +27,7 @@ import time
 from typing import Optional
 
 from backend.image_converter.infrastructure import job_folder_lock
+from backend.image_converter.infrastructure.safe_path import direct_child
 
 JOB_PREFIX = "job_"
 _STATUS_FILE = "status.json"
@@ -92,6 +93,8 @@ class ConversionJobStore:
         while True:
             job_id = secrets.token_urlsafe(16)
             path = self._folder(job_id)
+            if path is None:
+                continue
             try:
                 os.mkdir(path, 0o700)
             except FileExistsError:
@@ -124,6 +127,8 @@ class ConversionJobStore:
         if not is_valid_job_id(job_id):
             return None
         path = self._folder(job_id)
+        if path is None:
+            return None
         try:
             with open(os.path.join(path, _STATUS_FILE), encoding="utf-8") as f:
                 state = json.load(f)
@@ -147,15 +152,22 @@ class ConversionJobStore:
 
     def touch(self, job_id: str) -> None:
         """Age-based cleanup counts from the last activity, so a poll restarts the clock."""
-        if not is_valid_job_id(job_id):
+        path = self._folder(job_id)
+        if path is None:
             return
         try:
-            os.utime(self._folder(job_id))
+            os.utime(path)
         except OSError:
             pass
 
-    def _folder(self, job_id: str) -> str:
-        return os.path.join(self.temp_dir, JOB_PREFIX + job_id)
+    def _folder(self, job_id: Optional[str]) -> Optional[str]:
+        """
+        ``temp_dir/job_<id>`` as a real path, or None for an invalid id or a
+        folder that is a link, so a job path can never point outside temp_dir.
+        """
+        if not is_valid_job_id(job_id):
+            return None
+        return direct_child(self.temp_dir, JOB_PREFIX + job_id)
 
     @staticmethod
     def _worker_is_gone(path: str) -> bool:
@@ -168,6 +180,8 @@ class ConversionJobStore:
 
     def _write(self, job_id: str, state: dict) -> None:
         folder = self._folder(job_id)
+        if folder is None:
+            raise FileNotFoundError(JOB_PREFIX + job_id)
         fd, tmp = tempfile.mkstemp(dir=folder, prefix=".status-", suffix=".tmp")
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
