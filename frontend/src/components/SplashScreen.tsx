@@ -6,11 +6,14 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
+import type { JobProgress } from "@/lib/conversionJob";
 
 interface SplashScreenProps {
   isVisible: boolean;
   onAbort: () => void;
   disableLogo?: boolean;
+  /** Live progress of the background job, when the server reports it. */
+  progress?: JobProgress | null;
 }
 
 
@@ -37,8 +40,10 @@ export function SplashScreen({
   isVisible,
   onAbort,
   disableLogo = false,
+  progress = null,
 }: SplashScreenProps) {
   const { t } = useTranslation();
+  const progressText = describeProgress(progress, t);
   const [messageIndex, setMessageIndex] = useState(0);
   const [displayText, setDisplayText] = useState("");
 
@@ -290,13 +295,18 @@ export function SplashScreen({
               <div className="w-full max-w-2xl h-2.5 bg-white/5 rounded-full overflow-hidden relative backdrop-blur-md ring-1 ring-white/10">
                 <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 rounded-full animate-loading-bar shadow-[0_4px_18px_rgba(79,70,229,0.45)]" />
               </div>
+              {progressText && (
+                <p className="text-sm text-gray-300 -mt-4" data-testid="job-progress" aria-live="polite">
+                  {progressText}
+                </p>
+              )}
 
               <div className="w-full max-w-3xl flex flex-col md:flex-row gap-4 items-start md:items-center">
                 <div className="flex-1 bg-white/5 rounded-2xl p-4 text-left text-sm text-gray-100 ring-1 ring-white/10 shadow-inner shadow-black/30 backdrop-blur-md">
                   <p className="text-[11px] uppercase tracking-[0.3em] text-blue-200 mb-1">
                     {t("splash.tipLabel")}
                   </p>
-                  <p className="text-base font-medium text-white/90">{tipMessage}</p>
+                  <p className="text-base font-medium text-white/90" data-testid="job-background-hint">{tipMessage}</p>
                 </div>
                 <button
                   onClick={onAbort}
@@ -311,4 +321,19 @@ export function SplashScreen({
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
   );
+}
+
+function describeProgress(
+  progress: JobProgress | null,
+  t: (key: string, options?: Record<string, unknown>) => string
+): string | null {
+  if (!progress) return null;
+  if (progress.waiting) return t("splash.waitingForUpscale");
+  if (progress.tiles_total && progress.tiles_total > 1) {
+    return t("splash.progressTiles", { done: progress.tiles_done ?? 0, total: progress.tiles_total });
+  }
+  if (progress.files_total && progress.files_total > 1) {
+    return t("splash.progressFiles", { done: progress.files_done ?? 0, total: progress.files_total });
+  }
+  return null;
 }
