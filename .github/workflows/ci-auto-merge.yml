@@ -84,7 +84,7 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUBACTIONS_DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
         run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build local application image
@@ -150,7 +150,7 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUBACTIONS_DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
         run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Dev Container for ${{ matrix.platform }}
@@ -218,7 +218,7 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUBACTIONS_DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
         run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Application Container for ${{ matrix.platform }}
