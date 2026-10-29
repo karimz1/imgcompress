@@ -24,6 +24,7 @@ export const de: TranslationSchema = {
       cleanupFailed: "Erzwungene Bereinigung fehlgeschlagen.",
       cleanupError: "🚨 Bereinigung fehlgeschlagen.",
       compressionCancelled: "Komprimierung abgebrochen.",
+      jobExpired: "Diese Umwandlung ist nicht mehr verfügbar. Bitte wandle die Dateien erneut um.",
       unexpectedError: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
       selectionCleared_one: "{{count}} Bildauswahl gelöscht! 🧹",
       selectionCleared_other: "{{count}} ausgewählte Bilder gelöscht! 🧹"
@@ -40,7 +41,10 @@ export const de: TranslationSchema = {
       compressing: "Komprimieren",
       packaging: "Paketieren",
     },
-    tip: "Du kannst weiterarbeiten - lass dieses Fenster offen, und ich lege deine komprimierten Dateien hier ab, sobald sie fertig sind.",
+    tip: "Das läuft auf deinem Server. Du kannst zu einer anderen App wechseln oder diesen Tab schließen und später wiederkommen. Dein Ergebnis wartet hier auf dich.",
+    progressTiles: "Hochskalieren: Teil {{done}} von {{total}}",
+    progressFiles: "{{done}} von {{total}} Dateien fertig",
+    waitingForUpscale: "Wartet, bis ein anderes Hochskalieren fertig ist…",
     messages: [
       "Deine Dateien werden komprimiert…",
       "Qualität und Größe werden optimiert.",

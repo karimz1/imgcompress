@@ -12,6 +12,7 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
+from backend.image_converter.infrastructure.conversion_job_store import ConversionJobStore
 from backend.image_converter.infrastructure.editor_asset_store import (
     EXPIRED_ERROR,
     SESSION_FULL_ERROR,
@@ -23,6 +24,7 @@ from backend.image_converter.presentation.web.parse_services import extract_form
 from backend.image_converter.presentation.web.services.backend_diagnostics_service import BackendDiagnosticsService
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
 from backend.image_converter.presentation.web.services.configuration_service import ConfigurationService
+from backend.image_converter.presentation.web.services.conversion_job_service import ConversionJobService
 from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
 from backend.image_converter.presentation.web.services.fit_preview_service import FitPreviewService
@@ -52,6 +54,7 @@ use_case = CompressImagesUseCase(
 
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
+conversion_jobs = ConversionJobService(logger, compression_service, ConversionJobStore(TEMP_DIR))
 storage_management_service = StorageManagementService(
     is_enabled=_config.features.is_storage_management_enabled,
 )
@@ -89,6 +92,80 @@ def compress_images():
         return jsonify({"error": "Compression failed", "message": result.error}), 500
 
     return jsonify({"status": "ok", **result.value.to_json_dict()}), 200
+
+
+@api_blueprint.route("/jobs", methods=["POST"])
+def start_conversion_job():
+    """Same form as /compress, but answers at once with a job to poll.
+
+    The conversion keeps running when the browser goes away (an iPhone app
+    switch, a reload, a proxy timeout); the page asks GET /jobs/<id> later.
+    """
+    temp_folder_service.cleanup()
+
+    data_result = extract_form_data(request, logger)
+    if not data_result.is_successful:
+        return jsonify({"error": str(data_result.error)}), 400
+
+    result = conversion_jobs.start(data_result.value)
+    if not result.is_successful:
+        return jsonify({"error": "Compression failed", "message": result.error}), 400
+
+    response = jsonify(result.value)
+    response.headers["Location"] = f"{request.script_root}/api/jobs/{result.value['id']}"
+    response.headers["Cache-Control"] = "no-store"
+    return response, 202
+
+
+# The job token travels in a header, never in the URL, so proxies and access
+# logs do not record it. Unknown id, missing token and wrong token all get the
+# same 404, so nobody can tell whether another user's job exists.
+_JOB_TOKEN_HEADER = "X-Job-Token"
+
+
+def _job_not_found():
+    response = jsonify({"error": "Job not found. It may have expired."})
+    response.headers["Cache-Control"] = "no-store"
+    return response, 404
+
+
+def _job_token():
+    return request.headers.get(_JOB_TOKEN_HEADER)
+
+
+@api_blueprint.route("/jobs/<job_id>", methods=["GET"])
+def conversion_job_status(job_id: str):
+    state = conversion_jobs.status(job_id, _job_token())
+    if state is None:
+        return _job_not_found()
+    response = jsonify(state)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@api_blueprint.route("/jobs/<job_id>/files/<path:file_name>", methods=["GET"])
+def conversion_job_file(job_id: str, file_name: str):
+    folder = conversion_jobs.result_folder(job_id, _job_token())
+    target = temp_folder_service.resolve_download_target(folder, file_name) if folder else None
+    if target is None:
+        return _job_not_found()
+    temp_folder_service.mark_activity(os.path.dirname(target.file_path))
+    response = send_file(target.file_path, as_attachment=True, download_name=target.download_name)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@api_blueprint.route("/jobs/<job_id>/zip", methods=["GET"])
+def conversion_job_zip(job_id: str):
+    folder = conversion_jobs.result_folder(job_id, _job_token())
+    result = compression_service.create_all_files_zip(folder) if folder else None
+    if result is None or not result.is_successful:
+        return _job_not_found()
+    response = send_file(
+        result.value, as_attachment=True, download_name=_ZIP_DOWNLOAD_NAME, mimetype="application/zip"
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @api_blueprint.route("/download", methods=["GET"])

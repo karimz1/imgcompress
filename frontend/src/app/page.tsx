@@ -28,7 +28,17 @@ import FileConversionForm from "@/components/FileConversionForm";
 import { DownloadFileToast, DownloadZipToast } from "@/components/CustomToast";
 import { DownloadErrorProvider } from "@/context/DownloadErrorStore";
 import { useDownload } from "@/hooks/useDownload";
-import { fileDownloadUrl, zipDownloadUrl } from "@/lib/download";
+import {
+  type JobProgress,
+  type JobRef,
+  JobNotFoundError,
+  jobFileUrl,
+  jobHeaders,
+  jobZipUrl,
+  loadActiveJob,
+  saveActiveJob,
+  waitForJob,
+} from "@/lib/conversionJob";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DevModePanel } from "@/components/DevModePanel";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -117,7 +127,8 @@ function HomePageContent() {
   }, [upscaleModels, upscale.model]);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
-  const [destFolder, setDestFolder] = useState("");
+  const [resultJob, setResultJob] = useState<JobRef | null>(null);
+  const [jobProgress, setJobProgress] = useState<JobProgress | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState("");
   const [formatRequired, setFormatRequired] = useState(false);
@@ -228,7 +239,7 @@ function HomePageContent() {
     (acceptedFiles: File[]) => {
       clearError();
       setConverted([]);
-      setDestFolder("");
+      setResultJob(null);
 
       const supportedFiles: File[] = [];
       const unsupportedFiles: string[] = [];
@@ -277,6 +288,63 @@ function HomePageContent() {
   });
 
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // Follows a background job until it ends. Leaving the app or reloading the
+  // page does not stop the job; the page picks it up again (see resume below).
+  const followJob = useCallback(
+    async (job: JobRef, controller: AbortController) => {
+      setJobProgress({});
+      let state;
+      try {
+        state = await waitForJob(job, (s) => setJobProgress(s.progress ?? {}), controller.signal);
+      } catch (err) {
+        if (err instanceof JobNotFoundError) {
+          saveActiveJob(null);
+          setError({ message: t("page.toast.jobExpired") });
+          toast.error(t("page.toast.jobExpired"));
+          return;
+        }
+        throw err;
+      }
+      saveActiveJob(null);
+      if (state.status === "failed") {
+        setError({
+          message: state.error || t("page.toast.unexpectedError"),
+          isApiError: true,
+        });
+        return;
+      }
+      const names = state.result?.converted_files ?? [];
+      setConverted(names);
+      setResultJob(job);
+      setDrawerOpen(true);
+      markTabDone();
+      await delay(600);
+      toast.success(t("page.toast.compressedSuccess", { count: names.length }));
+    },
+    [setError]
+  );
+
+  // Back from another app, a reload or a closed tab: continue the last job.
+  useEffect(() => {
+    const job = loadActiveJob();
+    if (!job) return;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setIsLoading(true);
+    followJob(job, controller)
+      .catch((err) => {
+        if ((err as Error).name !== "AbortError") console.error(err);
+      })
+      .finally(() => {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        setIsLoading(false);
+        setJobProgress(null);
+      });
+    return () => controller.abort();
+    // Only on page load; a job started later is followed by handleSubmit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -331,7 +399,8 @@ function HomePageContent() {
       setIsLoading(true);
       clearError();
       setConverted([]);
-      setDestFolder("");
+      setResultJob(null);
+      restoreTabTitle();
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
@@ -410,7 +479,7 @@ function HomePageContent() {
       }
 
       try {
-        const res = await fetch("/api/compress", {
+        const res = await fetch("/api/jobs", {
           method: "POST",
           body: formData,
           signal: controller.signal,
@@ -443,17 +512,12 @@ function HomePageContent() {
           return;
         }
 
-        if (!payload) {
+        if (!payload?.id || !payload?.token) {
           throw new Error("Received unexpected response from server.");
         }
-        const data = payload;
-        setConverted(data.converted_files);
-        setDestFolder(data.dest_folder);
-        setDrawerOpen(true);
-        await delay(600);
-        toast.success(
-          t("page.toast.compressedSuccess", { count: data.converted_files.length })
-        );
+        const job: JobRef = { id: payload.id, token: payload.token };
+        saveActiveJob(job);
+        await followJob(job, controller);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
           return;
@@ -468,6 +532,7 @@ function HomePageContent() {
       } finally {
         if (abortControllerRef.current === controller) abortControllerRef.current = null;
         setIsLoading(false);
+        setJobProgress(null);
       }
     },
     [
@@ -491,6 +556,7 @@ function HomePageContent() {
       pdfPaginate,
       pdfQuality,
       crops,
+      followJob,
     ]
   );
 
@@ -532,30 +598,32 @@ function HomePageContent() {
   const clearCompressedFiles = useCallback(() => {
     setDrawerOpen(false);
     setConverted([]);
-    setDestFolder("");
+    setResultJob(null);
     setFileManagerRefresh((prev) => prev + 1);
   }, []);
 
   const handleDownloadFile = useCallback(
     (fileName: string) =>
       download({
-        url: fileDownloadUrl(destFolder, fileName),
+        url: resultJob ? jobFileUrl(resultJob, fileName) : "",
+        headers: resultJob ? jobHeaders(resultJob) : undefined,
         fileName,
         successToast: <DownloadFileToast fileName={fileName} />,
         onUnavailable: clearCompressedFiles,
       }),
-    [download, destFolder, clearCompressedFiles]
+    [download, resultJob, clearCompressedFiles]
   );
 
   const handleDownloadAll = useCallback(
     () =>
       download({
-        url: zipDownloadUrl(destFolder),
+        url: resultJob ? jobZipUrl(resultJob) : "",
+        headers: resultJob ? jobHeaders(resultJob) : undefined,
         fileName: "compressed_images.zip",
         successToast: <DownloadZipToast />,
         onUnavailable: clearCompressedFiles,
       }),
-    [download, destFolder, clearCompressedFiles]
+    [download, resultJob, clearCompressedFiles]
   );
 
   const onForceCleanCallback = useCallback(async () => {
@@ -565,7 +633,7 @@ function HomePageContent() {
       if (json.status === "ok") {
         toast.success(t("page.toast.cleanupSuccess"));
         setConverted([]);
-        setDestFolder("");
+        setResultJob(null);
         setDrawerOpen(false);
         setFileManagerRefresh((prev) => prev + 1);
       } else {
@@ -581,7 +649,10 @@ function HomePageContent() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
+      // The server may still finish it, but this page stops waiting for it.
+      saveActiveJob(null);
       setIsLoading(false);
+      setJobProgress(null);
       toast.info(t("page.toast.compressionCancelled"));
     }
   }, []);
@@ -591,6 +662,7 @@ function HomePageContent() {
       <SplashScreen
         isVisible={isLoading}
         onAbort={handleAbort}
+        progress={jobProgress}
         disableLogo={configReady ? disableLogo : false}
       />
       <BackendStatusBanner backendDown={isDown} />
@@ -745,6 +817,27 @@ function HomePageContent() {
       </div>
     </div>
   );
+}
+
+const DONE_TITLE_PREFIX = "✓ ";
+
+/** Shows a check mark in the tab title so a finished job is visible from other tabs. */
+function markTabDone(): void {
+  if (typeof document === "undefined" || document.title.startsWith(DONE_TITLE_PREFIX)) return;
+  document.title = DONE_TITLE_PREFIX + document.title;
+  const restoreWhenSeen = () => {
+    if (document.visibilityState !== "visible") return;
+    document.removeEventListener("visibilitychange", restoreWhenSeen);
+    setTimeout(restoreTabTitle, 5000);
+  };
+  if (document.visibilityState === "visible") setTimeout(restoreTabTitle, 5000);
+  else document.addEventListener("visibilitychange", restoreWhenSeen);
+}
+
+function restoreTabTitle(): void {
+  if (typeof document !== "undefined" && document.title.startsWith(DONE_TITLE_PREFIX)) {
+    document.title = document.title.slice(DONE_TITLE_PREFIX.length);
+  }
 }
 
 export default function HomePage() {

@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import traceback
 import zipfile
+from dataclasses import dataclass
 from typing import IO, Optional
 
 from werkzeug.utils import secure_filename
@@ -25,6 +26,17 @@ from backend.image_converter.domain.pdf_presets import (
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize, to_bytes
 from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
+from backend.image_converter.presentation.web.services.temporary_folder_service import JobFolder
+
+
+@dataclass
+class PreparedCompression:
+    """Saved uploads plus checked options, ready for ``CompressionService.run``."""
+
+    request: CompressRequest
+    source: JobFolder
+    dest: JobFolder
+    file_count: int
 
 
 # ZIPs up to this size stay in memory; larger ones spill to an unnamed temp
@@ -66,6 +78,17 @@ class CompressionService:
             return Result.failure("Failed to create archive.")
 
     def compress(self, form_data: CompressionFormData) -> Result[CompressionResponse]:
+        """Converts the upload in the calling thread (the synchronous /compress API)."""
+        prepared = self.prepare(form_data)
+        if not prepared.is_successful:
+            return Result.failure(prepared.error)
+        return self.run(prepared.value)
+
+    def prepare(self, form_data: CompressionFormData) -> Result[PreparedCompression]:
+        """
+        Checks the options and saves the uploads, which is quick and must happen
+        while the request is still open. ``run`` does the slow part later.
+        """
         fmt = form_data.image_format
 
         pdf_preset = normalize_pdf_preset(form_data.pdf_preset)
@@ -133,16 +156,15 @@ class CompressionService:
 
         src = None
         dst = None
-        dest_ready = False
-
         try:
             # Both folders stay locked until the job ends, so no cleanup can
-            # delete them while it runs.
+            # delete them while it waits or runs.
             src = self.temp_folder_service.create_job_dir(prefix="source_")
             dst = self.temp_folder_service.create_job_dir(prefix="converted_")
 
             save_res = self._save_uploaded_files(form_data.uploaded_files, src.path)
             if not save_res.is_successful:
+                self._discard(src, dst)
                 return Result.failure(save_res.error)
 
             target: Optional[TargetSize] = None
@@ -170,8 +192,23 @@ class CompressionService:
                 upscale_model=model_res.value,
                 fit=fit,
             )
+            return Result.success(PreparedCompression(
+                request=req,
+                source=src,
+                dest=dst,
+                file_count=len(form_data.uploaded_files),
+            ))
+        except Exception:
+            self.logger.log(f"Preparing the conversion failed: {traceback.format_exc()}", "error")
+            self._discard(src, dst)
+            return Result.failure("Unexpected compression failure.")
 
-            result = self.use_case.execute(req)
+    def run(self, prepared: PreparedCompression) -> Result[CompressionResponse]:
+        """Converts a prepared upload, then removes the uploads. Releases both folders."""
+        src, dst = prepared.source, prepared.dest
+        dest_ready = False
+        try:
+            result = self.use_case.execute(prepared.request)
 
             if not result.processed_files:
                 return Result.failure(f"Image processing failed: {'; '.join(result.errors)}")
@@ -194,13 +231,18 @@ class CompressionService:
             )
             return Result.failure("Unexpected compression failure.")
         finally:
-            if src:
-                shutil.rmtree(src.path, ignore_errors=True)
-                src.release()
-            if dst:
-                if not dest_ready:
-                    shutil.rmtree(dst.path, ignore_errors=True)
-                dst.release()
+            shutil.rmtree(src.path, ignore_errors=True)
+            src.release()
+            if not dest_ready:
+                shutil.rmtree(dst.path, ignore_errors=True)
+            dst.release()
+
+    @staticmethod
+    def _discard(*folders) -> None:
+        for folder in folders:
+            if folder:
+                shutil.rmtree(folder.path, ignore_errors=True)
+                folder.release()
 
     def _save_uploaded_files(self, files, folder: str) -> Result[None]:
         try:

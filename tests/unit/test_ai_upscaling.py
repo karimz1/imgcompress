@@ -419,6 +419,22 @@ def test_When_UpscalingToOtherSize_Expect_TilesMatchSinglePass(output):
     assert diff.mean() < 0.05
 
 
+def test_When_UpscalingLargerImage_Expect_512PxTilesWith32PxBorder():
+    source = _random_rgb(1100, 600)
+    calls = []
+
+    def _model(tile):
+        calls.append(tile.shape[2:])
+        return _nearest_4x(tile)
+
+    result = AiUpscaler(_Logger(), run_model=_model).upscale_image(source, UpscalePlan(source.size, (4400, 2400)))
+
+    assert result.size == (4400, 2400)
+    # 3 columns x 2 rows; a full inner tile is 512 px plus 32 px on both sides.
+    assert len(calls) == 6
+    assert max(max(shape) for shape in calls) == 576
+
+
 def test_When_Upscaling8x_Expect_OneModelPassPerTileAndNoSeams(monkeypatch):
     monkeypatch.setattr(ai_upscaler, "_TILE", 32)
     source = _random_rgb(63, 37).filter(ImageFilter.GaussianBlur(2))
@@ -669,7 +685,7 @@ def test_When_ManyTiles_Expect_ProgressLogged():
     logger = _Logger()
     upscaler = AiUpscaler(logger, run_model=_nearest_4x)
 
-    upscaler.upscale_image(_random_rgb(1100, 600), UpscalePlan((1100, 600), (4400, 2400)))
+    upscaler.upscale_image(_random_rgb(2200, 1200), UpscalePlan((2200, 1200), (8800, 4800)))
 
     progress = [message for _, message in logger.messages if "tiles" in message]
     assert progress[-1] == "AI upscaling: 15/15 tiles"

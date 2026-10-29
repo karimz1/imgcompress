@@ -99,16 +99,25 @@ test('crop runs first: AI background removal receives cropped pixels', async ({ 
   await setRembgEnabledAsync(page, true);
 
   const uploadSeen = page.waitForRequest((request) =>
-    request.method() === 'POST' && request.url().includes('/api/compress')
+    request.method() === 'POST' && request.url().endsWith('/api/jobs')
   );
 
-  await page.route('**/api/compress', async (route) => {
+  const jobId = 'crop-rembg-order-test1';
+  await page.route('**/api/jobs', async (route) => {
+    await route.fulfill({
+      status: 202,
+      contentType: 'application/json',
+      body: JSON.stringify({ id: jobId, token: 'test-token', status: 'queued' }),
+    });
+  });
+  await page.route(`**/api/jobs/${jobId}`, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        converted_files: ['pexels-pealdesign-28594392_cropped.png'],
-        dest_folder: 'crop-rembg-order-test',
+        id: jobId,
+        status: 'done',
+        result: { converted_files: ['pexels-pealdesign-28594392_cropped.png'] },
       }),
     });
   });

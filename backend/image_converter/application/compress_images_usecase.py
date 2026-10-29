@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+from backend.image_converter.infrastructure import job_progress
 from .dtos import CompressRequest, CompressResult
 from backend.image_converter.domain.size_targeting import find_best_quality_under_target
 from backend.image_converter.domain.units import TargetSize
@@ -50,7 +51,8 @@ class CompressImagesUseCase:
                 return CompressResult(processed_files=[], errors=[scale_res.error])
             pdf_scale = scale_res.value
 
-        for item in self.storage.iter_files(req.source_folder):
+        for files_done, item in enumerate(self.storage.iter_files(req.source_folder)):
+            job_progress.report(files_done=files_done, tiles_done=0, tiles_total=0)
             try:
                 read_result = self.storage.read_bytes(item.path)
                 if not read_result.is_successful:

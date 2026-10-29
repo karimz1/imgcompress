@@ -42,7 +42,7 @@ class CleanupService:
 
         for item in os.listdir(self.temp_dir):
             item_path = os.path.join(self.temp_dir, item)
-            if os.path.isdir(item_path) and item.startswith(("source_", "converted_")):
+            if os.path.isdir(item_path) and item.startswith(("source_", "converted_", "job_")):
                 result = self._maybe_delete_dir(item_path, force, current_time)
                 self._record_cleanup_outcome(summary, _KIND_DIRECTORY, item_path, result)
             elif (

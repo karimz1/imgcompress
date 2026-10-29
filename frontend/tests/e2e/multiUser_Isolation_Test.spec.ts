@@ -7,6 +7,8 @@ import {
     uploadBuffersToDropzoneAsync,
     clickConversionButtonAsync,
     clickDownloadZipButtonAndGetUrlAsync,
+    waitForFinishedJobAsync,
+    type FinishedJob,
 } from './utls/helpers';
 
 /**
@@ -64,28 +66,20 @@ async function convertAsUser(browser: Browser, index: number, withSecondFile = f
 }
 
 async function clickConvertTogether(sessions: { page: Page }[]) {
-    const responses = sessions.map(({ page }) =>
-        page.waitForResponse((r) => r.request().method() === 'POST' && r.url().includes('/api/compress'))
-    );
+    const jobs = sessions.map(({ page }) => waitForFinishedJobAsync(page));
     await Promise.all(sessions.map(({ page }) => clickConversionButtonAsync(page)));
-    const bodies = await Promise.all(
-        responses.map(async (promise, index) => {
-            const response = await promise;
-            expect(response.ok(), `user ${index}: /api/compress failed`).toBeTruthy();
-            return response.json();
-        })
-    );
+    const bodies = await Promise.all(jobs);
     await Promise.all(
         sessions.map(({ page }) => expect(page.getByTestId('compressed-files-drawer-close-btn')).toBeVisible())
     );
-    return bodies as { dest_folder: string; converted_files: string[] }[];
+    return bodies as FinishedJob[];
 }
 
 test('users converting files with the same name at the same time only get their own image back', async ({ browser }) => {
     const sessions = await Promise.all(USERS.map((_, index) => convertAsUser(browser, index)));
     try {
         const bodies = await clickConvertTogether(sessions);
-        expect(new Set(bodies.map((b) => b.dest_folder)).size, 'two users shared one output folder').toBe(USERS.length);
+        expect(new Set(bodies.map((b) => b.id)).size, 'two users shared one job').toBe(USERS.length);
 
         await Promise.all(
             sessions.map(async ({ page }, index) => {
@@ -143,7 +137,7 @@ test('a second user cannot download the first user\'s ZIP by guessing its name',
     try {
         await clickConvertTogether([owner]);
         const before = Math.floor(Date.now() / 1000);
-        const zipResponse = owner.page.waitForResponse((r) => r.url().includes('/api/download_all'));
+        const zipResponse = owner.page.waitForResponse((r) => /\/api\/jobs\/[^/]+\/zip$/.test(r.url()));
         await clickDownloadZipButtonAndGetUrlAsync(owner.page);
         expect((await zipResponse).ok()).toBeTruthy();
 
@@ -194,7 +188,7 @@ test('users placing images on their own background picture at the same time only
         })
     );
     try {
-        // Exports are rendered by /api/crop/fit right before /api/compress.
+        // Exports are rendered by /api/crop/fit right before /api/jobs.
         await clickConvertTogether(sessions);
         await Promise.all(
             sessions.map(async ({ page }, index) => {

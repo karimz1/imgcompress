@@ -5,6 +5,8 @@ __pycache__/
 .git/
 .github/
 .pytest_cache/
+# Staged registry credentials from scripts/simulateCiTests.sh
+.docker-share/
 .DS_Store
 *.log
 *.txt

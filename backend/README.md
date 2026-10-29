@@ -40,7 +40,7 @@ Outside Docker, build them once (needs torch and onnx, see the script):
 python scripts/build_upscale_model.py ~/.imgcompress/models
 ```
 
-The model always enlarges by 4x in 256 px tiles on the CPU, so its working memory stays the same for any image size. Other targets resize that result with Lanczos. The finished image still has to fit in RAM.
+The model always enlarges by 4x in 512 px tiles on the CPU, so its working memory stays the same for any image size. Other targets resize that result with Lanczos. The finished image still has to fit in RAM.
 
 Settings in `backend/image_converter/config/app.json`:
 

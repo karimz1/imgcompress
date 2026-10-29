@@ -262,7 +262,7 @@ test("conversion can be cancelled while rendering the saved fit", async ({
   });
   let compressionRequests = 0;
   page.on("request", (request) => {
-    if (request.url().endsWith("/api/compress")) compressionRequests++;
+    if (request.url().endsWith("/api/jobs")) compressionRequests++;
   });
   const rendering = page.waitForRequest((request) =>
     request.url().endsWith("/api/crop/fit"),
