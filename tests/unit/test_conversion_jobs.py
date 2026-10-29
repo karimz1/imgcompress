@@ -284,3 +284,50 @@ def test_When_JobFolderIsALinkToSomewhereElse_Expect_ItIsNeverReadOrTouched(tmp_
     assert store.read(job.job_id, job.token) is None
     store.touch(job.job_id)
     assert os.stat(outside).st_mtime_ns == before
+
+
+def test_When_ManyJobsRunAndArePolledAtOnce_Expect_EveryReadReturnsOnlyItsOwnCompleteState(tmp_path):
+    store = ConversionJobStore(str(tmp_path))
+    count = 24
+    jobs = [None] * count
+    created = threading.Barrier(count)
+    problems = []
+
+    def owner(index):
+        job = store.create(owner=index)
+        jobs[index] = job
+        created.wait(10)
+        for step in range(30):
+            job.update(status="running", progress={"owner": index, "step": step})
+        job.finish("done", result={"owner": index})
+
+    def poller(index):
+        while jobs[index] is None:
+            time.sleep(0.001)
+        job = jobs[index]
+        other = jobs[(index + 1) % count]
+        while True:
+            state = store.read(job.job_id, job.token)
+            # A torn or foreign status file would show up here as None or a wrong owner.
+            if state is None or state.get("owner") != index or state["id"] != job.job_id:
+                problems.append(f"job {index}: {state}")
+                return
+            if other is not None and store.read(job.job_id, other.token) is not None:
+                problems.append(f"job {index}: readable with job {(index + 1) % count}'s token")
+                return
+            if state["status"] == "done":
+                if state["result"] != {"owner": index}:
+                    problems.append(f"job {index}: result {state['result']}")
+                return
+
+    threads = [threading.Thread(target=owner, args=(i,)) for i in range(count)]
+    threads += [threading.Thread(target=poller, args=(i,)) for i in range(count)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(30)
+
+    assert not any(thread.is_alive() for thread in threads)
+    assert problems == []
+    assert len({job.job_id for job in jobs}) == count
+    assert len({job.token for job in jobs}) == count
