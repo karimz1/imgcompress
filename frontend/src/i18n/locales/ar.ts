@@ -45,6 +45,7 @@ export const ar: TranslationSchema = {
     progressTiles: "التكبير: الجزء {{done}} من {{total}}",
     progressFiles: "اكتمل {{done}} من {{total}} ملفات",
     waitingForUpscale: "في انتظار انتهاء عملية تكبير أخرى…",
+    elapsed: "الوقت المنقضي {{time}}",
     messages: [
       "جارٍ ضغط ملفاتك…",
       "تحسين الجودة والحجم.",
@@ -316,6 +317,9 @@ export const ar: TranslationSchema = {
     close: "إغلاق",
     downloadingFile: "جارٍ التنزيل: {{fileName}}...",
     downloadingZip: "جارٍ تنزيل المجلد...",
+    doneIn: "اكتمل في {{time}}",
+    durationSeconds: "{{seconds}} ث",
+    durationMinutes: "{{minutes}} د {{seconds}} ث",
   },
 
   downloadError: {

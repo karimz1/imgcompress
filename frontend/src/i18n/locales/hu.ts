@@ -45,6 +45,7 @@ export const hu: TranslationSchema = {
     progressTiles: "Felskálázás: {{done}}. rész a(z) {{total}}-ból",
     progressFiles: "{{total}} fájlból {{done}} kész",
     waitingForUpscale: "Várakozás egy másik felskálázás befejezésére…",
+    elapsed: "Eltelt idő: {{time}}",
     messages: [
       "Fájlok tömörítése folyamatban…",
       "Minőség és méret optimalizálása.",
@@ -316,6 +317,9 @@ export const hu: TranslationSchema = {
     close: "Bezárás",
     downloadingFile: "{{fileName}} letöltése...",
     downloadingZip: "Mappa letöltése...",
+    doneIn: "Kész {{time}} alatt",
+    durationSeconds: "{{seconds}} mp",
+    durationMinutes: "{{minutes}} perc {{seconds}} mp",
   },
 
   downloadError: {

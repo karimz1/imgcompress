@@ -45,6 +45,7 @@ export const esMX: TranslationSchema = {
     progressTiles: "Ampliando: parte {{done}} de {{total}}",
     progressFiles: "{{done}} de {{total}} archivos listos",
     waitingForUpscale: "Esperando a que termine otra ampliación…",
+    elapsed: "Tiempo: {{time}}",
     messages: [
       "Comprimiendo tus archivos…",
       "Optimizando calidad y tamaño.",
@@ -316,6 +317,9 @@ export const esMX: TranslationSchema = {
     close: "Cerrar",
     downloadingFile: "Descargando: {{fileName}}...",
     downloadingZip: "Descargando carpeta...",
+    doneIn: "Listo en {{time}}",
+    durationSeconds: "{{seconds}} s",
+    durationMinutes: "{{minutes}} min {{seconds}} s",
   },
 
   downloadError: {

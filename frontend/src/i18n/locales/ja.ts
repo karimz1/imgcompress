@@ -45,6 +45,7 @@ export const ja: TranslationSchema = {
     progressTiles: "アップスケール中: {{total}} 中 {{done}} 部分",
     progressFiles: "{{total}} 件中 {{done}} 件のファイルが完了",
     waitingForUpscale: "別のアップスケールが終わるのを待っています…",
+    elapsed: "経過時間 {{time}}",
     messages: [
       "ファイルを圧縮しています…",
       "品質とサイズを最適化しています。",
@@ -316,6 +317,9 @@ export const ja: TranslationSchema = {
     close: "閉じる",
     downloadingFile: "ダウンロード中: {{fileName}}...",
     downloadingZip: "フォルダーをダウンロード中...",
+    doneIn: "{{time}} で完了",
+    durationSeconds: "{{seconds}} 秒",
+    durationMinutes: "{{minutes}} 分 {{seconds}} 秒",
   },
 
   downloadError: {

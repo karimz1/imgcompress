@@ -73,12 +73,18 @@ class RunningJob:
         if self._state["status"] not in _ACTIVE:
             return
         self._state.update(fields)
-        self._state["updated_at"] = time.time()
+        now = time.time()
+        self._state["updated_at"] = now
+        if fields.get("status") == RUNNING:
+            # The timer counts the work itself, not the wait in the queue.
+            self._state.setdefault("started_at", now)
         self.store._write(self.job_id, self._state)
 
     def finish(self, status: str, **fields) -> None:
         try:
-            self._state.update(fields, status=status, updated_at=time.time())
+            now = time.time()
+            self._state.update(fields, status=status, updated_at=now, finished_at=now)
+            self._state.setdefault("started_at", self._state.get("created_at", now))
             self.store._write(self.job_id, self._state)
         finally:
             job_folder_lock.release(self._lock_fd)

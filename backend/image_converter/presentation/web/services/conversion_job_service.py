@@ -135,4 +135,9 @@ _PRIVATE_FIELDS = ("token_sha256", "dest_folder")
 
 
 def _public_view(state: dict) -> dict:
-    return {k: v for k, v in state.items() if k not in _PRIVATE_FIELDS}
+    view = {k: v for k, v in state.items() if k not in _PRIVATE_FIELDS}
+    # The browser times the job from these, so its own clock can be off.
+    view["server_time"] = time.time()
+    if "finished_at" in state and "started_at" in state:
+        view["duration_seconds"] = round(max(0.0, state["finished_at"] - state["started_at"]), 2)
+    return view

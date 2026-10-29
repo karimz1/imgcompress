@@ -26,6 +26,8 @@
 
 - Build details in the footer: The footer shows exactly which version, RC or nightly you run. Click it for the build time, source commit and a Copy details button for bug reports. Update notices compare against the installed build. [#913](https://github.com/karimz1/imgcompress/issues/913)
 
+- Job timer: The wait screen shows how long a conversion has been running, and the result says how long it took.
+
 ### Bug Fixes
 
 - Cleanup and "Delete all" no longer remove files of a job that is still running. Folders of running jobs are locked across all workers, and their age counts from the last activity, so a file you are downloading is not deleted underneath you.

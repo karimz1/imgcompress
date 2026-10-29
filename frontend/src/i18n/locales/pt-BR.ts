@@ -45,6 +45,7 @@ export const ptBR: TranslationSchema = {
     progressTiles: "Ampliando: parte {{done}} de {{total}}",
     progressFiles: "{{done}} de {{total}} arquivos prontos",
     waitingForUpscale: "Aguardando outra ampliação terminar…",
+    elapsed: "Tempo: {{time}}",
     messages: [
       "Comprimindo seus arquivos…",
       "Otimizando qualidade e tamanho.",
@@ -316,6 +317,9 @@ export const ptBR: TranslationSchema = {
     close: "Fechar",
     downloadingFile: "Baixando: {{fileName}}...",
     downloadingZip: "Baixando pasta...",
+    doneIn: "Pronto em {{time}}",
+    durationSeconds: "{{seconds}} s",
+    durationMinutes: "{{minutes}} min {{seconds}} s",
   },
 
   downloadError: {

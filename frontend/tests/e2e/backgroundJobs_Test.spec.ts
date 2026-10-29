@@ -76,6 +76,22 @@ test.describe('Background conversion jobs', () => {
     await assertDownloadLinksAsync(page, [UPSCALED], '_ai-upscaled');
   });
 
+  test('the timer runs while waiting and the result says how long it took, even after a reload', async ({ page }) => {
+    await startSlowUpscaleAsync(page);
+    const elapsed = page.getByTestId('job-elapsed');
+    await expect(elapsed).toHaveText(/^Elapsed \d+:\d{2}$/);
+    const first = await elapsed.textContent();
+    await expect(elapsed).not.toHaveText(first ?? '');
+
+    // The timer counts from the server's start time, so a reload does not reset it.
+    await page.waitForTimeout(2500);
+    await page.reload();
+    await expect(elapsed).toHaveText(/^Elapsed 0:0[2-9]|^Elapsed 0:[1-5]\d|^Elapsed [1-9]\d*:/);
+
+    await assertDownloadLinksAsync(page, [UPSCALED], '_ai-upscaled');
+    await expect(page.getByTestId('job-duration')).toHaveText(/^Done in (\d+ s|\d+ min \d+ s)$/);
+  });
+
   test('a dropped status request is retried quietly instead of showing "Load failed"', async ({ page }) => {
     let dropped = 0;
     await page.route(JOB_STATUS, async (route) => {

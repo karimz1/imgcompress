@@ -45,6 +45,7 @@ export const hi: TranslationSchema = {
     progressTiles: "अपस्केलिंग: भाग {{done}} / {{total}}",
     progressFiles: "{{total}} में से {{done}} फ़ाइलें पूरी",
     waitingForUpscale: "दूसरी अपस्केलिंग पूरी होने का इंतज़ार…",
+    elapsed: "बीता समय {{time}}",
     messages: [
       "आपकी फ़ाइलें कंप्रेस हो रही हैं…",
       "गुणवत्ता और आकार ऑप्टिमाइज़ हो रहे हैं।",
@@ -316,6 +317,9 @@ export const hi: TranslationSchema = {
     close: "बंद करें",
     downloadingFile: "डाउनलोड हो रहा है: {{fileName}}...",
     downloadingZip: "फ़ोल्डर डाउनलोड हो रहा है...",
+    doneIn: "{{time}} में पूरा हुआ",
+    durationSeconds: "{{seconds}} से.",
+    durationMinutes: "{{minutes}} मि. {{seconds}} से.",
   },
 
   downloadError: {

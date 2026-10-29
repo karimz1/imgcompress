@@ -43,6 +43,7 @@ export const en = {
     progressTiles: "Upscaling: part {{done}} of {{total}}",
     progressFiles: "{{done}} of {{total}} files done",
     waitingForUpscale: "Waiting for another upscale to finish…",
+    elapsed: "Elapsed {{time}}",
     messages: [
       "Compressing your files…",
       "Optimizing quality and size.",
@@ -313,6 +314,9 @@ export const en = {
     close: "Close",
     downloadingFile: "Downloading: {{fileName}}...",
     downloadingZip: "Downloading: Folder...",
+    doneIn: "Done in {{time}}",
+    durationSeconds: "{{seconds}} s",
+    durationMinutes: "{{minutes}} min {{seconds}} s",
   },
 
   downloadError: {
