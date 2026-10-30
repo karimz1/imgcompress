@@ -391,10 +391,9 @@ IPHONE_UA = (
 )
 
 
-def _opt_in(setup, job_id, token, enabled=True):
-    return setup.client.post(
-        f"/api/jobs/{job_id}/notify", json={"enabled": enabled}, headers={"X-Job-Token": token}
-    )
+def _opt_in(setup, job_id, token, enabled=True, extra=None):
+    payload = {"enabled": enabled, **(extra or {})}
+    return setup.client.post(f"/api/jobs/{job_id}/notify", json=payload, headers={"X-Job-Token": token})
 
 
 def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(setup):
@@ -406,7 +405,7 @@ def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(set
     assert len(setup.sent) == 1
     title, body = setup.sent[0]
     assert title == "1 image ready"
-    assert "iPhone · Safari" in body and "https://img.example.com" in body
+    assert body == "Open imgcompress in Safari on your iPhone to get your result.\nhttps://img.example.com"
     assert "secret-holiday" not in title + body
     assert setup.status(job_id, token).get_json()["notify"] is True
 
@@ -478,3 +477,19 @@ def test_When_NotificationsAreOff_Expect_OptInIsRefused(setup, monkeypatch):
     assert _opt_in(setup, job_id, token).status_code == 409
     setup.use_case.release.set()
     setup.wait_done()
+
+
+def test_When_RequestClaimsAnotherHost_Expect_TheMessageNeverUsesIt(setup, monkeypatch):
+    """Origin, Host and X-Forwarded-Host can be spoofed; only PUBLIC_BASE_URL is a link."""
+    monkeypatch.setattr(setup.notifier, "base_url", None)
+    setup.use_case.release.clear()
+    job_id, token = _started(setup, user_agent=IPHONE_UA)
+    response = setup.client.post(
+        f"/api/jobs/{job_id}/notify",
+        json={"enabled": True, "origin": "https://evil.example"},
+        headers={"X-Job-Token": token, "Host": "evil.example", "X-Forwarded-Host": "evil.example", "Origin": "https://evil.example"},
+    )
+    assert response.status_code == 204
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert setup.sent == [("1 image ready", "Open imgcompress in Safari on your iPhone to get your result.")]

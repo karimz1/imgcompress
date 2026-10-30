@@ -46,8 +46,11 @@ services:
       # never file names or images. Default: not set = feature off, switch hidden.
       # Example for the optional ntfy service below:
       # - NOTIFY_URL=ntfy://ntfy/imgcompress
-      # Optional: the address users open ImgCompress at; added as a link to the
-      # message. Default: not set = no link. Example:
+      # Optional: the address users open ImgCompress at. It is added on its own
+      # line so people find their way back. ImgCompress never guesses it from a
+      # request (the Host header can be faked), so set it yourself. Must be
+      # http(s), without user/password; an invalid value is ignored with a
+      # warning. Default: not set = no address in the message. Example:
       # - PUBLIC_BASE_URL=http://192.168.1.10:3001
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]

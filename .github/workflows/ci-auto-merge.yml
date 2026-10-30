@@ -358,6 +358,7 @@ jobs:
           - disable_logo: "false"
             disable_storage_management: "false"
             notify_url: "json://127.0.0.1:5199/notify"
+            public_base_url: "https://imgcompress.example"
             scenario: "logo SHOWN  | storage SHOWN | notify ON"
             label: "notify-on"
     steps:
@@ -412,6 +413,7 @@ jobs:
             -e DISABLE_STORAGE_MANAGEMENT=${{ matrix.disable_storage_management }} \
             -e MAX_UPLOAD_SIZE_MB=${{ matrix.max_upload_size_mb }} \
             -e NOTIFY_URL=${{ matrix.notify_url }} \
+            -e PUBLIC_BASE_URL=${{ matrix.public_base_url }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for Application to be Ready (using localhost)
