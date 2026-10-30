@@ -45,12 +45,34 @@ WEIGHTS_FILENAME = "realesr-general-x4v3.pth"
 ONNX_FILENAME = "realesr-general-x4v3.onnx"
 CHECKSUM_SUFFIX = ".sha256"
 
+# The official weak-denoise variant of general-x4v3 (same release, same network).
+# Never shipped on its own: blended into the denoise presets below.
+WDN_NAME = "realesr-general-wdn-x4v3"
+WDN_SHA256 = "1641f8c4464b9f097c9fdda5589273713f67cf59f3d909e0bd688f0cee269dca"
+
+
+def _denoise_preset(level: str, strength: float) -> dict:
+    # Deep network interpolation as in upstream inference_realesrgan.py
+    # --denoise_strength: general * strength + wdn * (1 - strength). Lower
+    # strength keeps more detail and more noise. Built at fixed strengths because
+    # the blend happens on the weights, before export.
+    return {
+        "name": f"realesr-general-x4v3-denoise-{level}",
+        "weights": "realesr-general-x4v3",
+        "sha256": WEIGHTS_SHA256,
+        "num_conv": 32,
+        "blend": {"weights": WDN_NAME, "sha256": WDN_SHA256, "strength": strength},
+    }
+
+
 MODEL_SPECS = {
     "general": {
         "name": "realesr-general-x4v3",
         "sha256": WEIGHTS_SHA256,
         "num_conv": 32,
     },
+    "general-denoise-medium": _denoise_preset("medium", 0.5),
+    "general-denoise-low": _denoise_preset("low", 0.25),
     "anime": {
         "name": "realesr-animevideov3",
         "sha256": "b8a8376811077954d82ca3fcf476f1ac3da3e8a68a4f4d71363008000a18b75d",
@@ -118,8 +140,22 @@ def check_graph(model) -> None:
             raise RuntimeError(f"ONNX initializer {tensor.name} uses external data")
 
 
-def build_reference_model(weights: Path, num_conv: int = 32):
+def load_state(weights: Path) -> dict:
     import torch
+
+    # weights_only=True: only tensors and plain containers are unpickled.
+    state = torch.load(weights, map_location="cpu", weights_only=True)
+    return state.get("params", state)
+
+
+def blend_state(general: dict, wdn: dict, strength: float) -> dict:
+    """DNI: general * strength + wdn * (1 - strength), key by key."""
+    if general.keys() != wdn.keys() or any(general[k].shape != wdn[k].shape for k in general):
+        raise RuntimeError("The general and wdn weights do not match; refusing to blend them.")
+    return {key: strength * general[key] + (1 - strength) * wdn[key] for key in general}
+
+
+def build_reference_model(weights: Path, num_conv: int = 32, blend_with: "Path | None" = None, strength: float = 1.0):
     from torch import nn
     from torch.nn import functional as F
 
@@ -143,10 +179,11 @@ def build_reference_model(weights: Path, num_conv: int = 32):
                 out = layer(out)
             return self.upsampler(out) + F.interpolate(x, scale_factor=self.upscale, mode="nearest")
 
-    # weights_only=True: only tensors and plain containers are unpickled.
-    state = torch.load(weights, map_location="cpu", weights_only=True)
+    state = load_state(weights)
+    if blend_with is not None:
+        state = blend_state(state, load_state(blend_with), strength)
     model = SRVGGNetCompact(num_conv=num_conv)
-    model.load_state_dict(state.get("params", state), strict=True)
+    model.load_state_dict(state, strict=True)
     model.eval()
     return model
 
@@ -189,13 +226,26 @@ def build(output_dir: Path, cache_dir: Path, model: str = "general") -> Path:
     name = spec["name"]
     filename = f"{name}.onnx"
     # Verify first; nothing below may run on weights that failed the checksum.
+    source = spec.get("weights", name)
     weights = fetch_verified_weights(
         cache_dir,
-        url=f"{RELEASE_URL}/{name}.pth",
+        url=f"{RELEASE_URL}/{source}.pth",
         sha256=spec["sha256"],
-        filename=f"{name}.pth",
+        filename=f"{source}.pth",
     )
-    reference = build_reference_model(weights, num_conv=spec["num_conv"])
+    blend = spec.get("blend")
+    if blend is None:
+        reference = build_reference_model(weights, num_conv=spec["num_conv"])
+    else:
+        wdn = fetch_verified_weights(
+            cache_dir,
+            url=f"{RELEASE_URL}/{blend['weights']}.pth",
+            sha256=blend["sha256"],
+            filename=f"{blend['weights']}.pth",
+        )
+        reference = build_reference_model(
+            weights, num_conv=spec["num_conv"], blend_with=wdn, strength=blend["strength"]
+        )
 
     import onnx
 
@@ -222,7 +272,7 @@ def build(output_dir: Path, cache_dir: Path, model: str = "general") -> Path:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("output_dir", type=Path, help="Directory for the .onnx and .sha256 files")
-    parser.add_argument("--model", choices=["all", *MODEL_SPECS], default="all", help="Models to build (default: both)")
+    parser.add_argument("--model", choices=["all", *MODEL_SPECS], default="all", help="Models to build (default: all)")
     parser.add_argument(
         "--cache", type=Path, default=None, help="Directory to keep the verified .pth between builds (default: temporary)"
     )

@@ -20,7 +20,7 @@ from backend.image_converter.infrastructure.conversion_job_store import (
     ConversionJobStore,
     RunningJob,
 )
-from backend.image_converter.infrastructure.notifier import Notifier, describe_device
+from backend.image_converter.infrastructure.notifier import Notifier, describe_device, resolve_language
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 from backend.image_converter.presentation.web.services.compression_service import (
     CompressionService,
@@ -95,8 +95,10 @@ class ConversionJobService:
     def notify_enabled(self) -> bool:
         return self.notifier is not None and self.notifier.enabled
 
-    def set_notify(self, job_id: Optional[str], token: Optional[str], enabled: bool) -> bool:
-        return self.store.set_notify(job_id, token, enabled)
+    def set_notify(
+        self, job_id: Optional[str], token: Optional[str], enabled: bool, language: Optional[str] = None
+    ) -> bool:
+        return self.store.set_notify(job_id, token, enabled, resolve_language(language))
 
     def result_folder(self, job_id: Optional[str], token: Optional[str]) -> Optional[str]:
         """The finished job's own output folder, for its token only."""
@@ -151,10 +153,15 @@ class ConversionJobService:
             state = job.state
             result = state.get("result") or {}
             files = result.get("converted_files") or result.get("processed_files") or []
+            started, finished = state.get("started_at"), state.get("finished_at")
+            # Server-side start to finish, like the done sheet.
+            duration = max(0.0, finished - started) if started is not None and finished is not None else None
             self.notifier.notify(
                 done=state.get("status") == DONE,
                 file_count=len(files) if isinstance(files, list) else 0,
                 device=state.get("device") or describe_device(None),
+                duration_seconds=duration,
+                language=self.store.notify_language(job.job_id),
             )
         except Exception as error:
             self.logger.log(f"Notification for job {job.job_id} failed ({type(error).__name__}).", "warning")

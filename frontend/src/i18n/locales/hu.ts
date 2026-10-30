@@ -47,6 +47,8 @@ export const hu: TranslationSchema = {
     waitingForUpscale: "Várakozás egy másik felskálázás befejezésére…",
     elapsed: "Eltelt idő: {{time}}",
     notify: "Értesíts, ha kész",
+    tipUpscale: "Az MI-nagyítás percekig tarthat, kis CPU-n sokkal tovább. Bezárhatod ezt a lapot, és később visszanézhetsz.",
+    tipUpscaleNotify: "Az MI-nagyítás percekig tarthat, kis CPU-n sokkal tovább. Kapcsold be: „Értesíts, ha kész”, és zárd be ezt a lapot.",
     messages: [
       "Fájlok tömörítése folyamatban…",
       "Minőség és méret optimalizálása.",
@@ -178,6 +180,17 @@ export const hu: TranslationSchema = {
         general: "Fényképek és vegyes képek",
         anime: "Rajzok, anime, logók",
       },
+      denoiseLabel: "Képtípus",
+      denoise: {
+        low: "Fotó (részletek megtartása)",
+        medium: "Kiegyensúlyozott",
+        strong: "Régi vagy zajos fotó (simítás)",
+      },
+      denoiseHints: {
+        low: "Éles, tiszta fotókhoz. Megtartja a bőr textúráját, a leveleket és a finom éleket.",
+        medium: "Hétköznapi fotók és képernyőképek. Enyhe simítás.",
+        strong: "Szemcsés, sötét vagy erősen tömörített képek. Eltávolítja a zajt, lágyítja a részleteket.",
+      },
       label: "MI-felskálázás",
       tooltip:
         "A beépített MI nagyobbá teszi a képeket, és élesen tartja a széleket és az apró részleteket. Semmit nem kell telepíteni, és internet nélkül is működik.\nEltart egy ideig, és az arcokon apró hibák jelenhetnek meg.",
@@ -194,6 +207,7 @@ export const hu: TranslationSchema = {
       },
       hint:
         "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. A nagyobb eredmények és a lassabb szerverek tovább tartanak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
+      slowHint: "Az MI-nagyítás a szerver CPU-ján fut. Számíts percekre; nagy képek kis CPU-n sokkal tovább tarthatnak. Közben bezárhatod a lapot.",
       unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
       largeTargetHint: "A nagyon nagy eredmények tovább tartanak.",

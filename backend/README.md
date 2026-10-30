@@ -32,7 +32,7 @@ Docker and Dev Containers include the Cairo runtime. For a native installation, 
 
 ## AI upscaling
 
-Two Real-ESRGAN models ship in the Docker image: `realesr-general-x4v3` (General, the default) and `realesr-animevideov3` (Anime, for drawn images). Both are built in the `upscale-model-stage` of the Dockerfile by `scripts/build_upscale_model.py` from the official `.pth` release files, which are SHA-256 checked before they are loaded. Only the `.onnx` files and their `.sha256` files end up in `IMGCOMPRESS_MODEL_HOME` (`/container/.models`). Nothing is downloaded at runtime; a missing or changed model file shows up as "not installed" in the UI.
+Two Real-ESRGAN models ship in the Docker image: `realesr-general-x4v3` (General, the default) and `realesr-animevideov3` (Anime, for drawn images). General also comes in two noise-reduction presets, `realesr-general-x4v3-denoise-medium` and `-denoise-low` (`--upscale-model general-denoise-medium|general-denoise-low`). They blend General with the official `realesr-general-wdn-x4v3` weights (strength 0.5 and 0.25, like `--denoise_strength` in upstream `inference_realesrgan.py`), so they keep more fine detail and more noise at the same speed. All are built in the `upscale-model-stage` of the Dockerfile by `scripts/build_upscale_model.py` from the official `.pth` release files, which are SHA-256 checked before they are loaded. Only the `.onnx` files and their `.sha256` files end up in `IMGCOMPRESS_MODEL_HOME` (`/container/.models`). Nothing is downloaded at runtime; a missing or changed model file shows up as "not installed" in the UI.
 
 Outside Docker, build them once (needs torch and onnx, see the script):
 

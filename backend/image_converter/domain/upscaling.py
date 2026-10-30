@@ -18,11 +18,16 @@ MODEL_SCALE = 4
 
 class UpscaleModel(Enum):
     GENERAL = "general"
+    # General with less noise reduction: keeps more fine detail (skin, foliage)
+    # but also more noise. Same network and speed as General; the weights are
+    # blended with the official weak-denoise model at build time.
+    GENERAL_DENOISE_MEDIUM = "general-denoise-medium"
+    GENERAL_DENOISE_LOW = "general-denoise-low"
     ANIME = "anime"
 
     @property
     def model_name(self) -> str:
-        return "realesr-general-x4v3" if self is UpscaleModel.GENERAL else "realesr-animevideov3"
+        return _MODEL_NAMES[self]
 
     @property
     def filename(self) -> str:
@@ -35,7 +40,16 @@ class UpscaleModel(Enum):
         try:
             return Result.success(cls(value.strip().lower()))
         except ValueError:
-            return Result.failure(f"Unsupported upscale model: '{value}'. Use general or anime.")
+            choices = ", ".join(model.value for model in cls)
+            return Result.failure(f"Unsupported upscale model: '{value}'. Use one of: {choices}.")
+
+
+_MODEL_NAMES = {
+    UpscaleModel.GENERAL: "realesr-general-x4v3",
+    UpscaleModel.GENERAL_DENOISE_MEDIUM: "realesr-general-x4v3-denoise-medium",
+    UpscaleModel.GENERAL_DENOISE_LOW: "realesr-general-x4v3-denoise-low",
+    UpscaleModel.ANIME: "realesr-animevideov3",
+}
 
 
 class UpscaleTarget(Enum):

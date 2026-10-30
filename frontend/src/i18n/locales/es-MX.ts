@@ -47,6 +47,8 @@ export const esMX: TranslationSchema = {
     waitingForUpscale: "Esperando a que termine otra ampliación…",
     elapsed: "Tiempo: {{time}}",
     notify: "Avísame cuando termine",
+    tipUpscale: "El escalado con IA puede tardar minutos, y mucho más en CPUs pequeñas. Puedes cerrar esta pestaña y volver después.",
+    tipUpscaleNotify: "El escalado con IA puede tardar minutos, y mucho más en CPUs pequeñas. Activa “Avísame cuando termine” y cierra esta pestaña.",
     messages: [
       "Comprimiendo tus archivos…",
       "Optimizando calidad y tamaño.",
@@ -178,6 +180,17 @@ export const esMX: TranslationSchema = {
         general: "Fotos e imágenes mixtas",
         anime: "Dibujos, anime, logotipos",
       },
+      denoiseLabel: "Tipo de imagen",
+      denoise: {
+        low: "Foto (conservar detalles)",
+        medium: "Equilibrado",
+        strong: "Foto antigua o con ruido (suavizar)",
+      },
+      denoiseHints: {
+        low: "Para fotos nítidas y limpias. Conserva la piel, las hojas y los bordes finos.",
+        medium: "Fotos cotidianas y capturas de pantalla. Un poco de suavizado.",
+        strong: "Imágenes granuladas, oscuras o muy comprimidas. Quita el ruido, suaviza el detalle.",
+      },
       label: "Ampliación con IA",
       tooltip:
         "La IA incluida agranda las imágenes y mantiene nítidos los bordes y los detalles pequeños. No hay nada que instalar y funciona sin internet.\nTarda un rato y las caras pueden mostrar pequeños defectos.",
@@ -194,6 +207,7 @@ export const esMX: TranslationSchema = {
       },
       hint:
         "La imagen conserva su forma. Las imágenes que ya son lo bastante grandes se quedan igual. Los resultados más grandes y los servidores más lentos tardan más. Por encima de 4×, primero trabaja la IA y luego un cambio de tamaño normal termina el trabajo.",
+      slowHint: "El escalado con IA usa la CPU de tu servidor. Cuenta con minutos; las imágenes grandes en CPUs pequeñas pueden tardar mucho más. Puedes cerrar la pestaña mientras tanto.",
       unavailableHint: "La ampliación con IA no está incluida en esta versión.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
       largeTargetHint: "Los resultados muy grandes tardan más.",

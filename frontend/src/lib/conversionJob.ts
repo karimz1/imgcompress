@@ -56,12 +56,13 @@ export interface JobState {
  * Turns the server-side "notify me when done" on or off for this job. The
  * server sends the message, so it still arrives after this tab is closed.
  */
-export async function setJobNotify(job: JobRef, enabled: boolean): Promise<boolean> {
+export async function setJobNotify(job: JobRef, enabled: boolean, language?: string): Promise<boolean> {
   try {
     const res = await fetch(`/api/jobs/${encodeURIComponent(job.id)}/notify`, {
       method: "POST",
       headers: { ...jobHeaders(job), "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled }),
+      // The message is written in this UI language (the server falls back to English).
+      body: JSON.stringify({ enabled, language }),
     });
     return res.ok;
   } catch {

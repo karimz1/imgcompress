@@ -47,6 +47,8 @@ export const fr: TranslationSchema = {
     waitingForUpscale: "En attente de la fin d'un autre agrandissement…",
     elapsed: "Écoulé : {{time}}",
     notify: "Me prévenir une fois terminé",
+    tipUpscale: "L'agrandissement IA peut prendre des minutes, bien plus sur un petit processeur. Vous pouvez fermer cet onglet et revenir plus tard.",
+    tipUpscaleNotify: "L'agrandissement IA peut prendre des minutes, bien plus sur un petit processeur. Activez « Me prévenir une fois terminé » et fermez cet onglet.",
     messages: [
       "Compression de vos fichiers…",
       "Optimisation de la qualité et de la taille.",
@@ -178,6 +180,17 @@ export const fr: TranslationSchema = {
         general: "Photos et images mixtes",
         anime: "Dessins, anime, logos",
       },
+      denoiseLabel: "Type d'image",
+      denoise: {
+        low: "Photo (garder les détails)",
+        medium: "Équilibré",
+        strong: "Photo ancienne ou bruitée (lisser)",
+      },
+      denoiseHints: {
+        low: "Pour les photos nettes et propres. Garde la peau, les feuilles et les contours fins.",
+        medium: "Photos du quotidien et captures d'écran. Léger lissage.",
+        strong: "Images granuleuses, sombres ou très compressées. Enlève le bruit, adoucit les détails.",
+      },
       label: "Agrandissement par IA",
       tooltip:
         "L'IA intégrée agrandit les images et garde les bords et les petits détails nets. Rien à installer, et elle fonctionne sans internet.\nCela prend un moment, et les visages peuvent montrer de petits défauts.",
@@ -194,6 +207,7 @@ export const fr: TranslationSchema = {
       },
       hint:
         "L'image garde sa forme. Les images déjà assez grandes restent telles quelles. Les grands résultats et les serveurs plus lents prennent plus de temps. Au-delà de 4×, l'IA passe d'abord, puis un redimensionnement normal termine le travail.",
+      slowHint: "L'agrandissement IA tourne sur le processeur de votre serveur. Comptez des minutes ; les grandes images sur un petit processeur peuvent prendre bien plus. Vous pouvez fermer l'onglet pendant ce temps.",
       unavailableHint: "L'agrandissement par IA n'est pas inclus dans cette version.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
       largeTargetHint: "Les très grands résultats prennent plus de temps.",

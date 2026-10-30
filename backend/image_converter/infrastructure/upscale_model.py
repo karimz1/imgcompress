@@ -3,7 +3,8 @@
 The models are realesr-general-x4v3 and realesr-animevideov3 from Real-ESRGAN
 (BSD-3-Clause, Xintao Wang), small SRVGGNetCompact networks suitable for CPU
 inference. General is the default; the smaller anime model specializes in drawn
-images and anime frames.
+images and anime frames. General also ships as two noise-reduction presets
+(medium, low), blended at build time with the official weak-denoise weights.
 
 It is built during the Docker build, in a separate stage, by
 scripts/build_upscale_model.py: the official .pth weights are downloaded from the

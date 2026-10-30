@@ -205,6 +205,9 @@ test.describe('AI upscaling', () => {
     await expect(page.getByTestId('resize-width-input')).toBeHidden();
     await expect(page.getByTestId('resize-width-upscale-hint')).toBeVisible();
     await expect(page.getByTestId('upscale-hint')).toBeVisible();
+    await expect(page.getByTestId('upscale-slow-hint')).toHaveText(
+      "AI upscaling runs on your server's CPU. Expect minutes; big images on small CPUs can take much longer. You can close the tab while it runs."
+    );
 
     await setOutputFormatAsync(page, 'PDF');
     await expect(upscaleSwitch).toBeHidden();
@@ -252,6 +255,56 @@ test.describe('AI upscaling', () => {
     }
     expect(pixels[0].equals(pixels[1])).toBe(false);
     expect(pixels[0].equals(pixels[2])).toBe(true);
+  });
+
+  const PRESETS = [
+    ['Photo (keep details)', 'For sharp, clean photos. Keeps skin texture, leaves and fine edges.'],
+    ['Balanced', 'Everyday photos and screenshots. A little smoothing.'],
+    ['Old or noisy photo (smooth)', 'Grainy, low-light or heavily compressed images. Removes noise, softens detail.'],
+  ] as const;
+  const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  test('lets General keep more detail with the photo preset', async ({ page }) => {
+    // A noisy photo crop: the presets differ in how much of the grain they smooth away.
+    const source = await sharp(SKYLINE_PHOTO).resize(160, 90, { fit: 'cover' }).jpeg({ quality: 40 }).toBuffer();
+    const sent: string[] = [];
+    await page.route('**/api/jobs', async (route) => {
+      const body = route.request().postDataBuffer()?.toString('latin1') ?? '';
+      const match = /name="upscale_model"\r\n\r\n([^\r]+)/.exec(body);
+      if (match) sent.push(match[1]);
+      await route.continue();
+    });
+    const outputs: Buffer[] = [];
+    for (const [index, level] of (['strong', 'low'] as const).entries()) {
+      const photo = new ImageFileDto(`grain-${index}.jpg`);
+      await page.goto('/');
+      await setOutputFormatAsync(page, 'PNG');
+      await uploadGeneratedImageToDropzoneAsync(page, photo.fileName, 'image/jpeg', source);
+      await setUpscaleAsync(page, '4x');
+      const group = page.getByRole('radiogroup', { name: 'Image type' });
+      // Default stays as before: the released General model.
+      await expect(group.getByRole('radio', { name: /Old or noisy photo \(smooth\)/ })).toHaveAttribute('aria-checked', 'true');
+      for (const [label, hint] of PRESETS) {
+        await expect(group.getByRole('radio', { name: new RegExp(escapeRegExp(label)) })).toContainText(hint);
+      }
+      if (level === 'low') {
+        const photoPreset = group.getByRole('radio', { name: /Photo \(keep details\)/ });
+        await photoPreset.click();
+        await expect(photoPreset).toHaveAttribute('aria-checked', 'true');
+      }
+      const output = await convertAndDownloadSingleAsync(page, photo, '.png');
+      outputs.push(await sharp(output).raw().toBuffer());
+    }
+    expect(sent).toEqual(['general', 'general-denoise-low']);
+    expect(outputs[0].equals(outputs[1])).toBe(false);
+
+    // Anime has no noise setting.
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'PNG');
+    await setUpscaleAsync(page, '2x');
+    await expect(page.getByTestId('upscale-denoise-group')).toBeVisible();
+    await page.getByTestId('upscale-model-option-anime').click();
+    await expect(page.getByTestId('upscale-denoise-group')).toHaveCount(0);
   });
 
   test('marks an uninstalled anime model unavailable', async ({ page }) => {

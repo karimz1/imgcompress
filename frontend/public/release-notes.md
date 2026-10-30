@@ -18,6 +18,8 @@
 
 - Faster AI upscaling: The upscaler works on bigger pieces of the image at once, which makes it about 1.2 to 1.4 times faster on the CPU with the same quality. The progress bar now shows each file and how far the upscale is.
 
+- Image type presets for General AI upscaling: **Photo (keep details)** keeps skin, leaves and fine edges, **Balanced** smooths a little, and **Old or noisy photo (smooth)** works as before and stays the default. Same speed. It uses the official Real-ESRGAN weak-denoise model, built into the image.
+
 - Add SVG import: Convert SVGs to PNG, JPEG, AVIF, WebP, ICO or PDF in the web UI and CLI, with resizing and cropping. PNG keeps transparency. [#938](https://github.com/karimz1/imgcompress/pull/938)
 
 - Add WebP export: ImgCompress could already read WebP, now it can also export it, lossy or lossless. [#905](https://github.com/karimz1/imgcompress/issues/905)

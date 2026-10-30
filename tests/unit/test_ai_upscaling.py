@@ -287,6 +287,40 @@ def test_When_BuildScriptAndAppNameFiles_Expect_SameNames(build_script):
     assert build_script.MODEL_SPECS["anime"]["num_conv"] == 16
 
 
+@pytest.mark.parametrize(("model", "strength"), [("general-denoise-medium", 0.5), ("general-denoise-low", 0.25)])
+def test_When_DenoisePreset_Expect_OfficialWdnBlendLikeUpstream(build_script, model, strength):
+    spec = build_script.MODEL_SPECS[model]
+    # Same weights as general, blended with the official weak-denoise model, like
+    # inference_realesrgan.py --denoise_strength (general * s + wdn * (1 - s)).
+    assert spec["sha256"] == build_script.MODEL_SPECS["general"]["sha256"]
+    assert spec["weights"] == "realesr-general-x4v3"
+    assert spec["blend"] == {"weights": "realesr-general-wdn-x4v3", "sha256": build_script.WDN_SHA256, "strength": strength}
+
+
+def test_When_BlendingWeights_Expect_DniInterpolation(build_script):
+    torch = pytest.importorskip("torch")
+    general = {"a": torch.tensor([1.0, 3.0])}
+    wdn = {"a": torch.tensor([3.0, 5.0])}
+
+    blended = build_script.blend_state(general, wdn, 0.25)
+
+    assert torch.equal(blended["a"], torch.tensor([2.5, 4.5]))
+
+
+def test_When_BlendingWeightsWithDifferentKeys_Expect_Rejected(build_script):
+    torch = pytest.importorskip("torch")
+    with pytest.raises(RuntimeError, match="do not match"):
+        build_script.blend_state({"a": torch.zeros(1)}, {"b": torch.zeros(1)}, 0.5)
+
+
+@pytest.mark.parametrize(("raw", "expected"), [("general-denoise-medium", "realesr-general-x4v3-denoise-medium"),
+                                               ("general-denoise-low", "realesr-general-x4v3-denoise-low")])
+def test_When_DenoisePresetSelected_Expect_ItsOwnModelFile(raw, expected):
+    model = UpscaleModel.from_string_result(raw).value
+    assert model.model_name == expected
+    assert model.filename == f"{expected}.onnx"
+
+
 def test_When_WeightsMatchPinnedChecksum_Expect_FileKept(build_script, tmp_path, monkeypatch):
     monkeypatch.setattr(build_script.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"weights"))
 
@@ -300,7 +334,7 @@ def test_When_WeightsMatchPinnedChecksum_Expect_FileKept(build_script, tmp_path,
 def test_When_WeightsChecksumWrong_Expect_ErrorAndNothingLeftToLoad(build_script, tmp_path, monkeypatch, model):
     monkeypatch.setattr(build_script.urllib.request, "urlopen", lambda url, timeout: _FakeResponse(b"tampered"))
     monkeypatch.setattr(
-        build_script, "build_reference_model", lambda weights: pytest.fail("must not load unverified weights")
+        build_script, "build_reference_model", lambda *args, **kwargs: pytest.fail("must not load unverified weights")
     )
 
     with pytest.raises(RuntimeError, match="Checksum mismatch"):
@@ -366,6 +400,8 @@ def test_When_AskingForModelStatus_Expect_NameAndAvailability():
     assert available.get_upscale_model_status() == {
         "models": [
             {"id": "general", "model_name": "realesr-general-x4v3", "available": True},
+            {"id": "general-denoise-medium", "model_name": "realesr-general-x4v3-denoise-medium", "available": True},
+            {"id": "general-denoise-low", "model_name": "realesr-general-x4v3-denoise-low", "available": True},
             {"id": "anime", "model_name": "realesr-animevideov3", "available": True},
         ],
     }
@@ -376,7 +412,7 @@ def test_When_OnlyGeneralInstalled_Expect_AnimeUnavailable():
     service = ConfigurationService("u2net", locate_upscale_model=lambda filename:
                                    Result.success(filename) if filename == UpscaleModel.GENERAL.filename
                                    else Result.failure("missing"))
-    assert [model["available"] for model in service.get_upscale_model_status()["models"]] == [True, False]
+    assert [model["available"] for model in service.get_upscale_model_status()["models"]] == [True, False, False, False]
 
 
 def test_When_SelectingModel_Expect_OnlyThatCheckpointLoaded(monkeypatch):

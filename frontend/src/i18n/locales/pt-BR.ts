@@ -47,6 +47,8 @@ export const ptBR: TranslationSchema = {
     waitingForUpscale: "Aguardando outra ampliação terminar…",
     elapsed: "Tempo: {{time}}",
     notify: "Avise-me quando terminar",
+    tipUpscale: "O upscaling com IA pode levar minutos, e muito mais em CPUs pequenas. Você pode fechar esta aba e voltar depois.",
+    tipUpscaleNotify: "O upscaling com IA pode levar minutos, e muito mais em CPUs pequenas. Ative “Avise-me quando terminar” e feche esta aba.",
     messages: [
       "Comprimindo seus arquivos…",
       "Otimizando qualidade e tamanho.",
@@ -178,6 +180,17 @@ export const ptBR: TranslationSchema = {
         general: "Fotos e imagens mistas",
         anime: "Desenhos, anime, logotipos",
       },
+      denoiseLabel: "Tipo de imagem",
+      denoise: {
+        low: "Foto (manter detalhes)",
+        medium: "Equilibrado",
+        strong: "Foto antiga ou com ruído (suavizar)",
+      },
+      denoiseHints: {
+        low: "Para fotos nítidas e limpas. Mantém a pele, as folhas e as bordas finas.",
+        medium: "Fotos do dia a dia e capturas de tela. Um pouco de suavização.",
+        strong: "Imagens granuladas, escuras ou muito comprimidas. Remove ruído, suaviza detalhes.",
+      },
       label: "Ampliação com IA",
       tooltip:
         "A IA incluída deixa as imagens maiores e mantém bordas e pequenos detalhes nítidos. Nada para instalar, e funciona sem internet.\nDemora um pouco, e rostos podem mostrar pequenas falhas.",
@@ -194,6 +207,7 @@ export const ptBR: TranslationSchema = {
       },
       hint:
         "A imagem mantém sua forma. Imagens que já são grandes o bastante ficam como estão. Resultados maiores e servidores mais lentos demoram mais. Acima de 4×, a IA vem primeiro e um redimensionamento normal termina o trabalho.",
+      slowHint: "O upscaling com IA roda na CPU do seu servidor. Conte com minutos; imagens grandes em CPUs pequenas podem levar muito mais. Você pode fechar a aba enquanto isso.",
       unavailableHint: "A ampliação com IA não está incluída nesta versão.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
       largeTargetHint: "Resultados muito grandes demoram mais.",

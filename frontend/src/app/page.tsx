@@ -49,7 +49,9 @@ import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 import { useRembgModel } from "@/hooks/useRembgModel";
 import { useUpscaleModel } from "@/hooks/useUpscaleModel";
-import { DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, type UpscaleSettings } from "@/lib/upscale";
+import {
+  DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, isUpscaleCardModel, toUpscaleModel, upscaleModelParam, type UpscaleSettings,
+} from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
 import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
@@ -129,10 +131,18 @@ function HomePageContent() {
 
   useEffect(() => {
     if (!upscaleModels.some((model) => model.id === upscale.model && model.available)) {
-      const availableModel = upscaleModels.find((model) => model.available);
-      if (availableModel) setUpscale((previous) => ({ ...previous, model: availableModel.id }));
+      const availableModel = upscaleModels.find((model) => model.available && isUpscaleCardModel(model.id));
+      if (availableModel) setUpscale((previous) => ({ ...previous, model: toUpscaleModel(availableModel.id) }));
     }
   }, [upscaleModels, upscale.model]);
+
+  useEffect(() => {
+    // A noise preset whose model file is missing falls back to the released model.
+    const presetId = upscaleModelParam({ model: "general", denoise: upscale.denoise });
+    if (upscaleModels.length > 0 && !upscaleModels.some((model) => model.id === presetId && model.available)) {
+      setUpscale((previous) => (previous.denoise === "strong" ? previous : { ...previous, denoise: "strong" }));
+    }
+  }, [upscaleModels, upscale.denoise]);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
   const [resultJob, setResultJob] = useState<JobRef | null>(null);
@@ -490,7 +500,7 @@ function HomePageContent() {
       }
       if (upscaleActive) {
         formData.append("upscale", upscale.target);
-        formData.append("upscale_model", upscale.model);
+        formData.append("upscale_model", upscaleModelParam(upscale));
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -701,9 +711,9 @@ function HomePageContent() {
       if (!followedJob) return;
       notifyTouched.current = true;
       setNotifyOn(checked);
-      if (!(await setJobNotify(followedJob, checked))) setNotifyOn(!checked);
+      if (!(await setJobNotify(followedJob, checked, i18n.language))) setNotifyOn(!checked);
     },
-    [followedJob]
+    [followedJob, i18n]
   );
 
   return (
