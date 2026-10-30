@@ -711,9 +711,9 @@ function HomePageContent() {
       if (!followedJob) return;
       notifyTouched.current = true;
       setNotifyOn(checked);
-      if (!(await setJobNotify(followedJob, checked))) setNotifyOn(!checked);
+      if (!(await setJobNotify(followedJob, checked, i18n.language))) setNotifyOn(!checked);
     },
-    [followedJob]
+    [followedJob, i18n]
   );
 
   return (

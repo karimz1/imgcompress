@@ -153,7 +153,8 @@ def conversion_job_notify(job_id: str):
         return jsonify({"error": "Notifications are not configured."}), 409
     body = request.get_json(silent=True) or {}
     enabled = body.get("enabled") is True
-    if not conversion_jobs.set_notify(job_id, _job_token(), enabled):
+    # The browser's UI language for the message; anything unknown becomes English.
+    if not conversion_jobs.set_notify(job_id, _job_token(), enabled, body.get("language")):
         return _job_not_found()
     return "", 204
 

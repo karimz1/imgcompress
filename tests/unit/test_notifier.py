@@ -8,6 +8,8 @@ from backend.image_converter.infrastructure.notifier import (
     build_message,
     clean_public_base_url,
     describe_device,
+    format_duration,
+    resolve_language,
 )
 
 
@@ -181,3 +183,69 @@ def test_runtime_config_reports_notify_on_with_url(monkeypatch):
     body = _runtime_config()
     assert body["NOTIFY_ENABLED"] == "true"
     assert "ntfy" not in str(body)
+
+
+@pytest.mark.parametrize(
+    "seconds, expected",
+    [(0.2, "1 s"), (12, "12 s"), (59.6, "1 min 0 s"), (2855, "47 min 35 s"), (3780, "1 h 3 min"), (7322, "2 h 2 min")],
+)
+def test_format_duration_reads_like_the_done_sheet(seconds, expected):
+    assert format_duration(seconds) == expected
+
+
+def test_message_says_how_long_the_job_took():
+    title, body = build_message(
+        done=True, file_count=1, device="iPhone · Safari", link="https://img.example.com", duration_seconds=2855
+    )
+    assert title == "1 image ready in 47 min 35 s"
+    assert body == "Open imgcompress in Safari on your iPhone to get your result.\nhttps://img.example.com"
+
+
+def test_failed_message_says_after_how_long():
+    title, _ = build_message(done=False, file_count=0, device="Mac · Safari", link=None, duration_seconds=12)
+    assert title == "Conversion failed after 12 s"
+
+
+def test_notify_passes_the_duration_on():
+    sent = []
+    notifier = Notifier("json://localhost", None, _Logger(), send=lambda t, b: sent.append(t) or True)
+    notifier.notify(done=True, file_count=2, device="a browser", duration_seconds=75)
+    assert sent == ["2 images ready in 1 min 15 s"]
+
+
+def test_message_in_german():
+    title, body = build_message(
+        done=True, file_count=1, device="iPhone · Safari", link="https://img.example.com",
+        duration_seconds=2855, language="de",
+    )
+    assert title == "1 Bild fertig in 47 min 35 s"
+    assert body == "Öffne imgcompress in Safari auf deinem iPhone, um dein Ergebnis zu holen.\nhttps://img.example.com"
+
+
+def test_message_in_french_with_hours():
+    title, body = build_message(
+        done=True, file_count=3, device="Windows · Chrome", link=None, duration_seconds=3780, language="fr"
+    )
+    assert title == "3 images prêtes en 1 h 3 min"
+    assert body == "Ouvrez imgcompress dans Chrome sur votre PC Windows pour récupérer vos résultats."
+
+
+@pytest.mark.parametrize("language", ["xx", "de-AT ", None, "", 42, "../../etc"])
+def test_unknown_or_missing_language_falls_back(language):
+    expected = "de" if language == "de-AT " else "en"
+    assert resolve_language(language) == expected
+
+
+@pytest.mark.parametrize("language", ["xx", None])
+def test_unsupported_or_missing_language_gives_english(language):
+    title, _ = build_message(done=True, file_count=1, device="a browser", link=None, duration_seconds=12, language=language)
+    assert title == "1 image ready in 12 s"
+
+
+def test_every_locale_has_a_message():
+    for code in ["en", "de", "fr", "es-MX", "pt-BR", "ru", "ja", "zh-CN", "hi", "hu", "ar"]:
+        assert resolve_language(code) == code
+        title, body = build_message(done=True, file_count=2, device="Mac · Safari", link=None, duration_seconds=75, language=code)
+        assert title and "imgcompress" in body and "{" not in title + body
+        failed, _ = build_message(done=False, file_count=0, device="a browser", link=None, duration_seconds=5, language=code)
+        assert failed and "{" not in failed

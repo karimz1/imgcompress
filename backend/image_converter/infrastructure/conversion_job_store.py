@@ -159,19 +159,22 @@ class ConversionJobStore:
                 state.update(status=FAILED, error=INTERRUPTED_MESSAGE)
         return state
 
-    def set_notify(self, job_id: Optional[str], token: Optional[str], enabled: bool) -> bool:
+    def set_notify(
+        self, job_id: Optional[str], token: Optional[str], enabled: bool, language: str = "en"
+    ) -> bool:
         """
         Saves the "notify me when done" choice for the job's own token. It is a
         file of its own, not a status field, because the worker running the job
-        rewrites status.json and another worker may take this request.
+        rewrites status.json and another worker may take this request. It
+        holds the UI language for the message (an allow-listed locale code).
         """
         if self.read(job_id, token) is None:
             return False
         flag = os.path.join(self._folder(job_id), _NOTIFY_FILE)
         try:
             if enabled:
-                with open(flag, "w", encoding="utf-8"):
-                    pass
+                with open(flag, "w", encoding="utf-8") as f:
+                    f.write(language)
             elif os.path.exists(flag):
                 os.remove(flag)
         except OSError:
@@ -181,6 +184,17 @@ class ConversionJobStore:
     def wants_notify(self, job_id: Optional[str]) -> bool:
         path = self._folder(job_id)
         return path is not None and os.path.isfile(os.path.join(path, _NOTIFY_FILE))
+
+    def notify_language(self, job_id: Optional[str]) -> Optional[str]:
+        """The saved UI language; the notifier checks it against its locales."""
+        path = self._folder(job_id)
+        if path is None:
+            return None
+        try:
+            with open(os.path.join(path, _NOTIFY_FILE), encoding="utf-8") as f:
+                return f.read(32).strip() or None
+        except OSError:
+            return None
 
     def touch(self, job_id: str) -> None:
         """Age-based cleanup counts from the last activity, so a poll restarts the clock."""

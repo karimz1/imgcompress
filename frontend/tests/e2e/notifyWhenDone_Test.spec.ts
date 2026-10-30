@@ -114,7 +114,8 @@ test.describe('Notify me when done', () => {
       await waitDoneAsync(request, mine);
       await expect.poll(() => received.length, { timeout: 30_000 }).toBe(1);
       const [message] = received;
-      expect(message.title).toBe('1 image ready');
+      // Server-side duration, worded like the done sheet.
+      expect(message.title).toMatch(/^1 image ready in (\d+ s|\d+ min \d+ s)$/);
       // Where to open the result (it belongs to this browser). The link comes only from
       // PUBLIC_BASE_URL; CI sets it to https://imgcompress.example (never the request's host).
       expect(message.message).toMatch(/^Open imgcompress in .+ on your .+ to get your result\.\nhttps:\/\/imgcompress\.example$/);
