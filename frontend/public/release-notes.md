@@ -28,7 +28,7 @@
 
 - Job timer: The wait screen shows how long a conversion has been running, and the result says how long it took.
 
-- Notify me when done: Set `NOTIFY_URL` to an Apprise URL, for example your own ntfy server, and a switch shows up while a conversion runs. Turn it on and close the tab: you get one message when it is done, with the number of images and the device, never the file names. Off by default. [Guide](https://github.com/karimz1/imgcompress/blob/main/docker/compose/ntfy.docker-compose.yaml)
+- Notify me when done: Set `NOTIFY_URL` to an Apprise URL, for example your own ntfy server, and a switch shows up while a conversion runs. Turn it on and close the tab: you get one message when it is done, with the number of images and the device, never the file names. Off by default. [Guide](https://imgcompress.karimzouine.com/docs/notifications)
 
 ### Bug Fixes
 

@@ -169,6 +169,12 @@ services:
       # ALL uploaded files. Set IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT=false
       # in .env only if everyone who can reach this host is trusted.
       - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-true}
+      # Optional: "Notify me when done" (opt-in per job, never sends file names).
+      # Default: not set = off. imgcompress-network is internal (no Internet), so
+      # NOTIFY_URL can only reach a service on this network, e.g. an ntfy container
+      # added to imgcompress-network (see ntfy.docker-compose.yaml). Example:
+      # - NOTIFY_URL=ntfy://ntfy/imgcompress
+      # - PUBLIC_BASE_URL=https://${TRAEFIK_DOMAIN_NAME}
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck
