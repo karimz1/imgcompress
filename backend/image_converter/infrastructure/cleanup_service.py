@@ -21,7 +21,17 @@ _ZIP_FOLDER_LABEL = "zip"
 # A job folder that is still locked but has not changed for this long belongs
 # to a hung request. Only age-based cleanup removes it; a forced cleanup never
 # touches a locked folder.
+# A longer result window raises this too, so a job is never cut off before its
+# own results would expire.
 ABANDONED_JOB_SECONDS = 24 * 60 * 60
+# Cleanup runs at least this often, so a long result window does not let the
+# disk fill up between runs.
+CLEANUP_INTERVAL_SECONDS = 60 * 60
+
+
+def cleanup_interval_seconds(max_age_seconds: int) -> int:
+    """How often the scheduler runs: hourly, or sooner for a shorter window."""
+    return min(max_age_seconds, CLEANUP_INTERVAL_SECONDS)
 
 
 class CleanupService:
@@ -112,7 +122,9 @@ class CleanupService:
             if not force and idle_seconds <= self.expiration_time:
                 return Result.success(False)
             acquired, lock_fd = job_folder_lock.try_exclusive(dir_path)
-            if not acquired and (force or idle_seconds <= ABANDONED_JOB_SECONDS):
+            if not acquired and (
+                force or idle_seconds <= max(ABANDONED_JOB_SECONDS, self.expiration_time)
+            ):
                 self.logger.log(f"Kept temp folder of a running job: {dir_path}", "info")
                 return Result.success(False)
             try:

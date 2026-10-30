@@ -217,3 +217,48 @@ def test_use_folder_keeps_cleanup_away_while_reading(tmp_path):
 
     _cleanup(tmp_path).cleanup_temp_folders(force=True)
     assert not folder.exists()
+
+
+HOUR = 60 * 60
+
+
+def _shipped_cleanup(tmp_path):
+    from backend.image_converter.config import settings
+
+    settings.reset_cache()
+    try:
+        max_age = settings.get().temporary_storage.max_age_seconds
+    finally:
+        settings.reset_cache()
+    return _cleanup(tmp_path, expiration_time=max_age)
+
+
+def test_shipped_cleanup_keeps_a_result_finished_23_hours_ago(tmp_path):
+    folder = _job_folder(tmp_path, age_seconds=23 * HOUR)
+    _shipped_cleanup(tmp_path).cleanup_temp_folders()
+    assert folder.is_dir()
+
+
+def test_shipped_cleanup_removes_a_result_finished_49_hours_ago(tmp_path):
+    folder = _job_folder(tmp_path, age_seconds=49 * HOUR)
+    summary = _shipped_cleanup(tmp_path).cleanup_temp_folders().value
+    assert not folder.exists()
+    assert _deleted_paths(summary) == {str(folder)}
+
+
+def test_shipped_cleanup_keeps_a_running_job_past_the_result_window(tmp_path):
+    folder = _job_folder(tmp_path, age_seconds=30 * HOUR)
+    fd = job_folder_lock.hold_shared(str(folder))
+    try:
+        _shipped_cleanup(tmp_path).cleanup_temp_folders()
+        assert folder.is_dir()
+    finally:
+        job_folder_lock.release(fd)
+
+
+@pytest.mark.parametrize(
+    ("max_age", "interval"),
+    [(48 * HOUR, HOUR), (HOUR, HOUR), (600, 600)],
+)
+def test_cleanup_runs_at_least_hourly(max_age, interval):
+    assert cleanup_module.cleanup_interval_seconds(max_age) == interval
