@@ -3,7 +3,6 @@ import path from 'path';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import sharp from 'sharp';
 import {
-  clearStorageManagerAsync,
   clickConversionButtonAsync,
   setOutputFormatAsync,
   setUpscaleAsync,
@@ -15,6 +14,7 @@ import {
  * switch must not exist. With NOTIFY_URL=json://127.0.0.1:5199/notify (CI
  * feature-flags entry "notify") the app posts to the capture server below,
  * a stand-in for ntfy: exactly one message for the opted-in job, none for others.
+ * It also runs in the storage-HIDDEN entries, so it must not use the storage API.
  */
 
 const PHOTO = path.resolve(__dirname, 'fixtures/sample-images', 'pexels-willianjusten-29944187.jpg');
@@ -54,10 +54,6 @@ async function waitDoneAsync(request: APIRequestContext, job: { id: string; toke
 }
 
 test.describe('Notify me when done', () => {
-  test.beforeEach(async ({ request }) => {
-    await clearStorageManagerAsync(request);
-  });
-
   test('the switch is hidden when the server has no NOTIFY_URL', async ({ page, request }) => {
     test.skip(await notifyEnabledAsync(request), 'NOTIFY_URL is set in this run');
     // Hold the polls so the splash stays up long enough to look at it.
