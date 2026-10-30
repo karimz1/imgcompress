@@ -254,6 +254,45 @@ test.describe('AI upscaling', () => {
     expect(pixels[0].equals(pixels[2])).toBe(true);
   });
 
+  test('lets General keep more detail with less noise reduction', async ({ page }) => {
+    // A noisy photo crop: the presets differ in how much of the grain they smooth away.
+    const source = await sharp(SKYLINE_PHOTO).resize(160, 90, { fit: 'cover' }).jpeg({ quality: 40 }).toBuffer();
+    const sent: string[] = [];
+    await page.route('**/api/jobs', async (route) => {
+      const body = route.request().postDataBuffer()?.toString('latin1') ?? '';
+      const match = /name="upscale_model"\r\n\r\n([^\r]+)/.exec(body);
+      if (match) sent.push(match[1]);
+      await route.continue();
+    });
+    const outputs: Buffer[] = [];
+    for (const [index, level] of (['strong', 'low'] as const).entries()) {
+      const photo = new ImageFileDto(`grain-${index}.jpg`);
+      await page.goto('/');
+      await setOutputFormatAsync(page, 'PNG');
+      await uploadGeneratedImageToDropzoneAsync(page, photo.fileName, 'image/jpeg', source);
+      await setUpscaleAsync(page, '4x');
+      const strong = page.getByTestId('upscale-denoise-option-strong');
+      await expect(strong).toHaveAttribute('aria-checked', 'true');
+      await expect(page.getByTestId('upscale-denoise-hint')).toHaveText('Lower keeps more fine detail, and more noise.');
+      if (level === 'low') {
+        await page.getByTestId('upscale-denoise-option-low').click();
+        await expect(page.getByTestId('upscale-denoise-option-low')).toHaveAttribute('aria-checked', 'true');
+      }
+      const output = await convertAndDownloadSingleAsync(page, photo, '.png');
+      outputs.push(await sharp(output).raw().toBuffer());
+    }
+    expect(sent).toEqual(['general', 'general-denoise-low']);
+    expect(outputs[0].equals(outputs[1])).toBe(false);
+
+    // Anime has no noise setting.
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'PNG');
+    await setUpscaleAsync(page, '2x');
+    await expect(page.getByTestId('upscale-denoise-group')).toBeVisible();
+    await page.getByTestId('upscale-model-option-anime').click();
+    await expect(page.getByTestId('upscale-denoise-group')).toHaveCount(0);
+  });
+
   test('marks an uninstalled anime model unavailable', async ({ page }) => {
     await page.route('**/api/upscale_model', (route) => route.fulfill({ json: {
       models: [

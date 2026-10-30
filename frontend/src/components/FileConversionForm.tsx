@@ -33,7 +33,8 @@ import { CropDialog } from "@/components/crop/CropDialog";
 import { clampCrop, CropConfig, isCropableFile, isCropUnsupportedFile, isSvgFile } from "@/lib/crop";
 import {
   UPSCALE_TARGETS, UPSCALE_MODELS, UPSCALE_TARGET_SHORT, toUpscaleTarget,
-  type UpscaleSettings, type UpscaleModelStatus, type UpscaleModel,
+  type UpscaleSettings, type UpscaleModelStatus, type UpscaleModel, type UpscaleDenoise,
+  UPSCALE_DENOISE_LEVELS, upscaleModelParam,
 } from "@/lib/upscale";
 import { isLargeUpscaleTarget, planUpscale, type PixelSize, type UpscalePlan } from "@/lib/upscalePlan";
 import { useMaxOutputMegapixels } from "@/lib/upscaleLimit";
@@ -1000,6 +1001,15 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                   isDarkTheme={isDarkTheme}
                 />
               )}
+              {!onlySvgFiles && upscale.model === "general" && (
+                <UpscaleDenoiseOptions
+                  value={upscale.denoise}
+                  onChange={(denoise) => setUpscale({ ...upscale, denoise })}
+                  models={upscaleModels}
+                  disabled={isLoading}
+                  isDarkTheme={isDarkTheme}
+                />
+              )}
               <div className="space-y-1.5">
                 <Label htmlFor="upscaleTarget" className="text-sm">
                   {t(onlySvgFiles ? "form.upscale.vectorTargetLabel" : "form.upscale.targetLabel")}
@@ -1219,6 +1229,82 @@ function UpscaleModelCards({ value, onChange, models, disabled, isDarkTheme }: U
           );
         })}
       </div>
+    </div>
+  );
+}
+
+interface UpscaleDenoiseOptionsProps {
+  value: UpscaleDenoise;
+  onChange: (denoise: UpscaleDenoise) => void;
+  models: UpscaleModelStatus[];
+  disabled: boolean;
+  isDarkTheme: boolean;
+}
+
+/** Noise reduction for the General model: Strong (as released), Medium, Low. Same speed. */
+function UpscaleDenoiseOptions({ value, onChange, models, disabled, isDarkTheme }: UpscaleDenoiseOptionsProps) {
+  const { t } = useTranslation();
+  const isAvailable = (level: UpscaleDenoise) =>
+    models.some((status) => status.id === upscaleModelParam({ model: "general", denoise: level }) && status.available);
+  const levels = UPSCALE_DENOISE_LEVELS.filter(isAvailable);
+  if (levels.length < 2) return null;
+  const onKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const next = levels[(levels.indexOf(value) + step + levels.length) % levels.length];
+    onChange(next);
+    event.currentTarget.parentElement?.querySelector<HTMLButtonElement>(`[data-denoise="${next}"]`)?.focus();
+  };
+  return (
+    <div className="space-y-1.5">
+      <Label id="upscale-denoise-label" className="text-sm">
+        {t("form.upscale.denoiseLabel")}
+      </Label>
+      <div
+        role="radiogroup"
+        aria-labelledby="upscale-denoise-label"
+        aria-describedby="upscale-denoise-hint"
+        className="grid grid-cols-3 gap-2"
+        data-testid="upscale-denoise-group"
+      >
+        {levels.map((level) => {
+          const selected = value === level;
+          return (
+            <button
+              key={level}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              tabIndex={selected ? 0 : -1}
+              disabled={disabled}
+              onClick={() => onChange(level)}
+              onKeyDown={onKeyDown}
+              data-denoise={level}
+              data-testid={`upscale-denoise-option-${level}`}
+              className={cn(
+                "min-h-9 rounded-md border px-2 py-1.5 text-sm font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                selected
+                  ? "border-blue-500 bg-blue-500/10 ring-1 ring-blue-500/50"
+                  : isDarkTheme
+                    ? "border-gray-700 bg-gray-800 hover:border-gray-500"
+                    : "border-slate-300 bg-white hover:border-slate-400"
+              )}
+            >
+              {t(`form.upscale.denoise.${level}`)}
+            </button>
+          );
+        })}
+      </div>
+      <p
+        id="upscale-denoise-hint"
+        className={cn("text-xs", isDarkTheme ? "text-gray-400" : "text-slate-600")}
+        data-testid="upscale-denoise-hint"
+      >
+        {t("form.upscale.denoiseHint")}
+      </p>
     </div>
   );
 }

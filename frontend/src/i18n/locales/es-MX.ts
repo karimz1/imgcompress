@@ -178,6 +178,13 @@ export const esMX: TranslationSchema = {
         general: "Fotos e imágenes mixtas",
         anime: "Dibujos, anime, logotipos",
       },
+      denoiseLabel: "Reducción de ruido",
+      denoise: {
+        strong: "Fuerte",
+        medium: "Media",
+        low: "Baja",
+      },
+      denoiseHint: "Más baja conserva más detalle fino, y más ruido.",
       label: "Ampliación con IA",
       tooltip:
         "La IA incluida agranda las imágenes y mantiene nítidos los bordes y los detalles pequeños. No hay nada que instalar y funciona sin internet.\nTarda un rato y las caras pueden mostrar pequeños defectos.",

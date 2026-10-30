@@ -178,6 +178,13 @@ export const zhCN: TranslationSchema = {
         general: "照片和混合图像",
         anime: "绘画、动漫、标志",
       },
+      denoiseLabel: "降噪",
+      denoise: {
+        strong: "强",
+        medium: "中",
+        low: "弱",
+      },
+      denoiseHint: "越弱保留的细节越多，噪点也越多。",
       label: "AI 放大",
       tooltip:
         "内置 AI 会把图片变大，并让边缘和小细节保持清晰。无需安装，没有网络也能用。\n需要一些时间，人脸上可能出现小瑕疵。",

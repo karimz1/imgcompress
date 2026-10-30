@@ -178,6 +178,13 @@ export const de: TranslationSchema = {
         general: "Fotos und gemischte Bilder",
         anime: "Zeichnungen, Anime, Logos",
       },
+      denoiseLabel: "Rauschunterdrückung",
+      denoise: {
+        strong: "Stark",
+        medium: "Mittel",
+        low: "Gering",
+      },
+      denoiseHint: "Geringer behält mehr feine Details, aber auch mehr Rauschen.",
       label: "KI-Hochskalierung",
       tooltip:
         "Die eingebaute KI macht Bilder größer und hält Kanten und kleine Details scharf. Nichts zu installieren, und sie funktioniert ohne Internet.\nEs dauert eine Weile, und Gesichter können kleine Fehler zeigen.",

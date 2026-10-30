@@ -175,6 +175,13 @@ export const en = {
         general: "Photos and mixed images",
         anime: "Drawings, anime, logos",
       },
+      denoiseLabel: "Noise reduction",
+      denoise: {
+        strong: "Strong",
+        medium: "Medium",
+        low: "Low",
+      },
+      denoiseHint: "Lower keeps more fine detail, and more noise.",
       label: "AI upscaling",
       tooltip:
         "The built-in AI makes images bigger and keeps edges and small details sharp. Nothing to install, and it works without internet.\nIt takes a while, and faces may show small flaws.",

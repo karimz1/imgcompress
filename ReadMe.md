@@ -107,7 +107,7 @@ Edit images right in the browser before you convert them. Everything is rendered
 
 ## AI image upscaling
 
-Make small photos and drawings bigger and sharper, up to 16K. The AI is already built in: just switch it on. Pick **General** for photos or **Anime** for drawings, anime and logos. It runs on your server's CPU, so no graphics card is needed, and nothing is uploaded. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
+Make small photos and drawings bigger and sharper, up to 16K. The AI is already built in: just switch it on. Pick **General** for photos or **Anime** for drawings, anime and logos. For photos, set **Noise reduction** to Medium or Low to keep more fine detail (and more noise), at the same speed. It runs on your server's CPU, so no graphics card is needed, and nothing is uploaded. **[Guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)**
 
 **Original vs. AI upscaled (Anime):** the same spot at the same size. Left: the original, just enlarged. Right: AI upscaling (Anime), done by the AI built into ImgCompress, inside your own container. Nothing is uploaded, your images never leave your server.
 

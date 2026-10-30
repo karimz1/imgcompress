@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UPSCALE_MODELS, UPSCALE_MODEL_NAMES, type UpscaleModelStatus } from "@/lib/upscale";
+import { UPSCALE_MODEL_IDS, UPSCALE_MODEL_ID_NAMES, type UpscaleModelStatus } from "@/lib/upscale";
 
 interface UseUpscaleModelResult {
   models: UpscaleModelStatus[];
@@ -22,11 +22,11 @@ export function useUpscaleModel(): UseUpscaleModelResult {
         }
         const data = await res.json();
         const statuses = Array.isArray(data.models) ? data.models : [];
-        setModels(UPSCALE_MODELS.map((id) => {
+        setModels(UPSCALE_MODEL_IDS.map((id) => {
           const status = statuses.find((item: { id?: unknown } | null) => item?.id === id);
           return {
             id,
-            modelName: typeof status?.model_name === "string" ? status.model_name : UPSCALE_MODEL_NAMES[id],
+            modelName: typeof status?.model_name === "string" ? status.model_name : UPSCALE_MODEL_ID_NAMES[id],
             available: status?.available === true,
           };
         }));

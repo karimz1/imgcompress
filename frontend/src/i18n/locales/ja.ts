@@ -178,6 +178,13 @@ export const ja: TranslationSchema = {
         general: "写真や混在した画像",
         anime: "イラスト、アニメ、ロゴ",
       },
+      denoiseLabel: "ノイズ除去",
+      denoise: {
+        strong: "強",
+        medium: "中",
+        low: "弱",
+      },
+      denoiseHint: "弱いほど細部が残りますが、ノイズも残ります。",
       label: "AIアップスケール",
       tooltip:
         "組み込みの AI が画像を大きくし、輪郭や細かい部分をくっきり保ちます。インストールは不要で、インターネットなしで動きます。\n時間がかかり、顔に小さな乱れが出ることがあります。",

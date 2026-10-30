@@ -178,6 +178,13 @@ export const hu: TranslationSchema = {
         general: "Fényképek és vegyes képek",
         anime: "Rajzok, anime, logók",
       },
+      denoiseLabel: "Zajcsökkentés",
+      denoise: {
+        strong: "Erős",
+        medium: "Közepes",
+        low: "Gyenge",
+      },
+      denoiseHint: "A gyengébb több finom részletet és több zajt is megtart.",
       label: "MI-felskálázás",
       tooltip:
         "A beépített MI nagyobbá teszi a képeket, és élesen tartja a széleket és az apró részleteket. Semmit nem kell telepíteni, és internet nélkül is működik.\nEltart egy ideig, és az arcokon apró hibák jelenhetnek meg.",

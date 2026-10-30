@@ -178,6 +178,13 @@ export const ptBR: TranslationSchema = {
         general: "Fotos e imagens mistas",
         anime: "Desenhos, anime, logotipos",
       },
+      denoiseLabel: "Redução de ruído",
+      denoise: {
+        strong: "Forte",
+        medium: "Média",
+        low: "Baixa",
+      },
+      denoiseHint: "Mais baixa mantém mais detalhes finos, e mais ruído.",
       label: "Ampliação com IA",
       tooltip:
         "A IA incluída deixa as imagens maiores e mantém bordas e pequenos detalhes nítidos. Nada para instalar, e funciona sem internet.\nDemora um pouco, e rostos podem mostrar pequenas falhas.",

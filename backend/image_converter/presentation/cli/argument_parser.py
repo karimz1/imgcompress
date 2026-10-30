@@ -41,7 +41,10 @@ def parse_arguments(argv=None) -> argparse.Namespace:
         "--upscale-model",
         choices=[model.value for model in UpscaleModel],
         default=UpscaleModel.GENERAL.value,
-        help="AI model for --upscale: general for photos, anime for drawn images (default: general).",
+        help=(
+            "AI model for --upscale: general for photos, anime for drawn images (default: general). "
+            "general-denoise-medium and general-denoise-low reduce less noise and keep more fine detail."
+        ),
     )
     parser.add_argument(
         "--fit",
