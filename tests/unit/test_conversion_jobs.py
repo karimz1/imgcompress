@@ -7,6 +7,7 @@ must stay invisible: wrong token, missing token and unknown id look the same.
 
 import json
 import os
+import re
 import threading
 import time
 from io import BytesIO
@@ -404,7 +405,8 @@ def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(set
     setup.wait_done()
     assert len(setup.sent) == 1
     title, body = setup.sent[0]
-    assert title == "1 image ready"
+    # Server-side duration, worded like the done sheet; no language sent means English.
+    assert re.fullmatch(r"1 image ready in \d+ s", title)
     assert body == "Open imgcompress in Safari on your iPhone to get your result.\nhttps://img.example.com"
     assert "secret-holiday" not in title + body
     assert setup.status(job_id, token).get_json()["notify"] is True
@@ -454,7 +456,7 @@ def test_When_ConversionFails_Expect_OptedInJobStillNotifies(setup):
     _opt_in(setup, job_id, token)
     setup.use_case.release.set()
     setup.wait_done()
-    assert [title for title, _ in setup.sent] == ["Conversion failed"]
+    assert [re.sub(r" after \d+ s$", "", title) for title, _ in setup.sent] == ["Conversion failed"]
 
 
 def test_When_NotifierCrashes_Expect_JobIsStillDone(setup, monkeypatch):
@@ -492,4 +494,25 @@ def test_When_RequestClaimsAnotherHost_Expect_TheMessageNeverUsesIt(setup, monke
     assert response.status_code == 204
     setup.use_case.release.set()
     setup.wait_done()
-    assert setup.sent == [("1 image ready", "Open imgcompress in Safari on your iPhone to get your result.")]
+    assert [(re.sub(r" in \d+ s$", "", t), b) for t, b in setup.sent] == [
+        ("1 image ready", "Open imgcompress in Safari on your iPhone to get your result.")
+    ]
+
+
+@pytest.mark.parametrize(
+    "language, title, body",
+    [
+        ("de", r"1 Bild fertig in \d+ s", "Öffne imgcompress in Safari auf deinem iPhone, um dein Ergebnis zu holen."),
+        ("ja", r"1 枚の画像が完成（\d+ 秒）", "iPhone の Safariで imgcompress を開いて結果を受け取ってください。"),
+        ("tlh", r"1 image ready in \d+ s", "Open imgcompress in Safari on your iPhone to get your result."),
+    ],
+)
+def test_When_UserOptsInWithALanguage_Expect_TheMessageInIt_OrEnglish(setup, language, title, body):
+    setup.use_case.release.clear()
+    job_id, token = _started(setup, user_agent=IPHONE_UA)
+    assert _opt_in(setup, job_id, token, extra={"language": language}).status_code == 204
+    setup.use_case.release.set()
+    setup.wait_done()
+    [(sent_title, sent_body)] = setup.sent
+    assert re.fullmatch(title, sent_title)
+    assert sent_body.split("\n")[0] == body
