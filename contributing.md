@@ -11,6 +11,7 @@ I built **ImgCompress** to end the "software loop" of cloud-based converters. Wh
 If you want to see how "imgcompress" works or help build the next feature:
 * **Zero-Config Dev**: I provide a **Dev Container** setup for VS Code. It comes pre-configured with all 70+ image libraries and the AI environment so you can start coding in seconds.
 * **Pro-Grade Testing**: Stability is my priority. Every change is verified by a strict suite of **[Playwright E2E tests](https://imgcompress.karimzouine.com/docs/e2e)** to ensure offline privacy stays intact.
+* **Architecture**: [docs/architecture.md](docs/architecture.md) shows how a conversion runs, with diagrams.
 * **Join the Roadmap**: Check the [Issue Tracker](https://github.com/karimz1/imgcompress/issues) for `good-first-issue` labels or to suggest a new feature.
 
 ### 📖 Official Documentation

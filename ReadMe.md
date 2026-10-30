@@ -279,6 +279,7 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 > **New contributor?** The project ships a **VS Code Dev Container** with all 70+ image libraries and the AI environment pre-configured. Working local setup in under a minute. See the [Developer Guide](https://imgcompress.karimzouine.com/docs/developers).
 
 - Read the **[Contributing Guide](contributing.md)** before opening a PR
+- See the **[Architecture overview](docs/architecture.md)** for how jobs, storage and cleanup fit together
 - Browse [`good-first-issue`](https://github.com/karimz1/imgcompress/labels/good-first-issue) labels for a starting point
 - Every change runs a Playwright E2E suite; 49 of the 71 input formats pass automated conversion tests
 - Maintainers: [release workflow](https://imgcompress.karimzouine.com/docs/release-workflow), [build details](https://imgcompress.karimzouine.com/docs/build-details) and [CI feature flags](https://imgcompress.karimzouine.com/docs/ci-feature-flags)
