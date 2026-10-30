@@ -17,6 +17,7 @@ from PIL import Image
 
 from backend.image_converter.application.dtos import CompressResult
 from backend.image_converter.infrastructure import job_progress
+from backend.image_converter.infrastructure.notifier import Notifier
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.infrastructure.conversion_job_store import (
     INTERRUPTED_MESSAGE,
@@ -80,7 +81,16 @@ def setup(tmp_path, monkeypatch):
         threads.append(thread)
         thread.start()
 
-    jobs = ConversionJobService(logger, compression, ConversionJobStore(str(tmp_path)), start_thread=start_thread)
+    sent = []
+
+    def fake_send(title, body):
+        sent.append((title, body))
+        return True
+
+    notifier = Notifier(url="json://fake", base_url="https://img.example.com", logger=logger, send=fake_send)
+    jobs = ConversionJobService(
+        logger, compression, ConversionJobStore(str(tmp_path)), start_thread=start_thread, notifier=notifier
+    )
     monkeypatch.setattr(routes, "temp_folder_service", folders)
     monkeypatch.setattr(routes, "compression_service", compression)
     monkeypatch.setattr(routes, "conversion_jobs", jobs)
@@ -95,12 +105,15 @@ def setup(tmp_path, monkeypatch):
             self.tmp_path = tmp_path
             self.logger = logger
             self.use_case = use_case
+            self.sent = sent
+            self.notifier = notifier
 
-        def start(self, name="photo.png"):
+        def start(self, name="photo.png", user_agent=None):
             response = self.client.post(
                 "/api/jobs",
                 data={"files[]": (BytesIO(_png()), name), "format": "jpeg"},
                 content_type="multipart/form-data",
+                headers={"User-Agent": user_agent} if user_agent else {},
             )
             return response
 
@@ -115,8 +128,8 @@ def setup(tmp_path, monkeypatch):
     return Setup()
 
 
-def _started(setup, name="photo.png"):
-    response = setup.start(name)
+def _started(setup, name="photo.png", user_agent=None):
+    response = setup.start(name, user_agent=user_agent)
     assert response.status_code == 202, response.get_json()
     body = response.get_json()
     return body["id"], body["token"]
@@ -370,3 +383,98 @@ def test_When_ManyJobsRunAndArePolledAtOnce_Expect_EveryReadReturnsOnlyItsOwnCom
     assert problems == []
     assert len({job.job_id for job in jobs}) == count
     assert len({job.token for job in jobs}) == count
+
+
+IPHONE_UA = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1"
+)
+
+
+def _opt_in(setup, job_id, token, enabled=True):
+    return setup.client.post(
+        f"/api/jobs/{job_id}/notify", json={"enabled": enabled}, headers={"X-Job-Token": token}
+    )
+
+
+def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(setup):
+    setup.use_case.release.clear()
+    job_id, token = _started(setup, "secret-holiday.png", user_agent=IPHONE_UA)
+    assert _opt_in(setup, job_id, token).status_code == 204
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert len(setup.sent) == 1
+    title, body = setup.sent[0]
+    assert title == "1 image ready"
+    assert "iPhone · Safari" in body and "https://img.example.com" in body
+    assert "secret-holiday" not in title + body
+    assert setup.status(job_id, token).get_json()["notify"] is True
+
+
+def test_When_UserDoesNotOptIn_Expect_NoNotification(setup):
+    _started(setup)
+    setup.wait_done()
+    assert setup.sent == []
+
+
+def test_When_UserOptsInAndOut_Expect_NoNotification(setup):
+    setup.use_case.release.clear()
+    job_id, token = _started(setup)
+    _opt_in(setup, job_id, token, True)
+    assert _opt_in(setup, job_id, token, False).status_code == 204
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert setup.sent == []
+
+
+def test_When_OnlyOneOfTwoJobsOptsIn_Expect_OnlyThatJobNotifies(setup):
+    setup.use_case.release.clear()
+    mine, my_token = _started(setup)
+    _started(setup, "other.png")
+    _opt_in(setup, mine, my_token)
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert len(setup.sent) == 1
+
+
+def test_When_OptInUsesAnotherJobsToken_Expect_404AndNoNotification(setup):
+    setup.use_case.release.clear()
+    job_a, _ = _started(setup)
+    _, token_b = _started(setup)
+    assert _opt_in(setup, job_a, token_b).status_code == 404
+    assert _opt_in(setup, job_a, "guess").status_code == 404
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert setup.sent == []
+
+
+def test_When_ConversionFails_Expect_OptedInJobStillNotifies(setup):
+    setup.use_case.fail = True
+    setup.use_case.release.clear()
+    job_id, token = _started(setup)
+    _opt_in(setup, job_id, token)
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert [title for title, _ in setup.sent] == ["Conversion failed"]
+
+
+def test_When_NotifierCrashes_Expect_JobIsStillDone(setup, monkeypatch):
+    def boom(title, body):
+        raise RuntimeError("down")
+
+    monkeypatch.setattr(setup.notifier, "_send", boom)
+    setup.use_case.release.clear()
+    job_id, token = _started(setup)
+    _opt_in(setup, job_id, token)
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert setup.status(job_id, token).get_json()["status"] == "done"
+
+
+def test_When_NotificationsAreOff_Expect_OptInIsRefused(setup, monkeypatch):
+    monkeypatch.setattr(setup.notifier, "url", None)
+    setup.use_case.release.clear()
+    job_id, token = _started(setup)
+    assert _opt_in(setup, job_id, token).status_code == 409
+    setup.use_case.release.set()
+    setup.wait_done()

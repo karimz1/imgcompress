@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, send_from_directory, abort, current_app
 from werkzeug.security import safe_join
 
 from backend.image_converter.config import settings
+from backend.image_converter.infrastructure.notifier import NOTIFY_URL_ENV
 
 static_blueprint = Blueprint("static_blueprint", __name__)
 
@@ -21,6 +22,8 @@ def serve_runtime_config():
         "DEV_MODE": _flag(features.is_dev_mode_enabled),
         "MAX_UPLOAD_SIZE_MB": str(config.uploads.max_file_size_mebibytes),
         "MAX_OUTPUT_MEGAPIXELS": str(config.upscaling.max_output_megapixels),
+        # Only whether it is on; the URL often holds a secret token.
+        "NOTIFY_ENABLED": _flag(bool(os.environ.get(NOTIFY_URL_ENV, "").strip())),
     })
 
 

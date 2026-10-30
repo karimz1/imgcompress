@@ -46,6 +46,7 @@ export const esMX: TranslationSchema = {
     progressFiles: "{{done}} de {{total}} archivos listos",
     waitingForUpscale: "Esperando a que termine otra ampliación…",
     elapsed: "Tiempo: {{time}}",
+    notify: "Avísame cuando termine",
     messages: [
       "Comprimiendo tus archivos…",
       "Optimizando calidad y tamaño.",

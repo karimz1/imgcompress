@@ -44,6 +44,7 @@ export const en = {
     progressFiles: "{{done}} of {{total}} files done",
     waitingForUpscale: "Waiting for another upscale to finish…",
     elapsed: "Elapsed {{time}}",
+    notify: "Notify me when done",
     messages: [
       "Compressing your files…",
       "Optimizing quality and size.",

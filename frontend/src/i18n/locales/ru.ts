@@ -46,6 +46,7 @@ export const ru: TranslationSchema = {
     progressFiles: "Готово файлов: {{done}} из {{total}}",
     waitingForUpscale: "Ждём, пока закончится другое увеличение…",
     elapsed: "Прошло {{time}}",
+    notify: "Уведомить, когда будет готово",
     messages: [
       "Сжимаю ваши файлы…",
       "Оптимизирую качество и размер.",

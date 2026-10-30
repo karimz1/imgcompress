@@ -46,6 +46,7 @@ export const de: TranslationSchema = {
     progressFiles: "{{done}} von {{total}} Dateien fertig",
     waitingForUpscale: "Wartet, bis ein anderes Hochskalieren fertig ist…",
     elapsed: "Läuft seit {{time}}",
+    notify: "Benachrichtige mich, wenn fertig",
     messages: [
       "Deine Dateien werden komprimiert…",
       "Qualität und Größe werden optimiert.",

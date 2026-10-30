@@ -46,6 +46,7 @@ export const ptBR: TranslationSchema = {
     progressFiles: "{{done}} de {{total}} arquivos prontos",
     waitingForUpscale: "Aguardando outra ampliação terminar…",
     elapsed: "Tempo: {{time}}",
+    notify: "Avise-me quando terminar",
     messages: [
       "Comprimindo seus arquivos…",
       "Otimizando qualidade e tamanho.",

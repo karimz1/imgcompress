@@ -13,3 +13,4 @@ CairoSVG==2.9.1
 rembg==2.0.75
 onnxruntime==1.26.0
 fpdf2==2.8.9
+apprise==2.1.0

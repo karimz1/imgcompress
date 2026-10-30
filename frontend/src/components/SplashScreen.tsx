@@ -6,6 +6,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 import { formatClock, type JobProgress } from "@/lib/conversionJob";
 
 interface SplashScreenProps {
@@ -16,6 +17,8 @@ interface SplashScreenProps {
   progress?: JobProgress | null;
   /** When the job started, in this browser's clock (ms); drives the live timer. */
   startedAt?: number | null;
+  /** "Notify me when done"; null hides it (not configured on this server). */
+  notify?: { checked: boolean; onChange: (checked: boolean) => void } | null;
 }
 
 
@@ -44,6 +47,7 @@ export function SplashScreen({
   disableLogo = false,
   progress = null,
   startedAt = null,
+  notify = null,
 }: SplashScreenProps) {
   const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
@@ -309,6 +313,20 @@ export function SplashScreen({
                 <p className="text-sm text-gray-300 -mt-4 tabular-nums" data-testid="job-elapsed">
                   {t("splash.elapsed", { time: formatClock((now - startedAt) / 1000) })}
                 </p>
+              )}
+              {notify && (
+                <label
+                  htmlFor="notifyWhenDone"
+                  className="-mt-2 flex items-center gap-3 text-sm text-gray-200 cursor-pointer"
+                >
+                  <Switch
+                    id="notifyWhenDone"
+                    data-testid="notify-switch"
+                    checked={notify.checked}
+                    onCheckedChange={notify.onChange}
+                  />
+                  {t("splash.notify")}
+                </label>
               )}
               {progressText && (
                 <p className="text-sm text-gray-300 -mt-4" data-testid="job-progress" aria-live="polite">

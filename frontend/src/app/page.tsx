@@ -38,6 +38,7 @@ import {
   jobStartedAtLocal,
   loadActiveJob,
   saveActiveJob,
+  setJobNotify,
   waitForJob,
 } from "@/lib/conversionJob";
 import { SplashScreen } from "@/components/SplashScreen";
@@ -63,6 +64,11 @@ function HomePageContent() {
   const [configReady, setConfigReady] = useState(false);
   const [storageManagementDisabled, setStorageManagementDisabled] = useState(false);
   const [devMode, setDevMode] = useState(false);
+  const [notifyAvailable, setNotifyAvailable] = useState(false);
+  // The job the splash screen follows, and its "notify me when done" switch.
+  const [followedJob, setFollowedJob] = useState<JobRef | null>(null);
+  const [notifyOn, setNotifyOn] = useState(false);
+  const notifyTouched = React.useRef(false);
 
   useEffect(() => {
     const loadRuntimeConfig = async () => {
@@ -77,6 +83,7 @@ function HomePageContent() {
         setDevMode(config.DEV_MODE === "true");
         setMaxUploadSizeMb(config.MAX_UPLOAD_SIZE_MB);
         setMaxOutputMegapixels(config.MAX_OUTPUT_MEGAPIXELS);
+        setNotifyAvailable(config.NOTIFY_ENABLED === "true");
       } catch (err) {
         console.warn("Runtime config missing or invalid, defaulting flags off", err);
         setDisableLogo(false);
@@ -304,6 +311,9 @@ function HomePageContent() {
       setJobProgress({});
       setJobStartedAt(null);
       setJobDuration(null);
+      setFollowedJob(job);
+      setNotifyOn(false);
+      notifyTouched.current = false;
       let state;
       try {
         state = await waitForJob(
@@ -312,6 +322,8 @@ function HomePageContent() {
             setJobProgress(s.progress ?? {});
             const startedAt = jobStartedAtLocal(s);
             if (startedAt !== null) setJobStartedAt((prev) => prev ?? startedAt);
+            // After a reload the server knows the earlier choice.
+            if (!notifyTouched.current) setNotifyOn(s.notify === true);
           },
           controller.signal
         );
@@ -684,6 +696,16 @@ function HomePageContent() {
     }
   }, []);
 
+  const handleNotifyChange = useCallback(
+    async (checked: boolean) => {
+      if (!followedJob) return;
+      notifyTouched.current = true;
+      setNotifyOn(checked);
+      if (!(await setJobNotify(followedJob, checked))) setNotifyOn(!checked);
+    },
+    [followedJob]
+  );
+
   return (
     <div className={cn("min-h-screen flex flex-col transition-colors", backgroundClass)}>
       <SplashScreen
@@ -691,6 +713,7 @@ function HomePageContent() {
         onAbort={handleAbort}
         progress={jobProgress}
         startedAt={jobStartedAt}
+        notify={notifyAvailable && followedJob ? { checked: notifyOn, onChange: handleNotifyChange } : null}
         disableLogo={configReady ? disableLogo : false}
       />
       <BackendStatusBanner backendDown={isDown} />

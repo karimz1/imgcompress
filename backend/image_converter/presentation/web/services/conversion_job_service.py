@@ -20,6 +20,7 @@ from backend.image_converter.infrastructure.conversion_job_store import (
     ConversionJobStore,
     RunningJob,
 )
+from backend.image_converter.infrastructure.notifier import Notifier, describe_device
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 from backend.image_converter.presentation.web.services.compression_service import (
     CompressionService,
@@ -41,13 +42,15 @@ class ConversionJobService:
         compression_service: CompressionService,
         store: ConversionJobStore,
         start_thread: Callable[[Callable[[], None]], None] = _start_thread,
+        notifier: Optional[Notifier] = None,
     ):
+        self.notifier = notifier
         self.logger = logger
         self.compression_service = compression_service
         self.store = store
         self._start_thread = start_thread
 
-    def start(self, form_data: CompressionFormData) -> Result[dict]:
+    def start(self, form_data: CompressionFormData, user_agent: Optional[str] = None) -> Result[dict]:
         """Saves the uploads and starts the job. Fails at once for invalid options."""
         prepared = self.compression_service.prepare(form_data)
         if not prepared.is_successful:
@@ -57,6 +60,8 @@ class ConversionJobService:
                 progress={"files_done": 0, "files_total": prepared.value.file_count},
                 # Server-side only: results are served from here, never from a client path.
                 dest_folder=prepared.value.dest.path,
+                # Only "iPhone · Safari" and the like, for the notification.
+                device=describe_device(user_agent),
             )
         except Exception:
             self.logger.log(f"Could not create conversion job: {traceback.format_exc()}", "error")
@@ -84,7 +89,14 @@ class ConversionJobService:
             # default) after the last look, so someone who comes back later
             # still finds them; every poll restarts that clock.
             TemporaryFolderService.mark_activity(state["dest_folder"])
-        return _public_view(state)
+        return {**_public_view(state), "notify": self.store.wants_notify(job_id)}
+
+    @property
+    def notify_enabled(self) -> bool:
+        return self.notifier is not None and self.notifier.enabled
+
+    def set_notify(self, job_id: Optional[str], token: Optional[str], enabled: bool) -> bool:
+        return self.store.set_notify(job_id, token, enabled)
 
     def result_folder(self, job_id: Optional[str], token: Optional[str]) -> Optional[str]:
         """The finished job's own output folder, for its token only."""
@@ -129,6 +141,23 @@ class ConversionJobService:
                 job.finish(FAILED, error="Unexpected compression failure.")
             except Exception:
                 pass
+        self._notify(job)
+
+    def _notify(self, job: RunningJob) -> None:
+        """One message for an opted-in job; never lets a failure reach the job."""
+        try:
+            if not self.notify_enabled or not self.store.wants_notify(job.job_id):
+                return
+            state = job.state
+            result = state.get("result") or {}
+            files = result.get("converted_files") or result.get("processed_files") or []
+            self.notifier.notify(
+                done=state.get("status") == DONE,
+                file_count=len(files) if isinstance(files, list) else 0,
+                device=state.get("device") or describe_device(None),
+            )
+        except Exception as error:
+            self.logger.log(f"Notification for job {job.job_id} failed ({type(error).__name__}).", "warning")
 
 
 _PRIVATE_FIELDS = ("token_sha256", "dest_folder")

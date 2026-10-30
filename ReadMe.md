@@ -157,6 +157,8 @@ Step-by-step instructions for both are in the **[compose guide](docker/compose/R
 
 Each upload can be up to 40 GB, so big PSD and PDF files work. To set a smaller limit, add `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`). If other people can reach your copy over the internet, a smaller limit like 1 GB (`1024`) is a good idea. More in the [upload limit guide](https://imgcompress.karimzouine.com/docs/installation#upload-limit).
 
+**Notify me when done (optional):** set `NOTIFY_URL` to any [Apprise](https://github.com/caronc/apprise) URL, for example your own ntfy server (`NOTIFY_URL=ntfy://ntfy/imgcompress`). A switch then shows up while a conversion runs. Turn it on, close the tab, and you get one message when it is done. It says how many images are ready and on which device you started it, never the file names. Set `PUBLIC_BASE_URL` to put a link in the message. A ready-made setup with ntfy is in **[ntfy.docker-compose.yaml](docker/compose/ntfy.docker-compose.yaml)**. On iOS the ntfy app fetches the message from your ntfy server, so away from home you need a VPN to your network.
+
 For more settings, such as hiding the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
 ---

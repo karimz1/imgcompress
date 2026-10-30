@@ -33,7 +33,7 @@ flowchart LR
 - **Frontend:** a static Next.js export. Flask serves it, so there is no Node server in the container.
 - **Backend:** Flask on [Granian](https://github.com/emmett-framework/granian) with several worker processes. Any worker can answer a status poll, because the job state lives in a file in the temp folder, not in one process's memory.
 - **AI models:** shipped inside the image and run on the CPU. Nothing is downloaded at run time and no image is sent anywhere.
-- **Notifier:** off by default. When enabled, only a short text such as "3 images ready" goes out, never file names or images.
+- **Notifier:** off by default. When enabled, only a short text such as "3 images ready" goes out, never file names or images. The switch on the wait screen calls `POST /api/jobs/<id>/notify` with the job token. The choice is a small `notify` file in the job folder, so any worker can save it while another one runs the job. After the job ends, that worker sends one message through Apprise (`NOTIFY_URL`). A failed send is only logged, without the URL.
 
 ## A background job
 

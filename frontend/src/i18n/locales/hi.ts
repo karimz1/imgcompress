@@ -46,6 +46,7 @@ export const hi: TranslationSchema = {
     progressFiles: "{{total}} में से {{done}} फ़ाइलें पूरी",
     waitingForUpscale: "दूसरी अपस्केलिंग पूरी होने का इंतज़ार…",
     elapsed: "बीता समय {{time}}",
+    notify: "पूरा होने पर मुझे सूचित करें",
     messages: [
       "आपकी फ़ाइलें कंप्रेस हो रही हैं…",
       "गुणवत्ता और आकार ऑप्टिमाइज़ हो रहे हैं।",

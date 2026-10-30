@@ -20,6 +20,7 @@ from backend.image_converter.infrastructure.editor_asset_store import (
 )
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.infrastructure.notifier import Notifier
 from backend.image_converter.presentation.web.parse_services import extract_form_data
 from backend.image_converter.presentation.web.services.backend_diagnostics_service import BackendDiagnosticsService
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
@@ -54,7 +55,9 @@ use_case = CompressImagesUseCase(
 
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
-conversion_jobs = ConversionJobService(logger, compression_service, ConversionJobStore(TEMP_DIR))
+conversion_jobs = ConversionJobService(
+    logger, compression_service, ConversionJobStore(TEMP_DIR), notifier=Notifier.from_env(logger)
+)
 storage_management_service = StorageManagementService(
     is_enabled=_config.features.is_storage_management_enabled,
 )
@@ -107,7 +110,7 @@ def start_conversion_job():
     if not data_result.is_successful:
         return jsonify({"error": str(data_result.error)}), 400
 
-    result = conversion_jobs.start(data_result.value)
+    result = conversion_jobs.start(data_result.value, user_agent=request.headers.get("User-Agent"))
     if not result.is_successful:
         return jsonify({"error": "Compression failed", "message": result.error}), 400
 
@@ -141,6 +144,18 @@ def conversion_job_status(job_id: str):
     response = jsonify(state)
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+@api_blueprint.route("/jobs/<job_id>/notify", methods=["POST"])
+def conversion_job_notify(job_id: str):
+    """Turns "notify me when done" on or off for this job; the tab may close afterwards."""
+    if not conversion_jobs.notify_enabled:
+        return jsonify({"error": "Notifications are not configured."}), 409
+    body = request.get_json(silent=True) or {}
+    enabled = body.get("enabled") is True
+    if not conversion_jobs.set_notify(job_id, _job_token(), enabled):
+        return _job_not_found()
+    return "", 204
 
 
 @api_blueprint.route("/jobs/<job_id>/files/<path:file_name>", methods=["GET"])
