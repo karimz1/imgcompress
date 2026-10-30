@@ -30,6 +30,7 @@ import {
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
 import { InputFileBadge } from "@/components/InputFileBadge";
 import { CropDialog } from "@/components/crop/CropDialog";
+import { UpscalePreviewDialog } from "@/components/UpscalePreviewDialog";
 import { clampCrop, CropConfig, isCropableFile, isCropUnsupportedFile, isSvgFile } from "@/lib/crop";
 import {
   UPSCALE_TARGETS, UPSCALE_MODELS, UPSCALE_TARGET_SHORT, toUpscaleTarget,
@@ -212,6 +213,12 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const fitActive = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
   // Fitted images already have their final size, so upscaling them would undo it.
   const upscaleActive = upscaleVisible && upscale.enabled && !fitActive;
+  // Live preview: the first file the browser can draw; it crops the region itself.
+  const previewFile = files.find((file) => /^image\/(jpeg|png|webp|gif|avif|bmp)$/.test(file.type)) ?? null;
+  const previewLevels = UPSCALE_DENOISE_LEVELS.filter((level) =>
+    upscaleModels.some((status) => status.id === upscaleModelParam({ model: "general", denoise: level }) && status.available)
+  );
+  const [previewOpen, setPreviewOpen] = useState(false);
   const pixelSizes = useImagePixelSizes(files, upscaleActive);
   const maxOutputMegapixels = useMaxOutputMegapixels();
   /** What the server will make of this file; null when the browser cannot tell. */
@@ -1009,6 +1016,28 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                   disabled={isLoading}
                   isDarkTheme={isDarkTheme}
                 />
+              )}
+              {!onlySvgFiles && upscale.model === "general" && previewFile && previewLevels.length > 1 && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading}
+                    onClick={() => setPreviewOpen(true)}
+                    data-testid="upscale-preview-button"
+                  >
+                    {t("form.upscale.livePreview.button")}
+                  </Button>
+                  <UpscalePreviewDialog
+                    file={previewFile}
+                    open={previewOpen}
+                    onOpenChange={setPreviewOpen}
+                    denoise={upscale.denoise}
+                    onDenoiseChange={(denoise) => setUpscale({ ...upscale, denoise })}
+                    levels={previewLevels}
+                  />
+                </>
               )}
               <div className="space-y-1.5">
                 <Label htmlFor="upscaleTarget" className="text-sm">

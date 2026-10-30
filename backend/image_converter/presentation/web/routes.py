@@ -11,7 +11,8 @@ from backend.image_converter.config import settings
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.internals.utilities import has_internet
 from backend.image_converter.domain.image_resizer import ImageResizer
-from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
+from backend.image_converter.domain.upscaling import UpscaleModel
+from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler, UpscalerBusy
 from backend.image_converter.infrastructure.conversion_job_store import ConversionJobStore
 from backend.image_converter.infrastructure.editor_asset_store import (
     EXPIRED_ERROR,
@@ -282,6 +283,40 @@ def rembg_model():
 @api_blueprint.route("/upscale_model", methods=["GET"])
 def upscale_model():
     return jsonify(configuration_service.get_upscale_model_status()), 200
+
+
+@api_blueprint.route("/upscale/preview", methods=["POST"])
+def upscale_preview():
+    """
+    Upscales one small region so the user can compare image types before the
+    full upscale. Stateless: the browser sends only the crop, nothing is stored,
+    and a busy upscaler answers 503 instead of queueing more CPU work.
+    """
+    tile = request.files.get("file")
+    if tile is None:
+        return jsonify({"error": "No image tile was sent."}), 400
+    model_res = UpscaleModel.from_string_result(request.form.get("upscale_model"))
+    if not model_res.is_successful:
+        return jsonify({"error": model_res.error}), 400
+    inner = None
+    if request.form.get("inner"):
+        try:
+            inner = tuple(int(part) for part in request.form["inner"].split(","))
+        except ValueError:
+            inner = ()
+        if len(inner) != 4:
+            return jsonify({"error": "The preview region must be x,y,width,height."}), 400
+    try:
+        png = upscaler.preview(tile.read(), model_res.value, inner)
+    except UpscalerBusy:
+        response = jsonify({"error": "The upscaler is busy. The preview will retry shortly."})
+        response.headers["Retry-After"] = "2"
+        return response, 503
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    response = send_file(BytesIO(png), mimetype="image/png")
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @api_blueprint.route("/crop_unsupported_formats", methods=["GET"])
