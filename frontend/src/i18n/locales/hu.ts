@@ -46,6 +46,7 @@ export const hu: TranslationSchema = {
     progressFiles: "{{total}} fájlból {{done}} kész",
     waitingForUpscale: "Várakozás egy másik felskálázás befejezésére…",
     elapsed: "Eltelt idő: {{time}}",
+    notify: "Értesíts, ha kész",
     messages: [
       "Fájlok tömörítése folyamatban…",
       "Minőség és méret optimalizálása.",

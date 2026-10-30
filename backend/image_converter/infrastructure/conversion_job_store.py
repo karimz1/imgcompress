@@ -91,6 +91,9 @@ class RunningJob:
             self._lock_fd = None
 
 
+_NOTIFY_FILE = "notify"
+
+
 class ConversionJobStore:
     def __init__(self, temp_dir: str):
         self.temp_dir = temp_dir
@@ -155,6 +158,29 @@ class ConversionJobStore:
             if state.get("status") in _ACTIVE:
                 state.update(status=FAILED, error=INTERRUPTED_MESSAGE)
         return state
+
+    def set_notify(self, job_id: Optional[str], token: Optional[str], enabled: bool) -> bool:
+        """
+        Saves the "notify me when done" choice for the job's own token. It is a
+        file of its own, not a status field, because the worker running the job
+        rewrites status.json and another worker may take this request.
+        """
+        if self.read(job_id, token) is None:
+            return False
+        flag = os.path.join(self._folder(job_id), _NOTIFY_FILE)
+        try:
+            if enabled:
+                with open(flag, "w", encoding="utf-8"):
+                    pass
+            elif os.path.exists(flag):
+                os.remove(flag)
+        except OSError:
+            return False
+        return True
+
+    def wants_notify(self, job_id: Optional[str]) -> bool:
+        path = self._folder(job_id)
+        return path is not None and os.path.isfile(os.path.join(path, _NOTIFY_FILE))
 
     def touch(self, job_id: str) -> None:
         """Age-based cleanup counts from the last activity, so a poll restarts the clock."""

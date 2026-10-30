@@ -46,6 +46,7 @@ export const ar: TranslationSchema = {
     progressFiles: "اكتمل {{done}} من {{total}} ملفات",
     waitingForUpscale: "في انتظار انتهاء عملية تكبير أخرى…",
     elapsed: "الوقت المنقضي {{time}}",
+    notify: "أبلغني عند الانتهاء",
     messages: [
       "جارٍ ضغط ملفاتك…",
       "تحسين الجودة والحجم.",

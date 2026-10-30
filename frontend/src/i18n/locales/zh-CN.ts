@@ -46,6 +46,7 @@ export const zhCN: TranslationSchema = {
     progressFiles: "已完成 {{done}} / {{total}} 个文件",
     waitingForUpscale: "正在等待另一个放大任务完成…",
     elapsed: "已用时 {{time}}",
+    notify: "完成后通知我",
     messages: [
       "正在压缩你的文件…",
       "正在优化质量和大小。",

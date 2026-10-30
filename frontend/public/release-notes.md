@@ -28,6 +28,8 @@
 
 - Job timer: The wait screen shows how long a conversion has been running, and the result says how long it took.
 
+- Notify me when done: Set `NOTIFY_URL` to an Apprise URL, for example your own ntfy server, and a switch shows up while a conversion runs. Turn it on and close the tab: you get one message when it is done, with the number of images and the device, never the file names. Off by default. [Guide](https://imgcompress.karimzouine.com/docs/notifications)
+
 ### Bug Fixes
 
 - Cleanup and "Delete all" no longer remove files of a job that is still running. Folders of running jobs are locked across all workers, and their age counts from the last activity, so a file you are downloading is not deleted underneath you.

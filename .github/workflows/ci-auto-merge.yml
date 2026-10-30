@@ -353,6 +353,13 @@ jobs:
             max_upload_size_mb: "5"
             scenario: "logo SHOWN  | storage SHOWN | upload limit 5 MB"
             label: "upload-limit-5mb"
+          # "Notify me when done" on (NOTIFY_URL set). json:// posts to the capture
+          # server that notifyWhenDone_Test.spec.ts starts on port 5199 (host network).
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            notify_url: "json://127.0.0.1:5199/notify"
+            scenario: "logo SHOWN  | storage SHOWN | notify ON"
+            label: "notify-on"
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -395,6 +402,7 @@ jobs:
           echo "DISABLE_LOGO:                ${{ matrix.disable_logo }}   -> Logo $([ '${{ matrix.disable_logo }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
           echo "DISABLE_STORAGE_MANAGEMENT:  ${{ matrix.disable_storage_management }}   -> Storage management button $([ '${{ matrix.disable_storage_management }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
           echo "MAX_UPLOAD_SIZE_MB:          ${{ matrix.max_upload_size_mb || '(default 40960)' }}"
+          echo "NOTIFY_URL:                  ${{ matrix.notify_url && 'set (capture server)' || '(off)' }}"
           echo "::endgroup::"
           docker run --rm -d \
             --platform linux/amd64 \
@@ -403,6 +411,7 @@ jobs:
             -e DISABLE_LOGO=${{ matrix.disable_logo }} \
             -e DISABLE_STORAGE_MANAGEMENT=${{ matrix.disable_storage_management }} \
             -e MAX_UPLOAD_SIZE_MB=${{ matrix.max_upload_size_mb }} \
+            -e NOTIFY_URL=${{ matrix.notify_url }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for Application to be Ready (using localhost)
@@ -447,7 +456,7 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
             --name devcontainer_flags \
-            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts"
+            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts tests/e2e/notifyWhenDone_Test.spec.ts"
 
       - name: Stop Application Container
         if: always()

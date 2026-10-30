@@ -41,6 +41,14 @@ services:
       - MAX_UPLOAD_SIZE_MB=${IMGCOMPRESS_MAX_UPLOAD_SIZE_MB:-40960}
       # Set to true to disable the storage management features (e.g., for your users to not see all the files)
       - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-false}
+      # Optional: "Notify me when done" (opt-in per job). Apprise URL the container
+      # sends a short message to when a job finishes: image count and device/browser,
+      # never file names or images. Default: not set = feature off, switch hidden.
+      # Example for the optional ntfy service below:
+      # - NOTIFY_URL=ntfy://ntfy/imgcompress
+      # Optional: the address users open ImgCompress at; added as a link to the
+      # message. Default: not set = no link. Example:
+      # - PUBLIC_BASE_URL=http://192.168.1.10:3001
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck
@@ -58,3 +66,25 @@ services:
       - no-new-privileges:true
     logging:
       <<: *default-logging
+
+  # Optional: ntfy, self-hosted push notifications (https://ntfy.sh).
+  # Why: long jobs such as AI upscaling can take minutes. With ntfy you can close
+  # the tab and get a message on your phone or desktop when the job is done.
+  # How: uncomment this service and NOTIFY_URL above, then subscribe to the
+  # topic "imgcompress" in the ntfy app (iOS, Android, web).
+  # iPhone: NTFY_UPSTREAM_BASE_URL lets ntfy.sh wake the iOS app; the message
+  # itself is fetched from this server, so away from home you need a VPN
+  # (e.g. WireGuard, Tailscale). Full guide: docker/compose/ntfy.docker-compose.yaml
+  # ntfy:
+  #   image: binwiederhier/ntfy:latest
+  #   container_name: ntfy
+  #   restart: always
+  #   command: serve
+  #   ports:
+  #     - "8080:80"
+  #   networks:
+  #     - imgcompress-network
+  #   environment:
+  #     # Address your phone uses to reach this ntfy server.
+  #     - NTFY_BASE_URL=http://192.168.1.10:8080
+  #     - NTFY_UPSTREAM_BASE_URL=https://ntfy.sh

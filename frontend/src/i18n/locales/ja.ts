@@ -46,6 +46,7 @@ export const ja: TranslationSchema = {
     progressFiles: "{{total}} 件中 {{done}} 件のファイルが完了",
     waitingForUpscale: "別のアップスケールが終わるのを待っています…",
     elapsed: "経過時間 {{time}}",
+    notify: "完了したら通知する",
     messages: [
       "ファイルを圧縮しています…",
       "品質とサイズを最適化しています。",
