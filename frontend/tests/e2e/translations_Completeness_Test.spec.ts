@@ -29,6 +29,22 @@ const ALLOWED_IDENTICAL_VALUES = new Set<string>([
   "Cmd",
   "Tab",
   "Enter",
+  "←↑↓→",
+  "+ ←↑↓→",
+  "Transparent",
+  // Durations with SI unit symbols read the same in many languages.
+  "{{seconds}} s",
+  "{{minutes}} min {{seconds}} s",
+  // AI model names: "Anime" in most languages, "General" in Spanish.
+  "Anime",
+  "General",
+  // Screen size names and their technical details.
+  "Full HD",
+  "2K (QHD)",
+  "4K (UHD)",
+  "1080p, 16:9",
+  // Same word in Spanish and Portuguese ("Abriendo el editor", "Abrindo o editor").
+  "editor",
 ]);
 
 type Tree = { [key: string]: unknown };

@@ -5,6 +5,8 @@ __pycache__/
 .git/
 .github/
 .pytest_cache/
+# Staged registry credentials from scripts/simulateCiTests.sh
+.docker-share/
 .DS_Store
 *.log
 *.txt
@@ -21,6 +23,9 @@ frontend/node_modules
 # Explicitly include requirements files (override *.txt above)
 !requirements.txt
 !requirements-dev.txt
+# Font licences must ship with the bundled fonts (SIL OFL 1.1)
+!backend/image_converter/assets/fonts/*/OFL.txt
+!frontend/public/fonts/*/OFL.txt
 
 # Exclude other unnecessary files
 README.md

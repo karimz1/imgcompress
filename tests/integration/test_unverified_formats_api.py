@@ -35,6 +35,7 @@ import urllib.request
 from pathlib import Path
 from typing import Dict, Optional
 
+import pillow_heif
 import pytest
 from PIL import Image, ImageDraw, ImageStat
 
@@ -82,6 +83,10 @@ _EXPECTED_PILLOW_UNWRITABLE_FORMATS = frozenset(
     }
 )
 _MIN_SYNTHESIZABLE_FORMATS = 38
+
+# Verified formats with no real sample file in tests/sample-images. The same
+# reader contract covers them with a Pillow-made input.
+_VERIFIED_WITHOUT_FIXTURE = (".heif", ".jpeg", ".ico", ".avif")
 
 
 def _make_distinctive_image() -> Image.Image:
@@ -189,6 +194,51 @@ def _wait_for_health(deadline_s: int) -> bool:
     return False
 
 
+def _assert_api_converts_to_visible_png(ext: str, file_path: Path) -> None:
+    status, payload = _post_compress(file_path, output_format="png", quality=80)
+    if status != 200:
+        pytest.fail(
+            f"{ext} -> /api/compress returned HTTP {status}: "
+            f"{payload!r}"
+        )
+
+    assert isinstance(payload, dict), f"{ext} -> non-JSON response: {payload!r}"
+    assert payload.get("converted_files"), (
+        f"{ext} -> response had no converted_files: {payload!r}"
+    )
+    assert payload.get("dest_folder"), (
+        f"{ext} -> response had no dest_folder: {payload!r}"
+    )
+
+    converted_file = payload["converted_files"][0]
+    dest_folder = payload["dest_folder"]
+
+    try:
+        png_bytes = _download_converted_file(dest_folder, converted_file)
+    except urllib.error.HTTPError as e:
+        pytest.fail(
+            f"{ext} -> /api/download returned HTTP {e.code}: "
+            f"{e.read().decode('utf-8', errors='replace')}"
+        )
+
+    assert png_bytes, f"{ext} -> downloaded PNG was empty"
+
+    with Image.open(io.BytesIO(png_bytes)) as out_img:
+        assert out_img.format and out_img.format.upper() == "PNG", (
+            f"{ext} -> expected PNG, got format={out_img.format!r}"
+        )
+        assert out_img.width >= 8 and out_img.height >= 8, (
+            f"{ext} -> implausibly small output: {out_img.width}x{out_img.height}"
+        )
+
+        stat = ImageStat.Stat(out_img.convert("RGB"))
+        max_std = max(stat.stddev)
+        assert max_std > 5.0, (
+            f"{ext} -> output PNG looks blank/uniform "
+            f"(per-channel stddev={stat.stddev})"
+        )
+
+
 @pytest.fixture(scope="module")
 def app_is_ready() -> None:
     """Block until /api/health/backend returns 200. The CI job that runs
@@ -244,45 +294,17 @@ def test_api_compress_accepts_unverified_format_and_returns_visible_png(
             "without a real fixture file."
         )
 
-    status, payload = _post_compress(file_path, output_format="png", quality=80)
-    if status != 200:
-        pytest.fail(
-            f"{ext} -> /api/compress returned HTTP {status}: "
-            f"{payload!r}"
-        )
+    _assert_api_converts_to_visible_png(ext, file_path)
 
-    assert isinstance(payload, dict), f"{ext} -> non-JSON response: {payload!r}"
-    assert payload.get("converted_files"), (
-        f"{ext} -> response had no converted_files: {payload!r}"
-    )
-    assert payload.get("dest_folder"), (
-        f"{ext} -> response had no dest_folder: {payload!r}"
-    )
 
-    converted_file = payload["converted_files"][0]
-    dest_folder = payload["dest_folder"]
+@pytest.mark.parametrize("ext", _VERIFIED_WITHOUT_FIXTURE)
+def test_api_compress_accepts_verified_format_without_fixture(app_is_ready, tmp_path, ext):
+    pillow_heif.register_heif_opener()
+    file_path = tmp_path / f"verified_{ext.lstrip('.')}{ext}"
+    assert _try_save_in_modes(_make_distinctive_image(), file_path), f"cannot write a {ext} sample"
 
-    try:
-        png_bytes = _download_converted_file(dest_folder, converted_file)
-    except urllib.error.HTTPError as e:
-        pytest.fail(
-            f"{ext} -> /api/download returned HTTP {e.code}: "
-            f"{e.read().decode('utf-8', errors='replace')}"
-        )
+    _assert_api_converts_to_visible_png(ext, file_path)
 
-    assert png_bytes, f"{ext} -> downloaded PNG was empty"
 
-    with Image.open(io.BytesIO(png_bytes)) as out_img:
-        assert out_img.format and out_img.format.upper() == "PNG", (
-            f"{ext} -> expected PNG, got format={out_img.format!r}"
-        )
-        assert out_img.width >= 8 and out_img.height >= 8, (
-            f"{ext} -> implausibly small output: {out_img.width}x{out_img.height}"
-        )
-
-        stat = ImageStat.Stat(out_img.convert("RGB"))
-        max_std = max(stat.stddev)
-        assert max_std > 5.0, (
-            f"{ext} -> output PNG looks blank/uniform "
-            f"(per-channel stddev={stat.stddev})"
-        )
+def test_verified_formats_without_fixture_are_verified():
+    assert set(_VERIFIED_WITHOUT_FIXTURE) <= set(ConfigurationService.get_verified_formats())

@@ -6,7 +6,10 @@ from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 
 from backend.image_converter.config import settings
-from backend.image_converter.infrastructure.cleanup_service import CleanupService
+from backend.image_converter.infrastructure.cleanup_service import (
+    CleanupService,
+    cleanup_interval_seconds,
+)
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.presentation.web.error_handlers import (
     handle_http_exception,
@@ -73,7 +76,7 @@ def start_scheduler():
     scheduler.add_job(
         func=scheduled_cleanup,
         trigger="interval",
-        seconds=EXPIRATION_TIME,
+        seconds=cleanup_interval_seconds(EXPIRATION_TIME),
     )
     scheduler.start()
     app_logger.log("Scheduler started for periodic temp folder cleanup.", "info")

@@ -1,8 +1,10 @@
 import os
 import shutil
-import time
+import tempfile
 import traceback
-from typing import Optional
+import zipfile
+from dataclasses import dataclass
+from typing import IO, Optional
 
 from werkzeug.utils import secure_filename
 
@@ -14,6 +16,7 @@ from backend.image_converter.application.dtos import (
 )
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
     normalize_pdf_scale,
@@ -22,6 +25,23 @@ from backend.image_converter.domain.pdf_presets import (
 )
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from backend.image_converter.domain.units import TargetSize, to_bytes
+from backend.image_converter.domain.upscaling import UpscaleModel, UpscaleTarget
+from backend.image_converter.presentation.web.services.temporary_folder_service import JobFolder
+
+
+@dataclass
+class PreparedCompression:
+    """Saved uploads plus checked options, ready for ``CompressionService.run``."""
+
+    request: CompressRequest
+    source: JobFolder
+    dest: JobFolder
+    file_count: int
+
+
+# ZIPs up to this size stay in memory; larger ones spill to an unnamed temp
+# file that disappears when the download is closed.
+_ZIP_SPOOL_MAX_BYTES = 32 * 1024 * 1024
 
 
 class CompressionService:
@@ -30,22 +50,45 @@ class CompressionService:
         self.use_case = use_case
         self.temp_folder_service = temp_folder_service
 
-    def create_all_files_zip(self, folder_param: str) -> Result[str]:
+    def create_all_files_zip(self, folder_param: str) -> Result[IO[bytes]]:
+        """
+        Builds the ZIP of one result folder per request. It never gets a name
+        in the shared temp dir, so parallel users cannot overwrite or guess it.
+        """
         folder_path = self.temp_folder_service.get_validated_path(folder_param)
 
         if not folder_path:
             return Result.failure("Invalid or unauthorized folder.")
 
+        archive = tempfile.SpooledTemporaryFile(
+            max_size=_ZIP_SPOOL_MAX_BYTES, dir=self.temp_folder_service.temp_dir
+        )
         try:
-            zip_name = f"converted_{int(time.time())}.zip"
-            zip_path = os.path.join(self.temp_folder_service.temp_dir, zip_name)
-            shutil.make_archive(zip_path[:-4], "zip", root_dir=folder_path)
-            return Result.success(zip_name)
+            with self.temp_folder_service.use_folder(folder_path):
+                with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
+                    for name in sorted(os.listdir(folder_path)):
+                        path = os.path.join(folder_path, name)
+                        if os.path.isfile(path):
+                            zf.write(path, arcname=name)
+            archive.seek(0)
+            return Result.success(archive)
         except Exception:
+            archive.close()
             self.logger.log(f"ZIP creation error: {traceback.format_exc()}", "error")
             return Result.failure("Failed to create archive.")
 
     def compress(self, form_data: CompressionFormData) -> Result[CompressionResponse]:
+        """Converts the upload in the calling thread (the synchronous /compress API)."""
+        prepared = self.prepare(form_data)
+        if not prepared.is_successful:
+            return Result.failure(prepared.error)
+        return self.run(prepared.value)
+
+    def prepare(self, form_data: CompressionFormData) -> Result[PreparedCompression]:
+        """
+        Checks the options and saves the uploads, which is quick and must happen
+        while the request is still open. ``run`` does the slow part later.
+        """
         fmt = form_data.image_format
 
         pdf_preset = normalize_pdf_preset(form_data.pdf_preset)
@@ -74,16 +117,54 @@ class CompressionService:
             pdf_margin_mm = None
             pdf_paginate = False
 
-        src: Optional[str] = None
-        dst: Optional[str] = None
-        dest_ready = False
+        webp_lossless = fmt == ImageFormat.WEBP and form_data.webp_lossless
+        if webp_lossless and form_data.target_size_kb:
+            return Result.failure(
+                "Lossless WebP cannot be combined with a max file size. "
+                "Turn off lossless or remove the size limit."
+            )
+        upscale_res = UpscaleTarget.from_string_result(form_data.upscale)
+        if not upscale_res.is_successful:
+            return Result.failure(upscale_res.error)
+        upscale = upscale_res.value
+        if upscale and fmt == ImageFormat.PDF:
+            return Result.failure("AI upscaling is not available for PDF output.")
+        model_res = UpscaleModel.from_string_result(form_data.upscale_model)
+        if not model_res.is_successful:
+            return Result.failure(model_res.error)
+        fit_res = FitToSize.from_strings_result(
+            form_data.fit_width,
+            form_data.fit_height,
+            form_data.fit_mode,
+            form_data.fit_anchor,
+            form_data.fit_color,
+            form_data.fit_scale,
+            form_data.fit_x,
+            form_data.fit_y,
+        )
+        if not fit_res.is_successful:
+            return Result.failure(fit_res.error)
+        fit = fit_res.value
+        if fit and fit.mode == FitMode.IMAGE:
+            return Result.failure(
+                "A background image can only be chosen in the editor. Use blur, solid or transparent here."
+            )
+        if fit and fmt == ImageFormat.PDF:
+            return Result.failure(
+                "Fit to size is not available for PDF output. Use a PDF page preset instead."
+            )
 
+        src = None
+        dst = None
         try:
-            src = self.temp_folder_service.create_temp_dir(prefix="source_")
-            dst = self.temp_folder_service.create_temp_dir(prefix="converted_")
+            # Both folders stay locked until the job ends, so no cleanup can
+            # delete them while it waits or runs.
+            src = self.temp_folder_service.create_job_dir(prefix="source_")
+            dst = self.temp_folder_service.create_job_dir(prefix="converted_")
 
-            save_res = self._save_uploaded_files(form_data.uploaded_files, src)
+            save_res = self._save_uploaded_files(form_data.uploaded_files, src.path)
             if not save_res.is_successful:
+                self._discard(src, dst)
                 return Result.failure(save_res.error)
 
             target: Optional[TargetSize] = None
@@ -93,11 +174,12 @@ class CompressionService:
                 )
 
             req = CompressRequest(
-                source_folder=src,
-                dest_folder=dst,
+                source_folder=src.path,
+                dest_folder=dst.path,
                 image_format=fmt,
                 quality=form_data.quality,
-                width=form_data.width,
+                # Upscaling and fitting decide the output size, so a resize width would undo it.
+                width=None if (upscale or fit) else form_data.width,
                 target_size=target,
                 use_rembg=form_data.use_rembg,
                 pdf_preset=pdf_preset,
@@ -105,21 +187,40 @@ class CompressionService:
                 pdf_margin_mm=pdf_margin_mm,
                 pdf_paginate=pdf_paginate,
                 pdf_quality=pdf_quality,
+                webp_lossless=webp_lossless,
+                upscale=upscale,
+                upscale_model=model_res.value,
+                fit=fit,
             )
+            return Result.success(PreparedCompression(
+                request=req,
+                source=src,
+                dest=dst,
+                file_count=len(form_data.uploaded_files),
+            ))
+        except Exception:
+            self.logger.log(f"Preparing the conversion failed: {traceback.format_exc()}", "error")
+            self._discard(src, dst)
+            return Result.failure("Unexpected compression failure.")
 
-            result = self.use_case.execute(req)
+    def run(self, prepared: PreparedCompression) -> Result[CompressionResponse]:
+        """Converts a prepared upload, then removes the uploads. Releases both folders."""
+        src, dst = prepared.source, prepared.dest
+        dest_ready = False
+        try:
+            result = self.use_case.execute(prepared.request)
 
             if not result.processed_files:
                 return Result.failure(f"Image processing failed: {'; '.join(result.errors)}")
 
-            converted = [f for f in os.listdir(dst) if os.path.isfile(os.path.join(dst, f))]
+            converted = [f for f in os.listdir(dst.path) if os.path.isfile(os.path.join(dst.path, f))]
             if not converted:
                 return Result.failure("No files were converted")
 
             dest_ready = True
             return Result.success(CompressionResponse(
                 converted_files=converted,
-                dest_folder=dst,
+                dest_folder=dst.path,
                 process_summary=result,
             ))
 
@@ -130,19 +231,24 @@ class CompressionService:
             )
             return Result.failure("Unexpected compression failure.")
         finally:
-            if src:
-                shutil.rmtree(src, ignore_errors=True)
-            if dst and not dest_ready:
-                shutil.rmtree(dst, ignore_errors=True)
+            shutil.rmtree(src.path, ignore_errors=True)
+            src.release()
+            if not dest_ready:
+                shutil.rmtree(dst.path, ignore_errors=True)
+            dst.release()
+
+    @staticmethod
+    def _discard(*folders) -> None:
+        for folder in folders:
+            if folder:
+                shutil.rmtree(folder.path, ignore_errors=True)
+                folder.release()
 
     def _save_uploaded_files(self, files, folder: str) -> Result[None]:
         try:
             os.makedirs(folder, exist_ok=True)
-            for file in files:
-                name = secure_filename(file.filename or "upload")
-                if not name:
-                    continue
-                path = os.path.join(folder, name)
+            for index, file in enumerate(files, start=1):
+                path = self._create_unique_file(folder, self._upload_name(file.filename, index))
                 with open(path, "wb") as f:
                     while True:
                         chunk = file.stream.read(8192)
@@ -154,3 +260,32 @@ class CompressionService:
         except Exception:
             self.logger.log(f"Failed saving upload: {traceback.format_exc()}", "error")
             return Result.failure("Failed to save uploaded files.")
+
+    @staticmethod
+    def _upload_name(filename: Optional[str], index: int) -> str:
+        """
+        secure_filename() drops non-ASCII characters, so "фото.png" would become
+        "png" and lose its extension. Such names fall back to upload_<n>.<ext>.
+        """
+        original = filename or ""
+        name = secure_filename(original)
+        stem, extension = os.path.splitext(name)
+        original_extension = os.path.splitext(original)[1]
+        if stem and (extension or not original_extension):
+            return name
+        safe_extension = secure_filename(original_extension.lstrip("."))
+        return f"upload_{index}.{safe_extension}" if safe_extension else f"upload_{index}"
+
+    @staticmethod
+    def _create_unique_file(folder: str, name: str) -> str:
+        """Reserves ``name`` in ``folder``, adding _1, _2, ... when a file of the batch already has it."""
+        stem, extension = os.path.splitext(name)
+        candidate, counter = name, 0
+        while True:
+            path = os.path.join(folder, candidate)
+            try:
+                os.close(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666))
+                return path
+            except FileExistsError:
+                counter += 1
+                candidate = f"{stem}_{counter}{extension}"

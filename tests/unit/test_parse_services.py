@@ -85,6 +85,17 @@ def test_extract_form_data_falls_back_to_defaults():
     assert form_data.target_size_kb is None
     assert form_data.use_rembg is False
     assert form_data.pdf_paginate is False
+    assert form_data.upscale_model == "general"
+
+
+def test_extract_form_data_preserves_upscale_model_selection():
+    request = _build_request(
+        {"format": "png", "upscale": "4x", "upscale_model": "anime"},
+        {"files[]": (b"x", "image.png")},
+    )
+    result = extract_form_data(request, _Logger())
+    assert result.is_successful
+    assert result.value.upscale_model == "anime"
 
 
 def test_extract_form_data_clamps_pdf_margin():
@@ -96,3 +107,51 @@ def test_extract_form_data_clamps_pdf_margin():
     form_data = extract_form_data(request, _Logger()).value
 
     assert form_data.pdf_margin_mm == 30.0
+
+
+def test_extract_form_data_parses_webp_lossless_flag():
+    request = _build_request(
+        {"format": "webp", "webp_lossless": "true"},
+        {"files[]": (b"\x89PNG\r\n\x1a\n" + b"x" * 100, "x.png")},
+    )
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    assert result.value.image_format is ImageFormat.WEBP
+    assert result.value.webp_lossless is True
+
+
+def test_extract_form_data_defaults_webp_lossless_to_false():
+    request = _build_request(
+        {"format": "webp"},
+        {"files[]": (b"\x89PNG\r\n\x1a\n" + b"x" * 100, "x.png")},
+    )
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    assert result.value.webp_lossless is False
+
+
+def test_extract_form_data_passes_fit_fields_through_as_text():
+    request = _build_request(
+        {"format": "jpeg", "fit_width": " 1280 ", "fit_height": "640", "fit_mode": "blur", "fit_anchor": "top"},
+        {"files[]": (b"\xff\xd8\xff" + b"x" * 10, "x.jpg")},
+    )
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    form_data = result.value
+    assert (form_data.fit_width, form_data.fit_height) == ("1280", "640")
+    assert (form_data.fit_mode, form_data.fit_anchor) == ("blur", "top")
+
+
+def test_extract_form_data_leaves_fit_blank_when_not_sent():
+    request = _build_request({"format": "jpeg"}, {"files[]": (b"x", "x.jpg")})
+
+    result = extract_form_data(request, _Logger())
+
+    assert result.is_successful
+    assert result.value.fit_width == "" and result.value.fit_height == ""

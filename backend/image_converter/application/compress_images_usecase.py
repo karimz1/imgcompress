@@ -1,5 +1,7 @@
+import os
 from typing import Optional
 
+from backend.image_converter.infrastructure import job_progress
 from .dtos import CompressRequest, CompressResult
 from backend.image_converter.domain.size_targeting import find_best_quality_under_target
 from backend.image_converter.domain.units import TargetSize
@@ -15,15 +17,20 @@ class CompressImagesUseCase:
         converter_factory,
         storage,
         payload_expander: FilePayloadExpander,
+        upscaler=None,
     ):
         self.logger = logger
         self.resizer = resizer
         self.converter_factory = converter_factory
         self.storage = storage
         self.payload_expander = payload_expander
+        self.upscaler = upscaler
 
     def execute(self, req: CompressRequest) -> CompressResult:
         processed, errors = [], []
+        # Output names already used in this batch, e.g. photo.png and photo.jpg
+        # both become photo.webp; later ones get a _1, _2, ... suffix.
+        reserved_names: set[str] = set()
         new_ext = req.image_format.get_file_extension()
         pdf_preset: Optional[PdfPreset] = None
         pdf_scale = "fit"
@@ -44,14 +51,24 @@ class CompressImagesUseCase:
                 return CompressResult(processed_files=[], errors=[scale_res.error])
             pdf_scale = scale_res.value
 
-        for item in self.storage.iter_files(req.source_folder):
+        for files_done, item in enumerate(self.storage.iter_files(req.source_folder)):
+            job_progress.report(files_done=files_done, tiles_done=0, tiles_total=0)
             try:
                 read_result = self.storage.read_bytes(item.path)
                 if not read_result.is_successful:
                     raise ValueError(read_result.error)
                 original = read_result.value
 
-                expand_result = self.payload_expander.expand(item.name, original)
+                if item.name.lower().endswith(".svg"):
+                    use_sizing = not (pdf_preset and req.image_format == ImageFormat.PDF)
+                    expand_result = self.payload_expander.expand(
+                        item.name, original,
+                        width=req.width if use_sizing else None,
+                        upscale=req.upscale if use_sizing else None,
+                        fit=req.fit if use_sizing else None,
+                    )
+                else:
+                    expand_result = self.payload_expander.expand(item.name, original)
                 if not expand_result.is_successful:
                     raise ValueError(expand_result.error)
                 page_payloads = expand_result.value
@@ -63,12 +80,22 @@ class CompressImagesUseCase:
             for payload in page_payloads:
                 page_label = payload.label
                 try:
-                    if pdf_preset and req.image_format == ImageFormat.PDF:
+                    upscaled = False
+                    if payload.is_vector or (pdf_preset and req.image_format == ImageFormat.PDF):
                         data = payload.data
+                    elif req.upscale or req.fit:
+                        data = payload.data
+                        if req.upscale:
+                            upscaled_data = self._get_upscaler().upscale(data, req.upscale, req.upscale_model)
+                            upscaled = upscaled_data is not None
+                            data = upscaled_data if upscaled else data
+                        if req.fit:
+                            # Upscale first so the exact size is cut from the sharper image.
+                            data = self.resizer.fit_to_size(data, req.fit)
                     else:
                         data = self._resize_if_needed(payload.data, req.width)
 
-                    if req.target_size and req.image_format in [ImageFormat.JPEG, ImageFormat.AVIF]:
+                    if req.target_size and req.image_format in [ImageFormat.JPEG, ImageFormat.AVIF, ImageFormat.WEBP]:
                         target = TargetSize(req.target_size.bytes)
                         target_bytes = target.soft_limit
 
@@ -85,7 +112,10 @@ class CompressImagesUseCase:
                             )
 
                         # The target-size path never removes the background.
-                        dest_name = self._build_dest_name(item.stem, new_ext, payload.page_index)
+                        dest_name = self._build_dest_name(
+                            item.stem, new_ext, payload.page_index, upscaled=upscaled
+                        )
+                        dest_name = self._reserve_dest_name(dest_name, reserved_names)
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         write_result = self.storage.write_bytes(dest_path, out)
                         if not write_result.is_successful:
@@ -103,13 +133,19 @@ class CompressImagesUseCase:
                             pdf_margin_mm=pdf_margin_mm,
                             pdf_paginate=pdf_paginate,
                             pdf_quality=pdf_quality,
+                            webp_lossless=req.webp_lossless,
                         )
                         # Tag the filename when the converter itself removed the
                         # background, so the suffix follows the actual behaviour
                         # regardless of which formats support rembg.
                         dest_name = self._build_dest_name(
-                            item.stem, new_ext, payload.page_index, converter.removes_background
+                            item.stem,
+                            new_ext,
+                            payload.page_index,
+                            converter.removes_background,
+                            upscaled=upscaled,
                         )
+                        dest_name = self._reserve_dest_name(dest_name, reserved_names)
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         result = converter.convert(
                             image_data=data,
@@ -125,18 +161,48 @@ class CompressImagesUseCase:
 
         return CompressResult(processed_files=processed, errors=errors)
 
+    def _get_upscaler(self):
+        if self.upscaler is None:
+            # Lazy so the CLI and tests that never upscale do not import onnxruntime.
+            from backend.image_converter.config import settings
+            from backend.image_converter.infrastructure.ai_upscaler import AiUpscaler
+
+            config = settings.get().upscaling
+            self.upscaler = AiUpscaler(
+                self.logger, threads=config.threads, max_output_megapixels=config.max_output_megapixels
+            )
+        return self.upscaler
+
     def _resize_if_needed(self, data: bytes, width: Optional[int]) -> bytes:
         if width and width > 0:
             return self.resizer.resize_image(data, width)
         return data
 
 
+    @staticmethod
+    def _reserve_dest_name(name: str, reserved_names: set[str]) -> str:
+        stem, extension = os.path.splitext(name)
+        candidate, counter = name, 0
+        while candidate in reserved_names:
+            counter += 1
+            candidate = f"{stem}_{counter}{extension}"
+        reserved_names.add(candidate)
+        return candidate
+
     _BG_REMOVED_SUFFIX = "_ai-bg-removed"
+    _UPSCALED_SUFFIX = "_ai-upscaled"
 
     @classmethod
     def _build_dest_name(
-        cls, stem: str, extension: str, page_index: Optional[int], background_removed: bool = False
+        cls,
+        stem: str,
+        extension: str,
+        page_index: Optional[int],
+        background_removed: bool = False,
+        upscaled: bool = False,
     ) -> str:
+        if upscaled and not stem.endswith(cls._UPSCALED_SUFFIX):
+            stem = f"{stem}{cls._UPSCALED_SUFFIX}"
         if background_removed and not stem.endswith(cls._BG_REMOVED_SUFFIX):
             stem = f"{stem}{cls._BG_REMOVED_SUFFIX}"
         if page_index is None:

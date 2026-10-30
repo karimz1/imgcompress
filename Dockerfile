@@ -22,7 +22,15 @@ WORKDIR /app/frontend
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm config set store-dir /pnpm/store && \
     CI=true pnpm install --frozen-lockfile
-RUN pnpm run build
+# Metadata changes only the final frontend layer, keeping dependency caches warm.
+ARG BUILD_COMMIT=""
+ARG BUILD_DATE=""
+ARG BUILD_REF=""
+ARG BUILD_VERSION=""
+ARG BUILD_PRERELEASE="false"
+RUN BUILD_COMMIT="$BUILD_COMMIT" BUILD_DATE="$BUILD_DATE" BUILD_REF="$BUILD_REF" \
+    BUILD_VERSION="$BUILD_VERSION" BUILD_PRERELEASE="$BUILD_PRERELEASE" \
+    node scripts/write-build-info.mjs && pnpm run build
 
 # The built static files are in /app/frontend/out/
 
@@ -44,6 +52,7 @@ COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d99
 #   - libimagequant: high-quality PNG quantization
 #   - libheif: enables HEIF / HEIC / AVIF image decoding
 #   - ghostscript: enables reading vector formats like .EPS, .PS, and .PDF
+#   - libcairo: SVG rasterization through CairoSVG
 #   - liblcms2, libfreetype, libharfbuzz, libfribidi: color management + advanced text rendering
 #   - libxcb, zlib, libgif: core compression and GIF/X11 support
 #
@@ -66,6 +75,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -eux; \
     \
+    # DHI renamed its packages to +deb13uN+dhiX but still lists the old +dhiN
+    # builds, which sort higher and now return 403. Prefer the renamed ones,
+    # below 1000 so apt never downgrades what the base image ships.
+    printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
+    \
     # Stub SysV init helpers so postinst scripts don't crash in a container.
     # x11-common (a ghostscript transitive dep) calls both update-rc.d and invoke-rc.d
     # in its postinst, but neither exists in a minimal image without sysvinit/openrc.
@@ -85,7 +99,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         sleep 15; \
     done && \
     apt-get install -y --no-install-recommends \
-        ghostscript \
+        ghostscript libcairo2 \
         libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
         libimagequant0 libheif1 liblcms2-2 \
         libfreetype6 libharfbuzz0b libfribidi0 \
@@ -97,7 +111,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     #                   Immune to Debian t64 renames (libpng16-16 → libpng16-16t64, etc.)
     # Phase 2 (dpkg-L): copy data files (CMaps, fonts, dumb-init binary) that ldd misses.
     # See extract_deps.sh for details.
-    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh /usr/bin/gs && \
+    CAIRO_LIBRARY=$(dpkg -L libcairo2 | sed -n '/\/libcairo\.so\.2$/p') && \
+    test -n "$CAIRO_LIBRARY" && \
+    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh "/usr/bin/gs $CAIRO_LIBRARY" && \
+    cp --parents -a "$(realpath "$CAIRO_LIBRARY")" "$CAIRO_LIBRARY" /dpkg-export/ && \
     \
     # Generate ld.so.cache so the dynamic linker can find all .so files at runtime.
     # Without this, libgs.so.10 fails to load its device plugins ("Unable to open
@@ -164,6 +181,64 @@ COPY --chown=nonroot:nonroot healthcheck.py ./healthcheck.py
 # to avoid permission issues when copying frontend assets.
 RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
+# Stage 2b: AI UPSCALING MODEL BUILD
+# ------------------------------------------------------------------------------------------
+# Intent: Build the general (plus its two noise-reduction presets) and anime ONNX models from the official Real-ESRGAN weights in
+# a stage of its own. The .pth weights are a Python pickle, so they are SHA-256 checked
+# against the official release before anything loads them, then loaded with
+# torch.load(weights_only=True) and exported to ONNX (graph and weights, no code).
+# Only the .onnx files and their .sha256 files are copied into the final image; torch,
+# onnx and the .pth files stay here. See scripts/build_upscale_model.py.
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:c6fc0de84b65bc20346cee5f071fd976ccf383431515db2a4d9721ca936feb9f AS upscale-model-stage
+
+COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
+
+# torch and onnxruntime wheels link against the system C++ runtime and OpenMP, which
+# the base image doesn't ship (same packages as in the backend stage).
+# ca-certificates: the build script downloads the official weights over HTTPS with
+# Python's own TLS stack, which finds no CA certificates in this image (uv and
+# requests/certifi bring their own roots, urllib does not). Without it the download
+# fails with CERTIFICATE_VERIFY_FAILED.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    set -eux; \
+    # DHI renamed its packages to +deb13uN+dhiX but still lists the old +dhiN
+    # builds, which sort higher and now return 403. Prefer the renamed ones,
+    # below 1000 so apt never downgrades what the base image ships.
+    printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
+    i=0; \
+    until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
+        i=$((i+1)); \
+        if [ "$i" -ge 5 ]; then echo "apt-get update failed after 5 attempts" >&2; exit 1; fi; \
+        sleep 15; \
+    done && \
+    apt-get install -y --no-install-recommends ca-certificates libstdc++6 libgomp1 && \
+    mkdir -p /build && chown -R nonroot:nonroot /build
+
+# uv's standalone Python looks for /etc/ssl/cert.pem, which Debian doesn't create;
+# point it at the bundle ca-certificates installs.
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+
+USER nonroot
+WORKDIR /build
+
+ENV UV_PYTHON_INSTALL_DIR=/build/python
+# CPU-only torch wheel (no CUDA libraries); versions pinned so the exported graph is
+# reproducible and matches the operator allowlist in the build script.
+RUN --mount=type=cache,target=/home/nonroot/.cache/uv,uid=65532,gid=65532 \
+    uv python install 3.14 && \
+    uv venv --python 3.14 /build/venv && \
+    uv pip install --python /build/venv/bin/python \
+        --index-url https://download.pytorch.org/whl/cpu torch==2.14.1 && \
+    uv pip install --python /build/venv/bin/python \
+        onnx==1.23.2 onnxruntime==1.26.0 numpy==2.5.3
+
+COPY --chown=nonroot:nonroot scripts/build_upscale_model.py ./build_upscale_model.py
+# The cache mount keeps the verified .pth between builds; it is re-checked every time.
+RUN --mount=type=cache,target=/home/nonroot/.cache/upscale-weights,uid=65532,gid=65532 \
+    /build/venv/bin/python build_upscale_model.py /build/models \
+        --cache /home/nonroot/.cache/upscale-weights
+
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
 FROM dhi.io/debian-base:trixie-debian13@sha256:2664ef25f3f63f5545a121a6a4676bf70da18df2bcadece1a913d6daaa19fdfb AS final-stage
@@ -171,7 +246,7 @@ FROM dhi.io/debian-base:trixie-debian13@sha256:2664ef25f3f63f5545a121a6a4676bf70
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
       org.opencontainers.image.title="imgcompress - High Performance Image Compression & Background Removal" \
-      org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), and background removal using local AI. Supports 70+ formats." \
+      org.opencontainers.image.description="Self-hosted, privacy-first tool for image compression, conversion (HEIC/WebP/PDF), background removal and upscaling using local AI. Supports 70+ formats." \
       org.opencontainers.image.url="https://github.com/karimz1/imgcompress" \
       org.opencontainers.image.source="https://github.com/karimz1/imgcompress" \
       org.opencontainers.image.documentation="https://github.com/karimz1/imgcompress" \
@@ -180,6 +255,7 @@ LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.co
 ENV VIRTUAL_ENV=/container/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV U2NET_HOME=/container/.u2net
+ENV IMGCOMPRESS_MODEL_HOME=/container/.models
 
 WORKDIR /container
 
@@ -187,6 +263,7 @@ COPY --from=backend-build-stage /dpkg-export/ /
 COPY --from=backend-build-stage --chown=65532:65532 /container/python /container/python
 COPY --from=backend-build-stage --chown=65532:65532 /container/venv /container/venv
 COPY --from=backend-build-stage --chown=65532:65532 /container/.u2net /container/.u2net
+COPY --from=upscale-model-stage --chown=65532:65532 /build/models /container/.models
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py
@@ -201,6 +278,9 @@ COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/public \
 USER nonroot
 
 EXPOSE 5000
+
+# Check the Cairo shared-library closure in the shell-free runtime image.
+RUN ["/container/venv/bin/python", "-c", "import cairosvg; assert cairosvg.svg2png(bytestring=b'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"1\" height=\"1\"/></svg>').startswith(b'\\x89PNG')"]
 
 # Constraint: The runtime hardened image lacks a shell (/bin/sh). 
 # We execute the healthcheck via python directly.

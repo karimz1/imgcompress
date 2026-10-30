@@ -5,7 +5,7 @@ from PIL import Image
 
 from backend.image_converter.application.dtos import ConversionDetails
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
-from backend.image_converter.core.factory.jpeg_converter import JpegConverter
+from backend.image_converter.core.factory.jpeg_converter import JpegConverter, _normalize_for_jpeg
 from backend.image_converter.core.factory.png_converter import PngConverter
 from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
 from backend.image_converter.core.enums.image_format import ImageFormat
@@ -45,6 +45,32 @@ def test_When_ImageContainsTransparency_Expect_JpegConverterFlattensAlpha(sample
         assert out_img.mode == "RGB"
                                            
         assert out_img.size == (64, 64)
+        assert all(abs(actual - expected) <= 2 for actual, expected in zip(out_img.getpixel((32, 32)), (127, 255, 127)))
+
+
+@pytest.mark.parametrize("mode", ["RGBA", "LA"])
+def test_When_NormalizingTransparencyForJpeg_Expect_WhiteCompositeAtEveryAlpha(mode):
+    alphas = [0, 1, 127, 128, 254, 255]
+    colour = (30, 120, 210) if mode == "RGBA" else (70,)
+    with Image.new(mode, (len(alphas), 1)) as source:
+        source.putdata([(*colour, alpha) for alpha in alphas])
+        with _normalize_for_jpeg(source) as result:
+            rgb = colour if mode == "RGBA" else colour * 3
+            expected = [tuple((channel * alpha + 255 * (255 - alpha) + 127) // 255 for channel in rgb) for alpha in alphas]
+            assert result.mode == "RGB"
+            assert list(result.get_flattened_data()) == expected
+
+
+def test_When_NormalizingExifRotationForJpeg_Expect_UprightPixelsAndNoOrientationTag():
+    red, green, yellow = (255, 0, 0), (0, 255, 0), (255, 255, 0)
+    blue, cyan, magenta = (0, 0, 255), (0, 255, 255), (255, 0, 255)
+    with Image.new("RGB", (3, 2)) as source:
+        source.putdata([red, green, yellow, blue, cyan, magenta])
+        source.getexif()[0x0112] = 6
+        result = _normalize_for_jpeg(source)
+        assert result.size == (2, 3)
+        assert list(result.get_flattened_data()) == [blue, red, cyan, green, magenta, yellow]
+        assert 0x0112 not in result.getexif()
 
 def test_When_ImageContainsTransparency_Expect_PngConverterPreservesAlpha(sample_rgba_png, tmp_path, mock_logger):
     """

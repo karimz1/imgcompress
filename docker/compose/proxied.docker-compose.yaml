@@ -161,11 +161,22 @@ services:
     environment:
       # Set to true to remove the mascot and enable a minimal, mascot-free UI
       - DISABLE_LOGO=${IMGCOMPRESS_DISABLE_LOGO:-false}
+      # Optional: largest upload per file in MB, also for editor pictures. Default 40960 (40 GB) for big PSD/PDF files; remove the line to keep it.
+      # For a public instance, use a smaller limit like 1 GB (1024).
+      - MAX_UPLOAD_SIZE_MB=${IMGCOMPRESS_MAX_UPLOAD_SIZE_MB:-40960}
       # Storage management is disabled by default in this proxied setup:
       # the app has no login, so it would let any visitor browse and manage
       # ALL uploaded files. Set IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT=false
       # in .env only if everyone who can reach this host is trusted.
       - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-true}
+      # Optional: "Notify me when done" (opt-in per job, never sends file names).
+      # Default: not set = off. imgcompress-network is internal (no Internet), so
+      # NOTIFY_URL can only reach a service on this network, e.g. an ntfy container
+      # added to imgcompress-network (see ntfy.docker-compose.yaml). Example:
+      # - NOTIFY_URL=ntfy://ntfy/imgcompress
+      # Optional: your public address, added to the message on its own line
+      # (never taken from the request, the Host header can be faked):
+      # - PUBLIC_BASE_URL=https://${TRAEFIK_DOMAIN_NAME}
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck

@@ -1,128 +1,342 @@
 name: Deployment for imgcompress to Docker Hub
 
+# release_* tag   -> notes, version image, then a draft release (never published)
+# draft published -> stable only: move `latest` to the version image, no rebuild
+# main passed CI  -> nightly image
 on:
   push:
-    branches:
-      - main
-    tags:
-      - release_*
+    tags: ['release_*']
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Rebuild an unpublished release tag and prepare its draft, e.g. release_1.0.0-rc.1. Empty: nightly from main.'
+        required: false
+        type: string
   repository_dispatch:
     types: [ deploy ]
 
 permissions:
   contents: read
 
+# All tags share latest. Serialize releases as well as nightlies so a slow
+# older run cannot overwrite a newer image or Docker Hub README.
+concurrency:
+  group: deploy-docker-image
+  queue: max
+  cancel-in-progress: false
+
 jobs:
-  deploy-image-to-dockerhub:
+  select-source:
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.source.outputs.mode }}
+      ref: ${{ steps.source.outputs.ref }}
+      tag: ${{ steps.source.outputs.tag }}
+    steps:
+      - name: Decide what to deploy
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          TAG_DELETED: ${{ github.event.deleted || false }}
+          INPUT_TAG: ${{ inputs.tag || '' }}
+          PUBLISHED_TAG: ${{ github.event.release.tag_name || '' }}
+          DEPLOY_REF: ${{ github.event.client_payload.ref || '' }}
+        run: |
+          set -euo pipefail
+          out() { printf '%s=%s\n' "$1" "$2" >> "$GITHUB_OUTPUT"; }
+          skip() { echo "$1"; out mode skip; exit 0; }
+          release_build() {
+            [[ "$1" =~ ^release_[0-9A-Za-z.-]+$ ]] || { echo "Invalid release tag: $1" >&2; exit 1; }
+            gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/$1" > /dev/null
+            # Published images stay as they were reviewed.
+            if gh api "repos/${GITHUB_REPOSITORY}/releases/tags/$1" > /dev/null 2>&1; then
+              skip "$1 is already published; its image is not rebuilt."
+            fi
+            out mode release; out tag "$1"; out ref "refs/tags/$1"
+          }
+          case "$EVENT_NAME" in
+            push)
+              [ "$TAG_DELETED" = 'true' ] && skip 'Tag deleted, nothing to build.'
+              release_build "$GITHUB_REF_NAME" ;;
+            release)
+              [[ "$PUBLISHED_TAG" == release_* ]] || skip "Not a release_* tag: $PUBLISHED_TAG"
+              out mode promote; out tag "$PUBLISHED_TAG"; out ref "refs/tags/$PUBLISHED_TAG" ;;
+            workflow_dispatch)
+              [ "$GITHUB_REF" = 'refs/heads/main' ] || skip 'Manual deployments run from main only.'
+              if [ -n "$INPUT_TAG" ]; then release_build "$INPUT_TAG"
+              else out mode nightly; out ref "$GITHUB_SHA"; fi ;;
+            repository_dispatch)
+              current=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+              [ "$DEPLOY_REF" = "$current" ] || skip 'Skipping nightly: main has moved since this commit passed CI.'
+              out mode nightly; out ref "$DEPLOY_REF" ;;
+          esac
+
+  release-notes:
+    needs: select-source
+    if: needs.select-source.outputs.mode == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # generate-notes needs it; nothing is written here
+      issues: read
+      pull-requests: read
+    steps:
+      - name: Check out tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.select-source.outputs.ref }}
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.select-source.outputs.tag }}
+          RELEASE_BODY_PATH: ${{ runner.temp }}/release-notes.md
+        run: node scripts/prepare-release.mjs notes
+
+      - name: Keep notes for the build and the draft
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}/release-notes.md
+          retention-days: 7
+
+  build-image:
+    needs: [select-source, release-notes]
+    # release-notes is skipped for nightlies; a failed one stops a release build.
+    if: >-
+      always() && !cancelled() &&
+      (needs.select-source.outputs.mode == 'nightly' ||
+       (needs.select-source.outputs.mode == 'release' && needs.release-notes.result == 'success'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write  # needed for pushing to GHCR with GITHUB_TOKEN
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.client_payload.ref || github.ref }}
+          # refs/tags/ so a branch with the same name can never be built instead.
+          ref: ${{ needs.select-source.outputs.ref }}
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Compute image tags
+        id: tags
+        env:
+          RELEASE_TAG: ${{ needs.select-source.outputs.tag }}
+        run: node scripts/docker-image-tags.mjs
+
+      - name: Download release notes
+        if: needs.select-source.outputs.mode == 'release'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}
+
+      # Docker copies frontend/public into the image, so the app lists this
+      # version first, RCs included. Edits made in the draft reach main on publish.
+      - name: Include release notes in the image
+        if: needs.select-source.outputs.mode == 'release'
+        env:
+          RELEASE_TAG: ${{ needs.select-source.outputs.tag }}
+          RELEASE_BODY_PATH: ${{ runner.temp }}/release-notes.md
+          INCLUDE_PRERELEASE: 'true'
+        run: node scripts/sync-release-notes.mjs
+
+      - name: Record source commit and build time
+        id: build-info
+        run: |
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Authenticate to dhi.io for DHI base images
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
-      - name: Compute image tags
-        id: tags
-        shell: bash
-        env:
-          GITHUB_OWNER: ${{ github.repository_owner }}
-        run: |
-          set -euo pipefail
-
-          # Docker Hub image
-          IMAGE_DH="karimz1/imgcompress"
-
-          # GitHub Container Registry image
-          IMAGE_GH="ghcr.io/${GITHUB_OWNER}/imgcompress"
-
-          TAGS=()
-          VERSION=""
-
-          # If this is a release tag like refs/tags/release_1.0.3
-          if [[ "${GITHUB_REF:-}" == refs/tags/release_* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/release_}"
-
-            # For releases: versioned tag + latest (both registries)
-            TAGS+=("$IMAGE_DH:${VERSION}")
-            TAGS+=("$IMAGE_DH:latest")
-            
-            TAGS+=("$IMAGE_GH:${VERSION}")
-            TAGS+=("$IMAGE_GH:latest")
-          else
-            # Main (or other branches): nightly (both registries)
-            TAGS+=("$IMAGE_DH:nightly")
-            TAGS+=("$IMAGE_GH:nightly")
-          fi
-
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
-
-      - name: Debug - Display Computed Tags
-        shell: bash
+      - name: Show computed tags
         env:
           TAGS_OUTPUT: ${{ steps.tags.outputs.tags }}
-          VERSION_OUTPUT: ${{ env.VERSION }}
         run: |
-          echo "::group::🏷️ Computed Docker Image Tags"
-          echo "VERSION: $VERSION_OUTPUT"
-          echo ""
-          echo "Tags that will be pushed:"
-          IFS=',' read -ra TAG_ARRAY <<< "$TAGS_OUTPUT"
-          for tag in "${TAG_ARRAY[@]}"; do
-            echo "  • $tag"
-          done
-          echo "::endgroup::"
+          echo "Version: ${VERSION:-nightly}"
+          tr ',' '\n' <<< "$TAGS_OUTPUT" | sed 's/^/  • /'
 
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v7
-        with:
+        id: build-app
+        continue-on-error: true
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: &app-build
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            BUILD_COMMIT=${{ steps.build-info.outputs.commit }}
+            BUILD_DATE=${{ steps.build-info.outputs.date }}
+            BUILD_REF=${{ needs.select-source.outputs.tag || needs.select-source.outputs.ref }}
+            BUILD_VERSION=${{ env.VERSION }}
+            BUILD_PRERELEASE=${{ steps.tags.outputs.prerelease }}
           cache-from: type=gha,scope=app-deploy
           cache-to: type=gha,mode=max,scope=app-deploy
 
-  update-dockerhub-description:
-    needs: deploy-image-to-dockerhub
-    if: startsWith(github.ref, 'refs/tags/release_')
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: *app-build
+
+  release-draft:
+    needs: [select-source, build-image]
+    # Only after the version image is pushed. A failed build leaves no draft.
+    if: needs.select-source.outputs.mode == 'release'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # create the draft release
+    steps:
+      - name: Check out tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.select-source.outputs.ref }}
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Download release notes
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.select-source.outputs.tag }}
+          RELEASE_BODY_PATH: ${{ runner.temp }}/release-notes.md
+        run: node scripts/prepare-release.mjs draft
+
+  promote-latest:
+    needs: select-source
+    if: needs.select-source.outputs.mode == 'promote'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write  # retag on GHCR
+    outputs:
+      latest: ${{ steps.promotion.outputs.latest }}
+    steps:
+      - name: Check out tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.select-source.outputs.ref }}
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+
+      - name: Decide whether latest moves
+        id: promotion
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.select-source.outputs.tag }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease || false }}
+        run: node scripts/docker-image-tags.mjs promote
+
+      - name: Login to Docker Hub
+        if: steps.promotion.outputs.latest == 'true'
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        if: steps.promotion.outputs.latest == 'true'
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        if: steps.promotion.outputs.latest == 'true'
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+      - name: Point latest at the version image
+        env:
+          LATEST: ${{ steps.promotion.outputs.latest }}
+          RETAGS: ${{ steps.promotion.outputs.retags }}
+        run: |
+          set -euo pipefail
+          if [ "$LATEST" != 'true' ]; then
+            echo 'RC, pre-release or older version: latest stays where it is.'
+            exit 0
+          fi
+          IFS=',' read -ra pairs <<< "$RETAGS"
+          for pair in "${pairs[@]}"; do
+            from="${pair%%=*}"
+            docker buildx imagetools inspect "$from" > /dev/null || {
+              echo "::error::$from is missing. The tag build must succeed before publishing." >&2; exit 1; }
+          done
+          for pair in "${pairs[@]}"; do
+            echo "${pair#*=} -> ${pair%%=*}"
+            docker buildx imagetools create --tag "${pair#*=}" "${pair%%=*}"
+          done
+
+  update-dockerhub-description:
+    needs: [select-source, promote-latest]
+    # Only the release that also got `latest`, so a backport keeps the current README.
+    if: needs.promote-latest.outputs.latest == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.select-source.outputs.ref }}
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.x'
 
@@ -131,13 +345,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Choose README ref
-        id: readme-ref
-        shell: bash
-        run: |
-          README_REF="${GITHUB_REF#refs/tags/}"
-          echo "README_REF=$README_REF" >> "$GITHUB_ENV"
-
       - name: Update Docker Hub Description
         run: |
           python update_dockerhub_description.py \
@@ -145,6 +352,7 @@ jobs:
               --branch "$README_REF" \
               --base-url "https://raw.githubusercontent.com/karimz1/imgcompress/$README_REF"
         env:
+          README_REF: ${{ needs.select-source.outputs.tag }}
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_REPO: "imgcompress"

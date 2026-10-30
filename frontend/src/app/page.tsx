@@ -28,7 +28,19 @@ import FileConversionForm from "@/components/FileConversionForm";
 import { DownloadFileToast, DownloadZipToast } from "@/components/CustomToast";
 import { DownloadErrorProvider } from "@/context/DownloadErrorStore";
 import { useDownload } from "@/hooks/useDownload";
-import { fileDownloadUrl, zipDownloadUrl } from "@/lib/download";
+import {
+  type JobProgress,
+  type JobRef,
+  JobNotFoundError,
+  jobFileUrl,
+  jobHeaders,
+  jobZipUrl,
+  jobStartedAtLocal,
+  loadActiveJob,
+  saveActiveJob,
+  setJobNotify,
+  waitForJob,
+} from "@/lib/conversionJob";
 import { SplashScreen } from "@/components/SplashScreen";
 import { DevModePanel } from "@/components/DevModePanel";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -36,18 +48,29 @@ import { ErrorStoreProvider, useErrorStore } from "@/context/ErrorStore";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 import { useRembgModel } from "@/hooks/useRembgModel";
+import { useUpscaleModel } from "@/hooks/useUpscaleModel";
+import {
+  DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, isUpscaleCardModel, toUpscaleModel, upscaleModelParam, type UpscaleSettings,
+} from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
+import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
+import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
 
 
 function HomePageContent() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [disableLogo, setDisableLogo] = useState(false);
   const [configReady, setConfigReady] = useState(false);
   const [storageManagementDisabled, setStorageManagementDisabled] = useState(false);
   const [devMode, setDevMode] = useState(false);
+  const [notifyAvailable, setNotifyAvailable] = useState(false);
+  // The job the splash screen follows, and its "notify me when done" switch.
+  const [followedJob, setFollowedJob] = useState<JobRef | null>(null);
+  const [notifyOn, setNotifyOn] = useState(false);
+  const notifyTouched = React.useRef(false);
 
   useEffect(() => {
     const loadRuntimeConfig = async () => {
@@ -60,6 +83,9 @@ function HomePageContent() {
           config.DISABLE_STORAGE_MANAGEMENT === "true";
         setStorageManagementDisabled(disableStorage);
         setDevMode(config.DEV_MODE === "true");
+        setMaxUploadSizeMb(config.MAX_UPLOAD_SIZE_MB);
+        setMaxOutputMegapixels(config.MAX_OUTPUT_MEGAPIXELS);
+        setNotifyAvailable(config.NOTIFY_ENABLED === "true");
       } catch (err) {
         console.warn("Runtime config missing or invalid, defaulting flags off", err);
         setDisableLogo(false);
@@ -83,6 +109,7 @@ function HomePageContent() {
     unsupportedExtensions: cropUnsupportedExtensions,
   } = useCropUnsupportedExtensions();
   const { modelName: rembgModelName } = useRembgModel();
+  const { models: upscaleModels } = useUpscaleModel();
 
   const formattedSupportedExtensions = supportedExtensions.map((ext) =>
     ext.startsWith(".") ? ext : `.${ext}`
@@ -97,9 +124,36 @@ function HomePageContent() {
   const [quality, setQuality] = useState("85");
   const [width, setWidth] = useState("");
   const [resizeWidthEnabled, setResizeWidthEnabled] = useState(false);
+  const [upscale, setUpscale] = useState<UpscaleSettings>(DEFAULT_UPSCALE_SETTINGS);
+  const selectedUpscaleModel = upscaleModels.find((model) => model.id === upscale.model);
+  const upscaleModelName = selectedUpscaleModel?.modelName || UPSCALE_MODEL_NAMES[upscale.model];
+  const upscaleAvailable = selectedUpscaleModel?.available === true;
+
+  useEffect(() => {
+    if (!upscaleModels.some((model) => model.id === upscale.model && model.available)) {
+      const availableModel = upscaleModels.find((model) => model.available && isUpscaleCardModel(model.id));
+      if (availableModel) setUpscale((previous) => ({ ...previous, model: toUpscaleModel(availableModel.id) }));
+    }
+  }, [upscaleModels, upscale.model]);
+
+  useEffect(() => {
+    // A noise preset whose model file is missing falls back to the released model.
+    const presetId = upscaleModelParam({ model: "general", denoise: upscale.denoise });
+    if (upscaleModels.length > 0 && !upscaleModels.some((model) => model.id === presetId && model.available)) {
+      setUpscale((previous) => (previous.denoise === "strong" ? previous : { ...previous, denoise: "strong" }));
+    }
+  }, [upscaleModels, upscale.denoise]);
   const [files, setFiles] = useState<File[]>([]);
   const [converted, setConverted] = useState<string[]>([]);
-  const [destFolder, setDestFolder] = useState("");
+  const [resultJob, setResultJob] = useState<JobRef | null>(null);
+  const [jobProgress, setJobProgress] = useState<JobProgress | null>(null);
+  // Clearing the result also forgets the saved job, so a reload stays empty.
+  const forgetResultJob = useCallback(() => {
+    setResultJob(null);
+    saveActiveJob(null);
+  }, []);
+  const [jobStartedAt, setJobStartedAt] = useState<number | null>(null);
+  const [jobDuration, setJobDuration] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState("");
   const [formatRequired, setFormatRequired] = useState(false);
@@ -111,6 +165,7 @@ function HomePageContent() {
   const [targetSizeMB, setTargetSizeMB] = useState("");
   const [compressionMode, setCompressionMode] = useState<"quality" | "size">("quality");
   const [useRembg, setUseRembg] = useState(false);
+  const [webpLossless, setWebpLossless] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [crops, setCrops] = useState<Record<string, CropConfig>>({});
@@ -135,13 +190,26 @@ function HomePageContent() {
   const accentOneClass = isDarkTheme ? "bg-slate-500/10" : "bg-slate-300/15";
   const accentTwoClass = isDarkTheme ? "bg-slate-400/10" : "bg-slate-200/15";
 
+  // Formats with a quality knob. Lossless WebP has none, so it gets neither a
+  // quality value nor a max file size.
+  const hasQualitySettings =
+    outputFormat === "jpeg" ||
+    outputFormat === "avif" ||
+    (outputFormat === "webp" && !webpLossless);
+
   useEffect(() => {
-    if (outputFormat !== "jpeg" && outputFormat !== "avif") {
+    if (!hasQualitySettings) {
       setCompressionMode("quality");
       setTargetSizeMB("");
     }
-    if (outputFormat !== "png" && outputFormat !== "avif") {
+  }, [hasQualitySettings]);
+
+  useEffect(() => {
+    if (outputFormat !== "png" && outputFormat !== "avif" && outputFormat !== "webp") {
       setUseRembg(false);
+    }
+    if (outputFormat !== "webp") {
+      setWebpLossless(false);
     }
     if (outputFormat !== "pdf") {
       setPdfPreset("original");
@@ -162,6 +230,22 @@ function HomePageContent() {
     }
   }, [outputFormat, pdfPreset]);
 
+  const hasFittedImages = outputFormat !== "pdf" && Object.values(crops).some((crop) => crop.fit);
+  useEffect(() => {
+    if (hasFittedImages) {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [hasFittedImages]);
+
+  useEffect(() => {
+    // Upscaling decides the output size, so a resize width would contradict it.
+    if (upscale.enabled && outputFormat !== "pdf") {
+      setResizeWidthEnabled(false);
+      setWidth("");
+    }
+  }, [upscale.enabled, outputFormat]);
+
   useEffect(() => {
     if (outputFormat === "pdf" && pdfPreset === "original") {
       setPdfScale("fit");
@@ -180,14 +264,20 @@ function HomePageContent() {
     (acceptedFiles: File[]) => {
       clearError();
       setConverted([]);
-      setDestFolder("");
+      forgetResultJob();
 
       const supportedFiles: File[] = [];
       const unsupportedFiles: string[] = [];
+      const tooLargeFiles: string[] = [];
 
       acceptedFiles.forEach((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
         if (ext && formattedSupportedExtensions.includes(`.${ext}`)) {
+          // The server refuses uploads above MAX_UPLOAD_SIZE_MB, so say it right away.
+          if (file.size > maxUploadBytes()) {
+            tooLargeFiles.push(file.name);
+            return;
+          }
           supportedFiles.push(file);
         } else {
           unsupportedFiles.push(file.name);
@@ -204,9 +294,16 @@ function HomePageContent() {
         });
       }
 
+      if (tooLargeFiles.length > 0) {
+        const size = formatUploadLimit(i18n.language);
+        const messages = tooLargeFiles.map((fileName) => t("page.toast.fileTooLarge", { fileName, size }));
+        messages.forEach((message) => toast.error(message));
+        setError({ message: messages.join("\n") });
+      }
+
       setFiles((prev) => [...prev, ...supportedFiles]);
     },
-    [clearError, setError, formattedSupportedExtensions]
+    [clearError, setError, formattedSupportedExtensions, t, i18n]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -216,6 +313,87 @@ function HomePageContent() {
   });
 
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // Follows a background job until it ends. Leaving the app or reloading the
+  // page does not stop the job; the page picks it up again (see resume below).
+  const followJob = useCallback(
+    async (job: JobRef, controller: AbortController) => {
+      setJobProgress({});
+      setJobStartedAt(null);
+      setJobDuration(null);
+      setFollowedJob(job);
+      setNotifyOn(false);
+      notifyTouched.current = false;
+      let state;
+      try {
+        state = await waitForJob(
+          job,
+          (s) => {
+            setJobProgress(s.progress ?? {});
+            const startedAt = jobStartedAtLocal(s);
+            if (startedAt !== null) setJobStartedAt((prev) => prev ?? startedAt);
+            // After a reload the server knows the earlier choice.
+            if (!notifyTouched.current) setNotifyOn(s.notify === true);
+          },
+          controller.signal
+        );
+      } catch (err) {
+        if (err instanceof JobNotFoundError) {
+          saveActiveJob(null);
+          // An old result the user already had is simply gone, no error for that.
+          if (job.seen) return;
+          setError({ message: t("page.toast.jobExpired") });
+          toast.error(t("page.toast.jobExpired"));
+          return;
+        }
+        throw err;
+      }
+      if (state.status === "failed") {
+        saveActiveJob(null);
+        setError({
+          message: state.error || t("page.toast.unexpectedError"),
+          isApiError: true,
+        });
+        return;
+      }
+      const names = state.result?.converted_files ?? [];
+      setConverted(names);
+      setJobDuration(typeof state.duration_seconds === "number" ? state.duration_seconds : null);
+      setResultJob(job);
+      if (job.seen) {
+        // Already shown before the reload: keep it one click away, but leave
+        // the form free for the next conversion.
+        return;
+      }
+      saveActiveJob({ ...job, seen: true });
+      setDrawerOpen(true);
+      markTabDone();
+      await delay(600);
+      toast.success(t("page.toast.compressedSuccess", { count: names.length }));
+    },
+    [setError]
+  );
+
+  // Back from another app, a reload or a closed tab: continue the last job.
+  useEffect(() => {
+    const job = loadActiveJob();
+    if (!job) return;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    if (!job.seen) setIsLoading(true);
+    followJob(job, controller)
+      .catch((err) => {
+        if ((err as Error).name !== "AbortError") console.error(err);
+      })
+      .finally(() => {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        setIsLoading(false);
+        setJobProgress(null);
+      });
+    return () => controller.abort();
+    // Only on page load; a job started later is followed by handleSubmit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -234,7 +412,7 @@ function HomePageContent() {
         return;
       }
 
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
+      if (hasQualitySettings && compressionMode === "quality") {
         const qualityNum = parseInt(quality, 10);
         if (isNaN(qualityNum) || qualityNum < 1 || qualityNum > 100) {
           setError({ message: t("page.toast.qualityRangeError") });
@@ -257,7 +435,7 @@ function HomePageContent() {
         }
       }
 
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
+      if (hasQualitySettings && compressionMode === "size") {
         const trimmed = (targetSizeMB || "").trim();
         const parsedSize = parseFloat(trimmed);
         if (!trimmed || isNaN(parsedSize) || parsedSize <= 0) {
@@ -270,17 +448,22 @@ function HomePageContent() {
       setIsLoading(true);
       clearError();
       setConverted([]);
-      setDestFolder("");
+      forgetResultJob();
+      restoreTabTitle();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       let processedFiles: File[];
       try {
         processedFiles = await Promise.all(
           files.map((file) => {
             const cfg = crops[file.name];
-            return cfg ? applyCropToFile(file, cfg) : Promise.resolve(file);
+            return cfg ? applyCropToFile(file, outputFormat === "pdf" ? { ...cfg, fit: undefined } : cfg, controller.signal) : Promise.resolve(file);
           })
         );
       } catch (cropErr) {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        if (controller.signal.aborted) return;
         const message =
           cropErr instanceof Error ? cropErr.message : "Failed to apply crop.";
         setError({
@@ -292,14 +475,32 @@ function HomePageContent() {
         setIsLoading(false);
         return;
       }
+      if (controller.signal.aborted) return;
+
+      // One request carries every file, and the server limit counts the whole request.
+      const batchBytes = processedFiles.reduce((sum, file) => sum + file.size, 0);
+      if (batchBytes > maxUploadBytes()) {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
+        const message = t("page.toast.batchTooLarge", { size: formatUploadLimit(i18n.language) });
+        setError({ message });
+        toast.error(message);
+        setIsLoading(false);
+        return;
+      }
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "quality") {
+      if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
-      if (resizeWidthEnabled) {
+      // Fitted images already have their final size, so they are not upscaled.
+      const upscaleActive = upscale.enabled && outputFormat !== "pdf" && !hasFittedImages;
+      if (resizeWidthEnabled && !upscaleActive) {
         formData.append("width", width);
+      }
+      if (upscaleActive) {
+        formData.append("upscale", upscale.target);
+        formData.append("upscale_model", upscaleModelParam(upscale));
       }
       formData.append("format", outputFormat);
       if (outputFormat === "pdf") {
@@ -313,21 +514,21 @@ function HomePageContent() {
           }
         }
       }
-      if ((outputFormat === "jpeg" || outputFormat === "avif") && compressionMode === "size") {
+      if (hasQualitySettings && compressionMode === "size") {
         const kb = Math.round(parseFloat(targetSizeMB) * 1024);
         if (!isNaN(kb) && kb > 0) {
           formData.append("target_size_kb", String(kb));
         }
       }
-      if ((outputFormat === "png" || outputFormat === "avif") && useRembg) {
+      if (outputFormat === "webp" && webpLossless) {
+        formData.append("webp_lossless", "true");
+      }
+      if ((outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp") && useRembg) {
         formData.append("use_rembg", "true");
       }
 
       try {
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-
-        const res = await fetch("/api/compress", {
+        const res = await fetch("/api/jobs", {
           method: "POST",
           body: formData,
           signal: controller.signal,
@@ -360,17 +561,12 @@ function HomePageContent() {
           return;
         }
 
-        if (!payload) {
+        if (!payload?.id || !payload?.token) {
           throw new Error("Received unexpected response from server.");
         }
-        const data = payload;
-        setConverted(data.converted_files);
-        setDestFolder(data.dest_folder);
-        setDrawerOpen(true);
-        await delay(600);
-        toast.success(
-          t("page.toast.compressedSuccess", { count: data.converted_files.length })
-        );
+        const job: JobRef = { id: payload.id, token: payload.token };
+        saveActiveJob(job);
+        await followJob(job, controller);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
           return;
@@ -383,7 +579,9 @@ function HomePageContent() {
         });
         toast.error(t("page.toast.unexpectedError"));
       } finally {
+        if (abortControllerRef.current === controller) abortControllerRef.current = null;
         setIsLoading(false);
+        setJobProgress(null);
       }
     },
     [
@@ -392,17 +590,22 @@ function HomePageContent() {
       quality,
       resizeWidthEnabled,
       width,
+      upscale,
+      hasFittedImages,
       clearError,
       setError,
       compressionMode,
       targetSizeMB,
       useRembg,
+      webpLossless,
+      hasQualitySettings,
       pdfPreset,
       pdfScale,
       pdfMarginMm,
       pdfPaginate,
       pdfQuality,
       crops,
+      followJob,
     ]
   );
 
@@ -444,30 +647,32 @@ function HomePageContent() {
   const clearCompressedFiles = useCallback(() => {
     setDrawerOpen(false);
     setConverted([]);
-    setDestFolder("");
+    forgetResultJob();
     setFileManagerRefresh((prev) => prev + 1);
   }, []);
 
   const handleDownloadFile = useCallback(
     (fileName: string) =>
       download({
-        url: fileDownloadUrl(destFolder, fileName),
+        url: resultJob ? jobFileUrl(resultJob, fileName) : "",
+        headers: resultJob ? jobHeaders(resultJob) : undefined,
         fileName,
         successToast: <DownloadFileToast fileName={fileName} />,
         onUnavailable: clearCompressedFiles,
       }),
-    [download, destFolder, clearCompressedFiles]
+    [download, resultJob, clearCompressedFiles]
   );
 
   const handleDownloadAll = useCallback(
     () =>
       download({
-        url: zipDownloadUrl(destFolder),
+        url: resultJob ? jobZipUrl(resultJob) : "",
+        headers: resultJob ? jobHeaders(resultJob) : undefined,
         fileName: "compressed_images.zip",
         successToast: <DownloadZipToast />,
         onUnavailable: clearCompressedFiles,
       }),
-    [download, destFolder, clearCompressedFiles]
+    [download, resultJob, clearCompressedFiles]
   );
 
   const onForceCleanCallback = useCallback(async () => {
@@ -477,7 +682,7 @@ function HomePageContent() {
       if (json.status === "ok") {
         toast.success(t("page.toast.cleanupSuccess"));
         setConverted([]);
-        setDestFolder("");
+        forgetResultJob();
         setDrawerOpen(false);
         setFileManagerRefresh((prev) => prev + 1);
       } else {
@@ -493,16 +698,32 @@ function HomePageContent() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
+      // The server may still finish it, but this page stops waiting for it.
+      saveActiveJob(null);
       setIsLoading(false);
+      setJobProgress(null);
       toast.info(t("page.toast.compressionCancelled"));
     }
   }, []);
+
+  const handleNotifyChange = useCallback(
+    async (checked: boolean) => {
+      if (!followedJob) return;
+      notifyTouched.current = true;
+      setNotifyOn(checked);
+      if (!(await setJobNotify(followedJob, checked, i18n.language))) setNotifyOn(!checked);
+    },
+    [followedJob, i18n]
+  );
 
   return (
     <div className={cn("min-h-screen flex flex-col transition-colors", backgroundClass)}>
       <SplashScreen
         isVisible={isLoading}
         onAbort={handleAbort}
+        progress={jobProgress}
+        startedAt={jobStartedAt}
+        notify={notifyAvailable && followedJob ? { checked: notifyOn, onChange: handleNotifyChange } : null}
         disableLogo={configReady ? disableLogo : false}
       />
       <BackendStatusBanner backendDown={isDown} />
@@ -548,6 +769,11 @@ function HomePageContent() {
               setWidth={setWidth}
               resizeWidthEnabled={resizeWidthEnabled}
               setResizeWidthEnabled={setResizeWidthEnabled}
+              upscale={upscale}
+              setUpscale={setUpscale}
+              upscaleModelName={upscaleModelName}
+              upscaleAvailable={upscaleAvailable}
+              upscaleModels={upscaleModels}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}
@@ -576,6 +802,8 @@ function HomePageContent() {
               useRembg={useRembg}
               setUseRembg={setUseRembg}
               rembgModelName={rembgModelName}
+              webpLossless={webpLossless}
+              setWebpLossless={setWebpLossless}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}
@@ -637,6 +865,7 @@ function HomePageContent() {
         {converted.length > 0 && (
           <CompressedFilesDrawer
             converted={converted}
+            durationSeconds={jobDuration}
             isOpen={drawerOpen}
             onOpenChange={setDrawerOpen}
             onDownloadAll={handleDownloadAll}
@@ -650,6 +879,27 @@ function HomePageContent() {
       </div>
     </div>
   );
+}
+
+const DONE_TITLE_PREFIX = "✓ ";
+
+/** Shows a check mark in the tab title so a finished job is visible from other tabs. */
+function markTabDone(): void {
+  if (typeof document === "undefined" || document.title.startsWith(DONE_TITLE_PREFIX)) return;
+  document.title = DONE_TITLE_PREFIX + document.title;
+  const restoreWhenSeen = () => {
+    if (document.visibilityState !== "visible") return;
+    document.removeEventListener("visibilitychange", restoreWhenSeen);
+    setTimeout(restoreTabTitle, 5000);
+  };
+  if (document.visibilityState === "visible") setTimeout(restoreTabTitle, 5000);
+  else document.addEventListener("visibilitychange", restoreWhenSeen);
+}
+
+function restoreTabTitle(): void {
+  if (typeof document !== "undefined" && document.title.startsWith(DONE_TITLE_PREFIX)) {
+    document.title = document.title.slice(DONE_TITLE_PREFIX.length);
+  }
 }
 
 export default function HomePage() {

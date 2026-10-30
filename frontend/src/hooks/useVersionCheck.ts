@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { coerce, gt } from "semver";
+import { coerce, gt, valid } from "semver";
 import { APP_CONFIG } from "@/lib/config";
+import { extractCurrentVersion } from "@/lib/release-version";
 
 interface VersionInfo {
   currentVersion: string | null;
@@ -10,6 +11,8 @@ interface VersionInfo {
 }
 
 const normalizeVersion = (value: string): string | null => {
+  const exact = valid(value.replace(/^(?:release_|v)/, ""));
+  if (exact) return exact;
   const parsed = coerce(value);
   return parsed ? parsed.version : null;
 };
@@ -21,31 +24,23 @@ const compareVersions = (current: string, latest: string): boolean => {
   return gt(normalizedLatest, normalizedCurrent);
 };
 
-const extractMaxVersion = (markdown: string): string | null => {
-  const versionPattern =
-    /##\s+v?(\d+\.\d+\.\d+(?:\.\d+)?)\s+[—-]\s+\d{4}-\d{2}-\d{2}/g;
-  const matches = Array.from(markdown.matchAll(versionPattern), (match) => match[1]);
-  const normalized = matches
-    .map((version) => normalizeVersion(version))
-    .filter((version): version is string => Boolean(version));
-  if (normalized.length === 0) return null;
-  return normalized.reduce((max, current) => (gt(current, max) ? current : max));
-};
-
-export function useVersionCheck(): VersionInfo {
+export function useVersionCheck(installedVersion?: string): VersionInfo {
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchVersionInfo = async () => {
       try {
-        // Fetch current version from local release notes
-        const releaseNotesResponse = await fetch("/release-notes.md", { cache: "no-store" });
-        if (releaseNotesResponse.ok) {
-          const markdown = await releaseNotesResponse.text();
-          const current = extractMaxVersion(markdown);
+        let rawCurrent = installedVersion;
+        if (!rawCurrent) {
+          const releaseNotesResponse = await fetch("/release-notes.md", { cache: "no-store" });
+          if (releaseNotesResponse.ok) {
+            rawCurrent = extractCurrentVersion(await releaseNotesResponse.text()) ?? undefined;
+          }
+        }
+        if (rawCurrent) {
+          const current = rawCurrent ? normalizeVersion(rawCurrent) : null;
           setCurrentVersion(current);
 
           // Fetch latest version from API
@@ -62,9 +57,6 @@ export function useVersionCheck(): VersionInfo {
                   typeof rawLatest === "string" ? normalizeVersion(rawLatest) : null;
                 if (latest) {
                   setLatestVersion(latest);
-                  if (compareVersions(current, latest)) {
-                    setUpdateAvailable(true);
-                  }
                 }
               }
             } catch (apiError) {
@@ -80,12 +72,16 @@ export function useVersionCheck(): VersionInfo {
     };
 
     fetchVersionInfo();
-  }, []);
+  }, [installedVersion]);
+
+  // Metadata and notes can arrive in either order. Compare against the same
+  // installed version used in the footer, rather than retaining a stale result.
+  const effectiveCurrent = installedVersion ? normalizeVersion(installedVersion) : currentVersion;
 
   return {
-    currentVersion,
+    currentVersion: effectiveCurrent,
     latestVersion,
-    updateAvailable,
+    updateAvailable: !!effectiveCurrent && !!latestVersion && compareVersions(effectiveCurrent, latestVersion),
     isLoading,
   };
 }

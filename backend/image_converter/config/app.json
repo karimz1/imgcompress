@@ -1,7 +1,7 @@
 {
   "temporary_storage": {
     "directory": "/tmp",
-    "max_age_seconds": 3600
+    "max_age_seconds": 172800
   },
   "uploads": {
     "max_file_size_mebibytes": 40960
@@ -20,7 +20,6 @@
     "max_retry_attempts": 3,
     "unsupported_input_extensions": [
       ".pdf",
-      ".svg",
       ".raw",
       ".cr2",
       ".nef",
@@ -31,7 +30,8 @@
   "formats": {
     "custom_pipeline_extensions": [
       ".pdf",
-      ".psd"
+      ".psd",
+      ".svg"
     ]
   },
   "features": {
@@ -41,5 +41,9 @@
   },
   "rembg": {
     "model_name": "u2net"
+  },
+  "upscaling": {
+    "threads": "auto",
+    "max_output_megapixels": 144
   }
 }

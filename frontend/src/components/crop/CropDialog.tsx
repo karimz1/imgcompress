@@ -3,7 +3,10 @@
 import React, { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { CropConfig } from "@/lib/crop";
+import { autoFitFile, CropConfig, isCropUnsupportedFile } from "@/lib/crop";
+import { InputFileBadge } from "@/components/InputFileBadge";
+import { inputFileKind } from "@/lib/inputFileKind";
+import type { FitOutput } from "@/lib/fitToSize";
 import { BrandLogo } from "@/components/BrandLogo";
 import {
   Dialog,
@@ -35,6 +38,8 @@ interface CropDialogProps {
   onReportError?: (payload: { message: string; details?: string }) => void;
   isDarkTheme: boolean;
   disableLogo?: boolean;
+  fitAvailable: boolean;
+  cropUnsupportedExtensions: string[];
 }
 
 export const CropDialog: React.FC<CropDialogProps> = ({
@@ -48,6 +53,8 @@ export const CropDialog: React.FC<CropDialogProps> = ({
   onReportError,
   isDarkTheme,
   disableLogo = false,
+  fitAvailable,
+  cropUnsupportedExtensions,
 }) => {
   const { t } = useTranslation();
   const widgetRef = useRef<CropWidgetHandle | null>(null);
@@ -58,6 +65,25 @@ export const CropDialog: React.FC<CropDialogProps> = ({
   );
 
   const closeEditor = () => setOpenFileName(null);
+  const canFitAll = files.length > 1 && !files.some((file) =>
+    isCropUnsupportedFile(file, cropUnsupportedExtensions)
+  );
+  const savedCrop = openFile ? crops[openFile.name] : undefined;
+  const initialCrop = savedCrop
+    ? { ...savedCrop, fit: fitAvailable ? savedCrop.fit : undefined }
+    : null;
+
+  const applyFitToAll = async (fit: FitOutput, signal: AbortSignal) => {
+    const prepared: { name: string; crop: CropConfig }[] = [];
+    for (const file of files) {
+      if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
+      prepared.push({ name: file.name, crop: await autoFitFile(file, fit, signal) });
+    }
+    if (signal.aborted) return;
+    // A failure leaves all existing edits intact.
+    prepared.forEach(({ name, crop }) => setCropForFile(name, crop));
+    closeEditor();
+  };
 
   const confirmRemove = () => {
     if (!confirmRemoveFor) return;
@@ -83,10 +109,22 @@ export const CropDialog: React.FC<CropDialogProps> = ({
     >
       <DialogContent
         className={cn(
-          "max-w-[95vw] w-[95vw] sm:max-w-[92vw] lg:max-w-[88vw] xl:max-w-[80vw] h-[92vh] max-h-[92vh] p-3 sm:p-4 flex flex-col gap-3 overflow-hidden border data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 origin-center",
+          "max-w-[95vw] w-[95vw] sm:max-w-[92vw] lg:w-[min(96vw,1800px)] lg:max-w-[min(96vw,1800px)] h-[92vh] max-h-[92vh] lg:h-[94vh] lg:max-h-[94vh] p-3 sm:p-4 flex flex-col gap-3 overflow-hidden border data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 origin-center",
           cropDialogContentClass
         )}
         data-testid="crop-dialog"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+        }}
+        onEscapeKeyDown={(event) => {
+          // Let open file details handle Escape before closing the editor.
+          if (document.querySelector('[data-file-kind-details][data-state$="open"]')) {
+            event.preventDefault();
+          }
+          // With a layer selected on the stage, Escape only deselects it.
+          const stage = document.querySelector('[data-fit-stage][data-has-selection="true"]');
+          if (stage?.contains(document.activeElement)) event.preventDefault();
+        }}
       >
         <DialogHeader className="shrink-0">
           <div className="flex items-center gap-3 pr-12">
@@ -101,17 +139,24 @@ export const CropDialog: React.FC<CropDialogProps> = ({
               />
             )}
             <div className="min-w-0 flex-1">
-              <DialogTitle className="text-sm font-medium leading-tight truncate">
-                {!disableLogo && (
-                  <>
-                    <span className="opacity-70">imgcompress</span>
-                    <span className="opacity-40 px-1.5">·</span>
-                  </>
+              <div className="flex min-w-0 items-center gap-1.5">
+                <DialogTitle className="min-w-0 text-sm font-medium leading-tight truncate">
+                  {!disableLogo && (
+                    <>
+                      <span className="opacity-70">imgcompress</span>
+                      <span className="opacity-40 px-1.5">·</span>
+                    </>
+                  )}
+                  <span>{t("crop.editorTitle")}</span>
+                  <span className="opacity-40 px-1.5">·</span>
+                  <span className="opacity-90">{openFile.name}</span>
+                </DialogTitle>
+                {inputFileKind(openFile.name) !== "image" && (
+                  <span className="shrink-0" data-testid="crop-file-info">
+                    <InputFileBadge filename={openFile.name} />
+                  </span>
                 )}
-                <span>{t("crop.editorTitle")}</span>
-                <span className="opacity-40 px-1.5">·</span>
-                <span className="opacity-90">{openFile.name}</span>
-              </DialogTitle>
+              </div>
               <DialogDescription className="sr-only">
                 {t("crop.editorDescription")}
               </DialogDescription>
@@ -119,9 +164,10 @@ export const CropDialog: React.FC<CropDialogProps> = ({
           </div>
         </DialogHeader>
         <CropWidget
+          key={openFile.name}
           ref={widgetRef}
           file={openFile}
-          initialCrop={crops[openFile.name] ?? null}
+          initialCrop={initialCrop}
           isDarkTheme={isDarkTheme}
           onSave={(cfg) => {
             setCropForFile(openFile.name, cfg);
@@ -131,6 +177,8 @@ export const CropDialog: React.FC<CropDialogProps> = ({
           onClearCrop={() => setConfirmRemoveFor(openFile.name)}
           onReportError={onReportError}
           disableLogo={disableLogo}
+          fitAvailable={fitAvailable}
+          onApplyFitToAll={canFitAll ? applyFitToAll : undefined}
         />
       </DialogContent>
     </Dialog>

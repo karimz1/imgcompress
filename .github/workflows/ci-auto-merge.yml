@@ -1,16 +1,13 @@
 name: CI and Auto Merge for imgcompress
 
 on:
+  # Feature branches run through pull_request only. Pushing them here as well
+  # started every PR run twice.
   push:
     branches:
       - main
       - next_rc
-      - feature/*
-      - bugfix/*
-      - enhancements/*
       - release/*
-      - prepare-rc-*
-      - prepair-rc-*
   pull_request:
   workflow_dispatch:
     inputs:
@@ -33,9 +30,10 @@ permissions:
 
 # Cancel superseded runs on the same PR / branch so we don't waste minutes
 # building stale commits and so auto-merge always acts on the latest CI.
+# Every commit on main keeps its run.
 concurrency:
   group: ci-auto-merge-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   lint-python:
@@ -45,12 +43,12 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.11"
 
@@ -70,35 +68,45 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUBACTIONS_DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
+        run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build local application image
-        uses: docker/build-push-action@v7
-        with:
+        id: build-app
+        continue-on-error: true
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: &app-build-1
           context: .
           platforms: linux/amd64
           load: true
           tags: karimz1/imgcompress:local-scan
           cache-from: type=gha,scope=app-linux/amd64
           cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: *app-build-1
 
       - name: Run Trivy image scan
         continue-on-error: true
@@ -109,7 +117,7 @@ jobs:
 
       - name: Upload Trivy scan result
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: trivy-scan-result
           path: scan-result.log
@@ -126,28 +134,27 @@ jobs:
         platform: [ "linux/amd64", "linux/arm64" ]
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUBACTIONS_DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
+        run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Dev Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: ${{ matrix.platform }}
@@ -195,35 +202,45 @@ jobs:
         platform: [ "linux/amd64" ] # works only on amd64 for now; a fix for arm64 is in progress
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Authenticate to dhi.io for DHI base images
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: docker/login-action@v4
-        with:
-          registry: dhi.io
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          REGISTRY_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUBACTIONS_DOCKERHUB_PULL_TOKEN || secrets.DOCKERHUB_TOKEN }}
+        run: ./scripts/dockerLoginWithRetry.sh dhi.io
 
       - name: Build Application Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v7
-        with:
+        id: build-app
+        continue-on-error: true
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: &app-build-2
           context: .
           platforms: ${{ matrix.platform }}
           load: true
           tags: karimz1/imgcompress:local-test
           cache-from: type=gha,scope=app-${{ matrix.platform }}
           cache-to: type=gha,mode=max,scope=app-${{ matrix.platform }}
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: *app-build-2
 
       - name: Run Application Container (Host Networking) for ${{ matrix.platform }}
         run: |
@@ -251,7 +268,7 @@ jobs:
           echo "Application is up! Continuing..."
 
       - name: Build Dev Container for ${{ matrix.platform }}
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: ${{ matrix.platform }}
@@ -270,7 +287,6 @@ jobs:
             --entrypoint /bin/sh \
             --network host \
             -v /var/run/docker.sock:/var/run/docker.sock \
-            -v "$HOME/.docker/config.json:/root/.docker/config.json:ro" \
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
@@ -278,14 +294,15 @@ jobs:
             devcontainer:local-test -c "/app/scripts/run-e2e.sh"
 
       - name: Get CPU Architecture
+        if: always()
         run: echo "ARCH=$(uname -m | sed 's/[^a-zA-Z0-9]//g')" >> $GITHUB_ENV
 
       - name: Ensure E2E Test Results Directory Exists
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
+        if: failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true')
         run: mkdir -p frontend/e2e-test-results
 
       - name: Zip E2E Test Results for ${{ env.ARCH }}
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
+        if: failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true')
         run: |
           if [ -d "frontend/e2e-test-results" ] && [ "$(ls -A frontend/e2e-test-results)" ]; then
             zip -r e2e-test-results-${{ env.ARCH }}.zip frontend/e2e-test-results
@@ -295,8 +312,8 @@ jobs:
           fi
 
       - name: Upload E2E Test Results Artifact for ${{ env.ARCH }}
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true'
-        uses: actions/upload-artifact@v7
+        if: failure() || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_e2e_artifacts == 'true')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: e2e-test-results-${{ env.ARCH }}
           path: e2e-test-results-${{ env.ARCH }}.zip
@@ -329,23 +346,40 @@ jobs:
             disable_storage_management: "true"
             scenario: "logo SHOWN  | storage HIDDEN"
             label: "logo-shown_storage-hidden"
+          # small upload limit           (MAX_UPLOAD_SIZE_MB=5; the other entries keep the 40 GB default)
+          # 5 MB sits between the 1.18 MB JPEG fixture (accepted) and the 37 MB PSD fixture (refused).
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            max_upload_size_mb: "5"
+            scenario: "logo SHOWN  | storage SHOWN | upload limit 5 MB"
+            label: "upload-limit-5mb"
+          # "Notify me when done" on (NOTIFY_URL set). json:// posts to the capture
+          # server that notifyWhenDone_Test.spec.ts starts on port 5199 (host network).
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            notify_url: "json://127.0.0.1:5199/notify"
+            public_base_url: "https://imgcompress.example"
+            scenario: "logo SHOWN  | storage SHOWN | notify ON"
+            label: "notify-on"
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Build Application Container
-        uses: docker/build-push-action@v7
-        with:
+        id: build-app
+        continue-on-error: true
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: &app-build-3
           context: .
           platforms: linux/amd64
           load: true
@@ -353,12 +387,23 @@ jobs:
           cache-from: type=gha,scope=app-linux/amd64
           cache-to: type=gha,mode=max,scope=app-linux/amd64
 
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: *app-build-3
+
       - name: Start app — ${{ matrix.scenario }}
         run: |
           echo "::group::Feature flag configuration for this matrix entry"
           echo "Scenario:                    ${{ matrix.scenario }}"
           echo "DISABLE_LOGO:                ${{ matrix.disable_logo }}   -> Logo $([ '${{ matrix.disable_logo }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
           echo "DISABLE_STORAGE_MANAGEMENT:  ${{ matrix.disable_storage_management }}   -> Storage management button $([ '${{ matrix.disable_storage_management }}' = 'true' ] && echo 'HIDDEN' || echo 'SHOWN')"
+          echo "MAX_UPLOAD_SIZE_MB:          ${{ matrix.max_upload_size_mb || '(default 40960)' }}"
+          echo "NOTIFY_URL:                  ${{ matrix.notify_url && 'set (capture server)' || '(off)' }}"
           echo "::endgroup::"
           docker run --rm -d \
             --platform linux/amd64 \
@@ -366,6 +411,9 @@ jobs:
             --name app \
             -e DISABLE_LOGO=${{ matrix.disable_logo }} \
             -e DISABLE_STORAGE_MANAGEMENT=${{ matrix.disable_storage_management }} \
+            -e MAX_UPLOAD_SIZE_MB=${{ matrix.max_upload_size_mb }} \
+            -e NOTIFY_URL=${{ matrix.notify_url }} \
+            -e PUBLIC_BASE_URL=${{ matrix.public_base_url }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for Application to be Ready (using localhost)
@@ -387,7 +435,7 @@ jobs:
           echo "Application is up! Continuing..."
 
       - name: Build Dev Container
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: linux/amd64
@@ -410,7 +458,7 @@ jobs:
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
             --name devcontainer_flags \
-            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts"
+            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts tests/e2e/notifyWhenDone_Test.spec.ts"
 
       - name: Stop Application Container
         if: always()
@@ -434,7 +482,7 @@ jobs:
 
       - name: Upload feature-flags artifact — ${{ matrix.scenario }}
         if: always() && github.event.inputs.upload_feature_flags_artifacts != 'false'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: feature-flags-${{ matrix.label }}
           path: feature-flags-${{ matrix.label }}.zip
@@ -456,27 +504,38 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
         with:
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Build Application Container
-        uses: docker/build-push-action@v7
-        with:
+        id: build-app
+        continue-on-error: true
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: &app-build-4
           context: .
           platforms: linux/amd64
           load: true
           tags: karimz1/imgcompress:local-test
           cache-from: type=gha,scope=app-linux/amd64
           cache-to: type=gha,mode=max,scope=app-linux/amd64
+
+      - name: Wait before retrying the build
+        if: steps.build-app.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry build (dhi.io sometimes times out)
+        if: steps.build-app.outcome == 'failure'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with: *app-build-4
 
       - name: Run Application Container (Host Networking)
         run: |
@@ -505,7 +564,7 @@ jobs:
           echo "Application is up! Continuing..."
 
       - name: Build Dev Container
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .devcontainer/
           platforms: linux/amd64
@@ -540,9 +599,8 @@ jobs:
       - test-feature-flags-matrix
       - test-unverified-formats-api
     if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && inputs.deploy_nightly == true)
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy_nightly == true)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -551,7 +609,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-          DEPLOY_REF: ${{ github.head_ref || github.ref_name }}
+          DEPLOY_REF: ${{ github.sha }}
         run: |
           gh api \
             --method POST \
@@ -592,7 +650,7 @@ jobs:
     steps:
       - name: Mint imgcompress-chan token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           app-id: ${{ secrets.IMGCOMPRESS_CHAN_APP_ID }}
           private-key: ${{ secrets.IMGCOMPRESS_CHAN_PRIVATE_KEY }}
@@ -604,14 +662,3 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --squash --delete-branch "$PR_URL"
-
-      - name: Trigger Deployment Workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          gh api \
-            --method POST \
-            "repos/${REPOSITORY}/dispatches" \
-            -f event_type=deploy \
-            -f "client_payload[ref]=main"
