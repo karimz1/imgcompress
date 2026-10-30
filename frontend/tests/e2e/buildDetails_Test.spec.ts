@@ -98,6 +98,25 @@ test('copy details includes the installed build and its source link', async ({ p
   expect(copied).toContain(`https://github.com/karimz1/imgcompress/commit/${commit}`);
 });
 
+test('copy details works over plain http, where the clipboard API is missing (iPhone on a .lan address)', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, get: () => false });
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, get: () => undefined });
+    const copies: string[] = [];
+    (window as unknown as { copies: string[] }).copies = copies;
+    document.addEventListener('copy', (event) => copies.push((event.target as HTMLTextAreaElement).value ?? ''));
+  });
+  await page.route('**/build-info.json', (route) => route.fulfill({ json: metadata }));
+  await page.goto('/');
+  await page.getByTestId('build-details-trigger').click();
+  await page.getByRole('button', { name: 'Copy details', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Copied', exact: true })).toBeVisible();
+  await expect(page.getByText('Could not copy', { exact: false })).toHaveCount(0);
+  const copies = await page.evaluate(() => (window as unknown as { copies: string[] }).copies);
+  expect(copies.join('\n')).toContain(metadata.buildId);
+  await expect(page.getByTestId('build-details-dialog')).toBeVisible();
+});
+
 test('a stable release shows its version with a stable tag', async ({ page }) => {
   const buildId = '0.9.0-stable.20261009110000+9db1e75';
   await page.route('**/build-info.json', (route) => route.fulfill({ json: {

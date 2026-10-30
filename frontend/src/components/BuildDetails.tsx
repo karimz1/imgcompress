@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { type BuildInfo, footerVersion } from "@/lib/build-info";
 import { APP_CONFIG } from "@/lib/config";
+import { copyText } from "@/lib/copyText";
 
 export function BuildDetails({ info, version }: { info: BuildInfo | null; version: string }) {
   const { t, i18n } = useTranslation();
@@ -21,12 +22,7 @@ export function BuildDetails({ info, version }: { info: BuildInfo | null; versio
 
   const copyDetails = async () => {
     const lines = [`imgcompress ${version}`, channel, info.builtAt, info.buildId, commitUrl].filter(Boolean);
-    try {
-      await navigator.clipboard.writeText(lines.join("\n"));
-      setCopyState("copied");
-    } catch {
-      setCopyState("failed");
-    }
+    setCopyState((await copyText(lines.join("\n"))) ? "copied" : "failed");
   };
 
   return (

@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { BrandLogo } from "@/components/BrandLogo";
 import { i18n } from "@/i18n";
+import { copyText } from "@/lib/copyText";
 import { downloadDiagnosticsBundle } from "@/lib/logBuffer";
 
 const REPO_NEW_ISSUE_URL =
@@ -111,10 +112,9 @@ export const RuntimeErrorScreen: React.FC<RuntimeErrorScreenProps> = ({
     console.error("[runtime-error]", { title: renderedTitle, message, details });
   }, [renderedTitle, message, details]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const text = message + (details ? "\n\n" + details : "");
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(text);
+    if (await copyText(text)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
