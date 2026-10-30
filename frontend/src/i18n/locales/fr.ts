@@ -178,13 +178,17 @@ export const fr: TranslationSchema = {
         general: "Photos et images mixtes",
         anime: "Dessins, anime, logos",
       },
-      denoiseLabel: "Réduction du bruit",
+      denoiseLabel: "Type d'image",
       denoise: {
-        strong: "Forte",
-        medium: "Moyenne",
-        low: "Faible",
+        low: "Photo (garder les détails)",
+        medium: "Équilibré",
+        strong: "Photo ancienne ou bruitée (lisser)",
       },
-      denoiseHint: "Plus faible garde plus de détails fins, et plus de bruit.",
+      denoiseHints: {
+        low: "Pour les photos nettes et propres. Garde la peau, les feuilles et les contours fins.",
+        medium: "Photos du quotidien et captures d'écran. Léger lissage.",
+        strong: "Images granuleuses, sombres ou très compressées. Enlève le bruit, adoucit les détails.",
+      },
       label: "Agrandissement par IA",
       tooltip:
         "L'IA intégrée agrandit les images et garde les bords et les petits détails nets. Rien à installer, et elle fonctionne sans internet.\nCela prend un moment, et les visages peuvent montrer de petits défauts.",

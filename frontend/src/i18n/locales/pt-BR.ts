@@ -178,13 +178,17 @@ export const ptBR: TranslationSchema = {
         general: "Fotos e imagens mistas",
         anime: "Desenhos, anime, logotipos",
       },
-      denoiseLabel: "Redução de ruído",
+      denoiseLabel: "Tipo de imagem",
       denoise: {
-        strong: "Forte",
-        medium: "Média",
-        low: "Baixa",
+        low: "Foto (manter detalhes)",
+        medium: "Equilibrado",
+        strong: "Foto antiga ou com ruído (suavizar)",
       },
-      denoiseHint: "Mais baixa mantém mais detalhes finos, e mais ruído.",
+      denoiseHints: {
+        low: "Para fotos nítidas e limpas. Mantém a pele, as folhas e as bordas finas.",
+        medium: "Fotos do dia a dia e capturas de tela. Um pouco de suavização.",
+        strong: "Imagens granuladas, escuras ou muito comprimidas. Remove ruído, suaviza detalhes.",
+      },
       label: "Ampliação com IA",
       tooltip:
         "A IA incluída deixa as imagens maiores e mantém bordas e pequenos detalhes nítidos. Nada para instalar, e funciona sem internet.\nDemora um pouco, e rostos podem mostrar pequenas falhas.",

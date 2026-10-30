@@ -178,13 +178,17 @@ export const esMX: TranslationSchema = {
         general: "Fotos e imágenes mixtas",
         anime: "Dibujos, anime, logotipos",
       },
-      denoiseLabel: "Reducción de ruido",
+      denoiseLabel: "Tipo de imagen",
       denoise: {
-        strong: "Fuerte",
-        medium: "Media",
-        low: "Baja",
+        low: "Foto (conservar detalles)",
+        medium: "Equilibrado",
+        strong: "Foto antigua o con ruido (suavizar)",
       },
-      denoiseHint: "Más baja conserva más detalle fino, y más ruido.",
+      denoiseHints: {
+        low: "Para fotos nítidas y limpias. Conserva la piel, las hojas y los bordes finos.",
+        medium: "Fotos cotidianas y capturas de pantalla. Un poco de suavizado.",
+        strong: "Imágenes granuladas, oscuras o muy comprimidas. Quita el ruido, suaviza el detalle.",
+      },
       label: "Ampliación con IA",
       tooltip:
         "La IA incluida agranda las imágenes y mantiene nítidos los bordes y los detalles pequeños. No hay nada que instalar y funciona sin internet.\nTarda un rato y las caras pueden mostrar pequeños defectos.",

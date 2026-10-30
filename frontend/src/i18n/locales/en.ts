@@ -175,13 +175,17 @@ export const en = {
         general: "Photos and mixed images",
         anime: "Drawings, anime, logos",
       },
-      denoiseLabel: "Noise reduction",
+      denoiseLabel: "Image type",
       denoise: {
-        strong: "Strong",
-        medium: "Medium",
-        low: "Low",
+        low: "Photo (keep details)",
+        medium: "Balanced",
+        strong: "Old or noisy photo (smooth)",
       },
-      denoiseHint: "Lower keeps more fine detail, and more noise.",
+      denoiseHints: {
+        low: "For sharp, clean photos. Keeps skin texture, leaves and fine edges.",
+        medium: "Everyday photos and screenshots. A little smoothing.",
+        strong: "Grainy, low-light or heavily compressed images. Removes noise, softens detail.",
+      },
       label: "AI upscaling",
       tooltip:
         "The built-in AI makes images bigger and keeps edges and small details sharp. Nothing to install, and it works without internet.\nIt takes a while, and faces may show small flaws.",

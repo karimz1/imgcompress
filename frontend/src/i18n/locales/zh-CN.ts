@@ -178,13 +178,17 @@ export const zhCN: TranslationSchema = {
         general: "照片和混合图像",
         anime: "绘画、动漫、标志",
       },
-      denoiseLabel: "降噪",
+      denoiseLabel: "图片类型",
       denoise: {
-        strong: "强",
-        medium: "中",
-        low: "弱",
+        low: "照片（保留细节）",
+        medium: "均衡",
+        strong: "老旧或噪点多的照片（平滑）",
       },
-      denoiseHint: "越弱保留的细节越多，噪点也越多。",
+      denoiseHints: {
+        low: "适合清晰干净的照片。保留皮肤纹理、树叶和细小边缘。",
+        medium: "日常照片和截图。轻度平滑。",
+        strong: "颗粒感强、暗光或高度压缩的图片。去除噪点，细节会变柔和。",
+      },
       label: "AI 放大",
       tooltip:
         "内置 AI 会把图片变大，并让边缘和小细节保持清晰。无需安装，没有网络也能用。\n需要一些时间，人脸上可能出现小瑕疵。",

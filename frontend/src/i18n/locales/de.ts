@@ -178,13 +178,17 @@ export const de: TranslationSchema = {
         general: "Fotos und gemischte Bilder",
         anime: "Zeichnungen, Anime, Logos",
       },
-      denoiseLabel: "Rauschunterdrückung",
+      denoiseLabel: "Bildart",
       denoise: {
-        strong: "Stark",
-        medium: "Mittel",
-        low: "Gering",
+        low: "Foto (Details behalten)",
+        medium: "Ausgewogen",
+        strong: "Altes oder verrauschtes Foto (glätten)",
       },
-      denoiseHint: "Geringer behält mehr feine Details, aber auch mehr Rauschen.",
+      denoiseHints: {
+        low: "Für scharfe, saubere Fotos. Behält Hautstruktur, Blätter und feine Kanten.",
+        medium: "Alltagsfotos und Screenshots. Leicht geglättet.",
+        strong: "Körnige, dunkle oder stark komprimierte Bilder. Entfernt Rauschen, macht Details weicher.",
+      },
       label: "KI-Hochskalierung",
       tooltip:
         "Die eingebaute KI macht Bilder größer und hält Kanten und kleine Details scharf. Nichts zu installieren, und sie funktioniert ohne Internet.\nEs dauert eine Weile, und Gesichter können kleine Fehler zeigen.",

@@ -1241,7 +1241,7 @@ interface UpscaleDenoiseOptionsProps {
   isDarkTheme: boolean;
 }
 
-/** Noise reduction for the General model: Strong (as released), Medium, Low. Same speed. */
+/** General model presets named by the kind of photo: how much noise to smooth away. Same speed. */
 function UpscaleDenoiseOptions({ value, onChange, models, disabled, isDarkTheme }: UpscaleDenoiseOptionsProps) {
   const { t } = useTranslation();
   const isAvailable = (level: UpscaleDenoise) =>
@@ -1264,8 +1264,7 @@ function UpscaleDenoiseOptions({ value, onChange, models, disabled, isDarkTheme 
       <div
         role="radiogroup"
         aria-labelledby="upscale-denoise-label"
-        aria-describedby="upscale-denoise-hint"
-        className="grid grid-cols-3 gap-2"
+        className="grid gap-1.5"
         data-testid="upscale-denoise-group"
       >
         {levels.map((level) => {
@@ -1282,8 +1281,10 @@ function UpscaleDenoiseOptions({ value, onChange, models, disabled, isDarkTheme 
               onKeyDown={onKeyDown}
               data-denoise={level}
               data-testid={`upscale-denoise-option-${level}`}
+              aria-labelledby={`upscale-denoise-${level}-name`}
+              aria-describedby={`upscale-denoise-${level}-hint`}
               className={cn(
-                "min-h-9 rounded-md border px-2 py-1.5 text-sm font-medium transition-colors",
+                "rounded-md border px-2.5 py-1.5 text-left transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                 "disabled:cursor-not-allowed disabled:opacity-50",
                 selected
@@ -1293,18 +1294,19 @@ function UpscaleDenoiseOptions({ value, onChange, models, disabled, isDarkTheme 
                     : "border-slate-300 bg-white hover:border-slate-400"
               )}
             >
-              {t(`form.upscale.denoise.${level}`)}
+              <span id={`upscale-denoise-${level}-name`} className="block text-sm font-medium">
+                {t(`form.upscale.denoise.${level}`)}
+              </span>
+              <span
+                id={`upscale-denoise-${level}-hint`}
+                className={cn("block text-xs leading-snug", isDarkTheme ? "text-gray-400" : "text-slate-600")}
+              >
+                {t(`form.upscale.denoiseHints.${level}`)}
+              </span>
             </button>
           );
         })}
       </div>
-      <p
-        id="upscale-denoise-hint"
-        className={cn("text-xs", isDarkTheme ? "text-gray-400" : "text-slate-600")}
-        data-testid="upscale-denoise-hint"
-      >
-        {t("form.upscale.denoiseHint")}
-      </p>
     </div>
   );
 }

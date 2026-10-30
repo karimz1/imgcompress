@@ -254,7 +254,14 @@ test.describe('AI upscaling', () => {
     expect(pixels[0].equals(pixels[2])).toBe(true);
   });
 
-  test('lets General keep more detail with less noise reduction', async ({ page }) => {
+  const PRESETS = [
+    ['Photo (keep details)', 'For sharp, clean photos. Keeps skin texture, leaves and fine edges.'],
+    ['Balanced', 'Everyday photos and screenshots. A little smoothing.'],
+    ['Old or noisy photo (smooth)', 'Grainy, low-light or heavily compressed images. Removes noise, softens detail.'],
+  ] as const;
+  const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  test('lets General keep more detail with the photo preset', async ({ page }) => {
     // A noisy photo crop: the presets differ in how much of the grain they smooth away.
     const source = await sharp(SKYLINE_PHOTO).resize(160, 90, { fit: 'cover' }).jpeg({ quality: 40 }).toBuffer();
     const sent: string[] = [];
@@ -271,12 +278,16 @@ test.describe('AI upscaling', () => {
       await setOutputFormatAsync(page, 'PNG');
       await uploadGeneratedImageToDropzoneAsync(page, photo.fileName, 'image/jpeg', source);
       await setUpscaleAsync(page, '4x');
-      const strong = page.getByTestId('upscale-denoise-option-strong');
-      await expect(strong).toHaveAttribute('aria-checked', 'true');
-      await expect(page.getByTestId('upscale-denoise-hint')).toHaveText('Lower keeps more fine detail, and more noise.');
+      const group = page.getByRole('radiogroup', { name: 'Image type' });
+      // Default stays as before: the released General model.
+      await expect(group.getByRole('radio', { name: /Old or noisy photo \(smooth\)/ })).toHaveAttribute('aria-checked', 'true');
+      for (const [label, hint] of PRESETS) {
+        await expect(group.getByRole('radio', { name: new RegExp(escapeRegExp(label)) })).toContainText(hint);
+      }
       if (level === 'low') {
-        await page.getByTestId('upscale-denoise-option-low').click();
-        await expect(page.getByTestId('upscale-denoise-option-low')).toHaveAttribute('aria-checked', 'true');
+        const photoPreset = group.getByRole('radio', { name: /Photo \(keep details\)/ });
+        await photoPreset.click();
+        await expect(photoPreset).toHaveAttribute('aria-checked', 'true');
       }
       const output = await convertAndDownloadSingleAsync(page, photo, '.png');
       outputs.push(await sharp(output).raw().toBuffer());

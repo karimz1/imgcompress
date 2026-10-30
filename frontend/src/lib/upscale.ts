@@ -14,11 +14,12 @@ export const UPSCALE_MODEL_NAMES: Record<UpscaleModel, string> = {
 };
 
 /**
- * Noise reduction for the General model. Strong is the model as released; Medium
- * and Low are the official weak-denoise blend (built into the image) that keeps
- * more fine detail, and more noise. Same speed.
+ * General model presets, shown as image types. "strong" is the model as released
+ * (old or noisy photo, the default); "medium" and "low" are the official
+ * weak-denoise blend (built into the image) that keeps more fine detail. Same speed.
+ * Ordered as shown: least to most smoothing.
  */
-export const UPSCALE_DENOISE_LEVELS = ["strong", "medium", "low"] as const;
+export const UPSCALE_DENOISE_LEVELS = ["low", "medium", "strong"] as const;
 export type UpscaleDenoise = (typeof UPSCALE_DENOISE_LEVELS)[number];
 
 /** Every model file the server reports on: the cards plus the General noise presets. */

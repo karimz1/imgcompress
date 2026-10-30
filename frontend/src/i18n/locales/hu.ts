@@ -178,13 +178,17 @@ export const hu: TranslationSchema = {
         general: "Fényképek és vegyes képek",
         anime: "Rajzok, anime, logók",
       },
-      denoiseLabel: "Zajcsökkentés",
+      denoiseLabel: "Képtípus",
       denoise: {
-        strong: "Erős",
-        medium: "Közepes",
-        low: "Gyenge",
+        low: "Fotó (részletek megtartása)",
+        medium: "Kiegyensúlyozott",
+        strong: "Régi vagy zajos fotó (simítás)",
       },
-      denoiseHint: "A gyengébb több finom részletet és több zajt is megtart.",
+      denoiseHints: {
+        low: "Éles, tiszta fotókhoz. Megtartja a bőr textúráját, a leveleket és a finom éleket.",
+        medium: "Hétköznapi fotók és képernyőképek. Enyhe simítás.",
+        strong: "Szemcsés, sötét vagy erősen tömörített képek. Eltávolítja a zajt, lágyítja a részleteket.",
+      },
       label: "MI-felskálázás",
       tooltip:
         "A beépített MI nagyobbá teszi a képeket, és élesen tartja a széleket és az apró részleteket. Semmit nem kell telepíteni, és internet nélkül is működik.\nEltart egy ideig, és az arcokon apró hibák jelenhetnek meg.",
