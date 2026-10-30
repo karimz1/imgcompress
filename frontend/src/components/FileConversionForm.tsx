@@ -1048,6 +1048,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                     {t("form.upscale.hint")}
                   </p>
                 )}
+                {!onlySvgFiles && (
+                  <p className={cn("text-xs", subtleText)} data-testid="upscale-slow-hint">
+                    {t("form.upscale.slowHint")}
+                  </p>
+                )}
               </div>
             </div>
           )}

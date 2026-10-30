@@ -47,6 +47,8 @@ export const zhCN: TranslationSchema = {
     waitingForUpscale: "正在等待另一个放大任务完成…",
     elapsed: "已用时 {{time}}",
     notify: "完成后通知我",
+    tipUpscale: "AI 放大可能需要几分钟，在小型 CPU 上会更久。你可以关闭此标签页，稍后再来查看。",
+    tipUpscaleNotify: "AI 放大可能需要几分钟，在小型 CPU 上会更久。打开“完成后通知我”后即可关闭此标签页。",
     messages: [
       "正在压缩你的文件…",
       "正在优化质量和大小。",
@@ -205,6 +207,7 @@ export const zhCN: TranslationSchema = {
       },
       hint:
         "图片保持原来的形状。已经足够大的图片保持不变。结果越大、服务器越慢，耗时越长。超过 4× 时，先由 AI 放大，再用普通缩放完成。",
+      slowHint: "AI 放大在你服务器的 CPU 上运行。通常需要几分钟；小型 CPU 处理大图会更久。运行期间可以关闭标签页。",
       unavailableHint: "此版本不包含 AI 放大。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
       largeTargetHint: "很大的结果需要更长时间。",

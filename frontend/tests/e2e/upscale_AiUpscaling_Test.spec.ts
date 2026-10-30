@@ -205,6 +205,9 @@ test.describe('AI upscaling', () => {
     await expect(page.getByTestId('resize-width-input')).toBeHidden();
     await expect(page.getByTestId('resize-width-upscale-hint')).toBeVisible();
     await expect(page.getByTestId('upscale-hint')).toBeVisible();
+    await expect(page.getByTestId('upscale-slow-hint')).toHaveText(
+      "AI upscaling runs on your server's CPU. Expect minutes; big images on small CPUs can take much longer. You can close the tab while it runs."
+    );
 
     await setOutputFormatAsync(page, 'PDF');
     await expect(upscaleSwitch).toBeHidden();

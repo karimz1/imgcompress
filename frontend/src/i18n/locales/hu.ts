@@ -47,6 +47,8 @@ export const hu: TranslationSchema = {
     waitingForUpscale: "Várakozás egy másik felskálázás befejezésére…",
     elapsed: "Eltelt idő: {{time}}",
     notify: "Értesíts, ha kész",
+    tipUpscale: "Az MI-nagyítás percekig tarthat, kis CPU-n sokkal tovább. Bezárhatod ezt a lapot, és később visszanézhetsz.",
+    tipUpscaleNotify: "Az MI-nagyítás percekig tarthat, kis CPU-n sokkal tovább. Kapcsold be: „Értesíts, ha kész”, és zárd be ezt a lapot.",
     messages: [
       "Fájlok tömörítése folyamatban…",
       "Minőség és méret optimalizálása.",
@@ -205,6 +207,7 @@ export const hu: TranslationSchema = {
       },
       hint:
         "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. A nagyobb eredmények és a lassabb szerverek tovább tartanak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
+      slowHint: "Az MI-nagyítás a szerver CPU-ján fut. Számíts percekre; nagy képek kis CPU-n sokkal tovább tarthatnak. Közben bezárhatod a lapot.",
       unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
       largeTargetHint: "A nagyon nagy eredmények tovább tartanak.",

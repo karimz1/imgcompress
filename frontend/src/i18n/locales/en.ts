@@ -45,6 +45,8 @@ export const en = {
     waitingForUpscale: "Waiting for another upscale to finish…",
     elapsed: "Elapsed {{time}}",
     notify: "Notify me when done",
+    tipUpscale: "AI upscaling can take minutes, on small CPUs much longer. You can close this tab and check back later.",
+    tipUpscaleNotify: "AI upscaling can take minutes, on small CPUs much longer. Turn on “Notify me when done” and close this tab.",
     messages: [
       "Compressing your files…",
       "Optimizing quality and size.",
@@ -202,6 +204,7 @@ export const en = {
       },
       hint:
         "The image keeps its shape. Images that are already big enough stay as they are. Bigger results and slower servers take longer. Above 4×, the AI goes first and a normal resize finishes the job.",
+      slowHint: "AI upscaling runs on your server's CPU. Expect minutes; big images on small CPUs can take much longer. You can close the tab while it runs.",
       unavailableHint: "AI upscaling is not included in this version.",
       fitActiveHint: "Not used while Fit to exact size is on.",
       largeTargetHint: "Very big results take longer.",

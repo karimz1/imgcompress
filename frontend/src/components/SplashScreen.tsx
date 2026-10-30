@@ -63,7 +63,9 @@ export function SplashScreen({
 
   const waitMessages = t("splash.messages", { returnObjects: true }) as string[];
   const statusMessage = useMemo(() => waitMessages[messageIndex], [messageIndex, waitMessages]);
-  const tipMessage = t("splash.tip");
+  // AI upscaling on a small CPU can run for a long time: say so, and point to the notify switch.
+  const isUpscale = Boolean(progress?.tiles_total);
+  const tipMessage = t(isUpscale ? (notify ? "splash.tipUpscaleNotify" : "splash.tipUpscale") : "splash.tip");
 
   useEffect(() => {
     if (!isVisible) return;

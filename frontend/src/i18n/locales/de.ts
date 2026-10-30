@@ -47,6 +47,8 @@ export const de: TranslationSchema = {
     waitingForUpscale: "Wartet, bis ein anderes Hochskalieren fertig ist…",
     elapsed: "Läuft seit {{time}}",
     notify: "Benachrichtige mich, wenn fertig",
+    tipUpscale: "KI-Hochskalierung kann Minuten dauern, auf kleinen CPUs viel länger. Du kannst diesen Tab schließen und später nachsehen.",
+    tipUpscaleNotify: "KI-Hochskalierung kann Minuten dauern, auf kleinen CPUs viel länger. Schalte „Benachrichtige mich, wenn fertig“ ein und schließe diesen Tab.",
     messages: [
       "Deine Dateien werden komprimiert…",
       "Qualität und Größe werden optimiert.",
@@ -205,6 +207,7 @@ export const de: TranslationSchema = {
       },
       hint:
         "Das Bild behält seine Form. Bilder, die schon groß genug sind, bleiben, wie sie sind. Größere Ergebnisse und langsamere Server brauchen länger. Über 4× arbeitet zuerst die KI, dann macht eine normale Größenänderung den Rest.",
+      slowHint: "KI-Hochskalierung läuft auf der CPU deines Servers. Rechne mit Minuten; große Bilder auf kleinen CPUs können viel länger dauern. Du kannst den Tab währenddessen schließen.",
       unavailableHint: "KI-Hochskalierung ist in dieser Version nicht enthalten.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
       largeTargetHint: "Sehr große Ergebnisse dauern länger.",
