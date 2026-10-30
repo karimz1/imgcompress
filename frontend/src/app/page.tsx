@@ -130,6 +130,11 @@ function HomePageContent() {
   const [converted, setConverted] = useState<string[]>([]);
   const [resultJob, setResultJob] = useState<JobRef | null>(null);
   const [jobProgress, setJobProgress] = useState<JobProgress | null>(null);
+  // Clearing the result also forgets the saved job, so a reload stays empty.
+  const forgetResultJob = useCallback(() => {
+    setResultJob(null);
+    saveActiveJob(null);
+  }, []);
   const [jobStartedAt, setJobStartedAt] = useState<number | null>(null);
   const [jobDuration, setJobDuration] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -242,7 +247,7 @@ function HomePageContent() {
     (acceptedFiles: File[]) => {
       clearError();
       setConverted([]);
-      setResultJob(null);
+      forgetResultJob();
 
       const supportedFiles: File[] = [];
       const unsupportedFiles: string[] = [];
@@ -319,8 +324,8 @@ function HomePageContent() {
         }
         throw err;
       }
-      saveActiveJob(null);
       if (state.status === "failed") {
+        saveActiveJob(null);
         setError({
           message: state.error || t("page.toast.unexpectedError"),
           isApiError: true,
@@ -413,7 +418,7 @@ function HomePageContent() {
       setIsLoading(true);
       clearError();
       setConverted([]);
-      setResultJob(null);
+      forgetResultJob();
       restoreTabTitle();
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -612,7 +617,7 @@ function HomePageContent() {
   const clearCompressedFiles = useCallback(() => {
     setDrawerOpen(false);
     setConverted([]);
-    setResultJob(null);
+    forgetResultJob();
     setFileManagerRefresh((prev) => prev + 1);
   }, []);
 
@@ -647,7 +652,7 @@ function HomePageContent() {
       if (json.status === "ok") {
         toast.success(t("page.toast.cleanupSuccess"));
         setConverted([]);
-        setResultJob(null);
+        forgetResultJob();
         setDrawerOpen(false);
         setFileManagerRefresh((prev) => prev + 1);
       } else {

@@ -13,6 +13,9 @@ const STORAGE_KEY = "imgcompress.activeJob";
 const POLL_VISIBLE_MS = 1000;
 const POLL_HIDDEN_MS = 5000;
 const MAX_RETRY_MS = 5000;
+// A status request that takes longer is given up and sent again. iOS can
+// freeze a request while Safari is in the background and never settle it.
+const REQUEST_TIMEOUT_MS = 15000;
 
 export interface JobRef {
   id: string;
@@ -79,6 +82,11 @@ export const jobZipUrl = (job: JobRef) => `/api/jobs/${encodeURIComponent(job.id
 
 export const jobHeaders = (job: JobRef): Record<string, string> => ({ [JOB_TOKEN_HEADER]: job.token });
 
+/**
+ * The last job stays saved after it finishes, so a reload shows its result
+ * again. It is forgotten when the user clears the result, starts a new
+ * conversion, or the server no longer knows the job.
+ */
 export function saveActiveJob(job: JobRef | null): void {
   try {
     if (job) localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: job.id, token: job.token }));
@@ -129,13 +137,15 @@ export function waitForJob(
 ): Promise<JobState> {
   return new Promise<JobState>((resolve, reject) => {
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let inFlight = false;
+    let request: AbortController | null = null;
     let failures = 0;
 
     const cleanup = () => {
       if (timer) clearTimeout(timer);
+      request?.abort();
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("pageshow", onVisible);
+      window.removeEventListener("focus", onVisible);
       window.removeEventListener("online", onVisible);
       signal.removeEventListener("abort", onAbort);
     };
@@ -144,7 +154,12 @@ export function waitForJob(
       timer = setTimeout(poll, ms);
     };
     const onVisible = () => {
-      if (!isHidden()) schedule(0);
+      if (isHidden()) return;
+      // Back from the background: a request started before may be frozen, so
+      // drop it and ask again right away.
+      request?.abort();
+      request = null;
+      schedule(0);
     };
     const onAbort = () => {
       cleanup();
@@ -152,10 +167,14 @@ export function waitForJob(
     };
 
     async function poll() {
-      if (inFlight || signal.aborted) return;
-      inFlight = true;
+      if (request || signal.aborted) return;
+      const current = new AbortController();
+      request = current;
+      const timeout = setTimeout(() => current.abort(), REQUEST_TIMEOUT_MS);
       try {
-        const state = await fetchJobState(job, signal);
+        // cleanup() and onAbort abort `request`, which stops this fetch too.
+        const state = await fetchJobState(job, current.signal);
+        if (request !== current) return;
         failures = 0;
         onProgress(state);
         if (state.status === "done" || state.status === "failed") {
@@ -165,7 +184,7 @@ export function waitForJob(
         }
         schedule(isHidden() ? POLL_HIDDEN_MS : POLL_VISIBLE_MS);
       } catch (err) {
-        if (signal.aborted) return;
+        if (signal.aborted || request !== current) return;
         if (err instanceof JobNotFoundError) {
           cleanup();
           reject(err);
@@ -174,12 +193,14 @@ export function waitForJob(
         failures += 1;
         schedule(Math.min(MAX_RETRY_MS, POLL_VISIBLE_MS * 2 ** Math.min(failures, 3)));
       } finally {
-        inFlight = false;
+        clearTimeout(timeout);
+        if (request === current) request = null;
       }
     }
 
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("pageshow", onVisible);
+    window.addEventListener("focus", onVisible);
     window.addEventListener("online", onVisible);
     signal.addEventListener("abort", onAbort);
     schedule(0);

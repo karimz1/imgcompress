@@ -1,5 +1,5 @@
 import path from 'path';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import sharp from 'sharp';
 import {
   assertDownloadLinksAsync,
@@ -30,6 +30,11 @@ async function startSlowUpscaleAsync(page: Page): Promise<{ id: string; token: s
   await clickConversionButtonAsync(page);
   const response = await started;
   expect(response.status()).toBe(202);
+  return response.json();
+}
+
+async function statusAsync(request: APIRequestContext, job: { id: string; token: string }) {
+  const response = await request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
   return response.json();
 }
 
@@ -107,6 +112,54 @@ test.describe('Background conversion jobs', () => {
     expect(dropped).toBe(2);
     await expect(page.getByText('Load failed')).toHaveCount(0);
     await expect(page.locator('div[role="alertdialog"]')).toHaveCount(0);
+  });
+
+  test('back from the background, a frozen status request does not leave the progress screen hanging', async ({ page }) => {
+    // iOS freezes Safari in the background; a request sent then may never answer.
+    const frozen: Array<() => void> = [];
+    let freeze = false;
+    await page.route(JOB_STATUS, async (route) => {
+      if (freeze) {
+        await new Promise<void>((resolve) => frozen.push(resolve));
+        await route.abort('timedout').catch(() => undefined);
+        return;
+      }
+      await route.continue();
+    });
+    const job = await startSlowUpscaleAsync(page);
+    await expect(page.getByTestId('job-progress')).toBeVisible();
+
+    freeze = true;
+    await hidePageAsync(page, true);
+    await expect.poll(() => frozen.length, { timeout: 30000 }).toBeGreaterThan(0);
+    // The job finishes on the server while the phone is locked.
+    await expect.poll(async () => (await statusAsync(page.request, job)).status, { timeout: 300000, intervals: [1000] }).toBe('done');
+
+    freeze = false;
+    await hidePageAsync(page, false);
+    await assertDownloadLinksAsync(page, [UPSCALED], '_ai-upscaled');
+    await expect(page.getByTestId('job-duration')).toHaveText(/^Done in /);
+    frozen.forEach((resolve) => resolve());
+  });
+
+  test('a reload after the job finished shows the result again, until the user starts over', async ({ page }) => {
+    await startSlowUpscaleAsync(page);
+    await assertDownloadLinksAsync(page, [UPSCALED], '_ai-upscaled');
+    const duration = await page.getByTestId('job-duration').textContent();
+
+    await page.reload();
+    await assertDownloadLinksAsync(page, [UPSCALED], '_ai-upscaled');
+    await expect(page.getByTestId('job-duration')).toHaveText(duration ?? '');
+
+    // Picking a new photo clears the old result; a reload must not bring it back.
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('job-background-hint')).toHaveCount(0);
+    await page.getByTestId('dropzone-input').setInputFiles([{ name: 'next.png', mimeType: 'image/png', buffer: await sharp({ create: { width: 8, height: 8, channels: 3, background: '#336699' } }).png().toBuffer() }]);
+    await expect(page.getByText('Show Compressed Image', { exact: false })).toHaveCount(0);
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByTestId('drawer-uploaded-file-item-link')).toHaveCount(0);
+    await expect(page.getByText('Show Compressed Image', { exact: false })).toHaveCount(0);
   });
 
   test("another user cannot read a job even when they know its id", async ({ browser }) => {
