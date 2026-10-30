@@ -116,7 +116,7 @@ export function SplashScreen({
         <DialogPrimitive.Content
           onEscapeKeyDown={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => e.preventDefault()}
-          className="fixed inset-0 z-[101] flex items-center justify-center outline-none bg-transparent p-0"
+          className="fixed inset-0 z-[101] block outline-none bg-transparent p-0 overflow-y-auto overscroll-contain"
         >
           <VisuallyHidden>
             <DialogPrimitive.Title>{t("splash.dialogTitle")}</DialogPrimitive.Title>
@@ -234,7 +234,15 @@ export function SplashScreen({
             }
           `}</style>
 
-          <div className="relative w-full h-full flex flex-col items-center justify-center px-4 text-center">
+          {/* min-h-full + m-auto: centered when it fits, scrollable from the top
+              when it does not (landscape phones). Safe-area padding keeps it clear
+              of the notch and the home indicator. */}
+          <div className="relative w-full min-h-full flex flex-col items-center px-4 text-center"
+            style={{
+              paddingTop: "max(0.75rem, env(safe-area-inset-top))",
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            }}
+          >
             <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
               {particles.map((particle) => {
                 const style: ParticleStyle = {
@@ -255,10 +263,10 @@ export function SplashScreen({
               })}
             </div>
 
-            <div className="relative z-10 flex flex-col items-center w-full max-w-4xl gap-8">
+            <div className="relative z-10 m-auto flex flex-col items-center w-full max-w-4xl gap-3 sm:gap-8">
               {!disableLogo && (
                 <div className="w-full flex justify-center animate-breathe">
-                  <div className="relative w-[460px] h-[220px] max-w-[92vw] sm:w-[520px] sm:h-[240px] animate-glow after:absolute after:inset-0 after:rounded-[36%] after:bg-gradient-to-r after:from-blue-500/20 after:to-fuchsia-500/20 after:blur-3xl after:-z-10">
+                  <div className="relative w-[240px] h-[110px] [@media(max-height:600px)]:h-[80px] max-w-[92vw] sm:w-[520px] sm:h-[240px] sm:[@media(max-height:600px)]:h-[120px] animate-glow after:absolute after:inset-0 after:rounded-[36%] after:bg-gradient-to-r after:from-blue-500/20 after:to-fuchsia-500/20 after:blur-3xl after:-z-10">
                     <BrandLogo
                       fill
                       alt="ImgCompress Logo"
@@ -269,11 +277,11 @@ export function SplashScreen({
                 </div>
               )}
 
-              <div className="w-full flex flex-col items-center gap-5">
-                <div className="min-h-[3.25rem] flex items-center justify-center">
+              <div className="w-full flex flex-col items-center gap-3 sm:gap-5">
+                <div className="min-h-[2.5rem] sm:min-h-[3.25rem] flex items-center justify-center">
                   <div
                     key={messageIndex}
-                    className="text-base sm:text-lg text-gray-50 font-medium tracking-wide text-center max-w-2xl animate-text-pop bg-white/5 px-6 py-3 rounded-full shadow-lg shadow-blue-500/10 ring-1 ring-white/15 backdrop-blur-md"
+                    className="text-sm sm:text-lg text-gray-50 font-medium tracking-wide text-center max-w-2xl animate-text-pop bg-white/5 px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-lg shadow-blue-500/10 ring-1 ring-white/15 backdrop-blur-md"
                     aria-live="polite"
                   >
                     {displayText}
@@ -286,11 +294,11 @@ export function SplashScreen({
                     {[t("splash.steps.starting"), t("splash.steps.compressing"), t("splash.steps.packaging")].map((label, index) => (
                       <div
                         key={label}
-                        className="flex flex-col items-center text-xs uppercase tracking-[0.2em] text-gray-400"
+                        className="flex flex-col items-center text-[10px] sm:text-xs uppercase tracking-[0.15em] sm:tracking-[0.2em] text-gray-400"
                       >
                         <div
                           className={cn(
-                            "w-11 h-11 rounded-full mb-2 transition text-base font-semibold tracking-tight",
+                            "w-8 h-8 sm:w-11 sm:h-11 rounded-full mb-1 sm:mb-2 transition text-sm sm:text-base font-semibold tracking-tight",
                             "flex items-center justify-center text-center",
                             index === 1
                               ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white border border-transparent shadow-lg shadow-blue-500/40"
@@ -310,14 +318,14 @@ export function SplashScreen({
                 <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 rounded-full animate-loading-bar shadow-[0_4px_18px_rgba(79,70,229,0.45)]" />
               </div>
               {startedAt !== null && (
-                <p className="text-sm text-gray-300 -mt-4 tabular-nums" data-testid="job-elapsed">
+                <p className="text-sm text-gray-300 -mt-1 sm:-mt-4 tabular-nums" data-testid="job-elapsed">
                   {t("splash.elapsed", { time: formatClock((now - startedAt) / 1000) })}
                 </p>
               )}
               {notify && (
                 <label
                   htmlFor="notifyWhenDone"
-                  className="-mt-2 flex items-center gap-3 text-sm text-gray-200 cursor-pointer"
+                  className="sm:-mt-2 flex items-center gap-3 text-sm text-gray-200 cursor-pointer"
                 >
                   <Switch
                     id="notifyWhenDone"
@@ -329,21 +337,22 @@ export function SplashScreen({
                 </label>
               )}
               {progressText && (
-                <p className="text-sm text-gray-300 -mt-4" data-testid="job-progress" aria-live="polite">
+                <p className="text-sm text-gray-300 -mt-1 sm:-mt-4" data-testid="job-progress" aria-live="polite">
                   {progressText}
                 </p>
               )}
 
-              <div className="w-full max-w-3xl flex flex-col md:flex-row gap-4 items-start md:items-center">
-                <div className="flex-1 bg-white/5 rounded-2xl p-4 text-left text-sm text-gray-100 ring-1 ring-white/10 shadow-inner shadow-black/30 backdrop-blur-md">
-                  <p className="text-[11px] uppercase tracking-[0.3em] text-blue-200 mb-1">
+              <div className="w-full max-w-3xl flex flex-col md:flex-row gap-3 sm:gap-4 items-center">
+                <div className="w-full md:w-auto flex-1 bg-white/5 rounded-2xl px-3 py-2.5 sm:p-4 text-left text-sm text-gray-100 ring-1 ring-white/10 shadow-inner shadow-black/30 backdrop-blur-md">
+                  <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-blue-200 mb-0.5 sm:mb-1">
                     {t("splash.tipLabel")}
                   </p>
-                  <p className="text-base font-medium text-white/90" data-testid="job-background-hint">{tipMessage}</p>
+                  <p className="text-[13px] leading-snug sm:text-base sm:leading-normal font-medium text-white/90" data-testid="job-background-hint">{tipMessage}</p>
                 </div>
                 <button
+                  data-testid="splash-cancel"
                   onClick={onAbort}
-                  className="px-8 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-red-500/50 hover:text-red-200 text-gray-100 text-sm transition-all duration-200 backdrop-blur-md active:scale-95 outline-none focus:ring-2 focus:ring-white/20"
+                  className="shrink-0 px-8 py-2.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-red-500/50 hover:text-red-200 text-gray-100 text-sm transition-all duration-200 backdrop-blur-md active:scale-95 outline-none focus:ring-2 focus:ring-white/20"
                 >
                   {t("splash.cancelButton")}
                 </button>

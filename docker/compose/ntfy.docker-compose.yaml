@@ -13,7 +13,8 @@ services:
     environment:
       # Any Apprise URL works (ntfy, Telegram, Discord, mail, ...). Without it the switch is hidden.
       - NOTIFY_URL=ntfy://ntfy/imgcompress
-      # Optional: the address you open ImgCompress at; the message links to it.
+      # Optional: the address you open ImgCompress at, added to the message on its
+      # own line. Set it yourself; it is never taken from a request.
       - PUBLIC_BASE_URL=http://192.168.1.10:3001
     depends_on:
       - ntfy

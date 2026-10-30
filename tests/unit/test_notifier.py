@@ -6,6 +6,7 @@ import pytest
 from backend.image_converter.infrastructure.notifier import (
     Notifier,
     build_message,
+    clean_public_base_url,
     describe_device,
 )
 
@@ -49,25 +50,75 @@ def test_describe_device(user_agent, expected):
     assert describe_device(user_agent) == expected
 
 
-def test_message_has_count_device_and_link_but_no_file_names():
+def test_message_tells_where_to_open_the_result_and_has_the_link():
     title, body = build_message(
-        done=True, file_count=3, device="iPhone · Safari", base_url="https://img.example.com/"
+        done=True, file_count=3, device="iPhone · Safari", link="https://img.example.com"
     )
     assert title == "3 images ready"
-    assert "iPhone · Safari" in body
-    assert "https://img.example.com/" in body
+    assert body == "Open imgcompress in Safari on your iPhone to get your results.\nhttps://img.example.com"
 
 
 def test_message_for_one_file_and_without_a_link():
-    title, body = build_message(done=True, file_count=1, device="Windows · Chrome", base_url=None)
+    title, body = build_message(done=True, file_count=1, device="Windows · Chrome", link=None)
     assert title == "1 image ready"
-    assert "http" not in body
+    assert body == "Open imgcompress in Chrome on your Windows PC to get your result."
 
 
 def test_message_for_a_failed_job():
-    title, body = build_message(done=False, file_count=0, device="Mac · Safari", base_url=None)
+    title, body = build_message(done=False, file_count=0, device="Mac · Safari", link=None)
     assert title == "Conversion failed"
-    assert "Mac · Safari" in body
+    assert body == "Open imgcompress in Safari on your Mac to see what went wrong."
+
+
+def test_message_for_an_unknown_browser():
+    _, body = build_message(done=True, file_count=2, device="a browser", link=None)
+    assert body == "Open imgcompress in the browser you used to get your results."
+
+
+def test_message_for_several_files_says_results():
+    _, body = build_message(done=True, file_count=4, device="Android · Chrome", link=None)
+    assert body == "Open imgcompress in Chrome on your Android device to get your results."
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("https://img.example.com", "https://img.example.com"),
+        ("  https://img.example.com/  ", "https://img.example.com/"),
+        ("http://192.168.1.10:3001", "http://192.168.1.10:3001"),
+        ("https://example.com/imgcompress", "https://example.com/imgcompress"),
+        ("javascript:alert(1)", None),
+        ("ftp://img.example.com", None),
+        ("https://user:pass@img.example.com", None),
+        ("https://img.example.com?x=1", None),
+        ("https://img.example.com#x", None),
+        ("https://img.example.com:99999", None),
+        ("https://", None),
+        ("img.example.com", None),
+        ("https://img example.com", None),
+        ("https://img.example.com\nFake line", None),
+        ("https://" + "a" * 600 + ".com", None),
+        ("", None),
+        (None, None),
+    ],
+)
+def test_clean_public_base_url(value, expected):
+    assert clean_public_base_url(value) == expected
+
+
+def test_invalid_public_base_url_is_ignored_with_a_warning_that_does_not_echo_it():
+    logger = _Logger()
+    notifier = Notifier(url="json://x", base_url="https://user:secret@x.example", logger=logger, send=lambda t, b: True)
+    assert notifier.base_url is None
+    assert any(level == "warning" and "PUBLIC_BASE_URL" in line for level, line in logger.lines)
+    assert "secret" not in str(logger.lines)
+
+
+def test_without_public_base_url_the_message_has_no_link():
+    sent = []
+    notifier = Notifier(url="json://x", base_url=None, logger=_Logger(), send=lambda t, b: sent.append(b) or True)
+    notifier.notify(done=True, file_count=1, device="iPhone · Safari")
+    assert sent == ["Open imgcompress in Safari on your iPhone to get your result."]
 
 
 def test_disabled_without_url():
