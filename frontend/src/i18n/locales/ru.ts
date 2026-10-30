@@ -45,6 +45,7 @@ export const ru: TranslationSchema = {
     progressTiles: "Увеличение: часть {{done}} из {{total}}",
     progressFiles: "Готово файлов: {{done}} из {{total}}",
     waitingForUpscale: "Ждём, пока закончится другое увеличение…",
+    elapsed: "Прошло {{time}}",
     messages: [
       "Сжимаю ваши файлы…",
       "Оптимизирую качество и размер.",
@@ -316,6 +317,9 @@ export const ru: TranslationSchema = {
     close: "Закрыть",
     downloadingFile: "Скачивание: {{fileName}}...",
     downloadingZip: "Скачивание папки...",
+    doneIn: "Готово за {{time}}",
+    durationSeconds: "{{seconds}} с",
+    durationMinutes: "{{minutes}} мин {{seconds}} с",
   },
 
   downloadError: {

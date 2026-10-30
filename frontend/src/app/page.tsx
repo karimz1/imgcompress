@@ -35,6 +35,7 @@ import {
   jobFileUrl,
   jobHeaders,
   jobZipUrl,
+  jobStartedAtLocal,
   loadActiveJob,
   saveActiveJob,
   waitForJob,
@@ -129,6 +130,8 @@ function HomePageContent() {
   const [converted, setConverted] = useState<string[]>([]);
   const [resultJob, setResultJob] = useState<JobRef | null>(null);
   const [jobProgress, setJobProgress] = useState<JobProgress | null>(null);
+  const [jobStartedAt, setJobStartedAt] = useState<number | null>(null);
+  const [jobDuration, setJobDuration] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [outputFormat, setOutputFormat] = useState("");
   const [formatRequired, setFormatRequired] = useState(false);
@@ -294,9 +297,19 @@ function HomePageContent() {
   const followJob = useCallback(
     async (job: JobRef, controller: AbortController) => {
       setJobProgress({});
+      setJobStartedAt(null);
+      setJobDuration(null);
       let state;
       try {
-        state = await waitForJob(job, (s) => setJobProgress(s.progress ?? {}), controller.signal);
+        state = await waitForJob(
+          job,
+          (s) => {
+            setJobProgress(s.progress ?? {});
+            const startedAt = jobStartedAtLocal(s);
+            if (startedAt !== null) setJobStartedAt((prev) => prev ?? startedAt);
+          },
+          controller.signal
+        );
       } catch (err) {
         if (err instanceof JobNotFoundError) {
           saveActiveJob(null);
@@ -316,6 +329,7 @@ function HomePageContent() {
       }
       const names = state.result?.converted_files ?? [];
       setConverted(names);
+      setJobDuration(typeof state.duration_seconds === "number" ? state.duration_seconds : null);
       setResultJob(job);
       setDrawerOpen(true);
       markTabDone();
@@ -663,6 +677,7 @@ function HomePageContent() {
         isVisible={isLoading}
         onAbort={handleAbort}
         progress={jobProgress}
+        startedAt={jobStartedAt}
         disableLogo={configReady ? disableLogo : false}
       />
       <BackendStatusBanner backendDown={isDown} />
@@ -804,6 +819,7 @@ function HomePageContent() {
         {converted.length > 0 && (
           <CompressedFilesDrawer
             converted={converted}
+            durationSeconds={jobDuration}
             isOpen={drawerOpen}
             onOpenChange={setDrawerOpen}
             onDownloadAll={handleDownloadAll}

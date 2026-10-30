@@ -45,6 +45,7 @@ export const zhCN: TranslationSchema = {
     progressTiles: "放大中：第 {{done}} / {{total}} 部分",
     progressFiles: "已完成 {{done}} / {{total}} 个文件",
     waitingForUpscale: "正在等待另一个放大任务完成…",
+    elapsed: "已用时 {{time}}",
     messages: [
       "正在压缩你的文件…",
       "正在优化质量和大小。",
@@ -316,6 +317,9 @@ export const zhCN: TranslationSchema = {
     close: "关闭",
     downloadingFile: "正在下载：{{fileName}}...",
     downloadingZip: "正在下载文件夹...",
+    doneIn: "用时 {{time}} 完成",
+    durationSeconds: "{{seconds}} 秒",
+    durationMinutes: "{{minutes}} 分 {{seconds}} 秒",
   },
 
   downloadError: {

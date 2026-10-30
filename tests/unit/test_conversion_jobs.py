@@ -162,6 +162,45 @@ def test_When_JobRuns_Expect_ProgressThenResultAndOwnDownloads(setup):
     assert archive.status_code == 200 and archive.mimetype == "application/zip"
 
 
+def test_When_JobRunsAndFinishes_Expect_ServerTimesForTheTimer(setup):
+    setup.use_case.release.clear()
+    before = time.time()
+    job_id, token = _started(setup)
+    assert setup.use_case.started.wait(5)
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        running = setup.status(job_id, token).get_json()
+        if running["status"] == "running":
+            break
+        time.sleep(0.05)
+    assert before <= running["started_at"] <= running["server_time"]
+    assert "finished_at" not in running and "duration_seconds" not in running
+
+    time.sleep(0.3)
+    setup.use_case.release.set()
+    setup.wait_done()
+    done = setup.status(job_id, token).get_json()
+    assert done["started_at"] == running["started_at"]
+    assert done["started_at"] < done["finished_at"] <= done["server_time"]
+    assert done["duration_seconds"] == pytest.approx(done["finished_at"] - done["started_at"], abs=0.01)
+    assert done["duration_seconds"] >= 0.3
+
+    # Coming back later still shows how long the job took, not how long ago it ended.
+    time.sleep(0.2)
+    again = setup.status(job_id, token).get_json()
+    assert again["duration_seconds"] == done["duration_seconds"]
+    assert again["server_time"] > done["server_time"]
+
+
+def test_When_ConversionFails_Expect_FinishedAtIsStillRecorded(setup):
+    setup.use_case.fail = True
+    job_id, token = _started(setup)
+    setup.wait_done()
+    state = setup.status(job_id, token).get_json()
+    assert state["status"] == "failed"
+    assert state["finished_at"] >= state["started_at"]
+
+
 def test_When_ConversionFails_Expect_FailedWithMessage(setup):
     setup.use_case.fail = True
     job_id, token = _started(setup)

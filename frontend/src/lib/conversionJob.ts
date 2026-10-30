@@ -37,6 +37,31 @@ export interface JobState {
   progress?: JobProgress;
   error?: string;
   result?: JobResult;
+  /** Server times in epoch seconds; the timer uses them, not the browser clock. */
+  created_at?: number;
+  started_at?: number;
+  finished_at?: number;
+  duration_seconds?: number;
+  server_time?: number;
+}
+
+/**
+ * When the job started, in this browser's clock (ms). Shifting by the
+ * server's own "now" keeps the timer right even if the device clock is off.
+ */
+export function jobStartedAtLocal(state: JobState, receivedAt: number = Date.now()): number | null {
+  const start = state.started_at ?? state.created_at;
+  if (typeof start !== "number" || typeof state.server_time !== "number") return null;
+  return receivedAt - Math.max(0, state.server_time - start) * 1000;
+}
+
+/** "0:42" or "1:02:05" for the live timer. */
+export function formatClock(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const ss = String(s % 60).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
 /** The job is gone: cleaned up, or never ours. */

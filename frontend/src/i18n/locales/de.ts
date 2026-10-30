@@ -45,6 +45,7 @@ export const de: TranslationSchema = {
     progressTiles: "Hochskalieren: Teil {{done}} von {{total}}",
     progressFiles: "{{done}} von {{total}} Dateien fertig",
     waitingForUpscale: "Wartet, bis ein anderes Hochskalieren fertig ist…",
+    elapsed: "Läuft seit {{time}}",
     messages: [
       "Deine Dateien werden komprimiert…",
       "Qualität und Größe werden optimiert.",
@@ -316,6 +317,9 @@ export const de: TranslationSchema = {
     close: "Schließen",
     downloadingFile: "Wird heruntergeladen: {{fileName}}...",
     downloadingZip: "Ordner wird heruntergeladen...",
+    doneIn: "Fertig in {{time}}",
+    durationSeconds: "{{seconds}} s",
+    durationMinutes: "{{minutes}} min {{seconds}} s",
   },
 
   downloadError: {
