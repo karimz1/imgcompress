@@ -148,6 +148,10 @@ test.describe('Background conversion jobs', () => {
     const duration = await page.getByTestId('job-duration').textContent();
 
     await page.reload();
+    // The result is one click away, and the form stays free for the next photo.
+    await expect(page.locator('[data-vaul-drawer]')).toHaveCount(0);
+    await expect(page.locator('#outputFormat')).toBeEnabled();
+    await page.getByRole('button', { name: /Show Compressed/i }).click();
     await assertDownloadLinksAsync(page, [UPSCALED], '_ai-upscaled');
     await expect(page.getByTestId('job-duration')).toHaveText(duration ?? '');
 

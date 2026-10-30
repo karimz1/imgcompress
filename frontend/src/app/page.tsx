@@ -318,6 +318,8 @@ function HomePageContent() {
       } catch (err) {
         if (err instanceof JobNotFoundError) {
           saveActiveJob(null);
+          // An old result the user already had is simply gone, no error for that.
+          if (job.seen) return;
           setError({ message: t("page.toast.jobExpired") });
           toast.error(t("page.toast.jobExpired"));
           return;
@@ -336,6 +338,12 @@ function HomePageContent() {
       setConverted(names);
       setJobDuration(typeof state.duration_seconds === "number" ? state.duration_seconds : null);
       setResultJob(job);
+      if (job.seen) {
+        // Already shown before the reload: keep it one click away, but leave
+        // the form free for the next conversion.
+        return;
+      }
+      saveActiveJob({ ...job, seen: true });
       setDrawerOpen(true);
       markTabDone();
       await delay(600);
@@ -350,7 +358,7 @@ function HomePageContent() {
     if (!job) return;
     const controller = new AbortController();
     abortControllerRef.current = controller;
-    setIsLoading(true);
+    if (!job.seen) setIsLoading(true);
     followJob(job, controller)
       .catch((err) => {
         if ((err as Error).name !== "AbortError") console.error(err);

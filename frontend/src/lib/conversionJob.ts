@@ -20,6 +20,8 @@ const REQUEST_TIMEOUT_MS = 15000;
 export interface JobRef {
   id: string;
   token: string;
+  /** The user already saw this finished result; a reload restores it quietly. */
+  seen?: boolean;
 }
 
 export interface JobProgress {
@@ -89,7 +91,7 @@ export const jobHeaders = (job: JobRef): Record<string, string> => ({ [JOB_TOKEN
  */
 export function saveActiveJob(job: JobRef | null): void {
   try {
-    if (job) localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: job.id, token: job.token }));
+    if (job) localStorage.setItem(STORAGE_KEY, JSON.stringify({ id: job.id, token: job.token, seen: job.seen === true }));
     else localStorage.removeItem(STORAGE_KEY);
   } catch {
     // Private mode or storage full: the job still works while the page stays open.
@@ -102,7 +104,7 @@ export function loadActiveJob(): JobRef | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (typeof parsed?.id === "string" && typeof parsed?.token === "string") {
-      return { id: parsed.id, token: parsed.token };
+      return { id: parsed.id, token: parsed.token, seen: parsed.seen === true };
     }
   } catch {
     // ignore broken entries
