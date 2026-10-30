@@ -32,6 +32,9 @@ const ALLOWED_IDENTICAL_VALUES = new Set<string>([
   "←↑↓→",
   "+ ←↑↓→",
   "Transparent",
+  // Durations with SI unit symbols read the same in many languages.
+  "{{seconds}} s",
+  "{{minutes}} min {{seconds}} s",
   // AI model names: "Anime" in most languages, "General" in Spanish.
   "Anime",
   "General",
