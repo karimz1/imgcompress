@@ -207,7 +207,7 @@ export const ptBR: TranslationSchema = {
       },
       hint:
         "A imagem mantém sua forma. Imagens que já são grandes o bastante ficam como estão. Acima de 4×, a IA vem primeiro e um redimensionamento normal termina o trabalho.",
-      slowHint: "O upscaling com IA roda localmente na CPU do seu servidor. Imagens grandes podem levar vários minutos por imagem, dependendo do tamanho da imagem e da CPU. Você pode fechar a aba enquanto isso.",
+      slowHint: "O upscaling com IA roda localmente no seu servidor. Dependendo do tamanho da imagem e da CPU, pode levar alguns minutos por imagem. Fique à vontade para fechar a aba enquanto isso.",
       unavailableHint: "A ampliação com IA não está incluída nesta versão.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
       largeTargetHint: "Resultados muito grandes demoram mais.",

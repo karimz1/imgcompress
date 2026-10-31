@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import { BrandLogo } from "@/components/BrandLogo";
-import { Hourglass } from "lucide-react";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { formatClock, type JobProgress } from "@/lib/conversionJob";
@@ -349,23 +349,23 @@ export function SplashScreen({
                 <div
                   className={cn(
                     "w-full md:w-auto flex-1 rounded-2xl px-3 py-2.5 sm:p-4 text-left text-sm text-gray-100 shadow-inner shadow-black/30 backdrop-blur-md",
-                    isUpscale ? "bg-amber-400/10 ring-1 ring-amber-400/40" : "bg-white/5 ring-1 ring-white/10"
+                    isUpscale ? "bg-blue-400/10 ring-1 ring-blue-400/40" : "bg-white/5 ring-1 ring-white/10"
                   )}
                   data-testid="job-tip"
                 >
                   <p
                     className={cn(
                       "flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] mb-0.5 sm:mb-1",
-                      isUpscale ? "text-amber-300" : "text-blue-200"
+                      isUpscale ? "text-blue-200" : "text-blue-200"
                     )}
                   >
-                    {isUpscale && <Hourglass aria-hidden="true" className="h-3 w-3 shrink-0" />}
+                    {isUpscale && <Info aria-hidden="true" className="h-3 w-3 shrink-0" />}
                     {t("splash.tipLabel")}
                   </p>
                   <p
                     className={cn(
                       "text-[13px] leading-snug sm:text-base sm:leading-normal font-medium",
-                      isUpscale ? "text-amber-100" : "text-white/90"
+                      isUpscale ? "text-white" : "text-white/90"
                     )}
                     data-testid="job-background-hint"
                   >

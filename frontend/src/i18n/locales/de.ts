@@ -207,7 +207,7 @@ export const de: TranslationSchema = {
       },
       hint:
         "Das Bild behält seine Form. Bilder, die schon groß genug sind, bleiben, wie sie sind. Über 4× arbeitet zuerst die KI, dann macht eine normale Größenänderung den Rest.",
-      slowHint: "KI-Hochskalierung läuft lokal auf der CPU deines Servers. Große Bilder können mehrere Minuten pro Bild dauern, je nach Bildgröße und CPU. Du kannst den Tab währenddessen schließen.",
+      slowHint: "Hochskalieren läuft lokal auf deinem Server. Je nach Bildgröße und CPU kann das ein paar Minuten pro Bild dauern. Du kannst den Tab ruhig schließen.",
       unavailableHint: "KI-Hochskalierung ist in dieser Version nicht enthalten.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
       largeTargetHint: "Sehr große Ergebnisse dauern länger.",

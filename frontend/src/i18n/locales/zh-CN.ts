@@ -207,7 +207,7 @@ export const zhCN: TranslationSchema = {
       },
       hint:
         "图片保持原来的形状。已经足够大的图片保持不变。超过 4× 时，先由 AI 放大，再用普通缩放完成。",
-      slowHint: "AI 放大在你服务器的 CPU 上本地运行。大图每张可能需要几分钟，取决于图片大小和 CPU。运行期间可以关闭标签页。",
+      slowHint: "AI 放大在你的服务器上本地运行。根据图片大小和 CPU，每张图可能需要几分钟。运行期间可以放心关闭标签页。",
       unavailableHint: "此版本不包含 AI 放大。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
       largeTargetHint: "很大的结果需要更长时间。",
