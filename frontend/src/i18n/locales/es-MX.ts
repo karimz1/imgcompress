@@ -6,7 +6,7 @@ export const esMX: TranslationSchema = {
     adminTools: "Herramientas de administración",
     toast: {
       unsupportedFormat: "Formato de archivo no compatible: {{fileName}}",
-      filesRejected: "{{count}} archivo(s) fueron rechazados por tipos de archivo no compatibles.",
+      filesRejected: "Se omitieron {{count}} archivo(s). No puedo abrir ese tipo de archivo.",
       fileTooLarge: "{{fileName}} pesa más de {{size}} y no se agregó.",
       batchTooLarge: "Juntos, los archivos pesan más de {{size}}. Conviértelos en grupos más pequeños.",
       noFilesError: "Primero arrastra o selecciona algunos archivos.",
@@ -15,14 +15,14 @@ export const esMX: TranslationSchema = {
       widthPositiveError: "El ancho debe ser un número positivo.",
       fitSizeError: "Ajustar a tamaño exacto necesita un ancho y un alto entre 1 y 8192 píxeles.",
       icoWidthClamped:
-        "El formato ICO está limitado a un ancho máximo de 256 px. Tu entrada se ajustó a 256.",
+        "Los íconos ICO miden como máximo 256 px de ancho, así que ajusté el ancho a 256.",
       targetSizeError: "Define un tamaño máximo de archivo positivo (en MB).",
       compressedSuccess_one: "¡{{count}} imagen comprimida correctamente!",
       compressedSuccess_other: "¡{{count}} imágenes comprimidas correctamente!",
       cleanupSuccess:
-        "Eliminación completa. Tus archivos procesados se eliminaron permanentemente. 🧹🧹🧹",
-      cleanupFailed: "Falló la limpieza forzada.",
-      cleanupError: "🚨 Falló la limpieza.",
+        "Listo. Tus archivos procesados se eliminaron. 🧹",
+      cleanupFailed: "No se pudieron eliminar los archivos.",
+      cleanupError: "La limpieza falló.",
       compressionCancelled: "Compresión cancelada.",
       jobExpired: "Esta conversión ya no está disponible. Vuelve a convertir los archivos.",
       unexpectedError: "Algo salió mal. Inténtalo de nuevo.",
@@ -33,7 +33,7 @@ export const esMX: TranslationSchema = {
 
   splash: {
     dialogTitle: "Comprimiendo archivos",
-    dialogDescription: "Espera mientras se comprimen tus archivos.",
+    dialogDescription: "Un momento, estoy trabajando en tus archivos.",
     tipLabel: "Consejo",
     cancelButton: "Cancelar",
     steps: {
@@ -71,7 +71,7 @@ export const esMX: TranslationSchema = {
     outputFormat: {
       label: "Formato de salida",
       placeholder: "Selecciona formato",
-      hint: "Selecciona un formato de salida para habilitar la conversión.",
+      hint: "Elige un formato de salida para empezar.",
       options: {
         jpeg: "JPEG (menor tamaño de archivo)",
         png: "PNG (conserva transparencia)",
@@ -87,7 +87,7 @@ export const esMX: TranslationSchema = {
       label: "Preajuste de página PDF",
       disabledHint: "Cambiar ancho está deshabilitado mientras haya un preajuste PDF seleccionado.",
       tooltip:
-        "Los preajustes A4/Letter escalan la imagen a la página con un margen seguro para impresión configurable. Los preajustes automáticos giran la página según la orientación de la imagen.",
+        "A4 y Carta colocan la imagen en la página con un margen seguro para imprimir. Auto gira la página según la imagen.",
       options: {
         original: "Original (mantener proporciones)",
         a4Auto: "A4 automático",
@@ -121,7 +121,7 @@ export const esMX: TranslationSchema = {
       label: "Modo de escala PDF",
       paginationHint: "La paginación usa el modo Ajustar para conservar todo el ancho.",
       tooltip:
-        "Ajustar conserva toda la imagen con posibles barras blancas. Rellenar recorta para cubrir la página.",
+        "Ajustar muestra toda la imagen y agrega barras blancas si hace falta. Rellenar cubre la página y recorta los bordes.",
       options: {
         fit: "Ajustar (conservar imagen completa)",
         fill: "Rellenar (recortar a la página)",
@@ -129,8 +129,8 @@ export const esMX: TranslationSchema = {
     },
     pdfMargin: {
       label: "Margen PDF",
-      hint: "Se recomienda 10 mm y es el valor predeterminado.",
-      tooltip: "Define el borde seguro para impresión en milímetros. Se recomienda 10 mm.",
+      hint: "10 mm es el valor predeterminado y sirve para la mayoría de las impresoras.",
+      tooltip: "Margen de impresión en milímetros. 10 mm sirven para la mayoría de las impresoras.",
     },
     pdfPaginate: {
       label: "Dividir imágenes largas en varias páginas",
@@ -154,7 +154,7 @@ export const esMX: TranslationSchema = {
     quality: {
       label: "Calidad",
       tooltip:
-        "Ajusta la calidad (100 da la mejor calidad; valores menores reducen el tamaño del archivo). Aplica a JPEG, AVIF y WebP.",
+        "100 es la mejor calidad. Valores más bajos dan archivos más pequeños. Aplica a JPEG, AVIF y WebP.",
       presets: {
         smaller: "Más pequeño (60)",
         balanced: "Equilibrado (75)",
@@ -165,9 +165,9 @@ export const esMX: TranslationSchema = {
     targetSize: {
       label: "Tamaño máximo",
       placeholder: "p. ej., 0.50",
-      hint: "Intentará mantener cada {{format}} en este tamaño o por debajo ajustando la calidad automáticamente.",
+      hint: "Ajusto la calidad para que cada {{format}} quede en este tamaño o menos.",
       tooltip:
-        "Define un tamaño máximo opcional de salida (en MB). Aplica a salidas JPEG, AVIF y WebP.",
+        "Límite de tamaño opcional por archivo, en MB. Aplica a JPEG, AVIF y WebP.",
     },
     upscale: {
       vectorTargetLabel: "Tamaño predefinido",
@@ -283,7 +283,7 @@ export const esMX: TranslationSchema = {
     },
     dropzone: {
       dragActive: "Arrastra imágenes o PDF aquí...",
-      processing: "No puedes arrastrar archivos mientras se procesan...",
+      processing: "Un momento, sigo trabajando en el lote anterior.",
       idle: "Arrastra y suelta imágenes o PDF aquí, o haz clic para seleccionar",
       maxSize: "Máx. {{size}} por archivo",
     },
@@ -308,8 +308,8 @@ export const esMX: TranslationSchema = {
       cropTooltip: "Este archivo tiene un recorte guardado. Haz clic en la x para eliminarlo.",
       editCropTooltip: "Editar recorte, tamaño y diseño de este archivo.",
       addCropTooltip: "Recorta o diseña este archivo: tamaño, fondo, texto e imágenes.",
-      cropNotSupportedPdf: "El recorte de PDF aún no está disponible. Los PDF pueden contener varias páginas, así que el recorte necesita primero un flujo dedicado para seleccionar páginas.",
-      cropNotSupported: "El recorte no es compatible con este formato por ahora.",
+      cropNotSupportedPdf: "Todavía no se pueden recortar PDF.",
+      cropNotSupported: "Todavía no se puede recortar este formato.",
       cropButton: "Recortar",
       editButton: "Editar",
     },
@@ -343,7 +343,7 @@ export const esMX: TranslationSchema = {
   downloadError: {
     title: "Este archivo ya no está aquí",
     description:
-      "Es posible que se haya eliminado o que haya expirado. Intenta comprimirlo de nuevo.",
+      "Se eliminó o expiró. Conviértelo de nuevo.",
     close: "Entendido",
   },
 
@@ -358,16 +358,16 @@ export const esMX: TranslationSchema = {
     noFiles: "No se encontraron archivos convertidos.",
     confirmTitle: "Confirmar eliminación de archivos",
     confirmDescription:
-      "Esta acción eliminará permanentemente todos los archivos procesados. Asegúrate de haber descargado los archivos necesarios antes de continuar, ya que esta acción no se puede deshacer.",
+      "Esto elimina para siempre todos los archivos procesados. Descarga primero lo que necesites. No se puede deshacer.",
     confirmCancel: "Cancelar",
     confirmDelete: "Sí, eliminar archivos",
-    fetchError: "No se pudieron obtener los archivos del contenedor.",
-    storageError: "No se pudo obtener la información de almacenamiento.",
+    fetchError: "No se pudieron cargar los archivos de tu contenedor.",
+    storageError: "No se pudo cargar la información de almacenamiento.",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "Advertencia: el backend no está disponible actualmente.",
+    warning: "No puedo conectar con el backend en este momento.",
   },
 
   statusFloating: {
@@ -386,7 +386,7 @@ export const esMX: TranslationSchema = {
     checking: "Verificando...",
     whyTitle: "¿Por qué existe esto?",
     whyDesc:
-      "Comprueba que ImgCompress está funcionando y si puede conectarse a internet. Ninguna imagen ni dato sale nunca de tu servidor.",
+      "Comprueba que ImgCompress esté funcionando y si puede acceder a internet. Tus imágenes nunca salen de tu contenedor.",
     learnMore: "Conoce más sobre el uso sin conexión →",
     backendLastCheck: "Última verificación del backend:",
     internetLastCheck: "Última verificación de internet:",
@@ -397,7 +397,7 @@ export const esMX: TranslationSchema = {
     subtitle: "La acción no se pudo completar. Copia el rastro de abajo y abre un ticket para que se pueda corregir.",
     detailsLabel: "Detalles técnicos",
     notifyDeveloper:
-      "Abre un ticket y avisa al desarrollador para que esto se pueda corregir lo antes posible.",
+      "Abre un ticket para que se arregle pronto.",
     copyError: "Copiar error",
     copied: "¡Copiado!",
     openTicket: "Abrir ticket",
@@ -415,7 +415,7 @@ export const esMX: TranslationSchema = {
     searchPlaceholder: "Buscar (p. ej., psd, tiff)...",
     verifiedTitle: "Probados y funcionando",
     unverifiedTitle: "Otros formatos posibles",
-    unverifiedHint: "Todavía no se han probado completamente, pero podrían funcionar.",
+    unverifiedHint: "Aún no están totalmente probados, pero vale la pena intentarlo.",
     footerText: "ImgCompress está aquí para ayudarte a convertir tus imágenes.",
     reportBug: "Reportar un error",
   },
@@ -745,7 +745,7 @@ export const esMX: TranslationSchema = {
     switchToDark: "Cambiar a tema oscuro",
     confirmDialog: {
       title: "¿Descartar cambios de recorte?",
-      description: "Se perderán los ajustes de recorte no guardados. El recorte guardado previamente, si existe, se mantendrá sin cambios.",
+      description: "Se perderán tus cambios sin guardar. Un recorte guardado se queda como está.",
       keepEditing: "Seguir editando",
       discardChanges: "Descartar cambios",
     },
@@ -765,9 +765,9 @@ export const esMX: TranslationSchema = {
       causes: {
         backendNotReachable: "ImgCompress todavía no está listo. Si acabas de reiniciarlo, espera unos segundos e inténtalo de nuevo.",
         networkDropped: "La conexión se perdió durante la carga. Revisa que ImgCompress siga funcionando e inténtalo de nuevo.",
-        variantNotSupported: "Este archivo puede ser una variante de {{label}} que el decodificador no puede leer (multicapa, modo de color no estándar, cifrado, etc.). Reexportarlo desde la app de origen como {{label}} plano o PNG/JPG normal suele corregirlo.",
-        missingLibraries: "Los archivos {{label}} siempre pasan por el decodificador del backend. Si al decodificador le faltan bibliotecas nativas (por ejemplo libheif para HEIC), reconstruir con los códecs opcionales habilitados suele resolverlo.",
-        reportIssue: "Si nada de lo anterior aplica, copia los detalles técnicos de abajo y abre un ticket: el rastro muestra exactamente qué paso falló.",
+        variantNotSupported: "Este {{label}} usa una variante que no puedo leer, por ejemplo capas, un modo de color poco común o cifrado. Expórtalo de nuevo como {{label}} simple, PNG o JPG.",
+        missingLibraries: "Los archivos {{label}} necesitan bibliotecas de decodificación extra, por ejemplo libheif para HEIC. Esta compilación no las incluye. Vuelve a compilar con los códecs opcionales.",
+        reportIssue: "¿Nada encaja? Copia los detalles técnicos de abajo y abre un ticket. El rastro muestra qué paso falló.",
       },
     },
     freeRatio: "Libre",
@@ -775,7 +775,7 @@ export const esMX: TranslationSchema = {
     editorDescription: "Recorta, cambia el tamaño, agrega un fondo, texto o imágenes y luego haz clic en Guardar o Descartar.",
     removeDialog: {
       title: "¿Eliminar recorte guardado?",
-      description: "Esto borra el recorte guardado para este archivo. El archivo original permanecerá en tu lista de conversión.",
+      description: "Esto quita el recorte guardado. El archivo se queda en tu lista.",
       keepCrop: "Conservar recorte",
       removeCrop: "Eliminar recorte",
     },

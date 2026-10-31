@@ -6,7 +6,7 @@ export const ptBR: TranslationSchema = {
     adminTools: "Ferramentas administrativas",
     toast: {
       unsupportedFormat: "Formato de arquivo sem suporte: {{fileName}}",
-      filesRejected: "{{count}} arquivo(s) foram rejeitados por tipos de arquivo sem suporte.",
+      filesRejected: "{{count}} arquivo(s) ignorado(s). Não consigo abrir esse tipo de arquivo.",
       fileTooLarge: "{{fileName}} tem mais de {{size}} e não foi adicionado.",
       batchTooLarge: "Juntos, os arquivos passam de {{size}}. Converta em grupos menores.",
       noFilesError: "Primeiro arraste ou selecione alguns arquivos.",
@@ -15,14 +15,14 @@ export const ptBR: TranslationSchema = {
       widthPositiveError: "A largura deve ser um número positivo.",
       fitSizeError: "Ajustar ao tamanho exato precisa de largura e altura entre 1 e 8192 pixels.",
       icoWidthClamped:
-        "O formato ICO é limitado a uma largura máxima de 256 px. Sua entrada foi ajustada para 256.",
+        "Ícones ICO têm no máximo 256 px de largura, então ajustei a largura para 256.",
       targetSizeError: "Defina um tamanho máximo de arquivo positivo (em MB).",
       compressedSuccess_one: "{{count}} imagem comprimida com sucesso!",
       compressedSuccess_other: "{{count}} imagens comprimidas com sucesso!",
       cleanupSuccess:
-        "Exclusão concluída. Seus arquivos processados foram removidos permanentemente. 🧹🧹🧹",
-      cleanupFailed: "A limpeza forçada falhou.",
-      cleanupError: "🚨 A limpeza falhou.",
+        "Pronto. Seus arquivos processados foram apagados. 🧹",
+      cleanupFailed: "Não foi possível apagar os arquivos.",
+      cleanupError: "A limpeza falhou.",
       compressionCancelled: "Compressão cancelada.",
       jobExpired: "Esta conversão não está mais disponível. Converta novamente.",
       unexpectedError: "Algo deu errado. Tente novamente.",
@@ -33,7 +33,7 @@ export const ptBR: TranslationSchema = {
 
   splash: {
     dialogTitle: "Comprimindo arquivos",
-    dialogDescription: "Aguarde enquanto seus arquivos são comprimidos.",
+    dialogDescription: "Só um momento, estou trabalhando nos seus arquivos.",
     tipLabel: "Dica",
     cancelButton: "Cancelar",
     steps: {
@@ -71,7 +71,7 @@ export const ptBR: TranslationSchema = {
     outputFormat: {
       label: "Formato de saída",
       placeholder: "Selecionar formato",
-      hint: "Selecione um formato de saída para habilitar a conversão.",
+      hint: "Escolha um formato de saída para começar.",
       options: {
         jpeg: "JPEG (menor tamanho de arquivo)",
         png: "PNG (preserva transparência)",
@@ -87,7 +87,7 @@ export const ptBR: TranslationSchema = {
       label: "Predefinição de página PDF",
       disabledHint: "Redimensionar largura fica desativado enquanto uma predefinição PDF estiver selecionada.",
       tooltip:
-        "As predefinições A4/Letter ajustam a imagem à página com margem segura para impressão configurável. As opções automáticas giram a página conforme a orientação da imagem.",
+        "A4 e Carta colocam a imagem na página com uma margem segura para impressão. Auto gira a página conforme a imagem.",
       options: {
         original: "Original (manter proporções)",
         a4Auto: "A4 automático",
@@ -121,7 +121,7 @@ export const ptBR: TranslationSchema = {
       label: "Modo de escala PDF",
       paginationHint: "A paginação usa o modo Ajustar para preservar a largura total.",
       tooltip:
-        "Ajustar preserva a imagem inteira, com possíveis barras brancas. Preencher recorta para cobrir a página.",
+        "Ajustar mostra a imagem inteira e adiciona faixas brancas quando preciso. Preencher cobre a página e corta as bordas.",
       options: {
         fit: "Ajustar (preservar imagem inteira)",
         fill: "Preencher (recortar para a página)",
@@ -129,8 +129,8 @@ export const ptBR: TranslationSchema = {
     },
     pdfMargin: {
       label: "Margem PDF",
-      hint: "10 mm é recomendado e é o padrão.",
-      tooltip: "Defina a borda segura para impressão em milímetros. 10 mm é recomendado.",
+      hint: "10 mm é o padrão e serve para a maioria das impressoras.",
+      tooltip: "Margem de impressão em milímetros. 10 mm servem para a maioria das impressoras.",
     },
     pdfPaginate: {
       label: "Dividir imagens longas em várias páginas",
@@ -154,7 +154,7 @@ export const ptBR: TranslationSchema = {
     quality: {
       label: "Qualidade",
       tooltip:
-        "Ajuste a qualidade (100 oferece a melhor qualidade; valores menores reduzem o tamanho do arquivo). Aplica-se a JPEG, AVIF e WebP.",
+        "100 é a melhor qualidade. Valores menores geram arquivos menores. Vale para JPEG, AVIF e WebP.",
       presets: {
         smaller: "Menor (60)",
         balanced: "Equilibrada (75)",
@@ -165,9 +165,9 @@ export const ptBR: TranslationSchema = {
     targetSize: {
       label: "Tamanho máximo",
       placeholder: "ex.: 0,50",
-      hint: "Tentará manter cada {{format}} nesse tamanho ou abaixo dele ajustando a qualidade automaticamente.",
+      hint: "Ajusto a qualidade para manter cada {{format}} neste tamanho ou abaixo.",
       tooltip:
-        "Defina um tamanho máximo opcional de saída (em MB). Aplica-se às saídas JPEG, AVIF e WebP.",
+        "Limite de tamanho opcional por arquivo, em MB. Vale para JPEG, AVIF e WebP.",
     },
     upscale: {
       vectorTargetLabel: "Tamanho predefinido",
@@ -283,7 +283,7 @@ export const ptBR: TranslationSchema = {
     },
     dropzone: {
       dragActive: "Solte imagens ou PDFs aqui...",
-      processing: "Não é possível soltar arquivos durante o processamento...",
+      processing: "Só um momento, ainda estou terminando o lote anterior.",
       idle: "Arraste e solte imagens ou PDFs aqui, ou clique para selecionar",
       maxSize: "Máx. {{size}} por arquivo",
     },
@@ -308,8 +308,8 @@ export const ptBR: TranslationSchema = {
       cropTooltip: "Este arquivo tem um corte salvo. Clique no x para remover esse corte.",
       editCropTooltip: "Editar recorte, tamanho e design deste arquivo.",
       addCropTooltip: "Recorte ou crie um design para este arquivo: tamanho, fundo, texto e imagens.",
-      cropNotSupportedPdf: "Corte de PDF ainda não tem suporte. PDFs podem conter várias páginas, então o corte precisa primeiro de um fluxo dedicado para seleção de páginas.",
-      cropNotSupported: "Corte não tem suporte para este formato no momento.",
+      cropNotSupportedPdf: "Recortar PDFs ainda não é suportado.",
+      cropNotSupported: "Recortar ainda não é suportado para este formato.",
       cropButton: "Cortar",
       editButton: "Editar",
     },
@@ -343,7 +343,7 @@ export const ptBR: TranslationSchema = {
   downloadError: {
     title: "Este arquivo não está mais aqui",
     description:
-      "Ele pode ter sido excluído ou expirado. Tente compactá-lo novamente.",
+      "Ele foi apagado ou expirou. Converta de novo.",
     close: "Entendi",
   },
 
@@ -358,16 +358,16 @@ export const ptBR: TranslationSchema = {
     noFiles: "Nenhum arquivo convertido encontrado.",
     confirmTitle: "Confirmar exclusão de arquivos",
     confirmDescription:
-      "Esta ação excluirá permanentemente todos os arquivos processados. Certifique-se de ter baixado todos os arquivos necessários antes de continuar, pois esta ação não pode ser desfeita.",
+      "Isso apaga para sempre todos os arquivos processados. Baixe antes o que precisar. Não dá para desfazer.",
     confirmCancel: "Cancelar",
     confirmDelete: "Sim, excluir arquivos",
-    fetchError: "Falha ao buscar arquivos do contêiner.",
-    storageError: "Falha ao buscar informações de armazenamento.",
+    fetchError: "Não foi possível carregar os arquivos do seu contêiner.",
+    storageError: "Não foi possível carregar as informações de armazenamento.",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "Aviso: o backend está indisponível no momento.",
+    warning: "Não consigo acessar o backend agora.",
   },
 
   statusFloating: {
@@ -386,7 +386,7 @@ export const ptBR: TranslationSchema = {
     checking: "Verificando...",
     whyTitle: "Por que isso existe?",
     whyDesc:
-      "Verifica se o ImgCompress está funcionando e se ele consegue acessar a internet. Nenhuma imagem ou dado sai do seu servidor.",
+      "Verifica se o ImgCompress está rodando e se ele acessa a internet. Suas imagens nunca saem do seu contêiner.",
     learnMore: "Saiba mais sobre uso offline →",
     backendLastCheck: "Última verificação do backend:",
     internetLastCheck: "Última verificação da internet:",
@@ -397,7 +397,7 @@ export const ptBR: TranslationSchema = {
     subtitle: "A ação não pôde ser concluída. Copie o rastreamento abaixo e abra um chamado para que possa ser corrigido.",
     detailsLabel: "Detalhes técnicos",
     notifyDeveloper:
-      "Abra um chamado e avise o desenvolvedor para que isso seja corrigido o quanto antes.",
+      "Abra um ticket para que isso seja corrigido logo.",
     copyError: "Copiar erro",
     copied: "Copiado!",
     openTicket: "Abrir chamado",
@@ -415,7 +415,7 @@ export const ptBR: TranslationSchema = {
     searchPlaceholder: "Pesquisar (ex.: psd, tiff)...",
     verifiedTitle: "Testado e funcionando",
     unverifiedTitle: "Outros formatos possíveis",
-    unverifiedHint: "Eles ainda não foram totalmente testados, mas podem funcionar!",
+    unverifiedHint: "Ainda não totalmente testados, mas vale a tentativa.",
     footerText: "ImgCompress está aqui para ajudar você a converter suas imagens!",
     reportBug: "Relatar um bug",
   },
@@ -745,7 +745,7 @@ export const ptBR: TranslationSchema = {
     switchToDark: "Mudar para tema escuro",
     confirmDialog: {
       title: "Descartar alterações de corte?",
-      description: "Seus ajustes de corte não salvos serão perdidos. O corte salvo anteriormente, se houver, continuará inalterado.",
+      description: "Suas alterações não salvas serão perdidas. Um recorte salvo continua como está.",
       keepEditing: "Continuar editando",
       discardChanges: "Descartar alterações",
     },
@@ -765,9 +765,9 @@ export const ptBR: TranslationSchema = {
       causes: {
         backendNotReachable: "O ImgCompress ainda não está pronto. Se você acabou de reiniciá-lo, espere alguns segundos e tente novamente.",
         networkDropped: "A conexão caiu durante o envio. Verifique se o ImgCompress ainda está funcionando e tente novamente.",
-        variantNotSupported: "Este arquivo pode ser uma variante de {{label}} que o decodificador não consegue ler (múltiplas camadas, modo de cor não padrão, criptografado etc.). Reexportar no aplicativo de origem como {{label}} plano ou PNG/JPG comum geralmente resolve.",
-        missingLibraries: "Arquivos {{label}} sempre passam pelo decodificador do backend. Se o decodificador estiver sem bibliotecas nativas (por exemplo, libheif para HEIC), reconstruir com os codecs opcionais habilitados geralmente resolve.",
-        reportIssue: "Se nada disso se aplicar, copie os detalhes técnicos abaixo e abra um chamado: o rastreamento mostra exatamente qual etapa falhou.",
+        variantNotSupported: "Este {{label}} usa uma variante que não consigo ler, por exemplo camadas, um modo de cor incomum ou criptografia. Exporte de novo como {{label}} simples, PNG ou JPG.",
+        missingLibraries: "Arquivos {{label}} precisam de bibliotecas de decodificação extras, por exemplo libheif para HEIC. Este build não as inclui. Gere o build de novo com os codecs opcionais.",
+        reportIssue: "Nada se encaixa? Copie os detalhes técnicos abaixo e abra um ticket. O trace mostra qual etapa falhou.",
       },
     },
     freeRatio: "Livre",
@@ -775,7 +775,7 @@ export const ptBR: TranslationSchema = {
     editorDescription: "Corte, redimensione, adicione um fundo, texto ou imagens e depois clique em Salvar ou Descartar.",
     removeDialog: {
       title: "Remover corte salvo?",
-      description: "Isso limpa o corte salvo para este arquivo. O arquivo original permanecerá na sua lista de conversão.",
+      description: "Isso remove o recorte salvo. O arquivo continua na sua lista.",
       keepCrop: "Manter corte",
       removeCrop: "Remover corte",
     },

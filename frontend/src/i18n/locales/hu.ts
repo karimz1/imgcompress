@@ -6,7 +6,7 @@ export const hu: TranslationSchema = {
     adminTools: "Adminisztrációs eszközök",
     toast: {
       unsupportedFormat: "Nem támogatott fájlformátum: {{fileName}}",
-      filesRejected: "{{count}} fájlt nem támogatott formátum miatt kihagytam.",
+      filesRejected: "{{count}} fájl kihagyva. Ezt a fájltípust nem tudom megnyitni.",
       fileTooLarge: "A(z) {{fileName}} nagyobb, mint {{size}}, ezért nem került be.",
       batchTooLarge: "A fájlok együtt nagyobbak, mint {{size}}. Alakítsd át őket kisebb csoportokban.",
       noFilesError: "Kérlek, először adj hozzá fájlokat.",
@@ -15,14 +15,14 @@ export const hu: TranslationSchema = {
       widthPositiveError: "A szélességnek pozitív számnak kell lennie.",
       fitSizeError: "A pontos méretre igazításhoz 1 és 8192 pixel közötti szélesség és magasság szükséges.",
       icoWidthClamped:
-        "Az ICO formátum legfeljebb 256 px szélességet támogat. A megadott értéket 256-ra állítottam.",
+        "Az ICO ikonok legfeljebb 256 px szélesek, ezért 256-ra állítottam a szélességet.",
       targetSizeError: "Kérlek, adj meg egy pozitív maximális fájlméretet (MB-ban).",
       compressedSuccess_one: "{{count}} kép sikeresen elkészült!",
       compressedSuccess_other: "{{count}} kép sikeresen elkészült!",
       cleanupSuccess:
-        "Törlés kész. A feldolgozott fájlokat véglegesen eltávolítottam. 🧹🧹🧹",
-      cleanupFailed: "A kényszerített törlés sikertelen.",
-      cleanupError: "🚨 A törlés sikertelen.",
+        "Kész. A feldolgozott fájlok törölve. 🧹",
+      cleanupFailed: "Nem sikerült törölni a fájlokat.",
+      cleanupError: "A takarítás nem sikerült.",
       compressionCancelled: "A tömörítés megszakítva.",
       jobExpired: "Ez az átalakítás már nem érhető el. Kérlek, alakítsd át újra.",
       unexpectedError: "Váratlan hiba. Kérlek, próbáld újra.",
@@ -33,7 +33,7 @@ export const hu: TranslationSchema = {
 
   splash: {
     dialogTitle: "Fájlok feldolgozása",
-    dialogDescription: "Kérlek, várj, amíg elkészülnek a fájlok.",
+    dialogDescription: "Egy pillanat, dolgozom a fájljaidon.",
     tipLabel: "Tipp",
     cancelButton: "Mégse",
     steps: {
@@ -71,7 +71,7 @@ export const hu: TranslationSchema = {
     outputFormat: {
       label: "Kimeneti formátum",
       placeholder: "Formátum kiválasztása",
-      hint: "Válassz kimeneti formátumot a konverzió engedélyezéséhez.",
+      hint: "Válassz kimeneti formátumot az induláshoz.",
       options: {
         jpeg: "JPEG (kisebb fájlméret)",
         png: "PNG (átlátszóság megőrzése)",
@@ -87,7 +87,7 @@ export const hu: TranslationSchema = {
       label: "PDF oldalbeállítás",
       disabledHint: "A szélesség szerinti átméretezés nem érhető el, amíg PDF-oldalbeállítás aktív.",
       tooltip:
-        "Az A4/Letter beállítások a képet az oldalra méretezik, konfigurálható nyomtatási margóval. Az automatikus beállítások a kép tájolása alapján forgatják az oldalt.",
+        "Az A4 és a Letter nyomtatásbarát margóval helyezi a képet az oldalra. Az Auto a képhez fordítja az oldalt.",
       options: {
         original: "Eredeti (arányok megtartása)",
         a4Auto: "A4 automatikus",
@@ -121,7 +121,7 @@ export const hu: TranslationSchema = {
       label: "PDF méretezési mód",
       paginationHint: "Oldalazáskor az Illesztés mód marad aktív, hogy a teljes szélesség megmaradjon.",
       tooltip:
-        "Az Illesztés a teljes képet megtartja, szükség esetén fehér sávokkal. A Kitöltés levágja a széleket, hogy a kép kitöltse az oldalt.",
+        "A Beillesztés a teljes képet mutatja, és szükség esetén fehér sávokat ad hozzá. A Kitöltés lefedi az oldalt, és levágja a széleket.",
       options: {
         fit: "Illesztés (teljes kép megőrzése)",
         fill: "Kitöltés (levágás az oldalra)",
@@ -129,8 +129,8 @@ export const hu: TranslationSchema = {
     },
     pdfMargin: {
       label: "PDF-margó",
-      hint: "Az ajánlott és alapértelmezett érték 10 mm.",
-      tooltip: "A nyomtatási margó beállítása milliméterben. 10 mm ajánlott.",
+      hint: "Alapból 10 mm, a legtöbb nyomtatóhoz jó.",
+      tooltip: "Nyomtatási margó milliméterben. A 10 mm a legtöbb nyomtatóhoz jó.",
     },
     pdfPaginate: {
       label: "Hosszú képek felosztása több oldalra",
@@ -154,7 +154,7 @@ export const hu: TranslationSchema = {
     quality: {
       label: "Minőség",
       tooltip:
-        "A minőség beállítása (100 a legjobb minőség, alacsonyabb értékek csökkentik a fájlméretet). JPEG, AVIF és WebP esetén érvényes.",
+        "A 100 a legjobb minőség. Kisebb értékkel kisebb a fájl. JPEG, AVIF és WebP esetén.",
       presets: {
         smaller: "Kisebb (60)",
         balanced: "Kiegyensúlyozott (75)",
@@ -165,9 +165,9 @@ export const hu: TranslationSchema = {
     targetSize: {
       label: "Cél fájlméret",
       placeholder: "pl. 0,50",
-      hint: "Megpróbálja az egyes {{format}} fájlokat ezen a határon belül tartani a minőség automatikus állításával.",
+      hint: "Úgy állítom a minőséget, hogy minden {{format}} legfeljebb ekkora legyen.",
       tooltip:
-        "Opcionális maximális kimeneti méret (MB-ban). JPEG, AVIF és WebP kimenethez érvényes.",
+        "Opcionális méretkorlát fájlonként, MB-ban. JPEG, AVIF és WebP esetén.",
     },
     upscale: {
       vectorTargetLabel: "Előre beállított méret",
@@ -283,7 +283,7 @@ export const hu: TranslationSchema = {
     },
     dropzone: {
       dragActive: "Ejtsd ide a képeket vagy PDF-eket...",
-      processing: "Feldolgozás közben nem lehet fájlokat húzni...",
+      processing: "Egy pillanat, még az előző adagon dolgozom.",
       idle: "Húzd ide a képeket vagy PDF-eket, vagy kattints a kiválasztáshoz",
       maxSize: "Fájlonként legfeljebb {{size}}",
     },
@@ -308,8 +308,8 @@ export const hu: TranslationSchema = {
       cropTooltip: "Ehhez a fájlhoz mentett kivágás tartozik. Az x-re kattintva eltávolíthatod.",
       editCropTooltip: "A fájl vágásának, méretének és dizájnjának szerkesztése.",
       addCropTooltip: "Vágd meg vagy tervezd meg a fájlt: méret, háttér, szöveg és képek.",
-      cropNotSupportedPdf: "A PDF-ek kivágása még nem támogatott. Mivel a PDF több oldalt is tartalmazhat, ehhez előbb külön oldalválasztó folyamatra van szükség.",
-      cropNotSupported: "Ennél a formátumnál jelenleg nem érhető el a kivágás.",
+      cropNotSupportedPdf: "PDF-ek vágása még nem támogatott.",
+      cropNotSupported: "Ennél a formátumnál a vágás még nem támogatott.",
       cropButton: "Kivágás",
       editButton: "Szerkesztés",
     },
@@ -343,7 +343,7 @@ export const hu: TranslationSchema = {
   downloadError: {
     title: "Ez a fájl már nincs itt",
     description:
-      "Lehet, hogy törölték vagy lejárt. Próbáld meg újra tömöríteni.",
+      "Törölték, vagy lejárt. Konvertáld újra.",
     close: "Értem",
   },
 
@@ -358,16 +358,16 @@ export const hu: TranslationSchema = {
     noFiles: "Nem található konvertált fájl.",
     confirmTitle: "Fájltörlés megerősítése",
     confirmDescription:
-      "Ez a művelet véglegesen törli az összes feldolgozott fájlt. Győződj meg róla, hogy letöltötted a szükséges fájlokat, mivel ez a művelet nem vonható vissza.",
+      "Ez véglegesen törli az összes feldolgozott fájlt. Előbb töltsd le, amire szükséged van. Nem vonható vissza.",
     confirmCancel: "Mégse",
     confirmDelete: "Igen, törlöm a fájlokat",
-    fetchError: "Nem sikerült lekérni a tároló fájljait.",
-    storageError: "Nem sikerült lekérni a tárhelyinformációkat.",
+    fetchError: "Nem sikerült betölteni a konténered fájljait.",
+    storageError: "Nem sikerült betölteni a tárhelyadatokat.",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "Figyelem: A háttérrendszer jelenleg nem elérhető.",
+    warning: "Most nem érem el a backendet.",
   },
 
   statusFloating: {
@@ -386,7 +386,7 @@ export const hu: TranslationSchema = {
     checking: "Ellenőrzés...",
     whyTitle: "Miért van ez itt?",
     whyDesc:
-      "Ellenőrzi, hogy az ImgCompress fut-e, és eléri-e az internetet. Képek vagy adatok soha nem hagyják el a szerveredet.",
+      "Ellenőrzi, hogy fut-e az ImgCompress, és eléri-e az internetet. A képeid sosem hagyják el a konténeredet.",
     learnMore: "Tudj meg többet az offline használatról →",
     backendLastCheck: "Háttérrendszer utolsó ellenőrzése:",
     internetLastCheck: "Internet utolsó ellenőrzése:",
@@ -397,7 +397,7 @@ export const hu: TranslationSchema = {
     subtitle: "A művelet nem fejeződött be. Másold ki a nyomkövetést, és nyiss hibajegyet, hogy javítani lehessen.",
     detailsLabel: "Technikai részletek",
     notifyDeveloper:
-      "Kérlek, nyiss egy hibajegyet, és értesítsd a fejlesztőt, hogy minél hamarabb megoldhassuk.",
+      "Kérlek, nyiss egy jegyet, hogy gyorsan javítva legyen.",
     copyError: "Hiba másolása",
     copied: "Másolva!",
     openTicket: "Hibajegy megnyitása",
@@ -416,7 +416,7 @@ export const hu: TranslationSchema = {
     searchPlaceholder: "Keresés (pl. psd, tiff)...",
     verifiedTitle: "Tesztelt és működő",
     unverifiedTitle: "Egyéb lehetséges formátumok",
-    unverifiedHint: "Ezeket még nem teszteltük teljesen, de előfordulhat, hogy működnek!",
+    unverifiedHint: "Még nincsenek teljesen tesztelve, de érdemes kipróbálni.",
     footerText: "Az ImgCompress segít képeid konvertálásában!",
     reportBug: "Hibát jelentek",
   },
@@ -746,7 +746,7 @@ export const hu: TranslationSchema = {
     switchToDark: "Váltás sötét témára",
     confirmDialog: {
       title: "Elveted a kivágás módosításait?",
-      description: "A nem mentett kivágási beállítások elvesznek. A korábban mentett kivágás, ha volt, változatlan marad.",
+      description: "A nem mentett módosítások elvesznek. A mentett vágás megmarad.",
       keepEditing: "Folytatom a szerkesztést",
       discardChanges: "Módosítások elvetése",
     },
@@ -766,9 +766,9 @@ export const hu: TranslationSchema = {
       causes: {
         backendNotReachable: "Az ImgCompress még nem áll készen. Ha most indítottad újra, várj néhány másodpercet, és próbáld újra.",
         networkDropped: "A feltöltés közben megszakadt a kapcsolat. Ellenőrizd, hogy az ImgCompress még fut-e, majd próbáld újra.",
-        variantNotSupported: "Ez a fájl olyan {{label}} változat lehet, amelyet a dekóder nem tud olvasni (többrétegű, nem szabványos színmód, titkosított stb.). Próbáld meg a forrásalkalmazásból lapított {{label}} vagy sima PNG / JPG formátumban exportálni.",
-        missingLibraries: "A {{label}} fájlok mindig a háttér dekóderén mennek át. Ha a dekóderből hiányoznak a natív könyvtárak (pl. libheif HEIC esetén), az opcionális kodekekkel való újraépítés általában megoldja a problémát.",
-        reportIssue: "Ha egyik sem illik az esetre, másold ki az alábbi technikai részleteket, és nyiss egy hibajegyet – a nyomkövetés pontosan megmutatja, hol a hiba.",
+        variantNotSupported: "Ez a {{label}} olyan változat, amit nem tudok olvasni, például rétegek, szokatlan színmód vagy titkosítás miatt. Exportáld újra egyszerű {{label}}, PNG vagy JPG fájlként.",
+        missingLibraries: "A {{label}} fájlokhoz extra dekóder-könyvtárak kellenek, például libheif a HEIC-hez. Ez a build nem tartalmazza őket. Építsd újra az opcionális kodekekkel.",
+        reportIssue: "Semmi sem illik? Másold ki lent a technikai részleteket, és nyiss egy jegyet. A trace megmutatja, melyik lépés hibázott.",
       },
     },
     freeRatio: "Szabad",
@@ -776,7 +776,7 @@ export const hu: TranslationSchema = {
     editorDescription: "Vágd ki, méretezd át, adj hozzá hátteret, szöveget vagy képeket, majd kattints a Mentés vagy az Elvetés gombra.",
     removeDialog: {
       title: "Eltávolítod a mentett kivágást?",
-      description: "Ez törli a fájlhoz mentett kivágást. Az eredeti fájl az átalakítási listában marad.",
+      description: "Ez eltávolítja a mentett vágást. A fájl a listában marad.",
       keepCrop: "Megtartom",
       removeCrop: "Eltávolítás",
     },

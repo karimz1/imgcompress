@@ -6,7 +6,7 @@ export const fr: TranslationSchema = {
     adminTools: "Outils d'administration",
     toast: {
       unsupportedFormat: "Format de fichier non pris en charge : {{fileName}}",
-      filesRejected: "{{count}} fichier(s) ont été refusés à cause de types non pris en charge.",
+      filesRejected: "{{count}} fichier(s) ignoré(s). Je ne peux pas ouvrir ce type de fichier.",
       fileTooLarge: "{{fileName}} dépasse {{size}} et n’a pas été ajouté.",
       batchTooLarge: "Ensemble, les fichiers dépassent {{size}}. Convertissez-les par petits groupes.",
       noFilesError: "Veuillez d'abord déposer ou sélectionner des fichiers.",
@@ -15,14 +15,14 @@ export const fr: TranslationSchema = {
       widthPositiveError: "La largeur doit être un nombre positif.",
       fitSizeError: "« Ajuster à une taille exacte » nécessite une largeur et une hauteur entre 1 et 8192 pixels.",
       icoWidthClamped:
-        "Le format ICO est limité à une largeur maximale de 256 px. Votre saisie a été limitée à 256.",
+        "Les icônes ICO font au plus 256 px de large, j'ai donc réglé la largeur sur 256.",
       targetSizeError: "Veuillez définir une taille maximale de fichier positive (en Mo).",
       compressedSuccess_one: "{{count}} image compressée avec succès !",
       compressedSuccess_other: "{{count}} images compressées avec succès !",
       cleanupSuccess:
-        "Suppression terminée. Vos fichiers traités ont été supprimés définitivement. 🧹🧹🧹",
-      cleanupFailed: "Le nettoyage forcé a échoué.",
-      cleanupError: "🚨 Le nettoyage a échoué.",
+        "Terminé. Vos fichiers traités sont supprimés. 🧹",
+      cleanupFailed: "Impossible de supprimer les fichiers.",
+      cleanupError: "Le nettoyage a échoué.",
       compressionCancelled: "Compression annulée.",
       jobExpired: "Cette conversion n'est plus disponible. Veuillez relancer la conversion.",
       unexpectedError: "Une erreur est survenue. Veuillez réessayer.",
@@ -33,7 +33,7 @@ export const fr: TranslationSchema = {
 
   splash: {
     dialogTitle: "Compression des fichiers",
-    dialogDescription: "Veuillez patienter pendant la compression de vos fichiers.",
+    dialogDescription: "Un instant, je travaille sur vos fichiers.",
     tipLabel: "Astuce",
     cancelButton: "Annuler",
     steps: {
@@ -71,7 +71,7 @@ export const fr: TranslationSchema = {
     outputFormat: {
       label: "Format de sortie",
       placeholder: "Choisir un format",
-      hint: "Choisissez un format de sortie pour activer la conversion.",
+      hint: "Choisissez un format de sortie pour commencer.",
       options: {
         jpeg: "JPEG (taille de fichier réduite)",
         png: "PNG (conserve la transparence)",
@@ -87,7 +87,7 @@ export const fr: TranslationSchema = {
       label: "Préréglage de page PDF",
       disabledHint: "La modification de la largeur est désactivée lorsqu'un préréglage PDF est sélectionné.",
       tooltip:
-        "Les préréglages A4/Letter redimensionnent l'image sur la page avec une marge sûre pour l'impression. Les préréglages automatiques font pivoter la page selon l'orientation de l'image.",
+        "A4 et Letter placent l'image sur la page avec une marge adaptée à l'impression. Auto tourne la page selon l'image.",
       options: {
         original: "Original (conserver les proportions)",
         a4Auto: "A4 automatique",
@@ -121,7 +121,7 @@ export const fr: TranslationSchema = {
       label: "Mode de mise à l'échelle PDF",
       paginationHint: "La pagination utilise le mode Ajuster pour conserver toute la largeur.",
       tooltip:
-        "Ajuster conserve l'image entière, avec de possibles bandes blanches. Remplir recadre l'image pour couvrir la page.",
+        "Ajuster montre toute l'image et ajoute des bandes blanches si besoin. Remplir couvre la page et rogne les bords.",
       options: {
         fit: "Ajuster (conserver toute l'image)",
         fill: "Remplir (recadrer à la page)",
@@ -129,8 +129,8 @@ export const fr: TranslationSchema = {
     },
     pdfMargin: {
       label: "Marge PDF",
-      hint: "10 mm est recommandé et défini par défaut.",
-      tooltip: "Définissez la marge sûre d'impression en millimètres. 10 mm est recommandé.",
+      hint: "10 mm par défaut, adapté à la plupart des imprimantes.",
+      tooltip: "Marge d'impression en millimètres. 10 mm conviennent à la plupart des imprimantes.",
     },
     pdfPaginate: {
       label: "Diviser les images longues en plusieurs pages",
@@ -154,7 +154,7 @@ export const fr: TranslationSchema = {
     quality: {
       label: "Qualité",
       tooltip:
-        "Ajustez la qualité (100 donne la meilleure qualité, les valeurs plus basses réduisent la taille du fichier). S'applique à JPEG, AVIF et WebP.",
+        "100 donne la meilleure qualité. Des valeurs plus basses donnent des fichiers plus petits. Pour JPEG, AVIF et WebP.",
       presets: {
         smaller: "Plus petit (60)",
         balanced: "Équilibré (75)",
@@ -165,9 +165,9 @@ export const fr: TranslationSchema = {
     targetSize: {
       label: "Taille maximale",
       placeholder: "p. ex. 0,50",
-      hint: "Chaque fichier {{format}} sera maintenu à cette taille ou en dessous en ajustant automatiquement la qualité.",
+      hint: "J'ajuste la qualité pour que chaque {{format}} reste à cette taille ou en dessous.",
       tooltip:
-        "Définissez une taille maximale de sortie optionnelle (en Mo). S'applique aux sorties JPEG, AVIF et WebP.",
+        "Taille maximale facultative par fichier, en Mo. Pour JPEG, AVIF et WebP.",
     },
     upscale: {
       vectorTargetLabel: "Taille prédéfinie",
@@ -283,7 +283,7 @@ export const fr: TranslationSchema = {
     },
     dropzone: {
       dragActive: "Déposez des images ou des PDF ici...",
-      processing: "Impossible de déposer des fichiers pendant le traitement...",
+      processing: "Un instant, je termine encore le lot précédent.",
       idle: "Glissez-déposez des images ou des PDF ici, ou cliquez pour sélectionner",
       maxSize: "{{size}} max. par fichier",
     },
@@ -308,8 +308,8 @@ export const fr: TranslationSchema = {
       cropTooltip: "Ce fichier a un recadrage enregistré. Cliquez sur x pour le retirer.",
       editCropTooltip: "Modifier le recadrage, la taille et la mise en page de ce fichier.",
       addCropTooltip: "Recadrer ou mettre en page ce fichier : taille, arrière-plan, texte et images.",
-      cropNotSupportedPdf: "Le recadrage PDF n'est pas encore pris en charge. Les PDF peuvent contenir plusieurs pages ; le recadrage nécessite donc d'abord un flux dédié au choix des pages.",
-      cropNotSupported: "Le recadrage n'est pas pris en charge pour ce format pour le moment.",
+      cropNotSupportedPdf: "Le recadrage des PDF n'est pas encore pris en charge.",
+      cropNotSupported: "Le recadrage n'est pas encore pris en charge pour ce format.",
       cropButton: "Recadrer",
       editButton: "Modifier",
     },
@@ -343,7 +343,7 @@ export const fr: TranslationSchema = {
   downloadError: {
     title: "Ce fichier n'est plus disponible",
     description:
-      "Il a peut-être été supprimé ou a expiré. Essayez de le compresser à nouveau.",
+      "Il a été supprimé ou a expiré. Convertissez-le à nouveau.",
     close: "Compris",
   },
 
@@ -358,16 +358,16 @@ export const fr: TranslationSchema = {
     noFiles: "Aucun fichier converti trouvé.",
     confirmTitle: "Confirmer la suppression des fichiers",
     confirmDescription:
-      "Cette action supprimera définitivement tous les fichiers traités. Assurez-vous d'avoir téléchargé les fichiers nécessaires avant de continuer, car cette action est irréversible.",
+      "Cela supprime définitivement tous les fichiers traités. Téléchargez d'abord ce dont vous avez besoin. Impossible d'annuler.",
     confirmCancel: "Annuler",
     confirmDelete: "Oui, supprimer les fichiers",
-    fetchError: "Impossible de récupérer les fichiers du conteneur.",
-    storageError: "Impossible de récupérer les informations de stockage.",
+    fetchError: "Impossible de charger les fichiers de votre conteneur.",
+    storageError: "Impossible de charger les infos de stockage.",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "Avertissement : le backend est actuellement indisponible.",
+    warning: "Je n'arrive pas à joindre le backend pour le moment.",
   },
 
   statusFloating: {
@@ -386,7 +386,7 @@ export const fr: TranslationSchema = {
     checking: "Vérification...",
     whyTitle: "Pourquoi cela existe ?",
     whyDesc:
-      "Vérifie qu'ImgCompress fonctionne et s'il peut accéder à internet. Aucune image ni donnée ne quitte jamais votre serveur.",
+      "Vérifie qu'ImgCompress tourne et s'il peut accéder à Internet. Vos images ne quittent jamais votre conteneur.",
     learnMore: "En savoir plus sur l'utilisation hors ligne →",
     backendLastCheck: "Dernière vérification du backend :",
     internetLastCheck: "Dernière vérification internet :",
@@ -397,7 +397,7 @@ export const fr: TranslationSchema = {
     subtitle: "L'action n'a pas pu être terminée. Copiez la trace ci-dessous et ouvrez un ticket pour permettre la correction.",
     detailsLabel: "Détails techniques",
     notifyDeveloper:
-      "Veuillez ouvrir un ticket et prévenir le développeur afin que cela soit corrigé au plus vite.",
+      "Merci d'ouvrir un ticket pour que ce soit vite corrigé.",
     copyError: "Copier l'erreur",
     copied: "Copié !",
     openTicket: "Ouvrir un ticket",
@@ -415,7 +415,7 @@ export const fr: TranslationSchema = {
     searchPlaceholder: "Rechercher (p. ex. psd, tiff)...",
     verifiedTitle: "Testés et fonctionnels",
     unverifiedTitle: "Autres formats possibles",
-    unverifiedHint: "Ils n'ont pas encore été entièrement testés, mais ils peuvent fonctionner !",
+    unverifiedHint: "Pas encore entièrement testés, mais ça vaut le coup d'essayer.",
     footerText: "ImgCompress est là pour vous aider à convertir vos images !",
     reportBug: "Signaler un bug",
   },
@@ -745,7 +745,7 @@ export const fr: TranslationSchema = {
     switchToDark: "Passer au thème sombre",
     confirmDialog: {
       title: "Abandonner les modifications de recadrage ?",
-      description: "Vos ajustements de recadrage non enregistrés seront perdus. Le recadrage précédemment enregistré, s'il existe, restera inchangé.",
+      description: "Vos modifications non enregistrées seront perdues. Un recadrage enregistré reste tel quel.",
       keepEditing: "Continuer l'édition",
       discardChanges: "Abandonner les modifications",
     },
@@ -765,9 +765,9 @@ export const fr: TranslationSchema = {
       causes: {
         backendNotReachable: "ImgCompress n'est pas encore prêt. Si vous venez de le redémarrer, attendez quelques secondes puis réessayez.",
         networkDropped: "La connexion a été perdue pendant l'envoi. Vérifiez qu'ImgCompress fonctionne encore puis réessayez.",
-        variantNotSupported: "Ce fichier peut être une variante {{label}} que le décodeur ne peut pas lire (multicalque, mode couleur non standard, chiffré, etc.). Le réexporter depuis l'application source en {{label}} aplati ou en PNG/JPG classique résout souvent le problème.",
-        missingLibraries: "Les fichiers {{label}} passent toujours par le décodeur du backend. Si le décodeur manque de bibliothèques natives (par exemple libheif pour HEIC), une reconstruction avec les codecs optionnels activés résout généralement le problème.",
-        reportIssue: "Si aucun cas ne correspond, copiez les détails techniques ci-dessous et ouvrez un ticket : la trace indique exactement l'étape qui a échoué.",
+        variantNotSupported: "Ce fichier {{label}} utilise une variante que je ne sais pas lire, par exemple des calques, un mode couleur inhabituel ou un chiffrement. Exportez-le à nouveau en {{label}} simple, PNG ou JPG.",
+        missingLibraries: "Les fichiers {{label}} ont besoin de bibliothèques de décodage en plus, par exemple libheif pour HEIC. Ce build ne les contient pas. Reconstruisez-le avec les codecs optionnels.",
+        reportIssue: "Rien ne correspond ? Copiez les détails techniques ci-dessous et ouvrez un ticket. La trace montre l'étape qui a échoué.",
       },
     },
     freeRatio: "Libre",
@@ -775,7 +775,7 @@ export const fr: TranslationSchema = {
     editorDescription: "Recadrez, redimensionnez, ajoutez un fond, du texte ou des images, puis cliquez sur Enregistrer ou Abandonner.",
     removeDialog: {
       title: "Retirer le recadrage enregistré ?",
-      description: "Cela efface le recadrage enregistré pour ce fichier. Le fichier d'origine restera dans votre liste de conversion.",
+      description: "Cela supprime le recadrage enregistré. Le fichier reste dans votre liste.",
       keepCrop: "Conserver le recadrage",
       removeCrop: "Retirer le recadrage",
     },

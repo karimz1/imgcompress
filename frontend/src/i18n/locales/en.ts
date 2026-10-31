@@ -4,7 +4,7 @@ export const en = {
     adminTools: "Admin Tools",
     toast: {
       unsupportedFormat: "Unsupported File Format: {{fileName}}",
-      filesRejected: "{{count}} file(s) were rejected due to unsupported file types.",
+      filesRejected: "Skipped {{count}} file(s). I can't open that file type.",
       fileTooLarge: "{{fileName}} is larger than {{size}} and was not added.",
       batchTooLarge: "Together the files are larger than {{size}}. Please convert them in smaller groups.",
       noFilesError: "Please drop or select some files first.",
@@ -13,14 +13,14 @@ export const en = {
       widthPositiveError: "Width must be a positive number.",
       fitSizeError: "Fit to exact size needs a width and height between 1 and 8192 pixels.",
       icoWidthClamped:
-        "ICO format is limited to a max width of 256px. Your input has been clamped to 256.",
+        "ICO icons are at most 256 px wide, so I set the width to 256.",
       targetSizeError: "Please set a positive Max file size (in MB).",
       compressedSuccess_one: "{{count}} Image compressed successfully!",
       compressedSuccess_other: "{{count}} Images compressed successfully!",
       cleanupSuccess:
-        "Deletion Complete. Your processed files have been permanently removed. 🧹🧹🧹",
-      cleanupFailed: "Force cleanup failed.",
-      cleanupError: "🚨 Cleanup failed.",
+        "Done. Your processed files are deleted. 🧹",
+      cleanupFailed: "Couldn't delete the files.",
+      cleanupError: "Cleanup failed.",
       compressionCancelled: "Compression cancelled.",
       jobExpired: "This conversion is no longer available. Please convert again.",
       unexpectedError: "Something went wrong. Please try again.",
@@ -31,7 +31,7 @@ export const en = {
 
   splash: {
     dialogTitle: "Compressing Files",
-    dialogDescription: "Please wait while your files are being compressed.",
+    dialogDescription: "Hang on, I'm working on your files.",
     tipLabel: "Tip",
     cancelButton: "Cancel",
     steps: {
@@ -69,7 +69,7 @@ export const en = {
     outputFormat: {
       label: "Output Format",
       placeholder: "Select format",
-      hint: "Select an output format to enable conversion.",
+      hint: "Pick an output format to start.",
       options: {
         jpeg: "JPEG (smaller file size)",
         png: "PNG (preserves transparency)",
@@ -85,7 +85,7 @@ export const en = {
       label: "PDF Page Preset",
       disabledHint: "Resize Width is disabled while a PDF preset is selected.",
       tooltip:
-        "A4/Letter presets scale the image to the page with a configurable print-safe margin. Auto presets rotate the page based on image orientation.",
+        "A4 and Letter fit the image onto the page with a print-safe margin. Auto turns the page to match the image.",
       options: {
         original: "Original (keep proportions)",
         a4Auto: "A4 Auto",
@@ -118,7 +118,7 @@ export const en = {
     pdfScale: {
       label: "PDF Scale Mode",
       paginationHint: "Pagination uses Fit mode to preserve full width.",
-      tooltip: "Fit preserves the entire image with possible white bars. Fill crops to cover the page.",
+      tooltip: "Fit shows the whole image and adds white bars where needed. Fill covers the page and crops the edges.",
       options: {
         fit: "Fit (preserve full image)",
         fill: "Fill (crop to page)",
@@ -126,8 +126,8 @@ export const en = {
     },
     pdfMargin: {
       label: "PDF Margin",
-      hint: "10mm is recommended and the default.",
-      tooltip: "Set the print-safe border in millimeters. 10mm is recommended.",
+      hint: "10 mm is the default and suits most printers.",
+      tooltip: "Print-safe border in millimeters. 10 mm suits most printers.",
     },
     pdfPaginate: {
       label: "Split long images into multiple pages",
@@ -151,7 +151,7 @@ export const en = {
     quality: {
       label: "Quality",
       tooltip:
-        "Adjust the quality (100 gives the best quality, lower values reduce file size). Applies to JPEG, AVIF, and WebP.",
+        "100 is the best quality. Lower values make smaller files. Works for JPEG, AVIF and WebP.",
       presets: {
         smaller: "Smaller (60)",
         balanced: "Balanced (75)",
@@ -162,9 +162,9 @@ export const en = {
     targetSize: {
       label: "Max file size",
       placeholder: "e.g., 0.50",
-      hint: "It will try to keep each {{format}} at or below this size by automatically adjusting quality.",
+      hint: "I adjust the quality to keep each {{format}} at or below this size.",
       tooltip:
-        "Set an optional maximum output size (in MB). Applies to JPEG, AVIF, and WebP output.",
+        "Optional size limit per file, in MB. Works for JPEG, AVIF and WebP.",
     },
     upscale: {
       vectorTargetLabel: "Size preset",
@@ -280,7 +280,7 @@ export const en = {
     },
     dropzone: {
       dragActive: "Drop images or PDFs here...",
-      processing: "Cannot drop files while processing...",
+      processing: "Hang on, I'm still working on the last batch.",
       idle: "Drag & drop images or PDFs here, or click to select",
       maxSize: "Max. {{size}} per file",
     },
@@ -305,8 +305,8 @@ export const en = {
       cropTooltip: "This file has a saved crop. Click the x to remove that crop.",
       editCropTooltip: "Edit crop, size and design for this file.",
       addCropTooltip: "Crop this file or design it: size, background, text and images.",
-      cropNotSupportedPdf: "PDF crop is not supported yet. PDFs can contain multiple pages, so crop needs a dedicated page-selection workflow first.",
-      cropNotSupported: "Crop is not supported for this format at the moment.",
+      cropNotSupportedPdf: "Cropping PDFs isn't supported yet.",
+      cropNotSupported: "Cropping isn't supported for this format yet.",
       cropButton: "Crop",
       editButton: "Edit",
     },
@@ -340,7 +340,7 @@ export const en = {
   downloadError: {
     title: "This file is no longer here",
     description:
-      "It may have been deleted or expired. Try compressing it again.",
+      "It was deleted or has expired. Convert it again.",
     close: "Got it",
   },
 
@@ -355,16 +355,16 @@ export const en = {
     noFiles: "No converted files found.",
     confirmTitle: "Confirm File Deletion",
     confirmDescription:
-      "This action will permanently delete all processed files. Please ensure you have downloaded any necessary files before proceeding, as this action cannot be undone.",
+      "This permanently deletes all processed files. Download what you need first. You can't undo this.",
     confirmCancel: "Cancel",
     confirmDelete: "Yes, Delete Files",
-    fetchError: "Failed to fetch container files.",
-    storageError: "Failed to fetch storage info.",
+    fetchError: "Couldn't load the files in your container.",
+    storageError: "Couldn't load the storage info.",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "Warning: Backend is currently unavailable.",
+    warning: "I can't reach the backend right now.",
   },
 
   statusFloating: {
@@ -383,7 +383,7 @@ export const en = {
     checking: "Checking...",
     whyTitle: "Why this exists?",
     whyDesc:
-      "Checks that ImgCompress is running and whether it can reach the internet. No images or data ever leave your server.",
+      "Checks that ImgCompress is running and whether it can reach the internet. Your images never leave your container.",
     learnMore: "Learn more about offline usage →",
     backendLastCheck: "Backend Last Check:",
     internetLastCheck: "Internet Last Check:",
@@ -394,7 +394,7 @@ export const en = {
     subtitle: "The action couldn't complete. Copy the trace below and open a ticket so it can be fixed.",
     detailsLabel: "Technical details",
     notifyDeveloper:
-      "Please open a ticket and notify the developer so this can be fixed ASAP.",
+      "Please open a ticket so this gets fixed quickly.",
     copyError: "Copy Error",
     copied: "Copied!",
     openTicket: "Open Ticket",
@@ -412,7 +412,7 @@ export const en = {
     searchPlaceholder: "Search (e.g. psd, tiff)...",
     verifiedTitle: "Tested & Working",
     unverifiedTitle: "Other possible formats",
-    unverifiedHint: "These haven't been fully tested yet, but they might work!",
+    unverifiedHint: "Not fully tested yet, but worth a try.",
     footerText: "ImgCompress here to help you convert your images!",
     reportBug: "Report a bug",
   },
@@ -742,7 +742,7 @@ export const en = {
     switchToDark: "Switch to dark theme",
     confirmDialog: {
       title: "Discard crop changes?",
-      description: "Your unsaved crop adjustments will be lost. The previously saved crop, if any, will stay unchanged.",
+      description: "Your unsaved changes will be lost. A saved crop stays as it is.",
       keepEditing: "Keep Editing",
       discardChanges: "Discard Changes",
     },
@@ -762,9 +762,9 @@ export const en = {
       causes: {
         backendNotReachable: "ImgCompress isn't ready yet. If you just restarted it, wait a few seconds and try again.",
         networkDropped: "The connection was lost during the upload. Check that ImgCompress is still running and try again.",
-        variantNotSupported: "This file may be a {{label}} variant the decoder can't read (multi-layer, non-standard color mode, encrypted, etc.). Re-exporting from the source app as a flat {{label}} or a regular PNG / JPG usually fixes this.",
-        missingLibraries: "{{label}} files always go through the backend's decoder. If the decoder is missing native libraries (e.g. libheif for HEIC), the build may have skipped them — re-running the build with the optional codecs enabled usually resolves it.",
-        reportIssue: "If none of the above fits, copy the technical details below and open a ticket — the trace shows exactly which step failed.",
+        variantNotSupported: "This {{label}} uses a variant I can't read, for example layers, an unusual color mode or encryption. Export it again as a flat {{label}}, PNG or JPG.",
+        missingLibraries: "{{label}} files need extra decoder libraries, for example libheif for HEIC. This build doesn't include them. Rebuild with the optional codecs turned on.",
+        reportIssue: "Nothing fits? Copy the technical details below and open a ticket. The trace shows which step failed.",
       },
     },
     freeRatio: "Free",
@@ -772,7 +772,7 @@ export const en = {
     editorDescription: "Crop, resize, add a background, text or pictures, then click Save or Discard.",
     removeDialog: {
       title: "Remove saved crop?",
-      description: "This clears the saved crop for this file. The original file will stay in your conversion list.",
+      description: "This removes the saved crop. The file stays in your list.",
       keepCrop: "Keep Crop",
       removeCrop: "Remove Crop",
     },
