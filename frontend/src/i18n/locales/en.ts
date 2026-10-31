@@ -39,14 +39,15 @@ export const en = {
       compressing: "Compressing",
       packaging: "Packaging",
     },
-    tip: "This runs on your server. You can switch to another app or close this tab and check back later. Your result will be waiting here.",
+    tip: "I'm working inside your container. You can close the tab and come back later. Your result waits here.",
     progressTiles: "Upscaling: part {{done}} of {{total}}",
     progressFiles: "{{done}} of {{total}} files done",
     waitingForUpscale: "Waiting for another upscale to finish…",
     elapsed: "Elapsed {{time}}",
     notify: "Notify me when done",
-    tipUpscale: "AI upscaling can take minutes, on small CPUs much longer. You can close this tab and check back later.",
-    tipUpscaleNotify: "AI upscaling can take minutes, on small CPUs much longer. Turn on “Notify me when done” and close this tab.",
+    tipUpscale: "Upscaling runs inside your container and can take a few minutes per image. You can close the tab and come back later.",
+    tipUpscaleNotify: "Upscaling can take a few minutes per image. Turn on “Notify me when done” and I'll let you know.",
+    notifyTip: "Did you know? I can tell you when your images are ready.",
     messages: [
       "Compressing your files…",
       "Optimizing quality and size.",
@@ -145,7 +146,7 @@ export const en = {
     rembg: {
       label: "Remove background with AI",
       tooltip:
-        "The AI is already built in: nothing to install, and it works without internet.\nIt takes a bit longer, and edges may not be perfect.",
+        "Removes the background automatically, locally inside your container. Fine edges like hair aren't always perfect.",
     },
     quality: {
       label: "Quality",
@@ -190,7 +191,7 @@ export const en = {
       },
       label: "AI upscaling",
       tooltip:
-        "The built-in AI makes images bigger and keeps edges and small details sharp. Nothing to install, and it works without internet.\nIt takes a while, and faces may show small flaws.",
+        "Enlarges images and keeps edges and details sharp, locally inside your container. Faces may show small flaws.",
       targetLabel: "Upscale to",
       options: {
         "2x": "2× larger",
@@ -203,8 +204,10 @@ export const en = {
         "16k": "16K (fits 15360 × 8640)",
       },
       hint:
-        "The image keeps its shape. Images that are already big enough stay as they are. Bigger results and slower servers take longer. Above 4×, the AI goes first and a normal resize finishes the job.",
-      slowHint: "AI upscaling runs on your server's CPU. Expect minutes; big images on small CPUs can take much longer. You can close the tab while it runs.",
+        "The aspect ratio stays the same. Images that are already big enough stay unchanged.",
+      slowHint: "Can take a few minutes per image. Feel free to close the tab and come back later.",
+      notifyTip: "Tip: get a notification on your phone when it's done.",
+      notifyTipLink: "Set up notifications",
       unavailableHint: "AI upscaling is not included in this version.",
       fitActiveHint: "Not used while Fit to exact size is on.",
       largeTargetHint: "Very big results take longer.",

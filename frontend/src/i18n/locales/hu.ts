@@ -41,14 +41,15 @@ export const hu: TranslationSchema = {
       compressing: "Tömörítés",
       packaging: "Csomagolás",
     },
-    tip: "Ez a saját szervereden fut. Átválthatsz másik alkalmazásra, vagy bezárhatod ezt a lapot, és később visszanézhetsz. Az eredmény itt vár majd.",
+    tip: "A konténeredben dolgozom. Bezárhatod a lapot, és később visszajöhetsz. Az eredmény itt vár.",
     progressTiles: "Felskálázás: {{done}}. rész a(z) {{total}}-ból",
     progressFiles: "{{total}} fájlból {{done}} kész",
     waitingForUpscale: "Várakozás egy másik felskálázás befejezésére…",
     elapsed: "Eltelt idő: {{time}}",
     notify: "Értesíts, ha kész",
-    tipUpscale: "Az MI-nagyítás percekig tarthat, kis CPU-n sokkal tovább. Bezárhatod ezt a lapot, és később visszanézhetsz.",
-    tipUpscaleNotify: "Az MI-nagyítás percekig tarthat, kis CPU-n sokkal tovább. Kapcsold be: „Értesíts, ha kész”, és zárd be ezt a lapot.",
+    tipUpscale: "A nagyítás a konténeredben fut, és képenként pár percig tarthat. Bezárhatod a lapot, és később visszajöhetsz.",
+    tipUpscaleNotify: "A nagyítás képenként pár percig tarthat. Kapcsold be: „Értesíts, ha kész”, és szólok.",
+    notifyTip: "Tudtad? Szólok, ha elkészültek a képeid.",
     messages: [
       "Fájlok tömörítése folyamatban…",
       "Minőség és méret optimalizálása.",
@@ -148,7 +149,7 @@ export const hu: TranslationSchema = {
     rembg: {
       label: "Háttér eltávolítása MI-vel",
       tooltip:
-        "Az MI már be van építve: semmit nem kell telepíteni, és internet nélkül is működik.\nKicsit tovább tart, és a szélek nem mindig tökéletesek.",
+        "Automatikusan eltávolítja a hátteret, helyben a konténeredben. A finom élek, például a haj, nem mindig tökéletesek.",
     },
     quality: {
       label: "Minőség",
@@ -193,7 +194,7 @@ export const hu: TranslationSchema = {
       },
       label: "MI-felskálázás",
       tooltip:
-        "A beépített MI nagyobbá teszi a képeket, és élesen tartja a széleket és az apró részleteket. Semmit nem kell telepíteni, és internet nélkül is működik.\nEltart egy ideig, és az arcokon apró hibák jelenhetnek meg.",
+        "Nagyítja a képeket, és élesen tartja az éleket és részleteket, helyben a konténeredben. Az arcokon kisebb hibák lehetnek.",
       targetLabel: "Felskálázás erre",
       options: {
         "2x": "2× nagyobb",
@@ -206,8 +207,10 @@ export const hu: TranslationSchema = {
         "16k": "16K (belefér: 15360 × 8640)",
       },
       hint:
-        "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. A nagyobb eredmények és a lassabb szerverek tovább tartanak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
-      slowHint: "Az MI-nagyítás a szerver CPU-ján fut. Számíts percekre; nagy képek kis CPU-n sokkal tovább tarthatnak. Közben bezárhatod a lapot.",
+        "A képarány nem változik. A már elég nagy képek változatlanok maradnak.",
+      slowHint: "Képenként pár percig tarthat. Nyugodtan zárd be a lapot, és gyere vissza később.",
+      notifyTip: "Tipp: kapj értesítést a telefonodra, ha kész.",
+      notifyTipLink: "Értesítések beállítása",
       unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
       largeTargetHint: "A nagyon nagy eredmények tovább tartanak.",

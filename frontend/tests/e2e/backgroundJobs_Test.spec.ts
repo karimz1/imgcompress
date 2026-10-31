@@ -55,7 +55,7 @@ test.describe('Background conversion jobs', () => {
     await startSlowUpscaleAsync(page);
     await expect(page.getByTestId('job-progress')).toContainText(/Upscaling: part \d+ of \d+/);
     await expect(page.getByTestId('job-background-hint')).toHaveText(
-      'AI upscaling can take minutes, on small CPUs much longer. You can close this tab and check back later.'
+      'Upscaling runs inside your container and can take a few minutes per image. You can close the tab and come back later.'
     );
 
     // The phone switches apps: the page is hidden, then gone completely.

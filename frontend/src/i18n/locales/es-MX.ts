@@ -41,14 +41,15 @@ export const esMX: TranslationSchema = {
       compressing: "Comprimiendo",
       packaging: "Empaquetando",
     },
-    tip: "Esto se ejecuta en tu servidor. Puedes cambiar a otra app o cerrar esta pestaña y volver más tarde. Tu resultado te estará esperando aquí.",
+    tip: "Estoy trabajando dentro de tu contenedor. Puedes cerrar la pestaña y volver más tarde. Tu resultado te espera aquí.",
     progressTiles: "Ampliando: parte {{done}} de {{total}}",
     progressFiles: "{{done}} de {{total}} archivos listos",
     waitingForUpscale: "Esperando a que termine otra ampliación…",
     elapsed: "Tiempo: {{time}}",
     notify: "Avísame cuando termine",
-    tipUpscale: "El escalado con IA puede tardar minutos, y mucho más en CPUs pequeñas. Puedes cerrar esta pestaña y volver después.",
-    tipUpscaleNotify: "El escalado con IA puede tardar minutos, y mucho más en CPUs pequeñas. Activa “Avísame cuando termine” y cierra esta pestaña.",
+    tipUpscale: "El escalado se ejecuta dentro de tu contenedor y puede tardar unos minutos por imagen. Puedes cerrar la pestaña y volver más tarde.",
+    tipUpscaleNotify: "El escalado puede tardar unos minutos por imagen. Activa “Avísame cuando termine” y te aviso.",
+    notifyTip: "¿Sabías que te aviso cuando tus imágenes estén listas?",
     messages: [
       "Comprimiendo tus archivos…",
       "Optimizando calidad y tamaño.",
@@ -148,7 +149,7 @@ export const esMX: TranslationSchema = {
     rembg: {
       label: "Quitar el fondo con IA",
       tooltip:
-        "La IA ya viene incluida: no hay nada que instalar y funciona sin internet.\nTarda un poco más y los bordes pueden no quedar perfectos.",
+        "Quita el fondo automáticamente, localmente en tu contenedor. Los bordes finos como el cabello no siempre quedan perfectos.",
     },
     quality: {
       label: "Calidad",
@@ -193,7 +194,7 @@ export const esMX: TranslationSchema = {
       },
       label: "Ampliación con IA",
       tooltip:
-        "La IA incluida agranda las imágenes y mantiene nítidos los bordes y los detalles pequeños. No hay nada que instalar y funciona sin internet.\nTarda un rato y las caras pueden mostrar pequeños defectos.",
+        "Agranda las imágenes y mantiene nítidos los bordes y detalles, localmente en tu contenedor. Las caras pueden mostrar pequeños fallos.",
       targetLabel: "Ampliar a",
       options: {
         "2x": "2× más grande",
@@ -206,8 +207,10 @@ export const esMX: TranslationSchema = {
         "16k": "16K (cabe en 15360 × 8640)",
       },
       hint:
-        "La imagen conserva su forma. Las imágenes que ya son lo bastante grandes se quedan igual. Los resultados más grandes y los servidores más lentos tardan más. Por encima de 4×, primero trabaja la IA y luego un cambio de tamaño normal termina el trabajo.",
-      slowHint: "El escalado con IA usa la CPU de tu servidor. Cuenta con minutos; las imágenes grandes en CPUs pequeñas pueden tardar mucho más. Puedes cerrar la pestaña mientras tanto.",
+        "La relación de aspecto se mantiene. Las imágenes que ya son lo bastante grandes no cambian.",
+      slowHint: "Puede tardar unos minutos por imagen. Cierra la pestaña tranquilo y vuelve más tarde.",
+      notifyTip: "Consejo: recibe una notificación en tu celular cuando termine.",
+      notifyTipLink: "Configurar notificaciones",
       unavailableHint: "La ampliación con IA no está incluida en esta versión.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
       largeTargetHint: "Los resultados muy grandes tardan más.",

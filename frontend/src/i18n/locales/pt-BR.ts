@@ -41,14 +41,15 @@ export const ptBR: TranslationSchema = {
       compressing: "Comprimindo",
       packaging: "Empacotando",
     },
-    tip: "Isso roda no seu servidor. Você pode trocar para outro app ou fechar esta aba e voltar mais tarde. Seu resultado estará esperando aqui.",
+    tip: "Estou trabalhando dentro do seu contêiner. Você pode fechar a aba e voltar mais tarde. Seu resultado espera aqui.",
     progressTiles: "Ampliando: parte {{done}} de {{total}}",
     progressFiles: "{{done}} de {{total}} arquivos prontos",
     waitingForUpscale: "Aguardando outra ampliação terminar…",
     elapsed: "Tempo: {{time}}",
     notify: "Avise-me quando terminar",
-    tipUpscale: "O upscaling com IA pode levar minutos, e muito mais em CPUs pequenas. Você pode fechar esta aba e voltar depois.",
-    tipUpscaleNotify: "O upscaling com IA pode levar minutos, e muito mais em CPUs pequenas. Ative “Avise-me quando terminar” e feche esta aba.",
+    tipUpscale: "O upscaling roda dentro do seu contêiner e pode levar alguns minutos por imagem. Você pode fechar a aba e voltar mais tarde.",
+    tipUpscaleNotify: "O upscaling pode levar alguns minutos por imagem. Ative “Avise-me quando terminar” e eu te aviso.",
+    notifyTip: "Sabia que eu te aviso quando suas imagens estiverem prontas?",
     messages: [
       "Comprimindo seus arquivos…",
       "Otimizando qualidade e tamanho.",
@@ -148,7 +149,7 @@ export const ptBR: TranslationSchema = {
     rembg: {
       label: "Remover fundo com IA",
       tooltip:
-        "A IA já vem incluída: nada para instalar, e funciona sem internet.\nDemora um pouco mais, e as bordas podem não ficar perfeitas.",
+        "Remove o fundo automaticamente, localmente no seu contêiner. Bordas finas como cabelo nem sempre ficam perfeitas.",
     },
     quality: {
       label: "Qualidade",
@@ -193,7 +194,7 @@ export const ptBR: TranslationSchema = {
       },
       label: "Ampliação com IA",
       tooltip:
-        "A IA incluída deixa as imagens maiores e mantém bordas e pequenos detalhes nítidos. Nada para instalar, e funciona sem internet.\nDemora um pouco, e rostos podem mostrar pequenas falhas.",
+        "Amplia as imagens e mantém bordas e detalhes nítidos, localmente no seu contêiner. Rostos podem mostrar pequenas falhas.",
       targetLabel: "Ampliar para",
       options: {
         "2x": "2× maior",
@@ -206,8 +207,10 @@ export const ptBR: TranslationSchema = {
         "16k": "16K (cabe em 15360 × 8640)",
       },
       hint:
-        "A imagem mantém sua forma. Imagens que já são grandes o bastante ficam como estão. Resultados maiores e servidores mais lentos demoram mais. Acima de 4×, a IA vem primeiro e um redimensionamento normal termina o trabalho.",
-      slowHint: "O upscaling com IA roda na CPU do seu servidor. Conte com minutos; imagens grandes em CPUs pequenas podem levar muito mais. Você pode fechar a aba enquanto isso.",
+        "A proporção continua a mesma. Imagens que já são grandes o bastante ficam inalteradas.",
+      slowHint: "Pode levar alguns minutos por imagem. Pode fechar a aba e voltar mais tarde.",
+      notifyTip: "Dica: receba uma notificação no celular quando terminar.",
+      notifyTipLink: "Configurar notificações",
       unavailableHint: "A ampliação com IA não está incluída nesta versão.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",
       largeTargetHint: "Resultados muito grandes demoram mais.",

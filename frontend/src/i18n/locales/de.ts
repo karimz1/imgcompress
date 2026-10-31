@@ -41,14 +41,15 @@ export const de: TranslationSchema = {
       compressing: "Komprimieren",
       packaging: "Paketieren",
     },
-    tip: "Das läuft auf deinem Server. Du kannst zu einer anderen App wechseln oder diesen Tab schließen und später wiederkommen. Dein Ergebnis wartet hier auf dich.",
+    tip: "Ich arbeite in deinem Container. Du kannst den Tab schließen und später wiederkommen. Dein Ergebnis wartet hier.",
     progressTiles: "Hochskalieren: Teil {{done}} von {{total}}",
     progressFiles: "{{done}} von {{total}} Dateien fertig",
     waitingForUpscale: "Wartet, bis ein anderes Hochskalieren fertig ist…",
     elapsed: "Läuft seit {{time}}",
     notify: "Benachrichtige mich, wenn fertig",
-    tipUpscale: "KI-Hochskalierung kann Minuten dauern, auf kleinen CPUs viel länger. Du kannst diesen Tab schließen und später nachsehen.",
-    tipUpscaleNotify: "KI-Hochskalierung kann Minuten dauern, auf kleinen CPUs viel länger. Schalte „Benachrichtige mich, wenn fertig“ ein und schließe diesen Tab.",
+    tipUpscale: "Hochskalieren läuft in deinem Container und kann ein paar Minuten pro Bild dauern. Du kannst den Tab schließen und später wiederkommen.",
+    tipUpscaleNotify: "Hochskalieren kann ein paar Minuten pro Bild dauern. Schalte „Benachrichtige mich, wenn fertig“ ein, dann sage ich dir Bescheid.",
+    notifyTip: "Wusstest du schon? Ich sag dir Bescheid, wenn deine Bilder fertig sind.",
     messages: [
       "Deine Dateien werden komprimiert…",
       "Qualität und Größe werden optimiert.",
@@ -148,7 +149,7 @@ export const de: TranslationSchema = {
     rembg: {
       label: "Hintergrund mit KI entfernen",
       tooltip:
-        "Die KI ist schon eingebaut: nichts zu installieren, und sie funktioniert ohne Internet.\nEs dauert etwas länger, und die Kanten sind vielleicht nicht perfekt.",
+        "Entfernt den Hintergrund automatisch, lokal in deinem Container. Feine Kanten wie Haare sind nicht immer perfekt.",
     },
     quality: {
       label: "Qualität",
@@ -193,7 +194,7 @@ export const de: TranslationSchema = {
       },
       label: "KI-Hochskalierung",
       tooltip:
-        "Die eingebaute KI macht Bilder größer und hält Kanten und kleine Details scharf. Nichts zu installieren, und sie funktioniert ohne Internet.\nEs dauert eine Weile, und Gesichter können kleine Fehler zeigen.",
+        "Vergrößert Bilder und hält Kanten und Details scharf, lokal in deinem Container. Gesichter können kleine Fehler zeigen.",
       targetLabel: "Hochskalieren auf",
       options: {
         "2x": "2× größer",
@@ -206,8 +207,10 @@ export const de: TranslationSchema = {
         "16k": "16K (passt in 15360 × 8640)",
       },
       hint:
-        "Das Bild behält seine Form. Bilder, die schon groß genug sind, bleiben, wie sie sind. Größere Ergebnisse und langsamere Server brauchen länger. Über 4× arbeitet zuerst die KI, dann macht eine normale Größenänderung den Rest.",
-      slowHint: "KI-Hochskalierung läuft auf der CPU deines Servers. Rechne mit Minuten; große Bilder auf kleinen CPUs können viel länger dauern. Du kannst den Tab währenddessen schließen.",
+        "Das Seitenverhältnis bleibt gleich. Bilder, die schon groß genug sind, bleiben unverändert.",
+      slowHint: "Kann je nach Bild ein paar Minuten dauern. Schließ ruhig den Tab und komm später wieder.",
+      notifyTip: "Tipp: Lass dich auf dem Handy benachrichtigen, wenn es fertig ist.",
+      notifyTipLink: "Benachrichtigungen einrichten",
       unavailableHint: "KI-Hochskalierung ist in dieser Version nicht enthalten.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",
       largeTargetHint: "Sehr große Ergebnisse dauern länger.",
