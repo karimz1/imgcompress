@@ -60,8 +60,8 @@ importers:
         specifier: ^26.3.4
         version: 26.3.6(typescript@6.0.3)
       lucide-react:
-        specifier: ^1.60.0
-        version: 1.60.0(@types/react@19.2.18)(react@19.2.8)
+        specifier: ^1.62.0
+        version: 1.62.0(@types/react@19.2.18)(react@19.2.8)
       next:
         specifier: 16.4.1
         version: 16.4.1(@playwright/test@1.63.0)(@types/node@26.6.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -1406,8 +1406,8 @@ packages:
     resolution: {integrity: sha512-NXYBzinNrblfraPGyrbPoD19C1h9lfI/1mzgWYvXUTe414Gz/X1FD2XBZSZM7rRTrMA8JL3OtAaGifrIKhQ5yQ==}
     engines: {node: '>= 12.0.0'}
 
-  lucide-react@1.60.0:
-    resolution: {integrity: sha512-UqxOW0FgAfDyb9VmjKb6/BkOzW6yfhf/QNboKtS2NDsscnNRW2CDzlyhbMKBQ1ontmcxuIDqHJ2AVgFR3NI+GA==}
+  lucide-react@1.62.0:
+    resolution: {integrity: sha512-2i8QZZhkgYMA3oJvKYpCltHh54VnT/3rIPkDLHbzr3IJQBaCz8+7j7V2k2rczYd2aCqcBaMmNlWQ2KKeDfcxmw==}
     peerDependencies:
       '@types/react': '*'
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -2684,7 +2684,7 @@ snapshots:
       lightningcss-win32-arm64-msvc: 1.32.0
       lightningcss-win32-x64-msvc: 1.32.0
 
-  lucide-react@1.60.0(@types/react@19.2.18)(react@19.2.8):
+  lucide-react@1.62.0(@types/react@19.2.18)(react@19.2.8):
     dependencies:
       react: 19.2.8
     optionalDependencies:
