@@ -6,7 +6,7 @@ export const de: TranslationSchema = {
     adminTools: "Admin-Werkzeuge",
     toast: {
       unsupportedFormat: "Nicht unterstütztes Dateiformat: {{fileName}}",
-      filesRejected: "{{count}} Datei(en) wurden wegen nicht unterstützter Dateitypen abgelehnt.",
+      filesRejected: "{{count}} Datei(en) übersprungen. Diesen Dateityp kann ich nicht öffnen.",
       fileTooLarge: "{{fileName}} ist größer als {{size}} und wurde nicht hinzugefügt.",
       batchTooLarge: "Die Dateien sind zusammen größer als {{size}}. Bitte in kleineren Gruppen umwandeln.",
       noFilesError: "Bitte lege oder wähle zuerst einige Dateien aus.",
@@ -15,14 +15,14 @@ export const de: TranslationSchema = {
       widthPositiveError: "Die Breite muss eine positive Zahl sein.",
       fitSizeError: "„Auf exakte Größe bringen“ braucht eine Breite und Höhe zwischen 1 und 8192 Pixeln.",
       icoWidthClamped:
-        "Das ICO-Format ist auf eine maximale Breite von 256 px beschränkt. Deine Eingabe wurde auf 256 gesetzt.",
+        "ICO-Icons sind höchstens 256 px breit, deshalb habe ich die Breite auf 256 gesetzt.",
       targetSizeError: "Bitte lege eine positive maximale Dateigröße (in MB) fest.",
       compressedSuccess_one: "{{count}} Bild erfolgreich komprimiert!",
       compressedSuccess_other: "{{count}} Bilder erfolgreich komprimiert!",
       cleanupSuccess:
-        "Die Löschung ist abgeschlossen. Deine verarbeiteten Dateien wurden dauerhaft entfernt. 🧹🧹🧹",
-      cleanupFailed: "Erzwungene Bereinigung fehlgeschlagen.",
-      cleanupError: "🚨 Bereinigung fehlgeschlagen.",
+        "Fertig. Deine verarbeiteten Dateien sind gelöscht. 🧹",
+      cleanupFailed: "Die Dateien konnten nicht gelöscht werden.",
+      cleanupError: "Aufräumen fehlgeschlagen.",
       compressionCancelled: "Komprimierung abgebrochen.",
       jobExpired: "Diese Umwandlung ist nicht mehr verfügbar. Bitte wandle die Dateien erneut um.",
       unexpectedError: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
@@ -33,7 +33,7 @@ export const de: TranslationSchema = {
 
   splash: {
     dialogTitle: "Dateien werden komprimiert",
-    dialogDescription: "Bitte warte, während deine Dateien komprimiert werden.",
+    dialogDescription: "Einen Moment, ich arbeite an deinen Dateien.",
     tipLabel: "Tipp",
     cancelButton: "Abbrechen",
     steps: {
@@ -71,7 +71,7 @@ export const de: TranslationSchema = {
     outputFormat: {
       label: "Ausgabeformat",
       placeholder: "Format auswählen",
-      hint: "Wähle ein Ausgabeformat, um die Konvertierung zu aktivieren.",
+      hint: "Wähle ein Ausgabeformat, um zu starten.",
       options: {
         jpeg: "JPEG (kleinere Dateigröße)",
         png: "PNG (erhält Transparenz)",
@@ -87,7 +87,7 @@ export const de: TranslationSchema = {
       label: "PDF-Seitenvorgabe",
       disabledHint: "Breite ändern ist deaktiviert, solange eine PDF-Vorgabe ausgewählt ist.",
       tooltip:
-        "A4-/Letter-Vorgaben skalieren das Bild mit konfigurierbarem drucksicheren Rand auf die Seite. Automatische Vorgaben drehen die Seite anhand der Bildausrichtung.",
+        "A4 und Letter setzen das Bild mit druckfreundlichem Rand auf die Seite. Auto dreht die Seite passend zum Bild.",
       options: {
         original: "Original (Proportionen behalten)",
         a4Auto: "A4 automatisch",
@@ -121,7 +121,7 @@ export const de: TranslationSchema = {
       label: "PDF-Skalierungsmodus",
       paginationHint: "Die Seitenteilung verwendet den Modus Einpassen, damit die volle Breite erhalten bleibt.",
       tooltip:
-        "Einpassen erhält das gesamte Bild, eventuell mit weißen Balken. Füllen beschneidet das Bild, damit die Seite bedeckt wird.",
+        "Einpassen zeigt das ganze Bild und ergänzt bei Bedarf weiße Ränder. Füllen deckt die Seite ab und schneidet die Ränder ab.",
       options: {
         fit: "Einpassen (vollständiges Bild erhalten)",
         fill: "Füllen (auf Seite zuschneiden)",
@@ -129,8 +129,8 @@ export const de: TranslationSchema = {
     },
     pdfMargin: {
       label: "PDF-Rand",
-      hint: "10 mm wird empfohlen und ist die Standardeinstellung.",
-      tooltip: "Lege den drucksicheren Rand in Millimetern fest. 10 mm wird empfohlen.",
+      hint: "10 mm sind voreingestellt und passen für die meisten Drucker.",
+      tooltip: "Druckfreundlicher Rand in Millimetern. 10 mm passen für die meisten Drucker.",
     },
     pdfPaginate: {
       label: "Lange Bilder auf mehrere Seiten aufteilen",
@@ -154,7 +154,7 @@ export const de: TranslationSchema = {
     quality: {
       label: "Qualität",
       tooltip:
-        "Passe die Qualität an (100 ist die beste Qualität, niedrigere Werte reduzieren die Dateigröße). Gilt für JPEG, AVIF und WebP.",
+        "100 ist die beste Qualität. Niedrigere Werte ergeben kleinere Dateien. Gilt für JPEG, AVIF und WebP.",
       presets: {
         smaller: "Kleiner (60)",
         balanced: "Ausgewogen (75)",
@@ -165,9 +165,9 @@ export const de: TranslationSchema = {
     targetSize: {
       label: "Max. Dateigröße",
       placeholder: "z. B. 0,50",
-      hint: "Es wird versucht, jede {{format}}-Datei durch automatische Qualitätsanpassung auf oder unter dieser Größe zu halten.",
+      hint: "Ich passe die Qualität an, damit jede {{format}}-Datei höchstens so groß wird.",
       tooltip:
-        "Lege eine optionale maximale Ausgabegröße (in MB) fest. Gilt für JPEG-, AVIF- und WebP-Ausgaben.",
+        "Optionale Größengrenze pro Datei, in MB. Gilt für JPEG, AVIF und WebP.",
     },
     upscale: {
       vectorTargetLabel: "Größenvorgabe",
@@ -283,7 +283,7 @@ export const de: TranslationSchema = {
     },
     dropzone: {
       dragActive: "Bilder oder PDFs hier ablegen...",
-      processing: "Während der Verarbeitung können keine Dateien abgelegt werden...",
+      processing: "Einen Moment, ich arbeite noch am letzten Durchgang.",
       idle: "Bilder oder PDFs hierher ziehen oder klicken, um sie auszuwählen",
       maxSize: "Max. {{size}} pro Datei",
     },
@@ -308,8 +308,8 @@ export const de: TranslationSchema = {
       cropTooltip: "Für diese Datei ist ein Zuschnitt gespeichert. Klicke auf das x, um ihn zu entfernen.",
       editCropTooltip: "Zuschnitt, Größe und Design dieser Datei bearbeiten.",
       addCropTooltip: "Datei zuschneiden oder gestalten: Größe, Hintergrund, Text und Bilder.",
-      cropNotSupportedPdf: "PDF-Zuschnitt wird noch nicht unterstützt. PDFs können mehrere Seiten enthalten, daher braucht der Zuschnitt zuerst einen eigenen Ablauf zur Seitenauswahl.",
-      cropNotSupported: "Zuschnitt wird für dieses Format derzeit nicht unterstützt.",
+      cropNotSupportedPdf: "PDFs zuschneiden geht noch nicht.",
+      cropNotSupported: "Zuschneiden geht für dieses Format noch nicht.",
       cropButton: "Zuschneiden",
       editButton: "Bearbeiten",
     },
@@ -343,7 +343,7 @@ export const de: TranslationSchema = {
   downloadError: {
     title: "Diese Datei ist nicht mehr da",
     description:
-      "Sie wurde möglicherweise gelöscht oder ist abgelaufen. Komprimiere sie einfach erneut.",
+      "Sie wurde gelöscht oder ist abgelaufen. Konvertiere sie noch einmal.",
     close: "Verstanden",
   },
 
@@ -358,16 +358,16 @@ export const de: TranslationSchema = {
     noFiles: "Keine konvertierten Dateien gefunden.",
     confirmTitle: "Dateilöschung bestätigen",
     confirmDescription:
-      "Diese Aktion löscht alle verarbeiteten Dateien dauerhaft. Bitte stelle sicher, dass du alle benötigten Dateien heruntergeladen hast, bevor du fortfährst, da diese Aktion nicht rückgängig gemacht werden kann.",
+      "Damit werden alle verarbeiteten Dateien endgültig gelöscht. Lade vorher herunter, was du brauchst. Das lässt sich nicht rückgängig machen.",
     confirmCancel: "Abbrechen",
     confirmDelete: "Ja, Dateien löschen",
-    fetchError: "Containerdateien konnten nicht abgerufen werden.",
-    storageError: "Speicherinformationen konnten nicht abgerufen werden.",
+    fetchError: "Die Dateien in deinem Container konnten nicht geladen werden.",
+    storageError: "Die Speicherinfos konnten nicht geladen werden.",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "Warnung: Das Backend ist derzeit nicht verfügbar.",
+    warning: "Ich erreiche das Backend gerade nicht.",
   },
 
   statusFloating: {
@@ -386,7 +386,7 @@ export const de: TranslationSchema = {
     checking: "Wird geprüft...",
     whyTitle: "Warum gibt es das?",
     whyDesc:
-      "Prüft, ob ImgCompress läuft und ob es das Internet erreicht. Keine Bilder oder Daten verlassen jemals deinen Server.",
+      "Prüft, ob ImgCompress läuft und ob es das Internet erreicht. Deine Bilder verlassen deinen Container nie.",
     learnMore: "Mehr über Offline-Nutzung erfahren →",
     backendLastCheck: "Letzte Backend-Prüfung:",
     internetLastCheck: "Letzte Internetprüfung:",
@@ -397,7 +397,7 @@ export const de: TranslationSchema = {
     subtitle: "Die Aktion konnte nicht abgeschlossen werden. Kopiere den Trace unten und öffne ein Ticket, damit der Fehler behoben werden kann.",
     detailsLabel: "Technische Details",
     notifyDeveloper:
-      "Bitte öffne ein Ticket und benachrichtige den Entwickler, damit dies schnell behoben werden kann.",
+      "Bitte eröffne ein Ticket, damit das schnell behoben wird.",
     copyError: "Fehler kopieren",
     copied: "Kopiert!",
     openTicket: "Ticket öffnen",
@@ -415,7 +415,7 @@ export const de: TranslationSchema = {
     searchPlaceholder: "Suchen (z. B. psd, tiff)...",
     verifiedTitle: "Getestet und funktionsfähig",
     unverifiedTitle: "Weitere mögliche Formate",
-    unverifiedHint: "Diese wurden noch nicht vollständig getestet, könnten aber funktionieren!",
+    unverifiedHint: "Noch nicht vollständig getestet, aber einen Versuch wert.",
     footerText: "ImgCompress hilft dir beim Konvertieren deiner Bilder!",
     reportBug: "Fehler melden",
   },
@@ -745,7 +745,7 @@ export const de: TranslationSchema = {
     switchToDark: "Zum dunklen Design wechseln",
     confirmDialog: {
       title: "Zuschnittänderungen verwerfen?",
-      description: "Deine ungespeicherten Zuschnittanpassungen gehen verloren. Ein zuvor gespeicherter Zuschnitt bleibt unverändert.",
+      description: "Deine ungespeicherten Änderungen gehen verloren. Ein gespeicherter Zuschnitt bleibt, wie er ist.",
       keepEditing: "Weiter bearbeiten",
       discardChanges: "Änderungen verwerfen",
     },
@@ -765,9 +765,9 @@ export const de: TranslationSchema = {
       causes: {
         backendNotReachable: "ImgCompress ist noch nicht bereit. Wenn du es gerade neu gestartet hast, warte ein paar Sekunden und versuche es erneut.",
         networkDropped: "Die Verbindung ist während des Uploads abgebrochen. Prüfe, ob ImgCompress noch läuft, und versuche es erneut.",
-        variantNotSupported: "Diese Datei könnte eine {{label}}-Variante sein, die der Decoder nicht lesen kann (mehrschichtig, nicht standardisierter Farbmodus, verschlüsselt usw.). Ein Export aus der Quellanwendung als flaches {{label}} oder normales PNG/JPG behebt dies meist.",
-        missingLibraries: "{{label}}-Dateien laufen immer durch den Decoder des Backends. Wenn dem Decoder native Bibliotheken fehlen (z. B. libheif für HEIC), löst ein erneuter Build mit aktivierten optionalen Codecs das Problem meist.",
-        reportIssue: "Wenn nichts davon passt, kopiere die technischen Details unten und öffne ein Ticket - der Trace zeigt genau, welcher Schritt fehlgeschlagen ist.",
+        variantNotSupported: "Diese {{label}}-Datei nutzt eine Variante, die ich nicht lesen kann, zum Beispiel Ebenen, einen ungewöhnlichen Farbmodus oder Verschlüsselung. Exportiere sie noch einmal als einfache {{label}}-, PNG- oder JPG-Datei.",
+        missingLibraries: "{{label}}-Dateien brauchen zusätzliche Decoder-Bibliotheken, zum Beispiel libheif für HEIC. Dieser Build enthält sie nicht. Baue ihn mit den optionalen Codecs neu.",
+        reportIssue: "Nichts passt? Kopiere die technischen Details unten und eröffne ein Ticket. Der Trace zeigt, welcher Schritt fehlgeschlagen ist.",
       },
     },
     freeRatio: "Frei",
@@ -775,7 +775,7 @@ export const de: TranslationSchema = {
     editorDescription: "Zuschneiden, Größe ändern, Hintergrund, Text oder Bilder hinzufügen und dann auf Speichern oder Verwerfen klicken.",
     removeDialog: {
       title: "Gespeicherten Zuschnitt entfernen?",
-      description: "Dadurch wird der gespeicherte Zuschnitt für diese Datei gelöscht. Die Originaldatei bleibt in deiner Konvertierungsliste.",
+      description: "Damit wird der gespeicherte Zuschnitt entfernt. Die Datei bleibt in deiner Liste.",
       keepCrop: "Zuschnitt behalten",
       removeCrop: "Zuschnitt entfernen",
     },

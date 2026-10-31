@@ -6,7 +6,7 @@ export const ja: TranslationSchema = {
     adminTools: "管理ツール",
     toast: {
       unsupportedFormat: "未対応のファイル形式: {{fileName}}",
-      filesRejected: "未対応のファイル形式のため、{{count}} 件のファイルが拒否されました。",
+      filesRejected: "{{count}} 件のファイルをスキップしました。このファイル形式は開けません。",
       fileTooLarge: "{{fileName}} は {{size}} を超えているため追加されませんでした。",
       batchTooLarge: "ファイルの合計が {{size}} を超えています。少しずつ分けて変換してください。",
       noFilesError: "先にファイルをドロップするか選択してください。",
@@ -15,14 +15,14 @@ export const ja: TranslationSchema = {
       widthPositiveError: "幅は正の数値で指定してください。",
       fitSizeError: "「指定サイズに合わせる」には 1〜8192 ピクセルの幅と高さが必要です。",
       icoWidthClamped:
-        "ICO 形式の最大幅は 256px です。入力値は 256 に制限されました。",
+        "ICO アイコンの幅は最大 256 px なので、幅を 256 にしました。",
       targetSizeError: "正の最大ファイルサイズ (MB) を設定してください。",
       compressedSuccess_one: "{{count}} 件の画像を正常に圧縮しました!",
       compressedSuccess_other: "{{count}} 件の画像を正常に圧縮しました!",
       cleanupSuccess:
-        "削除が完了しました。処理済みファイルは完全に削除されました。🧹🧹🧹",
-      cleanupFailed: "強制クリーンアップに失敗しました。",
-      cleanupError: "🚨 クリーンアップに失敗しました。",
+        "完了しました。処理済みファイルを削除しました。🧹",
+      cleanupFailed: "ファイルを削除できませんでした。",
+      cleanupError: "クリーンアップに失敗しました。",
       compressionCancelled: "圧縮をキャンセルしました。",
       jobExpired: "この変換はもう利用できません。もう一度変換してください。",
       unexpectedError: "問題が発生しました。もう一度お試しください。",
@@ -33,7 +33,7 @@ export const ja: TranslationSchema = {
 
   splash: {
     dialogTitle: "ファイルを圧縮中",
-    dialogDescription: "ファイルの圧縮が完了するまでお待ちください。",
+    dialogDescription: "少々お待ちください。ファイルを処理しています。",
     tipLabel: "ヒント",
     cancelButton: "キャンセル",
     steps: {
@@ -71,7 +71,7 @@ export const ja: TranslationSchema = {
     outputFormat: {
       label: "出力形式",
       placeholder: "形式を選択",
-      hint: "変換を有効にするには出力形式を選択してください。",
+      hint: "出力形式を選ぶと始められます。",
       options: {
         jpeg: "JPEG (ファイルサイズ小)",
         png: "PNG (透明度を保持)",
@@ -87,7 +87,7 @@ export const ja: TranslationSchema = {
       label: "PDF ページプリセット",
       disabledHint: "PDF プリセットの選択中は幅のリサイズが無効になります。",
       tooltip:
-        "A4/Letter プリセットは、印刷安全余白を指定して画像をページに合わせます。自動プリセットは画像の向きに基づいてページを回転します。",
+        "A4 と Letter は印刷に安全な余白付きで画像をページに収めます。自動は画像に合わせてページを回転します。",
       options: {
         original: "元のサイズ (比率を保持)",
         a4Auto: "A4 自動",
@@ -121,7 +121,7 @@ export const ja: TranslationSchema = {
       label: "PDF スケールモード",
       paginationHint: "ページ分割では全幅を保つためにフィットモードを使用します。",
       tooltip:
-        "フィットは画像全体を保持しますが、白い余白が出る場合があります。フィルはページ全体を覆うように画像を切り抜きます。",
+        "フィットは画像全体を表示し、必要に応じて白い帯を足します。フィルはページを覆い、端を切り取ります。",
       options: {
         fit: "フィット (画像全体を保持)",
         fill: "フィル (ページに合わせて切り抜き)",
@@ -129,8 +129,8 @@ export const ja: TranslationSchema = {
     },
     pdfMargin: {
       label: "PDF 余白",
-      hint: "10mm が推奨値で、デフォルトです。",
-      tooltip: "印刷安全余白をミリメートル単位で設定します。10mm をおすすめします。",
+      hint: "既定は 10 mm で、ほとんどのプリンターに合います。",
+      tooltip: "印刷用の余白（ミリ単位）。10 mm でほとんどのプリンターに合います。",
     },
     pdfPaginate: {
       label: "長い画像を複数ページに分割",
@@ -154,7 +154,7 @@ export const ja: TranslationSchema = {
     quality: {
       label: "品質",
       tooltip:
-        "品質を調整します (100 が最高品質、低い値ほどファイルサイズが小さくなります)。JPEG、AVIF、WebP に適用されます。",
+        "100 が最高画質です。値を下げるとファイルが小さくなります。JPEG、AVIF、WebP に適用されます。",
       presets: {
         smaller: "小さめ (60)",
         balanced: "バランス (75)",
@@ -165,9 +165,9 @@ export const ja: TranslationSchema = {
     targetSize: {
       label: "最大ファイルサイズ",
       placeholder: "例: 0.50",
-      hint: "品質を自動調整して、各 {{format}} をこのサイズ以下に収めようとします。",
+      hint: "各 {{format}} がこのサイズ以下になるよう画質を調整します。",
       tooltip:
-        "任意の最大出力サイズ (MB) を設定します。JPEG、AVIF、WebP の出力に適用されます。",
+        "ファイルごとの任意のサイズ上限（MB）。JPEG、AVIF、WebP に適用されます。",
     },
     upscale: {
       vectorTargetLabel: "サイズのプリセット",
@@ -283,7 +283,7 @@ export const ja: TranslationSchema = {
     },
     dropzone: {
       dragActive: "画像または PDF をここにドロップ...",
-      processing: "処理中はファイルをドロップできません...",
+      processing: "少々お待ちください。前の処理をまだ続けています。",
       idle: "画像または PDF をドラッグ&ドロップするか、クリックして選択",
       maxSize: "1ファイルあたり最大 {{size}}",
     },
@@ -308,8 +308,8 @@ export const ja: TranslationSchema = {
       cropTooltip: "このファイルには保存済みの切り抜きがあります。x をクリックすると削除できます。",
       editCropTooltip: "このファイルの切り抜き・サイズ・デザインを編集します。",
       addCropTooltip: "このファイルを切り抜いたりデザインしたりします（サイズ、背景、テキスト、画像）。",
-      cropNotSupportedPdf: "PDF の切り抜きはまだ対応していません。PDF は複数ページを含む場合があるため、先にページ選択専用のワークフローが必要です。",
-      cropNotSupported: "この形式の切り抜きは現在対応していません。",
+      cropNotSupportedPdf: "PDF の切り抜きはまだ対応していません。",
+      cropNotSupported: "この形式の切り抜きはまだ対応していません。",
       cropButton: "切り抜き",
       editButton: "編集",
     },
@@ -343,7 +343,7 @@ export const ja: TranslationSchema = {
   downloadError: {
     title: "このファイルはもうありません",
     description:
-      "削除されたか、期限が切れた可能性があります。もう一度圧縮してみてください。",
+      "削除されたか、期限が切れました。もう一度変換してください。",
     close: "OK",
   },
 
@@ -358,16 +358,16 @@ export const ja: TranslationSchema = {
     noFiles: "変換済みファイルが見つかりません。",
     confirmTitle: "ファイル削除の確認",
     confirmDescription:
-      "この操作により、すべての処理済みファイルが完全に削除されます。元に戻せないため、必要なファイルをダウンロード済みであることを確認してから続行してください。",
+      "処理済みファイルをすべて完全に削除します。必要なものは先にダウンロードしてください。元に戻せません。",
     confirmCancel: "キャンセル",
     confirmDelete: "はい、ファイルを削除",
-    fetchError: "コンテナ内のファイルを取得できませんでした。",
-    storageError: "ストレージ情報を取得できませんでした。",
+    fetchError: "コンテナ内のファイルを読み込めませんでした。",
+    storageError: "ストレージ情報を読み込めませんでした。",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "警告: バックエンドは現在利用できません。",
+    warning: "今はバックエンドにつながりません。",
   },
 
   statusFloating: {
@@ -386,7 +386,7 @@ export const ja: TranslationSchema = {
     checking: "確認中...",
     whyTitle: "なぜこれがあるの?",
     whyDesc:
-      "ImgCompress が動いているか、インターネットにつながるかを確認します。画像やデータがサーバーの外に出ることはありません。",
+      "ImgCompress が動いているか、インターネットにつながるかを確認します。画像がコンテナの外に出ることはありません。",
     learnMore: "オフライン利用について詳しく →",
     backendLastCheck: "バックエンド最終確認:",
     internetLastCheck: "インターネット最終確認:",
@@ -397,7 +397,7 @@ export const ja: TranslationSchema = {
     subtitle: "操作を完了できませんでした。下のトレースをコピーしてチケットを開き、修正できるようにしてください。",
     detailsLabel: "技術的な詳細",
     notifyDeveloper:
-      "できるだけ早く修正できるよう、チケットを開いて開発者に知らせてください。",
+      "すぐに直せるよう、チケットを作成してください。",
     copyError: "エラーをコピー",
     copied: "コピーしました!",
     openTicket: "チケットを開く",
@@ -415,7 +415,7 @@ export const ja: TranslationSchema = {
     searchPlaceholder: "検索 (例: psd, tiff)...",
     verifiedTitle: "テスト済み・動作確認済み",
     unverifiedTitle: "その他の可能な形式",
-    unverifiedHint: "これらはまだ完全にはテストされていませんが、動作する可能性があります。",
+    unverifiedHint: "まだ十分にテストしていませんが、試す価値はあります。",
     footerText: "ImgCompress は画像変換をサポートします!",
     reportBug: "バグを報告",
   },
@@ -745,7 +745,7 @@ export const ja: TranslationSchema = {
     switchToDark: "ダークテーマに切り替え",
     confirmDialog: {
       title: "切り抜きの変更を破棄しますか?",
-      description: "保存していない切り抜き調整は失われます。以前に保存した切り抜きがある場合、それは変更されません。",
+      description: "保存していない変更は失われます。保存済みの切り抜きはそのまま残ります。",
       keepEditing: "編集を続ける",
       discardChanges: "変更を破棄",
     },
@@ -765,9 +765,9 @@ export const ja: TranslationSchema = {
       causes: {
         backendNotReachable: "ImgCompress はまだ準備中です。再起動したばかりなら、数秒待ってからもう一度お試しください。",
         networkDropped: "アップロード中に接続が切れました。ImgCompress がまだ動いているか確認して、もう一度お試しください。",
-        variantNotSupported: "このファイルはデコーダーが読めない {{label}} の変種である可能性があります (複数レイヤー、非標準のカラーモード、暗号化など)。元のアプリからフラットな {{label}} または通常の PNG/JPG として再書き出しすると、多くの場合解決します。",
-        missingLibraries: "{{label}} ファイルは常にバックエンドのデコーダーを通ります。デコーダーにネイティブライブラリ (例: HEIC 用の libheif) が不足している場合、任意コーデックを有効にして再ビルドすると多くの場合解決します。",
-        reportIssue: "どれにも当てはまらない場合は、下の技術的な詳細をコピーしてチケットを開いてください。トレースには失敗した手順が正確に示されています。",
+        variantNotSupported: "この {{label}} は読み込めない形式です（レイヤー、特殊なカラーモード、暗号化など）。シンプルな {{label}}、PNG、JPG として書き出し直してください。",
+        missingLibraries: "{{label}} ファイルには追加のデコーダーライブラリ（HEIC なら libheif など）が必要です。このビルドには含まれていません。オプションのコーデックを有効にして再ビルドしてください。",
+        reportIssue: "当てはまらない場合は、下の技術情報をコピーしてチケットを作成してください。トレースで失敗した手順がわかります。",
       },
     },
     freeRatio: "自由",
@@ -775,7 +775,7 @@ export const ja: TranslationSchema = {
     editorDescription: "切り抜き、サイズ変更、背景・テキスト・画像の追加を行い、保存または破棄をクリックしてください。",
     removeDialog: {
       title: "保存済み切り抜きを削除しますか?",
-      description: "このファイルの保存済み切り抜きを削除します。元のファイルは変換リストに残ります。",
+      description: "保存済みの切り抜きを削除します。ファイルはリストに残ります。",
       keepCrop: "切り抜きを保持",
       removeCrop: "切り抜きを削除",
     },

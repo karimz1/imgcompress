@@ -6,7 +6,7 @@ export const ar: TranslationSchema = {
     adminTools: "أدوات الإدارة",
     toast: {
       unsupportedFormat: "تنسيق ملف غير مدعوم: {{fileName}}",
-      filesRejected: "تم رفض {{count}} ملف/ملفات بسبب أنواع ملفات غير مدعومة.",
+      filesRejected: "تم تخطي {{count}} ملف(ات). لا أستطيع فتح هذا النوع من الملفات.",
       fileTooLarge: "حجم {{fileName}} أكبر من {{size}} ولم تتم إضافته.",
       batchTooLarge: "حجم الملفات معًا أكبر من {{size}}. يُرجى تحويلها على دفعات أصغر.",
       noFilesError: "يرجى إسقاط أو تحديد بعض الملفات أولاً.",
@@ -15,14 +15,14 @@ export const ar: TranslationSchema = {
       widthPositiveError: "يجب أن يكون العرض رقماً موجباً.",
       fitSizeError: "يحتاج الضبط على حجم محدد إلى عرض وارتفاع بين 1 و8192 بكسل.",
       icoWidthClamped:
-        "تنسيق ICO محدود بعرض أقصى قدره 256 بكسل. تم ضبط الإدخال إلى 256.",
+        "أيقونات ICO لا يزيد عرضها عن 256 px، لذا ضبطت العرض على 256.",
       targetSizeError: "يرجى تعيين حجم ملف أقصى موجب (بالميغابايت).",
       compressedSuccess_one: "تم ضغط {{count}} صورة بنجاح!",
       compressedSuccess_other: "تم ضغط {{count}} صورة بنجاح!",
       cleanupSuccess:
-        "اكتمل الحذف. تمت إزالة ملفاتك المعالجة نهائياً. 🧹🧹🧹",
-      cleanupFailed: "فشلت عملية التنظيف القسري.",
-      cleanupError: "🚨 فشلت عملية التنظيف.",
+        "تم. حُذفت ملفاتك المعالجة. 🧹",
+      cleanupFailed: "تعذّر حذف الملفات.",
+      cleanupError: "فشل التنظيف.",
       compressionCancelled: "تم إلغاء الضغط.",
       jobExpired: "هذا التحويل لم يعد متاحًا. يرجى التحويل مرة أخرى.",
       unexpectedError: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -33,7 +33,7 @@ export const ar: TranslationSchema = {
 
   splash: {
     dialogTitle: "جارٍ ضغط الملفات",
-    dialogDescription: "يرجى الانتظار أثناء ضغط ملفاتك.",
+    dialogDescription: "لحظة، أعمل على ملفاتك.",
     tipLabel: "نصيحة",
     cancelButton: "إلغاء",
     steps: {
@@ -71,7 +71,7 @@ export const ar: TranslationSchema = {
     outputFormat: {
       label: "تنسيق الإخراج",
       placeholder: "حدد التنسيق",
-      hint: "حدد تنسيق إخراج لتفعيل التحويل.",
+      hint: "اختر صيغة الإخراج للبدء.",
       options: {
         jpeg: "JPEG (حجم ملف أصغر)",
         png: "PNG (يحافظ على الشفافية)",
@@ -87,7 +87,7 @@ export const ar: TranslationSchema = {
       label: "إعداد صفحة PDF",
       disabledHint: "تغيير العرض معطل أثناء تحديد إعداد صفحة PDF.",
       tooltip:
-        "إعدادات A4/Letter تضبط الصورة على الصفحة مع هامش آمن للطباعة قابل للتكوين. الإعدادات التلقائية تدوّر الصفحة بناءً على اتجاه الصورة.",
+        "يضع A4 وLetter الصورة على الصفحة بهامش آمن للطباعة. ويُدير الوضع التلقائي الصفحة حسب الصورة.",
       options: {
         original: "الأصلي (الحفاظ على النسب)",
         a4Auto: "A4 تلقائي",
@@ -121,7 +121,7 @@ export const ar: TranslationSchema = {
       label: "وضع مقياس PDF",
       paginationHint: "يستخدم التقسيم إلى صفحات وضع الملاءمة للحفاظ على العرض الكامل.",
       tooltip:
-        "الملاءمة تحافظ على الصورة كاملة مع احتمال ظهور أشرطة بيضاء. التعبئة تقص الصورة لتغطية الصفحة.",
+        "الملاءمة تعرض الصورة كاملة وتضيف أشرطة بيضاء عند الحاجة. والتعبئة تغطي الصفحة وتقص الحواف.",
       options: {
         fit: "ملاءمة (الحفاظ على الصورة كاملة)",
         fill: "تعبئة (قص لتناسب الصفحة)",
@@ -129,8 +129,8 @@ export const ar: TranslationSchema = {
     },
     pdfMargin: {
       label: "هامش PDF",
-      hint: "يوصى بـ 10 مم وهو الإعداد الافتراضي.",
-      tooltip: "اضبط هامش الطباعة الآمن بالميليمتر. يوصى بـ 10 مم.",
+      hint: "القيمة الافتراضية 10 mm وهي مناسبة لمعظم الطابعات.",
+      tooltip: "هامش آمن للطباعة بالمليمتر. 10 mm مناسبة لمعظم الطابعات.",
     },
     pdfPaginate: {
       label: "تقسيم الصور الطويلة إلى عدة صفحات",
@@ -154,7 +154,7 @@ export const ar: TranslationSchema = {
     quality: {
       label: "الجودة",
       tooltip:
-        "اضبط الجودة (100 تعطي أفضل جودة، والقيم الأقل تقلل حجم الملف). ينطبق على JPEG وAVIF وWebP.",
+        "100 هي أفضل جودة. القيم الأقل تعطي ملفات أصغر. ينطبق على JPEG وAVIF وWebP.",
       presets: {
         smaller: "أصغر (60)",
         balanced: "متوازن (75)",
@@ -165,9 +165,9 @@ export const ar: TranslationSchema = {
     targetSize: {
       label: "حجم الملف الأقصى",
       placeholder: "مثلاً، 0.50",
-      hint: "سيحاول إبقاء كل ملف {{format}} عند هذا الحجم أو دونه عبر ضبط الجودة تلقائياً.",
+      hint: "أضبط الجودة ليبقى كل ملف {{format}} بهذا الحجم أو أقل.",
       tooltip:
-        "عيّن حجماً أقصى اختيارياً للإخراج (بالميغابايت). ينطبق على إخراج JPEG وAVIF وWebP.",
+        "حد اختياري لحجم كل ملف بالميغابايت. ينطبق على JPEG وAVIF وWebP.",
     },
     upscale: {
       vectorTargetLabel: "حجم جاهز",
@@ -283,7 +283,7 @@ export const ar: TranslationSchema = {
     },
     dropzone: {
       dragActive: "أسقط الصور أو ملفات PDF هنا...",
-      processing: "لا يمكن إسقاط الملفات أثناء المعالجة...",
+      processing: "لحظة، ما زلت أعمل على الدفعة السابقة.",
       idle: "اسحب وأفلت الصور أو ملفات PDF هنا، أو انقر للتحديد",
       maxSize: "الحد الأقصى {{size}} لكل ملف",
     },
@@ -308,8 +308,8 @@ export const ar: TranslationSchema = {
       cropTooltip: "يوجد قص محفوظ لهذا الملف. انقر على x لإزالة هذا القص.",
       editCropTooltip: "تعديل القص والحجم والتصميم لهذا الملف.",
       addCropTooltip: "قصّ هذا الملف أو صمّمه: الحجم والخلفية والنص والصور.",
-      cropNotSupportedPdf: "قص PDF غير مدعوم بعد. قد تحتوي ملفات PDF على عدة صفحات، لذلك يحتاج القص أولاً إلى سير عمل مخصص لاختيار الصفحات.",
-      cropNotSupported: "القص غير مدعوم لهذا التنسيق حالياً.",
+      cropNotSupportedPdf: "قص ملفات PDF غير مدعوم بعد.",
+      cropNotSupported: "القص غير مدعوم لهذه الصيغة بعد.",
       cropButton: "قص",
       editButton: "تحرير",
     },
@@ -342,7 +342,7 @@ export const ar: TranslationSchema = {
 
   downloadError: {
     title: "لم يعد هذا الملف موجودًا",
-    description: "ربما تم حذفه أو انتهت صلاحيته. حاول ضغطه من جديد.",
+    description: "حُذف أو انتهت صلاحيته. حوّله مرة أخرى.",
     close: "حسنًا",
   },
 
@@ -357,16 +357,16 @@ export const ar: TranslationSchema = {
     noFiles: "لم يتم العثور على ملفات محولة.",
     confirmTitle: "تأكيد حذف الملفات",
     confirmDescription:
-      "سيؤدي هذا الإجراء إلى حذف جميع الملفات المعالجة نهائياً. يرجى التأكد من تنزيل أي ملفات ضرورية قبل المتابعة، لأن هذا الإجراء لا يمكن التراجع عنه.",
+      "سيؤدي هذا إلى حذف كل الملفات المعالجة نهائيًا. نزّل ما تحتاجه أولًا. لا يمكن التراجع عن ذلك.",
     confirmCancel: "إلغاء",
     confirmDelete: "نعم، احذف الملفات",
-    fetchError: "فشل جلب ملفات الحاوية.",
-    storageError: "فشل جلب معلومات التخزين.",
+    fetchError: "تعذّر تحميل الملفات في الحاوية الخاصة بك.",
+    storageError: "تعذّر تحميل معلومات التخزين.",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "تحذير: الواجهة الخلفية غير متاحة حالياً.",
+    warning: "لا أستطيع الوصول إلى الخادم الخلفي الآن.",
   },
 
   statusFloating: {
@@ -385,7 +385,7 @@ export const ar: TranslationSchema = {
     checking: "جارٍ الفحص...",
     whyTitle: "لماذا يوجد هذا؟",
     whyDesc:
-      "يتحقق من أن ImgCompress يعمل ومن قدرته على الوصول إلى الإنترنت. لا تغادر أي صور أو بيانات خادمك أبدًا.",
+      "يتحقق من أن ImgCompress يعمل ومن قدرته على الوصول إلى الإنترنت. صورك لا تغادر حاويتك أبدًا.",
     learnMore: "اعرف المزيد عن الاستخدام دون اتصال →",
     backendLastCheck: "آخر فحص للواجهة الخلفية:",
     internetLastCheck: "آخر فحص للإنترنت:",
@@ -396,7 +396,7 @@ export const ar: TranslationSchema = {
     subtitle: "تعذر إكمال الإجراء. انسخ التتبع أدناه وافتح تذكرة حتى يمكن إصلاحه.",
     detailsLabel: "التفاصيل التقنية",
     notifyDeveloper:
-      "يرجى فتح تذكرة وإبلاغ المطور حتى يمكن إصلاح هذا في أسرع وقت.",
+      "يرجى فتح تذكرة لإصلاح ذلك بسرعة.",
     copyError: "نسخ الخطأ",
     copied: "تم النسخ!",
     openTicket: "فتح تذكرة",
@@ -414,7 +414,7 @@ export const ar: TranslationSchema = {
     searchPlaceholder: "بحث (مثل psd، tiff)...",
     verifiedTitle: "تم اختباره ويعمل",
     unverifiedTitle: "تنسيقات أخرى محتملة",
-    unverifiedHint: "لم يتم اختبار هذه بالكامل بعد، لكنها قد تعمل!",
+    unverifiedHint: "لم تُختبر بالكامل بعد، لكنها تستحق التجربة.",
     footerText: "ImgCompress هنا لمساعدتك في تحويل صورك!",
     reportBug: "الإبلاغ عن خطأ",
   },
@@ -744,7 +744,7 @@ export const ar: TranslationSchema = {
     switchToDark: "التبديل إلى السمة الداكنة",
     confirmDialog: {
       title: "تجاهل تغييرات القص؟",
-      description: "ستفقد تعديلات القص غير المحفوظة. سيبقى القص المحفوظ سابقاً، إن وجد، دون تغيير.",
+      description: "ستفقد التغييرات غير المحفوظة. يبقى القص المحفوظ كما هو.",
       keepEditing: "متابعة التحرير",
       discardChanges: "تجاهل التغييرات",
     },
@@ -764,9 +764,9 @@ export const ar: TranslationSchema = {
       causes: {
         backendNotReachable: "ImgCompress ليس جاهزًا بعد. إذا أعدت تشغيله للتو، فانتظر بضع ثوانٍ ثم حاول مرة أخرى.",
         networkDropped: "انقطع الاتصال أثناء الرفع. تحقق من أن ImgCompress ما زال يعمل ثم حاول مرة أخرى.",
-        variantNotSupported: "قد يكون هذا الملف متغير {{label}} لا يستطيع مفكك الترميز قراءته (متعدد الطبقات، وضع ألوان غير قياسي، مشفر، إلخ). عادةً ما تؤدي إعادة تصديره من التطبيق المصدر كملف {{label}} مسطح أو PNG/JPG عادي إلى حل ذلك.",
-        missingLibraries: "تمر ملفات {{label}} دائماً عبر مفكك الترميز في الواجهة الخلفية. إذا كانت تنقصه مكتبات أصلية (مثل libheif لملفات HEIC)، فعادةً ما يحل إعادة البناء مع تمكين برامج الترميز الاختيارية المشكلة.",
-        reportIssue: "إذا لم ينطبق أي مما سبق، انسخ التفاصيل التقنية أدناه وافتح تذكرة - يوضح التتبع بالضبط أي خطوة فشلت.",
+        variantNotSupported: "يستخدم ملف {{label}} هذا نوعًا لا أستطيع قراءته، مثل الطبقات أو وضع ألوان غير معتاد أو التشفير. صدّره مرة أخرى كملف {{label}} بسيط أو PNG أو JPG.",
+        missingLibraries: "تحتاج ملفات {{label}} إلى مكتبات فك ترميز إضافية، مثل libheif لصيغة HEIC. هذا الإصدار لا يتضمنها. أعد البناء مع تفعيل الترميزات الاختيارية.",
+        reportIssue: "لا شيء مما سبق؟ انسخ التفاصيل التقنية أدناه وافتح تذكرة. يوضح التتبع الخطوة التي فشلت.",
       },
     },
     freeRatio: "حر",
@@ -774,7 +774,7 @@ export const ar: TranslationSchema = {
     editorDescription: "قص الصورة أو غيّر حجمها أو أضف خلفية أو نصًا أو صورًا، ثم انقر على حفظ أو تجاهل.",
     removeDialog: {
       title: "إزالة القص المحفوظ؟",
-      description: "يمسح هذا القص المحفوظ لهذا الملف. سيبقى الملف الأصلي في قائمة التحويل.",
+      description: "سيزيل هذا القص المحفوظ. يبقى الملف في قائمتك.",
       keepCrop: "الاحتفاظ بالقص",
       removeCrop: "إزالة القص",
     },

@@ -6,7 +6,7 @@ export const zhCN: TranslationSchema = {
     adminTools: "管理工具",
     toast: {
       unsupportedFormat: "不支持的文件格式：{{fileName}}",
-      filesRejected: "由于文件类型不受支持，已拒绝 {{count}} 个文件。",
+      filesRejected: "已跳过 {{count}} 个文件。我无法打开这种文件类型。",
       fileTooLarge: "{{fileName}} 超过 {{size}}，未添加。",
       batchTooLarge: "这些文件合计超过 {{size}}，请分批转换。",
       noFilesError: "请先拖入或选择一些文件。",
@@ -15,14 +15,14 @@ export const zhCN: TranslationSchema = {
       widthPositiveError: "宽度必须是正数。",
       fitSizeError: "“调整为精确尺寸”需要 1 到 8192 像素之间的宽度和高度。",
       icoWidthClamped:
-        "ICO 格式的最大宽度限制为 256px。你的输入已被限制为 256。",
+        "ICO 图标最宽 256 px，所以我把宽度设为 256。",
       targetSizeError: "请设置一个正的最大文件大小（MB）。",
       compressedSuccess_one: "已成功压缩 {{count}} 张图片！",
       compressedSuccess_other: "已成功压缩 {{count}} 张图片！",
       cleanupSuccess:
-        "删除完成。你的已处理文件已被永久移除。🧹🧹🧹",
-      cleanupFailed: "强制清理失败。",
-      cleanupError: "🚨 清理失败。",
+        "完成。已删除处理过的文件。🧹",
+      cleanupFailed: "无法删除这些文件。",
+      cleanupError: "清理失败。",
       compressionCancelled: "压缩已取消。",
       jobExpired: "此转换已不可用。请重新转换。",
       unexpectedError: "出了点问题。请重试。",
@@ -33,7 +33,7 @@ export const zhCN: TranslationSchema = {
 
   splash: {
     dialogTitle: "正在压缩文件",
-    dialogDescription: "请稍候，正在压缩你的文件。",
+    dialogDescription: "请稍等，我正在处理你的文件。",
     tipLabel: "提示",
     cancelButton: "取消",
     steps: {
@@ -71,7 +71,7 @@ export const zhCN: TranslationSchema = {
     outputFormat: {
       label: "输出格式",
       placeholder: "选择格式",
-      hint: "选择输出格式以启用转换。",
+      hint: "选择一种输出格式即可开始。",
       options: {
         jpeg: "JPEG（文件更小）",
         png: "PNG（保留透明度）",
@@ -87,7 +87,7 @@ export const zhCN: TranslationSchema = {
       label: "PDF 页面预设",
       disabledHint: "选择 PDF 预设时，调整宽度会被禁用。",
       tooltip:
-        "A4/Letter 预设会按可配置的打印安全边距将图片缩放到页面。自动预设会根据图片方向旋转页面。",
+        "A4 和 Letter 会把图片放到页面上，并留出适合打印的边距。自动会按图片方向旋转页面。",
       options: {
         original: "原始（保持比例）",
         a4Auto: "A4 自动",
@@ -121,7 +121,7 @@ export const zhCN: TranslationSchema = {
       label: "PDF 缩放模式",
       paginationHint: "分页使用适应模式以保留完整宽度。",
       tooltip:
-        "适应会保留整张图片，可能出现白边。填充会裁剪图片以覆盖页面。",
+        "适应会显示整张图片，必要时添加白边。填充会铺满页面并裁掉边缘。",
       options: {
         fit: "适应（保留完整图片）",
         fill: "填充（裁剪到页面）",
@@ -129,8 +129,8 @@ export const zhCN: TranslationSchema = {
     },
     pdfMargin: {
       label: "PDF 边距",
-      hint: "推荐并默认使用 10mm。",
-      tooltip: "以毫米设置打印安全边距。推荐 10mm。",
+      hint: "默认 10 mm，适合大多数打印机。",
+      tooltip: "打印安全边距，单位为毫米。10 mm 适合大多数打印机。",
     },
     pdfPaginate: {
       label: "将长图拆分为多页",
@@ -154,7 +154,7 @@ export const zhCN: TranslationSchema = {
     quality: {
       label: "质量",
       tooltip:
-        "调整质量（100 表示最佳质量，较低值会减小文件大小）。适用于 JPEG、AVIF 和 WebP。",
+        "100 是最佳质量。数值越低，文件越小。适用于 JPEG、AVIF 和 WebP。",
       presets: {
         smaller: "更小 (60)",
         balanced: "均衡 (75)",
@@ -165,9 +165,9 @@ export const zhCN: TranslationSchema = {
     targetSize: {
       label: "最大文件大小",
       placeholder: "例如 0.50",
-      hint: "它会通过自动调整质量，尝试让每个 {{format}} 文件不超过此大小。",
+      hint: "我会调整质量，让每个 {{format}} 不超过这个大小。",
       tooltip:
-        "设置可选的最大输出大小（MB）。适用于 JPEG、AVIF 和 WebP 输出。",
+        "每个文件的可选大小上限，单位 MB。适用于 JPEG、AVIF 和 WebP。",
     },
     upscale: {
       vectorTargetLabel: "尺寸预设",
@@ -283,7 +283,7 @@ export const zhCN: TranslationSchema = {
     },
     dropzone: {
       dragActive: "将图片或 PDF 拖到这里...",
-      processing: "处理过程中不能拖入文件...",
+      processing: "请稍等，我还在处理上一批。",
       idle: "将图片或 PDF 拖放到这里，或点击选择",
       maxSize: "每个文件最大 {{size}}",
     },
@@ -308,8 +308,8 @@ export const zhCN: TranslationSchema = {
       cropTooltip: "此文件有已保存的裁剪。点击 x 可移除该裁剪。",
       editCropTooltip: "编辑此文件的裁剪、尺寸和设计。",
       addCropTooltip: "裁剪或设计此文件：尺寸、背景、文字和图片。",
-      cropNotSupportedPdf: "暂不支持 PDF 裁剪。PDF 可能包含多页，因此裁剪前需要专门的页面选择流程。",
-      cropNotSupported: "当前暂不支持此格式的裁剪。",
+      cropNotSupportedPdf: "暂不支持裁剪 PDF。",
+      cropNotSupported: "暂不支持裁剪此格式。",
       cropButton: "裁剪",
       editButton: "编辑",
     },
@@ -342,7 +342,7 @@ export const zhCN: TranslationSchema = {
 
   downloadError: {
     title: "该文件已不存在",
-    description: "它可能已被删除或已过期。请重新压缩后再试。",
+    description: "它已被删除或已过期。请重新转换。",
     close: "知道了",
   },
 
@@ -357,16 +357,16 @@ export const zhCN: TranslationSchema = {
     noFiles: "未找到已转换文件。",
     confirmTitle: "确认删除文件",
     confirmDescription:
-      "此操作将永久删除所有已处理文件。继续之前请确保已下载任何需要的文件，因为此操作无法撤销。",
+      "这会永久删除所有处理过的文件。请先下载需要的文件。此操作无法撤销。",
     confirmCancel: "取消",
     confirmDelete: "是，删除文件",
-    fetchError: "无法获取容器文件。",
-    storageError: "无法获取存储信息。",
+    fetchError: "无法加载你容器中的文件。",
+    storageError: "无法加载存储信息。",
     zipLabel: "(ZIP)",
   },
 
   statusBanner: {
-    warning: "警告：后端当前不可用。",
+    warning: "我现在连不上后端。",
   },
 
   statusFloating: {
@@ -385,7 +385,7 @@ export const zhCN: TranslationSchema = {
     checking: "检查中...",
     whyTitle: "为什么会有这个？",
     whyDesc:
-      "检查 ImgCompress 是否正常运行，以及能否连接互联网。图片和数据永远不会离开你的服务器。",
+      "检查 ImgCompress 是否在运行，以及能否访问互联网。你的图片永远不会离开你的容器。",
     learnMore: "了解更多离线使用 →",
     backendLastCheck: "后端上次检查：",
     internetLastCheck: "互联网上次检查：",
@@ -396,7 +396,7 @@ export const zhCN: TranslationSchema = {
     subtitle: "操作无法完成。复制下面的跟踪信息并创建工单，以便修复。",
     detailsLabel: "技术详情",
     notifyDeveloper:
-      "请创建工单并通知开发者，以便尽快修复。",
+      "请提交工单，以便尽快修复。",
     copyError: "复制错误",
     copied: "已复制！",
     openTicket: "创建工单",
@@ -414,7 +414,7 @@ export const zhCN: TranslationSchema = {
     searchPlaceholder: "搜索（例如 psd, tiff）...",
     verifiedTitle: "已测试并可用",
     unverifiedTitle: "其他可能的格式",
-    unverifiedHint: "这些尚未经过完整测试，但可能可以使用！",
+    unverifiedHint: "尚未完全测试，但值得一试。",
     footerText: "ImgCompress 可以帮你转换图片！",
     reportBug: "报告错误",
   },
@@ -744,7 +744,7 @@ export const zhCN: TranslationSchema = {
     switchToDark: "切换到深色主题",
     confirmDialog: {
       title: "放弃裁剪更改？",
-      description: "未保存的裁剪调整将会丢失。之前保存的裁剪（如果有）将保持不变。",
+      description: "未保存的更改会丢失。已保存的裁剪保持不变。",
       keepEditing: "继续编辑",
       discardChanges: "放弃更改",
     },
@@ -764,9 +764,9 @@ export const zhCN: TranslationSchema = {
       causes: {
         backendNotReachable: "ImgCompress 还没准备好。如果你刚重启它，请等几秒再试。",
         networkDropped: "上传时连接断开了。请检查 ImgCompress 是否仍在运行，然后重试。",
-        variantNotSupported: "此文件可能是解码器无法读取的 {{label}} 变体（多图层、非标准颜色模式、加密等）。通常从源应用重新导出为扁平的 {{label}} 或普通 PNG/JPG 可以解决此问题。",
-        missingLibraries: "{{label}} 文件始终会经过后端解码器。如果解码器缺少原生库（例如 HEIC 所需的 libheif），使用可选编解码器重新构建通常可以解决。",
-        reportIssue: "如果以上都不符合，请复制下面的技术详情并创建工单。跟踪信息会准确显示哪一步失败。",
+        variantNotSupported: "这个 {{label}} 使用了我无法读取的变体，例如图层、特殊颜色模式或加密。请重新导出为普通 {{label}}、PNG 或 JPG。",
+        missingLibraries: "{{label}} 文件需要额外的解码库，例如用于 HEIC 的 libheif。此构建不包含它们。请启用可选编解码器后重新构建。",
+        reportIssue: "都不符合？复制下方的技术详情并提交工单。跟踪信息会显示哪一步失败了。",
       },
     },
     freeRatio: "自由",
@@ -774,7 +774,7 @@ export const zhCN: TranslationSchema = {
     editorDescription: "裁剪、调整尺寸、添加背景、文字或图片，然后点击保存或放弃。",
     removeDialog: {
       title: "移除已保存裁剪？",
-      description: "这会清除此文件的已保存裁剪。原始文件仍会保留在转换列表中。",
+      description: "这会移除已保存的裁剪。文件仍保留在列表中。",
       keepCrop: "保留裁剪",
       removeCrop: "移除裁剪",
     },
