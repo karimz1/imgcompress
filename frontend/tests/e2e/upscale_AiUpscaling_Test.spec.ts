@@ -192,6 +192,32 @@ test.describe('AI upscaling', () => {
     await expect(message).toContainText('144 MP limit');
   });
 
+  for (const notifyEnabled of [false, true]) {
+    test(`slow notice ${notifyEnabled ? 'skips' : 'shows'} the notification tip when notifications are ${notifyEnabled ? 'on' : 'off'}`, async ({ page }) => {
+      // Same runtime config the container serves, only NOTIFY_ENABLED differs.
+      await page.route('**/config/runtime.json', async (route) => {
+        const response = await route.fetch();
+        const config = await response.json();
+        await route.fulfill({ response, json: { ...config, NOTIFY_ENABLED: String(notifyEnabled) } });
+      });
+      await page.goto('/');
+      await setOutputFormatAsync(page, 'JPEG');
+      await page.getByTestId('upscale-switch').click();
+      await expect(page.getByTestId('upscale-slow-hint')).toBeVisible();
+
+      const tip = page.getByTestId('upscale-notify-tip');
+      if (notifyEnabled) {
+        await expect(tip).toHaveCount(0);
+        return;
+      }
+      await expect(tip).toContainText("Tip: get a notification on your phone when it's done.");
+      const link = tip.getByRole('link', { name: 'Set up notifications' });
+      await expect(link).toHaveAttribute('href', 'https://imgcompress.karimzouine.com/docs/notifications#set-up-ntfy-step-by-step');
+      await expect(link).toHaveAttribute('target', '_blank');
+      await expect(link).toHaveAttribute('rel', /noopener/);
+    });
+  }
+
   test('turns off resize width and is hidden for PDF', async ({ page }) => {
     await page.goto('/');
     await setOutputFormatAsync(page, 'JPEG');
@@ -209,8 +235,8 @@ test.describe('AI upscaling', () => {
     const slowNotice = page.getByTestId('upscale-slow-hint');
     await expect(slowNotice).toBeVisible();
     await expect(slowNotice).toHaveAttribute('role', 'note');
-    await expect(slowNotice).toHaveText(
-      "AI upscaling runs locally inside your container. Depending on image size and CPU, it can take a few minutes per image. Feel free to close the tab while it runs."
+    await expect(slowNotice).toContainText(
+      "Can take a few minutes per image. Feel free to close the tab and come back later."
     );
     await expect(slowNotice).toHaveClass(/blue/);
     await expect(page.getByTestId('upscale-hint')).not.toContainText('slower servers');
@@ -251,7 +277,7 @@ test.describe('AI upscaling', () => {
         await expect(page.getByTestId('upscale-model-option-anime')).toHaveAttribute('aria-checked', 'true');
       }
       await page.getByTestId('upscale-info').focus();
-      await expect(page.getByRole('tooltip')).toContainText('The built-in AI makes images bigger');
+      await expect(page.getByRole('tooltip')).toContainText('Enlarges images and keeps edges and details sharp');
       await expect(page.getByRole('tooltip')).not.toContainText('realesr');
       await expect(page.getByRole('tooltip').locator('a')).toHaveCount(0);
       const output = await convertAndDownloadSingleAsync(page, card, '.png');

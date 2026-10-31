@@ -774,6 +774,7 @@ function HomePageContent() {
               upscaleModelName={upscaleModelName}
               upscaleAvailable={upscaleAvailable}
               upscaleModels={upscaleModels}
+              notifyAvailable={notifyAvailable}
               outputFormat={outputFormat}
               setOutputFormat={setOutputFormat}
               formatRequired={formatRequired}

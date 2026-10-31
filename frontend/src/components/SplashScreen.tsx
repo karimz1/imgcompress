@@ -7,6 +7,7 @@ import { VisuallyHidden } from "@/components/visually-hidden";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { APP_CONFIG } from "@/lib/config";
 import { Switch } from "@/components/ui/switch";
 import { formatClock, type JobProgress } from "@/lib/conversionJob";
 
@@ -371,6 +372,19 @@ export function SplashScreen({
                   >
                     {tipMessage}
                   </p>
+                  {isUpscale && !notify && (
+                    <p className="mt-1 text-xs sm:text-sm leading-snug text-blue-100/90" data-testid="splash-notify-tip">
+                      {t("splash.notifyTip")}{" "}
+                      <a
+                        href={APP_CONFIG.DOCS_NOTIFICATIONS_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-white underline underline-offset-2"
+                      >
+                        {t("form.upscale.notifyTipLink")}
+                      </a>
+                    </p>
+                  )}
                 </div>
                 <button
                   data-testid="splash-cancel"

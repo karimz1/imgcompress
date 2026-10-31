@@ -41,14 +41,15 @@ export const zhCN: TranslationSchema = {
       compressing: "压缩中",
       packaging: "打包中",
     },
-    tip: "这在你的服务器上运行。你可以切换到其他应用或关闭此标签页，稍后再回来。结果会在这里等你。",
+    tip: "我正在你的容器内处理。你可以关闭标签页，稍后再回来。结果会在这里等你。",
     progressTiles: "放大中：第 {{done}} / {{total}} 部分",
     progressFiles: "已完成 {{done}} / {{total}} 个文件",
     waitingForUpscale: "正在等待另一个放大任务完成…",
     elapsed: "已用时 {{time}}",
     notify: "完成后通知我",
-    tipUpscale: "AI 放大可能需要几分钟，在小型 CPU 上会更久。你可以关闭此标签页，稍后再来查看。",
-    tipUpscaleNotify: "AI 放大可能需要几分钟，在小型 CPU 上会更久。打开“完成后通知我”后即可关闭此标签页。",
+    tipUpscale: "放大在你的容器内运行，每张图可能需要几分钟。你可以关闭标签页，稍后再回来。",
+    tipUpscaleNotify: "放大每张图可能需要几分钟。打开“完成后通知我”，完成后我会通知你。",
+    notifyTip: "你知道吗？图片准备好时我会通知你。",
     messages: [
       "正在压缩你的文件…",
       "正在优化质量和大小。",
@@ -148,7 +149,7 @@ export const zhCN: TranslationSchema = {
     rembg: {
       label: "用 AI 移除背景",
       tooltip:
-        "AI 已经内置：无需安装，没有网络也能用。\n会稍慢一些，边缘可能不够完美。",
+        "自动移除背景，在你的容器内本地完成。头发等细小边缘不一定完美。",
     },
     quality: {
       label: "质量",
@@ -193,7 +194,7 @@ export const zhCN: TranslationSchema = {
       },
       label: "AI 放大",
       tooltip:
-        "内置 AI 会把图片变大，并让边缘和小细节保持清晰。无需安装，没有网络也能用。\n需要一些时间，人脸上可能出现小瑕疵。",
+        "放大图片并保持边缘和细节清晰，在你的容器内本地完成。人脸可能出现小瑕疵。",
       targetLabel: "放大到",
       options: {
         "2x": "放大 2 倍",
@@ -206,8 +207,10 @@ export const zhCN: TranslationSchema = {
         "16k": "16K（适配 15360 × 8640）",
       },
       hint:
-        "图片保持原来的形状。已经足够大的图片保持不变。超过 4× 时，先由 AI 放大，再用普通缩放完成。",
-      slowHint: "AI 放大在你的容器内本地运行。根据图片大小和 CPU，每张图可能需要几分钟。运行期间可以放心关闭标签页。",
+        "宽高比保持不变。已经足够大的图片保持不变。",
+      slowHint: "每张图可能需要几分钟。可以放心关闭标签页，稍后再回来。",
+      notifyTip: "提示：完成时可以在手机上收到通知。",
+      notifyTipLink: "设置通知",
       unavailableHint: "此版本不包含 AI 放大。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
       largeTargetHint: "很大的结果需要更长时间。",

@@ -23,11 +23,11 @@ const SCREENS = [
 // English plus the locales with the longest wait-screen texts.
 const LOCALES = ['en', 'de', 'fr', 'ru', 'hi'];
 
-async function showWaitScreenAsync(page: Page, locale: string): Promise<void> {
+async function showWaitScreenAsync(page: Page, locale: string, notifyEnabled = true): Promise<void> {
   await page.addInitScript((code) => window.localStorage.setItem('imgcompress_locale', code), locale);
   await page.route('**/config/runtime.json', async (route) => {
     const response = await route.fetch();
-    await route.fulfill({ response, json: { ...(await response.json()), NOTIFY_ENABLED: 'true' } });
+    await route.fulfill({ response, json: { ...(await response.json()), NOTIFY_ENABLED: String(notifyEnabled) } });
   });
   await page.route(JOB_STATUS, async (route) => {
     if (route.request().method() !== 'GET') return route.continue();
@@ -49,7 +49,7 @@ async function showWaitScreenAsync(page: Page, locale: string): Promise<void> {
   await uploadBuffersToDropzoneAsync(page, [{ name: 'photo.png', mimeType: 'image/png', buffer: photo }]);
   await clickConversionButtonAsync(page);
   await expect(page.getByTestId('job-elapsed')).toBeVisible();
-  await expect(page.getByTestId('notify-switch')).toBeVisible();
+  await expect(page.getByTestId('notify-switch')).toHaveCount(notifyEnabled ? 1 : 0);
 }
 
 async function expectInViewportAsync(page: Page, locator: Locator, what: string): Promise<void> {
@@ -82,11 +82,33 @@ for (const screen of SCREENS) {
           // An upscale gets the slow-CPU tip that points to the notify switch.
           await expect(page.getByTestId('job-tip')).toHaveClass(/blue-400/);
           await expect(page.getByTestId('job-background-hint')).toHaveText(
-            'AI upscaling can take minutes, on small CPUs much longer. Turn on “Notify me when done” and close this tab.'
+            "Upscaling can take a few minutes per image. Turn on “Notify me when done” and I'll let you know."
           );
         }
       });
+
+      test(`without notifications the tip links to the setup guide and fits (${locale})`, async ({ page }) => {
+        await showWaitScreenAsync(page, locale, false);
+        if (process.env.MOBILE_SHOTS && locale === 'en') {
+          await page.screenshot({ path: `${process.env.MOBILE_SHOTS}/${screen.width}x${screen.height}-notify-tip.png` });
+        }
+        const tip = page.getByTestId('splash-notify-tip');
+        await expectInViewportAsync(page, page.getByTestId('splash-cancel'), 'Cancel');
+        await expectInViewportAsync(page, page.getByTestId('job-progress'), 'Progress');
+        await expectInViewportAsync(page, tip, 'Notification tip');
+        if (locale === 'en') {
+          await expect(tip).toContainText("Did you know? I can tell you when your images are ready.");
+          const link = tip.getByRole('link', { name: 'Set up notifications' });
+          await expect(link).toHaveAttribute('href', 'https://imgcompress.karimzouine.com/docs/notifications#set-up-ntfy-step-by-step');
+          await expect(link).toHaveAttribute('rel', /noopener/);
+        }
+      });
     }
+
+    test('with notifications on there is no setup tip', async ({ page }) => {
+      await showWaitScreenAsync(page, 'en');
+      await expect(page.getByTestId('splash-notify-tip')).toHaveCount(0);
+    });
   });
 }
 

@@ -40,6 +40,7 @@ import { isLargeUpscaleTarget, planUpscale, type PixelSize, type UpscalePlan } f
 import { useMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { useImagePixelSizes } from "@/hooks/useImagePixelSizes";
 import { cn } from "@/lib/utils";
+import { APP_CONFIG } from "@/lib/config";
 import { formatUploadLimit, useMaxUploadSizeMb } from "@/lib/uploadLimit";
 
 interface FileConversionFormProps {
@@ -56,6 +57,8 @@ interface FileConversionFormProps {
   upscaleModelName: string | null;
   upscaleAvailable: boolean;
   upscaleModels: UpscaleModelStatus[];
+  /** NOTIFY_URL is set, so the wait screen offers "Notify me when done". */
+  notifyAvailable?: boolean;
   outputFormat: string;
   setOutputFormat: (val: string) => void;
   formatRequired: boolean;
@@ -120,6 +123,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   upscaleModelName,
   upscaleAvailable,
   upscaleModels,
+  notifyAvailable = false,
   outputFormat,
   setOutputFormat,
   formatRequired,
@@ -1055,7 +1059,22 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                     data-testid="upscale-slow-hint"
                   >
                     <Info aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-300" />
-                    <span>{t("form.upscale.slowHint")}</span>
+                    <span>
+                      {t("form.upscale.slowHint")}
+                      {!notifyAvailable && (
+                        <span className="mt-1 block" data-testid="upscale-notify-tip">
+                          {t("form.upscale.notifyTip")}{" "}
+                          <a
+                            href={APP_CONFIG.DOCS_NOTIFICATIONS_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold underline underline-offset-2 hover:text-blue-700 dark:hover:text-white"
+                          >
+                            {t("form.upscale.notifyTipLink")}
+                          </a>
+                        </span>
+                      )}
+                    </span>
                   </p>
                 )}
               </div>
