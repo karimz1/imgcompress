@@ -207,7 +207,7 @@ export const fr: TranslationSchema = {
       },
       hint:
         "L'image garde sa forme. Les images déjà assez grandes restent telles quelles. Au-delà de 4×, l'IA passe d'abord, puis un redimensionnement normal termine le travail.",
-      slowHint: "L'agrandissement IA tourne localement sur votre serveur. Selon la taille de l'image et le processeur, cela peut prendre quelques minutes par image. Vous pouvez tranquillement fermer l'onglet pendant ce temps.",
+      slowHint: "L'agrandissement IA tourne localement dans votre conteneur. Selon la taille de l'image et le processeur, cela peut prendre quelques minutes par image. Vous pouvez tranquillement fermer l'onglet pendant ce temps.",
       unavailableHint: "L'agrandissement par IA n'est pas inclus dans cette version.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
       largeTargetHint: "Les très grands résultats prennent plus de temps.",

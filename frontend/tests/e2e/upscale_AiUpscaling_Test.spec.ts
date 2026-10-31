@@ -210,7 +210,7 @@ test.describe('AI upscaling', () => {
     await expect(slowNotice).toBeVisible();
     await expect(slowNotice).toHaveAttribute('role', 'note');
     await expect(slowNotice).toHaveText(
-      "AI upscaling runs locally on your server. Depending on image size and CPU, it can take a few minutes per image. Feel free to close the tab while it runs."
+      "AI upscaling runs locally inside your container. Depending on image size and CPU, it can take a few minutes per image. Feel free to close the tab while it runs."
     );
     await expect(slowNotice).toHaveClass(/blue/);
     await expect(page.getByTestId('upscale-hint')).not.toContainText('slower servers');
