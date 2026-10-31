@@ -133,7 +133,7 @@ test('crop modal: bitmap render 500 surfaces actionable error with details', asy
   expect(detailsText).toContain('Attempt 3');
   expect(detailsText).toContain('HTTP 500');
   await expect(page.getByTestId('crop-load-failure-causes')).toContainText(
-    "decoder can't read"
+    "uses a variant I can't read"
   );
   await expect(page.getByTestId('crop-load-failure-causes')).toContainText(
     "PSD files always go through the backend's decoder"
