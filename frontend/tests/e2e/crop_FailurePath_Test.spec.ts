@@ -136,7 +136,7 @@ test('crop modal: bitmap render 500 surfaces actionable error with details', asy
     "uses a variant I can't read"
   );
   await expect(page.getByTestId('crop-load-failure-causes')).toContainText(
-    "PSD files always go through the backend's decoder"
+    'PSD files need extra decoder libraries'
   );
   await expect(page.getByTestId('crop-load-failure-causes')).toContainText(
     'open a ticket'
