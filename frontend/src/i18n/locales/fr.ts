@@ -206,8 +206,8 @@ export const fr: TranslationSchema = {
         "16k": "16K (tient dans 15360 × 8640)",
       },
       hint:
-        "L'image garde sa forme. Les images déjà assez grandes restent telles quelles. Les grands résultats et les serveurs plus lents prennent plus de temps. Au-delà de 4×, l'IA passe d'abord, puis un redimensionnement normal termine le travail.",
-      slowHint: "L'agrandissement IA tourne sur le processeur de votre serveur. Comptez des minutes ; les grandes images sur un petit processeur peuvent prendre bien plus. Vous pouvez fermer l'onglet pendant ce temps.",
+        "L'image garde sa forme. Les images déjà assez grandes restent telles quelles. Au-delà de 4×, l'IA passe d'abord, puis un redimensionnement normal termine le travail.",
+      slowHint: "L'agrandissement IA tourne localement sur le processeur de votre serveur. Les grandes images peuvent prendre plusieurs minutes par image, selon leur taille et le processeur. Vous pouvez fermer l'onglet pendant ce temps.",
       unavailableHint: "L'agrandissement par IA n'est pas inclus dans cette version.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",
       largeTargetHint: "Les très grands résultats prennent plus de temps.",

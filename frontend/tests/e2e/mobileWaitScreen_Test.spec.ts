@@ -80,6 +80,7 @@ for (const screen of SCREENS) {
         await expectInViewportAsync(page, page.getByTestId('job-background-hint'), 'Tip');
         if (locale === 'en') {
           // An upscale gets the slow-CPU tip that points to the notify switch.
+          await expect(page.getByTestId('job-tip')).toHaveClass(/amber/);
           await expect(page.getByTestId('job-background-hint')).toHaveText(
             'AI upscaling can take minutes, on small CPUs much longer. Turn on “Notify me when done” and close this tab.'
           );

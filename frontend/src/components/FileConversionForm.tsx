@@ -8,7 +8,7 @@ import {
   type PdfQualityOption,
 } from "@/lib/pdfQuality";
 import { useDropzone } from "react-dropzone";
-import { Check, Crop as CropIcon, Info, Loader2, Sparkles, Timer, Trash, TriangleAlert, X } from "lucide-react";
+import { Check, Crop as CropIcon, Hourglass, Info, Loader2, Sparkles, Timer, Trash, TriangleAlert, X } from "lucide-react";
 import { useMountedTheme } from "@/hooks/useMountedTheme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1049,8 +1049,13 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                   </p>
                 )}
                 {!onlySvgFiles && (
-                  <p className={cn("text-xs", subtleText)} data-testid="upscale-slow-hint">
-                    {t("form.upscale.slowHint")}
+                  <p
+                    role="note"
+                    className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200"
+                    data-testid="upscale-slow-hint"
+                  >
+                    <Hourglass aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
+                    <span>{t("form.upscale.slowHint")}</span>
                   </p>
                 )}
               </div>

@@ -205,9 +205,15 @@ test.describe('AI upscaling', () => {
     await expect(page.getByTestId('resize-width-input')).toBeHidden();
     await expect(page.getByTestId('resize-width-upscale-hint')).toBeVisible();
     await expect(page.getByTestId('upscale-hint')).toBeVisible();
-    await expect(page.getByTestId('upscale-slow-hint')).toHaveText(
-      "AI upscaling runs on your server's CPU. Expect minutes; big images on small CPUs can take much longer. You can close the tab while it runs."
+    // The slow-CPU notice is a visible amber callout, not a plain grey line.
+    const slowNotice = page.getByTestId('upscale-slow-hint');
+    await expect(slowNotice).toBeVisible();
+    await expect(slowNotice).toHaveAttribute('role', 'note');
+    await expect(slowNotice).toHaveText(
+      "AI upscaling runs locally on your server's CPU. Large images can take several minutes per image, depending on image size and CPU. You can close the tab while it runs."
     );
+    await expect(slowNotice).toHaveClass(/amber/);
+    await expect(page.getByTestId('upscale-hint')).not.toContainText('slower servers');
 
     await setOutputFormatAsync(page, 'PDF');
     await expect(upscaleSwitch).toBeHidden();
