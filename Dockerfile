@@ -79,6 +79,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     # builds, which sort higher and now return 403. Prefer the renamed ones,
     # below 1000 so apt never downgrades what the base image ships.
     printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
+    # The renamed libgomp1 needs the renamed gcc-14-base, which sorts below the
+    # one the base image ships, so allow exactly that one to move.
+    printf 'Package: gcc-14-base\nPin: version /deb13u/\nPin-Priority: 1001\n' > /etc/apt/preferences.d/dhi-gcc-base; \
     \
     # Stub SysV init helpers so postinst scripts don't crash in a container.
     # x11-common (a ghostscript transitive dep) calls both update-rc.d and invoke-rc.d
@@ -206,6 +209,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     # builds, which sort higher and now return 403. Prefer the renamed ones,
     # below 1000 so apt never downgrades what the base image ships.
     printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
+    # The renamed libgomp1 needs the renamed gcc-14-base, which sorts below the
+    # one the base image ships, so allow exactly that one to move.
+    printf 'Package: gcc-14-base\nPin: version /deb13u/\nPin-Priority: 1001\n' > /etc/apt/preferences.d/dhi-gcc-base; \
     i=0; \
     until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
         i=$((i+1)); \
