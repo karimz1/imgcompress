@@ -206,8 +206,8 @@ export const hu: TranslationSchema = {
         "16k": "16K (belefér: 15360 × 8640)",
       },
       hint:
-        "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. A nagyobb eredmények és a lassabb szerverek tovább tartanak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
-      slowHint: "Az MI-nagyítás a szerver CPU-ján fut. Számíts percekre; nagy képek kis CPU-n sokkal tovább tarthatnak. Közben bezárhatod a lapot.",
+        "A kép megtartja az alakját. A már elég nagy képek változatlanok maradnak. 4× felett először az MI dolgozik, majd egy normál átméretezés fejezi be.",
+      slowHint: "Az MI-nagyítás helyben, a konténeredben fut. A kép méretétől és a CPU-tól függően képenként pár percig is tarthat. Nyugodtan bezárhatod közben a lapot.",
       unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",
       largeTargetHint: "A nagyon nagy eredmények tovább tartanak.",

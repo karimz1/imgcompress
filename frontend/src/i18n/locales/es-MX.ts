@@ -206,8 +206,8 @@ export const esMX: TranslationSchema = {
         "16k": "16K (cabe en 15360 × 8640)",
       },
       hint:
-        "La imagen conserva su forma. Las imágenes que ya son lo bastante grandes se quedan igual. Los resultados más grandes y los servidores más lentos tardan más. Por encima de 4×, primero trabaja la IA y luego un cambio de tamaño normal termina el trabajo.",
-      slowHint: "El escalado con IA usa la CPU de tu servidor. Cuenta con minutos; las imágenes grandes en CPUs pequeñas pueden tardar mucho más. Puedes cerrar la pestaña mientras tanto.",
+        "La imagen conserva su forma. Las imágenes que ya son lo bastante grandes se quedan igual. Por encima de 4×, primero trabaja la IA y luego un cambio de tamaño normal termina el trabajo.",
+      slowHint: "El escalado con IA se ejecuta localmente dentro de tu contenedor. Según el tamaño de la imagen y la CPU, puede tardar unos minutos por imagen. Puedes cerrar la pestaña con toda tranquilidad mientras tanto.",
       unavailableHint: "La ampliación con IA no está incluida en esta versión.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
       largeTargetHint: "Los resultados muy grandes tardan más.",

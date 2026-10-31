@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import { BrandLogo } from "@/components/BrandLogo";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { formatClock, type JobProgress } from "@/lib/conversionJob";
@@ -345,11 +346,31 @@ export function SplashScreen({
               )}
 
               <div className="w-full max-w-3xl flex flex-col md:flex-row gap-3 sm:gap-4 items-center">
-                <div className="w-full md:w-auto flex-1 bg-white/5 rounded-2xl px-3 py-2.5 sm:p-4 text-left text-sm text-gray-100 ring-1 ring-white/10 shadow-inner shadow-black/30 backdrop-blur-md">
-                  <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-blue-200 mb-0.5 sm:mb-1">
+                <div
+                  className={cn(
+                    "w-full md:w-auto flex-1 rounded-2xl px-3 py-2.5 sm:p-4 text-left text-sm text-gray-100 shadow-inner shadow-black/30 backdrop-blur-md",
+                    isUpscale ? "bg-blue-400/10 ring-1 ring-blue-400/40" : "bg-white/5 ring-1 ring-white/10"
+                  )}
+                  data-testid="job-tip"
+                >
+                  <p
+                    className={cn(
+                      "flex items-center gap-1.5 text-[10px] sm:text-[11px] uppercase tracking-[0.3em] mb-0.5 sm:mb-1",
+                      isUpscale ? "text-blue-200" : "text-blue-200"
+                    )}
+                  >
+                    {isUpscale && <Info aria-hidden="true" className="h-3 w-3 shrink-0" />}
                     {t("splash.tipLabel")}
                   </p>
-                  <p className="text-[13px] leading-snug sm:text-base sm:leading-normal font-medium text-white/90" data-testid="job-background-hint">{tipMessage}</p>
+                  <p
+                    className={cn(
+                      "text-[13px] leading-snug sm:text-base sm:leading-normal font-medium",
+                      isUpscale ? "text-white" : "text-white/90"
+                    )}
+                    data-testid="job-background-hint"
+                  >
+                    {tipMessage}
+                  </p>
                 </div>
                 <button
                   data-testid="splash-cancel"
