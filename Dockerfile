@@ -81,7 +81,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
     # The renamed libgomp1 needs the renamed gcc-14-base, which sorts below the
     # one the base image ships, so allow exactly that one to move.
-    printf 'Package: gcc-14-base\nPin: version /deb13u/\nPin-Priority: 1001\n' > /etc/apt/preferences.d/dhi-gcc-base; \
+    printf 'Package: gcc-14-base\nPin: version /deb13u/\nPin-Priority: 1001\n' > /etc/apt/preferences.d/00-dhi-gcc-base; \
     \
     # Stub SysV init helpers so postinst scripts don't crash in a container.
     # x11-common (a ghostscript transitive dep) calls both update-rc.d and invoke-rc.d
@@ -101,7 +101,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         echo "apt-get update transient failure (attempt $i/5), retrying in 15s..."; \
         sleep 15; \
     done && \
-    apt-get install -y --no-install-recommends \
+    apt-get install -y --no-install-recommends --allow-downgrades gcc-14-base \
         ghostscript libcairo2 \
         libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
         libimagequant0 libheif1 liblcms2-2 \
@@ -211,14 +211,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     printf 'Package: /./\nPin: version /deb13u/\nPin-Priority: 990\n' > /etc/apt/preferences.d/dhi-deb13u; \
     # The renamed libgomp1 needs the renamed gcc-14-base, which sorts below the
     # one the base image ships, so allow exactly that one to move.
-    printf 'Package: gcc-14-base\nPin: version /deb13u/\nPin-Priority: 1001\n' > /etc/apt/preferences.d/dhi-gcc-base; \
+    printf 'Package: gcc-14-base\nPin: version /deb13u/\nPin-Priority: 1001\n' > /etc/apt/preferences.d/00-dhi-gcc-base; \
     i=0; \
     until apt-get update -o Acquire::Retries=5 -o Acquire::http::Timeout=30; do \
         i=$((i+1)); \
         if [ "$i" -ge 5 ]; then echo "apt-get update failed after 5 attempts" >&2; exit 1; fi; \
         sleep 15; \
     done && \
-    apt-get install -y --no-install-recommends ca-certificates libstdc++6 libgomp1 && \
+    apt-get install -y --no-install-recommends --allow-downgrades ca-certificates gcc-14-base libstdc++6 libgomp1 && \
     mkdir -p /build && chown -R nonroot:nonroot /build
 
 # uv's standalone Python looks for /etc/ssl/cert.pem, which Debian doesn't create;
