@@ -4,7 +4,7 @@ iniconfig==2.3.1
 packaging==26.3
 pillow==12.3.0
 pluggy==1.7.0
-pytest==9.1.1
+pytest==9.2.0
 pytest-cov==7.1.0
 ruff==0.16.10
 tomli==2.5.0
