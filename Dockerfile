@@ -31,7 +31,7 @@ RUN pnpm run build
 # Intent: Fallback to debian-base:trixie-debian13-dev because dhi.io/python:3.11-debian13 is 
 # currently affected by CVE-2026-6100 (CVSS 9.1) without an upstream patch.
 # Ref: https://scout.docker.com/vulnerabilities/id/CVE-2026-6100
-FROM dhi.io/debian-base:trixie-debian13-dev@sha256:4acea5ed5a62e96222c5dbe834e143708214208efd16a9aab4e1a2e86e1a14d4 AS backend-build-stage
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:af61a3296b0c92f16969f11ce8c2a93722e84c9e5c1bb42ed6afec796be71b04 AS backend-build-stage
 
 # Use 'uv' for high-performance Python package management instead of standard pip.
 # Ref: https://github.com/astral-sh/uv
@@ -166,7 +166,7 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
-FROM dhi.io/debian-base:trixie-debian13@sha256:d926f4b236859d51ce506a4efa3d93eb7d49e198450e998887dd9ba7150be599 AS final-stage
+FROM dhi.io/debian-base:trixie-debian13@sha256:834d20c209fe4aac50dc95877d68d421f97ea38a905586bfdaf938bebb3924c0 AS final-stage
 
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
