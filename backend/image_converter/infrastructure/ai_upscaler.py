@@ -60,8 +60,42 @@ _MAX_AUTO_THREADS = 8
 # Log progress roughly this often (in tiles) for long jobs.
 _PROGRESS_EVERY = 10
 
+# Live preview: one region of at most 192 px plus a _PAD border on each side.
+# That is one model pass, about 0.4 s on 4 CPU threads.
+PREVIEW_MAX_SIDE = 192 + 2 * _PAD
+
 _inference_lock = threading.Lock()
 _LOCK_FILE = Path(tempfile.gettempdir()) / "imgcompress-upscale.lock"
+
+
+class UpscalerBusy(Exception):
+    """A job or another preview holds the upscaler; the preview does not queue."""
+
+
+@contextmanager
+def _try_exclusive_inference():
+    """Like _exclusive_inference, but raises UpscalerBusy instead of waiting."""
+    if not _inference_lock.acquire(blocking=False):
+        raise UpscalerBusy()
+    try:
+        try:
+            import fcntl
+
+            lock_file = open(_LOCK_FILE, "a")
+        except (ImportError, OSError):
+            yield
+            return
+        with lock_file:
+            try:
+                fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise UpscalerBusy() from None
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
+    finally:
+        _inference_lock.release()
 
 
 @contextmanager
@@ -241,6 +275,37 @@ class AiUpscaler:
             finally:
                 if source is not img:
                     source.close()
+
+    def preview(
+        self,
+        tile_data: bytes,
+        model: UpscaleModel = UpscaleModel.GENERAL,
+        inner: Optional[tuple[int, int, int, int]] = None,
+    ) -> bytes:
+        """
+        Upscales one small tile 4x in a single model pass and returns PNG bytes.
+        ``inner`` (x, y, width, height) is the selected region inside the tile;
+        the rest is a border of real pixels that is cropped away again. Raises
+        ValueError for invalid input and UpscalerBusy instead of queueing.
+        """
+        try:
+            img = Image.open(BytesIO(tile_data))
+            img.load()
+        except Exception:
+            raise ValueError("The preview needs a PNG, JPEG or WebP image.") from None
+        with img:
+            width, height = img.size
+            if max(width, height) > PREVIEW_MAX_SIDE:
+                raise ValueError(f"The preview tile must be at most {PREVIEW_MAX_SIDE} px per side.")
+            x, y, w, h = inner or (0, 0, width, height)
+            if w <= 0 or h <= 0 or x < 0 or y < 0 or x + w > width or y + h > height:
+                raise ValueError("The preview region must lie inside the tile.")
+            plan = UpscalePlan((width, height), (width * MODEL_SCALE, height * MODEL_SCALE))
+            with _try_exclusive_inference(), self._upscale_image(img, plan, model) as result:
+                box = (x * MODEL_SCALE, y * MODEL_SCALE, (x + w) * MODEL_SCALE, (y + h) * MODEL_SCALE)
+                with result.crop(box) as region, BytesIO() as buffer:
+                    region.save(buffer, format="PNG")
+                    return buffer.getvalue()
 
     def upscale_image(
         self, img: Image.Image, plan: UpscalePlan, model: UpscaleModel = UpscaleModel.GENERAL
