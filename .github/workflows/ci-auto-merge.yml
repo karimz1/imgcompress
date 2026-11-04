@@ -60,7 +60,7 @@ jobs:
           python -m pip install ruff==0.15.14
 
       - name: Run Ruff
-        run: ruff check backend tests healthcheck.py update_dockerhub_description.py
+        run: ruff check backend tests healthcheck.py update_dockerhub_description.py scripts/trivy_report_summary.py
 
   scan-image:
     name: scan local image
