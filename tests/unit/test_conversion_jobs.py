@@ -530,7 +530,8 @@ def _notified_link(setup, user_agent=IPHONE_UA):
     assert _opt_in(setup, job_id, token).status_code == 204
     setup.use_case.release.set()
     setup.wait_done()
-    link = setup.sent[-1][1].split("\n")[-1]
+    # The expiry line follows the link, so pick the link out by its path.
+    link = next(line for line in setup.sent[-1][1].split("\n") if f"/r/{job_id}/" in line)
     share = link.rsplit("/", 1)[1]
     return job_id, token, share
 
