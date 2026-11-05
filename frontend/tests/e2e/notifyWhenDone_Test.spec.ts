@@ -131,7 +131,9 @@ test.describe('Notify me when done', () => {
       // A share link for this job. Its host comes only from PUBLIC_BASE_URL; CI sets it
       // to https://imgcompress.example (never the request's host). It is not the job token.
       expect(message.message).toMatch(
-        new RegExp(`^Open this link to download it:\\nhttps://imgcompress\\.example/r/${mine.id}/[A-Za-z0-9_-]{43}$`)
+        new RegExp(
+          `^Open this link to download it:\\nhttps://imgcompress\\.example/r/${mine.id}/[A-Za-z0-9_-]{43}\\nLink expires \\d{1,2} [A-Za-z]+ \\d{4}, \\d{2}:\\d{2} UTC\\.$`
+        )
       );
       expect(message.message).not.toContain(mine.token);
       expect(JSON.stringify(message)).not.toContain('private-holiday-photo');

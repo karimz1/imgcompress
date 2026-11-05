@@ -2,12 +2,14 @@
 
 Off unless NOTIFY_URL is set. A message names how many images are ready and how long the job took. When the
 admin sets PUBLIC_BASE_URL it carries a share link that opens the result on any
-device (a secret made for this one job); without it, it tells you to open
-imgcompress in the browser that started the job. It never names files. A failing notification is logged and never breaks a job;
+device (a secret made for this one job) and a UTC expiry stamp from send time
+plus retention; without it, it tells you to open imgcompress in the browser
+that started the job. It never names files. A failing notification is logged and never breaks a job;
 the log never shows NOTIFY_URL, because it often holds a secret token.
 """
 
 import os
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 from typing import Callable, Optional
 
@@ -58,6 +60,7 @@ _TEXTS = {
                get_many="Open imgcompress {where} to get your results.", see_error="Open imgcompress {where} to see what went wrong.",
                where="in {browser} on your {platform}", where_unknown="in the browser you used",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android device", "ChromeOS": "Chromebook"},
+               link_expires="Link expires {when}.", expires_when="{d} {mon} {y}, {hh}:{mm} UTC",
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
     "de": dict(open_one="Öffne diesen Link, um es zu laden:", open_many="Öffne diesen Link, um sie zu laden:", open_error="Öffne diesen Link, um zu sehen, was schiefging:",
                one="1 Bild fertig", many="{n} Bilder fertig", took=" in {d}", failed="Konvertierung fehlgeschlagen",
@@ -65,6 +68,7 @@ _TEXTS = {
                get_many="Öffne imgcompress {where}, um deine Ergebnisse zu holen.", see_error="Öffne imgcompress {where}, um zu sehen, was schiefging.",
                where="in {browser} auf deinem {platform}", where_unknown="in dem Browser, den du benutzt hast",
                nouns={"Windows": "Windows-PC", "Linux": "Linux-PC", "Android": "Android-Gerät", "ChromeOS": "Chromebook"},
+               link_expires="Der Link gilt bis {when}.", expires_when="{d}. {mon} {y}, {hh}:{mm} UTC",
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
     "fr": dict(open_one="Ouvrez ce lien pour la télécharger :", open_many="Ouvrez ce lien pour les télécharger :", open_error="Ouvrez ce lien pour voir ce qui n'a pas marché :",
                one="1 image prête", many="{n} images prêtes", took=" en {d}", failed="Échec de la conversion",
@@ -72,6 +76,7 @@ _TEXTS = {
                get_many="Ouvrez imgcompress {where} pour récupérer vos résultats.", see_error="Ouvrez imgcompress {where} pour voir ce qui n'a pas marché.",
                where="dans {browser} sur votre {platform}", where_unknown="dans le navigateur utilisé",
                nouns={"Windows": "PC Windows", "Linux": "PC Linux", "Android": "appareil Android", "ChromeOS": "Chromebook"},
+               link_expires="Le lien expire le {when}.", expires_when="{d} {mon} {y}, {hh}:{mm} UTC",
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
     "es-MX": dict(open_one="Abre este enlace para descargarla:", open_many="Abre este enlace para descargarlas:", open_error="Abre este enlace para ver qué salió mal:",
                one="1 imagen lista", many="{n} imágenes listas", took=" en {d}", failed="La conversión falló",
@@ -79,6 +84,7 @@ _TEXTS = {
                get_many="Abre imgcompress {where} para obtener tus resultados.", see_error="Abre imgcompress {where} para ver qué salió mal.",
                where="en {browser} en tu {platform}", where_unknown="en el navegador que usaste",
                nouns={"Windows": "PC con Windows", "Linux": "PC con Linux", "Android": "dispositivo Android", "ChromeOS": "Chromebook"},
+               link_expires="El enlace caduca el {when}.", expires_when="{d} {mon} {y}, {hh}:{mm} UTC",
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
     "pt-BR": dict(open_one="Abra este link para baixar:", open_many="Abra este link para baixar:", open_error="Abra este link para ver o que deu errado:",
                one="1 imagem pronta", many="{n} imagens prontas", took=" em {d}", failed="A conversão falhou",
@@ -86,6 +92,7 @@ _TEXTS = {
                get_many="Abra o imgcompress {where} para pegar seus resultados.", see_error="Abra o imgcompress {where} para ver o que deu errado.",
                where="no {browser} do seu {platform}", where_unknown="no navegador que você usou",
                nouns={"Windows": "PC com Windows", "Linux": "PC com Linux", "Android": "dispositivo Android", "ChromeOS": "Chromebook"},
+               link_expires="O link expira em {when}.", expires_when="{d} {mon} {y}, {hh}:{mm} UTC",
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
     "ru": dict(open_one="Откройте ссылку, чтобы скачать:", open_many="Откройте ссылку, чтобы скачать:", open_error="Откройте ссылку, чтобы узнать, что пошло не так:",
                one="1 изображение готово", many="Готово изображений: {n}", took=" за {d}", failed="Ошибка конвертации",
@@ -93,6 +100,7 @@ _TEXTS = {
                get_many="Откройте imgcompress {where}, чтобы забрать результаты.", see_error="Откройте imgcompress {where}, чтобы узнать, что пошло не так.",
                where="в {browser} на вашем {platform}", where_unknown="в том же браузере",
                nouns={"Windows": "ПК с Windows", "Linux": "ПК с Linux", "Android": "Android-устройстве", "ChromeOS": "Chromebook"},
+               link_expires="Ссылка действует до {when}.", expires_when="{d} {mon} {y}, {hh}:{mm} UTC",
                s="{s} с", m="{m} мин {s} с", h="{h} ч {m} мин"),
     "ja": dict(open_one="このリンクを開いてダウンロード：", open_many="このリンクを開いてダウンロード：", open_error="このリンクを開いて原因を確認：",
                one="1 枚の画像が完成", many="{n} 枚の画像が完成", took="（{d}）", failed="変換に失敗しました",
@@ -100,6 +108,7 @@ _TEXTS = {
                get_many="{where}で imgcompress を開いて結果を受け取ってください。", see_error="{where}で imgcompress を開いて原因を確認してください。",
                where="{platform} の {browser}", where_unknown="使用したブラウザ",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android 端末", "ChromeOS": "Chromebook"},
+               link_expires="リンクの有効期限：{when}", expires_when="{y}年{mon}{d}日 {hh}:{mm} UTC",
                s="{s} 秒", m="{m} 分 {s} 秒", h="{h} 時間 {m} 分"),
     "zh-CN": dict(open_one="打开此链接下载：", open_many="打开此链接下载：", open_error="打开此链接查看出错原因：",
                one="1 张图片已完成", many="{n} 张图片已完成", took="（用时 {d}）", failed="转换失败",
@@ -107,6 +116,7 @@ _TEXTS = {
                get_many="请在{where}中打开 imgcompress 获取结果。", see_error="请在{where}中打开 imgcompress 查看出错原因。",
                where="你的 {platform} 上的 {browser}", where_unknown="你使用的浏览器",
                nouns={"Windows": "Windows 电脑", "Linux": "Linux 电脑", "Android": "Android 设备", "ChromeOS": "Chromebook"},
+               link_expires="链接有效期至 {when}。", expires_when="{y}年{mon}{d}日 {hh}:{mm} UTC",
                s="{s} 秒", m="{m} 分 {s} 秒", h="{h} 小时 {m} 分"),
     "hi": dict(open_one="डाउनलोड करने के लिए यह लिंक खोलें:", open_many="डाउनलोड करने के लिए यह लिंक खोलें:", open_error="क्या गलत हुआ, देखने के लिए यह लिंक खोलें:",
                one="1 इमेज तैयार", many="{n} इमेज तैयार", took=" ({d} में)", failed="कन्वर्ज़न विफल",
@@ -114,6 +124,7 @@ _TEXTS = {
                get_many="अपने परिणाम पाने के लिए {where} imgcompress खोलें।", see_error="क्या गलत हुआ, देखने के लिए {where} imgcompress खोलें।",
                where="अपने {platform} पर {browser} में", where_unknown="उसी ब्राउज़र में",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android डिवाइस", "ChromeOS": "Chromebook"},
+               link_expires="लिंक {when} तक मान्य है।", expires_when="{d} {mon} {y}, {hh}:{mm} UTC",
                s="{s} से.", m="{m} मि. {s} से.", h="{h} घं. {m} मि."),
     "hu": dict(open_one="Nyisd meg a linket a letöltéshez:", open_many="Nyisd meg a linket a letöltéshez:", open_error="Nyisd meg a linket, hogy lásd, mi történt:",
                one="1 kép kész", many="{n} kép kész", took=" ({d} alatt)", failed="Az átalakítás nem sikerült",
@@ -121,6 +132,7 @@ _TEXTS = {
                get_many="Nyisd meg az imgcompresst {where} az eredményekért.", see_error="Nyisd meg az imgcompresst {where}, hogy lásd, mi történt.",
                where="a(z) {platform} {browser} böngészőjében", where_unknown="abban a böngészőben, amit használtál",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android eszköz", "ChromeOS": "Chromebook"},
+               link_expires="A link {when}-ig érvényes.", expires_when="{y}. {mon} {d}. {hh}:{mm} UTC",
                s="{s} mp", m="{m} perc {s} mp", h="{h} óra {m} perc"),
     "ar": dict(open_one="افتح هذا الرابط للتنزيل:", open_many="افتح هذا الرابط للتنزيل:", open_error="افتح هذا الرابط لمعرفة ما حدث:",
                one="صورة واحدة جاهزة", many="{n} صور جاهزة", took=" خلال {d}", failed="فشل التحويل",
@@ -128,9 +140,24 @@ _TEXTS = {
                get_many="افتح imgcompress {where} للحصول على النتائج.", see_error="افتح imgcompress {where} لمعرفة ما حدث.",
                where="في {browser} على {platform}", where_unknown="في المتصفح الذي استخدمته",
                nouns={"Windows": "حاسوب Windows", "Linux": "حاسوب Linux", "Android": "جهاز Android", "ChromeOS": "Chromebook"},
+               link_expires="ينتهي الرابط في {when}.", expires_when="{d} {mon} {y}، {hh}:{mm} UTC",
                s="{s} ث", m="{m} د {s} ث", h="{h} س {m} د"),
 }
 DEFAULT_LANGUAGE = "en"
+
+_MONTHS = {
+    "en": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "de": ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sep.", "Okt.", "Nov.", "Dez."],
+    "fr": ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
+    "es-MX": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+    "pt-BR": ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"],
+    "ru": ["янв.", "февр.", "мар.", "апр.", "мая", "июн.", "июл.", "авг.", "сент.", "окт.", "нояб.", "дек."],
+    "ja": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    "zh-CN": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    "hi": ["जन", "फर", "मार्च", "अप्रै", "मई", "जून", "जुल", "अग", "सित", "अक्टू", "नव", "दिस"],
+    "hu": ["jan.", "feb.", "már.", "ápr.", "máj.", "jún.", "júl.", "aug.", "szep.", "okt.", "nov.", "dec."],
+    "ar": ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"],
+}
 
 
 def resolve_language(value) -> str:
@@ -159,6 +186,21 @@ def format_duration(seconds: float, language: str = DEFAULT_LANGUAGE) -> str:
     return texts["s"].format(s=secs)
 
 
+
+def format_link_expiry(when: datetime, language: str = DEFAULT_LANGUAGE) -> str:
+    """Short UTC stamp for the share-link line, in the notify locale."""
+    language = resolve_language(language)
+    texts = _TEXTS[language]
+    when = when.astimezone(timezone.utc)
+    return texts["expires_when"].format(
+        d=when.day,
+        mon=_MONTHS[language][when.month - 1],
+        y=when.year,
+        hh=f"{when.hour:02d}",
+        mm=f"{when.minute:02d}",
+    )
+
+
 def _where(device: str, texts: dict) -> str:
     """'in Safari on your iPhone', or a hint to use the same browser."""
     platform, _, browser = device.partition(" · ")
@@ -175,9 +217,12 @@ def build_message(
     link: Optional[str],
     duration_seconds: Optional[float] = None,
     language: Optional[str] = None,
+    link_ttl_seconds: Optional[int] = None,
+    now: Optional[datetime] = None,
 ) -> tuple[str, str]:
     """
-    With a share link the message just says to open it (any device works).
+    With a share link the message says to open it (any device works) and
+    stamps when that link is expected to expire (send time + retention).
     Without one, only the browser that started the job knows it, so the
     message says which browser to open. The text follows the UI language of
     that browser; unknown languages get English.
@@ -201,6 +246,9 @@ def build_message(
         body = texts["open_error"] if link else texts["see_error"].format(where=where)
     if link:
         body += f"\n{link}"
+        if link_ttl_seconds is not None and link_ttl_seconds > 0:
+            stamp = (now or datetime.now(timezone.utc)) + timedelta(seconds=link_ttl_seconds)
+            body += "\n" + texts["link_expires"].format(when=format_link_expiry(stamp, language))
     return title, body
 
 
@@ -251,10 +299,20 @@ def _apprise_sender(url: str) -> Callable[[str, str], bool]:
 
 
 class Notifier:
-    def __init__(self, url: Optional[str], base_url: Optional[str], logger, send=None):
+    def __init__(
+        self,
+        url: Optional[str],
+        base_url: Optional[str],
+        logger,
+        send=None,
+        result_ttl_seconds: Optional[int] = None,
+    ):
         self.url = (url or "").strip() or None
         self.logger = logger
         self.base_url = clean_public_base_url(base_url)
+        self.result_ttl_seconds = (
+            int(result_ttl_seconds) if isinstance(result_ttl_seconds, int) and result_ttl_seconds > 0 else None
+        )
         if (base_url or "").strip() and self.base_url is None:
             # Not the value itself: keep logs free of whatever was pasted there.
             logger.log(
@@ -264,8 +322,13 @@ class Notifier:
         self._send = send or (_apprise_sender(self.url) if self.url else None)
 
     @classmethod
-    def from_env(cls, logger) -> "Notifier":
-        return cls(os.environ.get(NOTIFY_URL_ENV), os.environ.get(PUBLIC_BASE_URL_ENV), logger)
+    def from_env(cls, logger, result_ttl_seconds: Optional[int] = None) -> "Notifier":
+        return cls(
+            os.environ.get(NOTIFY_URL_ENV),
+            os.environ.get(PUBLIC_BASE_URL_ENV),
+            logger,
+            result_ttl_seconds=result_ttl_seconds,
+        )
 
     @property
     def enabled(self) -> bool:
@@ -286,6 +349,7 @@ class Notifier:
         title, body = build_message(
             done=done, file_count=file_count, device=device, link=link,
             duration_seconds=duration_seconds, language=language,
+            link_ttl_seconds=self.result_ttl_seconds if link else None,
         )
         try:
             sent = bool(self._send(title, body))

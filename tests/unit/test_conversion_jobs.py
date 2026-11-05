@@ -89,7 +89,7 @@ def setup(tmp_path, monkeypatch):
         sent.append((title, body))
         return True
 
-    notifier = Notifier(url="json://fake", base_url="https://img.example.com", logger=logger, send=fake_send)
+    notifier = Notifier(url="json://fake", base_url="https://img.example.com", logger=logger, send=fake_send, result_ttl_seconds=172800)
     jobs = ConversionJobService(
         logger, compression, ConversionJobStore(str(tmp_path)), start_thread=start_thread, notifier=notifier
     )
@@ -408,9 +408,10 @@ def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(set
     title, body = setup.sent[0]
     # Server-side duration, worded like the done sheet; no language sent means English.
     assert re.fullmatch(r"1 image ready in \d+ s", title)
-    text, link = body.split("\n")
-    assert text == "Open this link to download it:"
-    assert re.fullmatch(rf"https://img\.example\.com/r/{job_id}/[A-Za-z0-9_-]{{43}}", link)
+    lines = body.split("\n")
+    assert lines[0] == "Open this link to download it:"
+    assert re.fullmatch(rf"https://img\.example\.com/r/{job_id}/[A-Za-z0-9_-]{{43}}", lines[1])
+    assert re.fullmatch(r"Link expires \d{1,2} [A-Za-z]+ \d{4}, \d{2}:\d{2} UTC\.", lines[2])
     # A share secret of its own, never the job token.
     assert token not in body
     assert "secret-holiday" not in title + body
