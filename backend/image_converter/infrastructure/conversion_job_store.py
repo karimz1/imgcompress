@@ -5,6 +5,11 @@ browser that started it. The status file keeps only the token's SHA-256, and
 ``read`` answers None for a wrong or missing token exactly as for an unknown
 id, so nobody can read, or even detect, another user's job.
 
+The "notify me when done" message can carry a share link with a second
+secret (also kept only as SHA-256). Another device trades it once per device
+for a job token of its own (``claim``), so a job started on a PC can be
+downloaded on a phone.
+
 Each job gets a folder ``job_<id>`` in the temp dir with one ``status.json``.
 Any worker process can answer a poll, because the state lives on disk, not in
 the memory of the worker that started the job. Writes go to a temp file that
@@ -92,6 +97,11 @@ class RunningJob:
 
 
 _NOTIFY_FILE = "notify"
+# SHA-256 of the share link token sent in the notification (one line).
+_SHARE_FILE = "share"
+# SHA-256 of tokens handed to other devices through the share link (one per line).
+_DEVICES_FILE = "devices"
+_MAX_DEVICES = 5
 
 
 class ConversionJobStore:
@@ -143,10 +153,9 @@ class ConversionJobStore:
                 state = json.load(f)
         except (OSError, ValueError):
             return None
-        expected = state.get("token_sha256")
         given = token if isinstance(token, str) and 0 < len(token) <= _TOKEN_MAX_LENGTH else ""
         # Always hash and compare, so a missing token takes as long as a wrong one.
-        if not isinstance(expected, str) or not hmac.compare_digest(_hash_token(given), expected) or not given:
+        if not self._token_matches(path, state.get("token_sha256"), given) or not given:
             return None
         if state.get("status") in _ACTIVE and self._worker_is_gone(path):
             # Re-read first: the job may have finished between the two steps.
@@ -195,6 +204,72 @@ class ConversionJobStore:
                 return f.read(32).strip() or None
         except OSError:
             return None
+
+    def create_share_token(self, job_id: Optional[str]) -> Optional[str]:
+        """
+        A new secret for the notification link; replaces any older one. Only
+        its SHA-256 is kept, so the plain token exists only in the message.
+        """
+        path = self._folder(job_id)
+        if path is None:
+            return None
+        share = secrets.token_urlsafe(32)
+        try:
+            self._write_file(path, _SHARE_FILE, _hash_token(share) + "\n")
+        except OSError:
+            return None
+        return share
+
+    def claim(self, job_id: Optional[str], share_token: Optional[str]) -> Optional[str]:
+        """
+        Trades the share link token for a job token of this device's own.
+        None for an unknown id, a wrong token or too many devices, all alike.
+        """
+        path = self._folder(job_id)
+        given = share_token if isinstance(share_token, str) and 0 < len(share_token) <= _TOKEN_MAX_LENGTH else ""
+        expected = self._read_lines(path, _SHARE_FILE)[:1] if path else []
+        if not expected or not hmac.compare_digest(_hash_token(given), expected[0]) or not given:
+            return None
+        if not os.path.isfile(os.path.join(path, _STATUS_FILE)):
+            return None
+        devices = self._read_lines(path, _DEVICES_FILE)
+        if len(devices) >= _MAX_DEVICES:
+            return None
+        token = secrets.token_urlsafe(32)
+        try:
+            self._write_file(path, _DEVICES_FILE, "".join(f"{h}\n" for h in [*devices, _hash_token(token)]))
+        except OSError:
+            return None
+        return token
+
+    def _token_matches(self, path: str, primary, given: str) -> bool:
+        digest = _hash_token(given)
+        ok = isinstance(primary, str) and hmac.compare_digest(digest, primary)
+        for other in self._read_lines(path, _DEVICES_FILE):
+            ok = hmac.compare_digest(digest, other) or ok
+        return ok
+
+    @staticmethod
+    def _read_lines(path: str, name: str) -> list:
+        try:
+            with open(os.path.join(path, name), encoding="utf-8") as f:
+                return [line.strip() for line in f.read(4096).splitlines() if len(line.strip()) == 64]
+        except OSError:
+            return []
+
+    @staticmethod
+    def _write_file(folder: str, name: str, text: str) -> None:
+        fd, tmp = tempfile.mkstemp(dir=folder, prefix=f".{name}-", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(text)
+            os.replace(tmp, os.path.join(folder, name))
+        except BaseException:
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            raise
 
     def touch(self, job_id: str) -> None:
         """Age-based cleanup counts from the last activity, so a poll restarts the clock."""

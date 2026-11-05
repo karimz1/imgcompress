@@ -37,6 +37,8 @@ import {
   jobZipUrl,
   jobStartedAtLocal,
   loadActiveJob,
+  claimSharedJob,
+  takeSharedJobLink,
   saveActiveJob,
   setJobNotify,
   waitForJob,
@@ -375,13 +377,31 @@ function HomePageContent() {
   );
 
   // Back from another app, a reload or a closed tab: continue the last job.
+  // Opened from the notification's share link (maybe on another device):
+  // trade it for this browser's own job token first, then wait as usual.
   useEffect(() => {
-    const job = loadActiveJob();
-    if (!job) return;
+    const shared = takeSharedJobLink();
     const controller = new AbortController();
     abortControllerRef.current = controller;
-    if (!job.seen) setIsLoading(true);
-    followJob(job, controller)
+    const pickUp = async (): Promise<JobRef | null> => {
+      if (!shared) return loadActiveJob();
+      setIsLoading(true);
+      const claimed = await claimSharedJob(shared);
+      if (controller.signal.aborted) return null;
+      if (!claimed) {
+        setError({ message: t("page.toast.jobExpired") });
+        toast.error(t("page.toast.jobExpired"));
+        return null;
+      }
+      saveActiveJob(claimed);
+      return claimed;
+    };
+    pickUp()
+      .then((job) => {
+        if (!job || controller.signal.aborted) return;
+        if (!job.seen) setIsLoading(true);
+        return followJob(job, controller);
+      })
       .catch((err) => {
         if ((err as Error).name !== "AbortError") console.error(err);
       })

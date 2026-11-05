@@ -5,6 +5,7 @@ runs; it comes back with the job id and its secret token. Jobs of other users
 must stay invisible: wrong token, missing token and unknown id look the same.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -407,7 +408,11 @@ def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(set
     title, body = setup.sent[0]
     # Server-side duration, worded like the done sheet; no language sent means English.
     assert re.fullmatch(r"1 image ready in \d+ s", title)
-    assert body == "Open imgcompress in Safari on your iPhone to get your result.\nhttps://img.example.com"
+    text, link = body.split("\n")
+    assert text == "Open this link to download it:"
+    assert re.fullmatch(rf"https://img\.example\.com/r/{job_id}/[A-Za-z0-9_-]{{43}}", link)
+    # A share secret of its own, never the job token.
+    assert token not in body
     assert "secret-holiday" not in title + body
     assert setup.status(job_id, token).get_json()["notify"] is True
 
@@ -502,9 +507,9 @@ def test_When_RequestClaimsAnotherHost_Expect_TheMessageNeverUsesIt(setup, monke
 @pytest.mark.parametrize(
     "language, title, body",
     [
-        ("de", r"1 Bild fertig in \d+ s", "Öffne imgcompress in Safari auf deinem iPhone, um dein Ergebnis zu holen."),
-        ("ja", r"1 枚の画像が完成（\d+ 秒）", "iPhone の Safariで imgcompress を開いて結果を受け取ってください。"),
-        ("tlh", r"1 image ready in \d+ s", "Open imgcompress in Safari on your iPhone to get your result."),
+        ("de", r"1 Bild fertig in \d+ s", "Öffne diesen Link, um es zu laden:"),
+        ("ja", r"1 枚の画像が完成（\d+ 秒）", "このリンクを開いてダウンロード："),
+        ("tlh", r"1 image ready in \d+ s", "Open this link to download it:"),
     ],
 )
 def test_When_UserOptsInWithALanguage_Expect_TheMessageInIt_OrEnglish(setup, language, title, body):
@@ -516,3 +521,81 @@ def test_When_UserOptsInWithALanguage_Expect_TheMessageInIt_OrEnglish(setup, lan
     [(sent_title, sent_body)] = setup.sent
     assert re.fullmatch(title, sent_title)
     assert sent_body.split("\n")[0] == body
+
+
+def _notified_link(setup, user_agent=IPHONE_UA):
+    setup.use_case.release.clear()
+    job_id, token = _started(setup, user_agent=user_agent)
+    assert _opt_in(setup, job_id, token).status_code == 204
+    setup.use_case.release.set()
+    setup.wait_done()
+    link = setup.sent[-1][1].split("\n")[-1]
+    share = link.rsplit("/", 1)[1]
+    return job_id, token, share
+
+
+def _claim(setup, job_id, share):
+    return setup.client.post(f"/api/jobs/{job_id}/claim", json={"share_token": share})
+
+
+def test_When_PhoneOpensTheShareLink_Expect_ItsOwnTokenThatDownloadsTheResult(setup):
+    job_id, pc_token, share = _notified_link(setup)
+    claimed = _claim(setup, job_id, share)
+    assert claimed.status_code == 200
+    body = claimed.get_json()
+    assert body["id"] == job_id and body["token"] not in (pc_token, share)
+    phone = {"X-Job-Token": body["token"]}
+    state = setup.status(job_id, body["token"]).get_json()
+    assert state["status"] == "done"
+    name = state["result"]["converted_files"][0]
+    assert setup.client.get(f"/api/jobs/{job_id}/files/{name}", headers=phone).status_code == 200
+    assert setup.client.get(f"/api/jobs/{job_id}/zip", headers=phone).status_code == 200
+    # The PC keeps working too.
+    assert setup.status(job_id, pc_token).status_code == 200
+
+
+def test_When_ShareTokenIsWrongOrFromAnotherJob_Expect_TheSame404(setup):
+    job_a, _, share_a = _notified_link(setup)
+    job_b, token_b, share_b = _notified_link(setup)
+    expected = setup.client.get("/api/jobs/" + "x" * 22).get_json()
+    for job_id, share in [(job_a, share_b), (job_b, share_a), (job_a, "guess"), (job_a, ""), (job_a, None),
+                          (job_a, token_b), ("x" * 22, share_a), ("bad id!", share_a)]:
+        response = setup.client.post(f"/api/jobs/{job_id}/claim", json={"share_token": share})
+        assert response.status_code == 404
+        assert response.get_json() == expected
+    # The share token itself is not a job token.
+    assert setup.status(job_a, share_a).status_code == 404
+
+
+def test_When_JobNeverOptedIn_Expect_NoShareLinkCanOpenIt(setup):
+    job_id, _ = _started(setup)
+    setup.wait_done()
+    assert _claim(setup, job_id, "a" * 43).status_code == 404
+
+
+def test_When_ShareLinkIsMade_Expect_OnlyHashesOnDisk(setup):
+    job_id, pc_token, share = _notified_link(setup)
+    phone_token = _claim(setup, job_id, share).get_json()["token"]
+    folder = setup.tmp_path / f"job_{job_id}"
+    stored = "".join(p.read_text() for p in folder.iterdir() if p.is_file())
+    for secret in (pc_token, share, phone_token):
+        assert secret not in stored
+    assert hashlib.sha256(share.encode()).hexdigest() in (folder / "share").read_text()
+
+
+def test_When_ShareLinkIsOpenedOnManyDevices_Expect_ALimit(setup):
+    job_id, _, share = _notified_link(setup)
+    codes = [_claim(setup, job_id, share).status_code for _ in range(7)]
+    assert codes == [200] * 5 + [404] * 2
+
+
+def test_When_PublicBaseUrlIsMissing_Expect_NoLinkAndNoShareToken(setup, monkeypatch):
+    monkeypatch.setattr(setup.notifier, "base_url", None)
+    setup.use_case.release.clear()
+    job_id, token = _started(setup, user_agent=IPHONE_UA)
+    _opt_in(setup, job_id, token)
+    setup.use_case.release.set()
+    setup.wait_done()
+    [(_, body)] = setup.sent
+    assert body == "Open imgcompress in Safari on your iPhone to get your result."
+    assert not (setup.tmp_path / f"job_{job_id}" / "share").exists()

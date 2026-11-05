@@ -1,9 +1,9 @@
 """Optional "Notify me when done" through Apprise (ntfy, Telegram, mail, ...).
 
-Off unless NOTIFY_URL is set. A message names how many images are ready, how long the job took, and
-tells you to open imgcompress in the browser that started the job (the result
-belongs to it). The address is added only when the admin sets PUBLIC_BASE_URL.
-It never names files. A failing notification is logged and never breaks a job;
+Off unless NOTIFY_URL is set. A message names how many images are ready and how long the job took. When the
+admin sets PUBLIC_BASE_URL it carries a share link that opens the result on any
+device (a secret made for this one job); without it, it tells you to open
+imgcompress in the browser that started the job. It never names files. A failing notification is logged and never breaks a job;
 the log never shows NOTIFY_URL, because it often holds a secret token.
 """
 
@@ -52,67 +52,78 @@ def describe_device(user_agent: Optional[str]) -> str:
 # Message texts per app locale (the same codes as the frontend). Anything else
 # falls back to English. {where} is the "in Safari on your iPhone" part.
 _TEXTS = {
-    "en": dict(one="1 image ready", many="{n} images ready", took=" in {d}", failed="Conversion failed",
+    "en": dict(open_one="Open this link to download it:", open_many="Open this link to download them:", open_error="Open this link to see what went wrong:",
+               one="1 image ready", many="{n} images ready", took=" in {d}", failed="Conversion failed",
                failed_after=" after {d}", get_one="Open imgcompress {where} to get your result.",
                get_many="Open imgcompress {where} to get your results.", see_error="Open imgcompress {where} to see what went wrong.",
                where="in {browser} on your {platform}", where_unknown="in the browser you used",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android device", "ChromeOS": "Chromebook"},
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
-    "de": dict(one="1 Bild fertig", many="{n} Bilder fertig", took=" in {d}", failed="Konvertierung fehlgeschlagen",
+    "de": dict(open_one="Öffne diesen Link, um es zu laden:", open_many="Öffne diesen Link, um sie zu laden:", open_error="Öffne diesen Link, um zu sehen, was schiefging:",
+               one="1 Bild fertig", many="{n} Bilder fertig", took=" in {d}", failed="Konvertierung fehlgeschlagen",
                failed_after=" nach {d}", get_one="Öffne imgcompress {where}, um dein Ergebnis zu holen.",
                get_many="Öffne imgcompress {where}, um deine Ergebnisse zu holen.", see_error="Öffne imgcompress {where}, um zu sehen, was schiefging.",
                where="in {browser} auf deinem {platform}", where_unknown="in dem Browser, den du benutzt hast",
                nouns={"Windows": "Windows-PC", "Linux": "Linux-PC", "Android": "Android-Gerät", "ChromeOS": "Chromebook"},
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
-    "fr": dict(one="1 image prête", many="{n} images prêtes", took=" en {d}", failed="Échec de la conversion",
+    "fr": dict(open_one="Ouvrez ce lien pour la télécharger :", open_many="Ouvrez ce lien pour les télécharger :", open_error="Ouvrez ce lien pour voir ce qui n'a pas marché :",
+               one="1 image prête", many="{n} images prêtes", took=" en {d}", failed="Échec de la conversion",
                failed_after=" après {d}", get_one="Ouvrez imgcompress {where} pour récupérer votre résultat.",
                get_many="Ouvrez imgcompress {where} pour récupérer vos résultats.", see_error="Ouvrez imgcompress {where} pour voir ce qui n'a pas marché.",
                where="dans {browser} sur votre {platform}", where_unknown="dans le navigateur utilisé",
                nouns={"Windows": "PC Windows", "Linux": "PC Linux", "Android": "appareil Android", "ChromeOS": "Chromebook"},
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
-    "es-MX": dict(one="1 imagen lista", many="{n} imágenes listas", took=" en {d}", failed="La conversión falló",
+    "es-MX": dict(open_one="Abre este enlace para descargarla:", open_many="Abre este enlace para descargarlas:", open_error="Abre este enlace para ver qué salió mal:",
+               one="1 imagen lista", many="{n} imágenes listas", took=" en {d}", failed="La conversión falló",
                failed_after=" tras {d}", get_one="Abre imgcompress {where} para obtener tu resultado.",
                get_many="Abre imgcompress {where} para obtener tus resultados.", see_error="Abre imgcompress {where} para ver qué salió mal.",
                where="en {browser} en tu {platform}", where_unknown="en el navegador que usaste",
                nouns={"Windows": "PC con Windows", "Linux": "PC con Linux", "Android": "dispositivo Android", "ChromeOS": "Chromebook"},
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
-    "pt-BR": dict(one="1 imagem pronta", many="{n} imagens prontas", took=" em {d}", failed="A conversão falhou",
+    "pt-BR": dict(open_one="Abra este link para baixar:", open_many="Abra este link para baixar:", open_error="Abra este link para ver o que deu errado:",
+               one="1 imagem pronta", many="{n} imagens prontas", took=" em {d}", failed="A conversão falhou",
                failed_after=" após {d}", get_one="Abra o imgcompress {where} para pegar seu resultado.",
                get_many="Abra o imgcompress {where} para pegar seus resultados.", see_error="Abra o imgcompress {where} para ver o que deu errado.",
                where="no {browser} do seu {platform}", where_unknown="no navegador que você usou",
                nouns={"Windows": "PC com Windows", "Linux": "PC com Linux", "Android": "dispositivo Android", "ChromeOS": "Chromebook"},
                s="{s} s", m="{m} min {s} s", h="{h} h {m} min"),
-    "ru": dict(one="1 изображение готово", many="Готово изображений: {n}", took=" за {d}", failed="Ошибка конвертации",
+    "ru": dict(open_one="Откройте ссылку, чтобы скачать:", open_many="Откройте ссылку, чтобы скачать:", open_error="Откройте ссылку, чтобы узнать, что пошло не так:",
+               one="1 изображение готово", many="Готово изображений: {n}", took=" за {d}", failed="Ошибка конвертации",
                failed_after=" через {d}", get_one="Откройте imgcompress {where}, чтобы забрать результат.",
                get_many="Откройте imgcompress {where}, чтобы забрать результаты.", see_error="Откройте imgcompress {where}, чтобы узнать, что пошло не так.",
                where="в {browser} на вашем {platform}", where_unknown="в том же браузере",
                nouns={"Windows": "ПК с Windows", "Linux": "ПК с Linux", "Android": "Android-устройстве", "ChromeOS": "Chromebook"},
                s="{s} с", m="{m} мин {s} с", h="{h} ч {m} мин"),
-    "ja": dict(one="1 枚の画像が完成", many="{n} 枚の画像が完成", took="（{d}）", failed="変換に失敗しました",
+    "ja": dict(open_one="このリンクを開いてダウンロード：", open_many="このリンクを開いてダウンロード：", open_error="このリンクを開いて原因を確認：",
+               one="1 枚の画像が完成", many="{n} 枚の画像が完成", took="（{d}）", failed="変換に失敗しました",
                failed_after="（{d}）", get_one="{where}で imgcompress を開いて結果を受け取ってください。",
                get_many="{where}で imgcompress を開いて結果を受け取ってください。", see_error="{where}で imgcompress を開いて原因を確認してください。",
                where="{platform} の {browser}", where_unknown="使用したブラウザ",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android 端末", "ChromeOS": "Chromebook"},
                s="{s} 秒", m="{m} 分 {s} 秒", h="{h} 時間 {m} 分"),
-    "zh-CN": dict(one="1 张图片已完成", many="{n} 张图片已完成", took="（用时 {d}）", failed="转换失败",
+    "zh-CN": dict(open_one="打开此链接下载：", open_many="打开此链接下载：", open_error="打开此链接查看出错原因：",
+               one="1 张图片已完成", many="{n} 张图片已完成", took="（用时 {d}）", failed="转换失败",
                failed_after="（{d} 后）", get_one="请在{where}中打开 imgcompress 获取结果。",
                get_many="请在{where}中打开 imgcompress 获取结果。", see_error="请在{where}中打开 imgcompress 查看出错原因。",
                where="你的 {platform} 上的 {browser}", where_unknown="你使用的浏览器",
                nouns={"Windows": "Windows 电脑", "Linux": "Linux 电脑", "Android": "Android 设备", "ChromeOS": "Chromebook"},
                s="{s} 秒", m="{m} 分 {s} 秒", h="{h} 小时 {m} 分"),
-    "hi": dict(one="1 इमेज तैयार", many="{n} इमेज तैयार", took=" ({d} में)", failed="कन्वर्ज़न विफल",
+    "hi": dict(open_one="डाउनलोड करने के लिए यह लिंक खोलें:", open_many="डाउनलोड करने के लिए यह लिंक खोलें:", open_error="क्या गलत हुआ, देखने के लिए यह लिंक खोलें:",
+               one="1 इमेज तैयार", many="{n} इमेज तैयार", took=" ({d} में)", failed="कन्वर्ज़न विफल",
                failed_after=" ({d} बाद)", get_one="अपना परिणाम पाने के लिए {where} imgcompress खोलें।",
                get_many="अपने परिणाम पाने के लिए {where} imgcompress खोलें।", see_error="क्या गलत हुआ, देखने के लिए {where} imgcompress खोलें।",
                where="अपने {platform} पर {browser} में", where_unknown="उसी ब्राउज़र में",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android डिवाइस", "ChromeOS": "Chromebook"},
                s="{s} से.", m="{m} मि. {s} से.", h="{h} घं. {m} मि."),
-    "hu": dict(one="1 kép kész", many="{n} kép kész", took=" ({d} alatt)", failed="Az átalakítás nem sikerült",
+    "hu": dict(open_one="Nyisd meg a linket a letöltéshez:", open_many="Nyisd meg a linket a letöltéshez:", open_error="Nyisd meg a linket, hogy lásd, mi történt:",
+               one="1 kép kész", many="{n} kép kész", took=" ({d} alatt)", failed="Az átalakítás nem sikerült",
                failed_after=" ({d} után)", get_one="Nyisd meg az imgcompresst {where} az eredményért.",
                get_many="Nyisd meg az imgcompresst {where} az eredményekért.", see_error="Nyisd meg az imgcompresst {where}, hogy lásd, mi történt.",
                where="a(z) {platform} {browser} böngészőjében", where_unknown="abban a böngészőben, amit használtál",
                nouns={"Windows": "Windows PC", "Linux": "Linux PC", "Android": "Android eszköz", "ChromeOS": "Chromebook"},
                s="{s} mp", m="{m} perc {s} mp", h="{h} óra {m} perc"),
-    "ar": dict(one="صورة واحدة جاهزة", many="{n} صور جاهزة", took=" خلال {d}", failed="فشل التحويل",
+    "ar": dict(open_one="افتح هذا الرابط للتنزيل:", open_many="افتح هذا الرابط للتنزيل:", open_error="افتح هذا الرابط لمعرفة ما حدث:",
+               one="صورة واحدة جاهزة", many="{n} صور جاهزة", took=" خلال {d}", failed="فشل التحويل",
                failed_after=" بعد {d}", get_one="افتح imgcompress {where} للحصول على النتيجة.",
                get_many="افتح imgcompress {where} للحصول على النتائج.", see_error="افتح imgcompress {where} لمعرفة ما حدث.",
                where="في {browser} على {platform}", where_unknown="في المتصفح الذي استخدمته",
@@ -166,10 +177,10 @@ def build_message(
     language: Optional[str] = None,
 ) -> tuple[str, str]:
     """
-    The result is kept for the browser that started the job, so the message
-    says where to open it instead of linking straight to it (a tap would
-    open the default browser, which does not know the job). The text follows
-    the UI language of that browser; unknown languages get English.
+    With a share link the message just says to open it (any device works).
+    Without one, only the browser that started the job knows it, so the
+    message says which browser to open. The text follows the UI language of
+    that browser; unknown languages get English.
     """
     language = resolve_language(language)
     texts = _TEXTS[language]
@@ -179,15 +190,26 @@ def build_message(
         title = texts["one"] if file_count == 1 else texts["many"].format(n=file_count)
         if took:
             title += texts["took"].format(d=took)
-        body = (texts["get_one"] if file_count == 1 else texts["get_many"]).format(where=where)
+        if link:
+            body = texts["open_one"] if file_count == 1 else texts["open_many"]
+        else:
+            body = (texts["get_one"] if file_count == 1 else texts["get_many"]).format(where=where)
     else:
         title = texts["failed"]
         if took:
             title += texts["failed_after"].format(d=took)
-        body = texts["see_error"].format(where=where)
+        body = texts["open_error"] if link else texts["see_error"].format(where=where)
     if link:
         body += f"\n{link}"
     return title, body
+
+
+def share_link(base_url: Optional[str], job_id: str, share_token: str) -> Optional[str]:
+    """'{PUBLIC_BASE_URL}/r/{job id}/{share token}', or None without a base URL."""
+    base = clean_public_base_url(base_url)
+    if base is None:
+        return None
+    return f"{base.rstrip('/')}/r/{job_id}/{share_token}"
 
 
 def clean_public_base_url(value) -> Optional[str]:
@@ -257,11 +279,12 @@ class Notifier:
         device: str,
         duration_seconds: Optional[float] = None,
         language: Optional[str] = None,
+        link: Optional[str] = None,
     ) -> bool:
         if not self.enabled or self._send is None:
             return False
         title, body = build_message(
-            done=done, file_count=file_count, device=device, link=self.base_url,
+            done=done, file_count=file_count, device=device, link=link,
             duration_seconds=duration_seconds, language=language,
         )
         try:

@@ -20,7 +20,7 @@ from backend.image_converter.infrastructure.conversion_job_store import (
     ConversionJobStore,
     RunningJob,
 )
-from backend.image_converter.infrastructure.notifier import Notifier, describe_device, resolve_language
+from backend.image_converter.infrastructure.notifier import Notifier, describe_device, resolve_language, share_link
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 from backend.image_converter.presentation.web.services.compression_service import (
     CompressionService,
@@ -100,6 +100,14 @@ class ConversionJobService:
     ) -> bool:
         return self.store.set_notify(job_id, token, enabled, resolve_language(language))
 
+    def claim(self, job_id: Optional[str], share_token: Optional[str]) -> Optional[dict]:
+        """A job token for this device from the notification's share link, else None."""
+        token = self.store.claim(job_id, share_token)
+        if token is None:
+            return None
+        self.store.touch(job_id)
+        return {"id": job_id, "token": token}
+
     def result_folder(self, job_id: Optional[str], token: Optional[str]) -> Optional[str]:
         """The finished job's own output folder, for its token only."""
         state = self.store.read(job_id, token)
@@ -156,12 +164,18 @@ class ConversionJobService:
             started, finished = state.get("started_at"), state.get("finished_at")
             # Server-side start to finish, like the done sheet.
             duration = max(0.0, finished - started) if started is not None and finished is not None else None
+            link = None
+            if self.notifier.base_url:
+                # A fresh secret per message; only its hash stays on disk.
+                share = self.store.create_share_token(job.job_id)
+                link = share_link(self.notifier.base_url, job.job_id, share) if share else None
             self.notifier.notify(
                 done=state.get("status") == DONE,
                 file_count=len(files) if isinstance(files, list) else 0,
                 device=state.get("device") or describe_device(None),
                 duration_seconds=duration,
                 language=self.store.notify_language(job.job_id),
+                link=link,
             )
         except Exception as error:
             self.logger.log(f"Notification for job {job.job_id} failed ({type(error).__name__}).", "warning")
