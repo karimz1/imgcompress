@@ -70,6 +70,57 @@ export async function setJobNotify(job: JobRef, enabled: boolean, language?: str
   }
 }
 
+// "{PUBLIC_BASE_URL}/r/{job id}/{share token}" from the notification.
+const SHARE_PATH = /^(.*)\/r\/([A-Za-z0-9_-]{22})\/([A-Za-z0-9_-]{16,128})\/?$/;
+
+export interface SharedJobLink {
+  id: string;
+  share: string;
+}
+
+/**
+ * Reads the share link the notification sent and removes it from the address
+ * bar right away, so the secret is not left in history, bookmarks or tabs.
+ */
+let takenLink: { path: string; link: SharedJobLink } | null = null;
+
+export function takeSharedJobLink(): SharedJobLink | null {
+  if (typeof window === "undefined") return null;
+  // React may run the boot effect twice (dev mode); the second run gets the same link.
+  if (takenLink && window.location.pathname === takenLink.path) return takenLink.link;
+  const match = SHARE_PATH.exec(window.location.pathname);
+  if (!match) return null;
+  takenLink = { path: `${match[1]}/`, link: { id: match[2], share: match[3] } };
+  try {
+    window.history.replaceState(window.history.state, "", `${match[1]}/`);
+  } catch {
+    // Some embedded browsers refuse; the link still works.
+  }
+  return takenLink.link;
+}
+
+/**
+ * Trades the share link for a job token of this device's own, so it can
+ * follow and download the job like the browser that started it. Null when
+ * the link is wrong or expired.
+ */
+export async function claimSharedJob(link: SharedJobLink): Promise<JobRef | null> {
+  try {
+    const res = await fetch(`/api/jobs/${encodeURIComponent(link.id)}/claim`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ share_token: link.share }),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const body = await res.json();
+    if (typeof body?.id !== "string" || typeof body?.token !== "string") return null;
+    return { id: body.id, token: body.token };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * When the job started, in this browser's clock (ms). Shifting by the
  * server's own "now" keeps the timer right even if the device clock is off.

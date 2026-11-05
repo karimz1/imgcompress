@@ -1,7 +1,7 @@
 # ImgCompress with "Notify me when done" through your own ntfy server.
 # Turn on the switch while a conversion runs, then close the tab: your phone
-# gets one message when it is done. It says how many images are ready and
-# on which device you started it, never the file names.
+# gets one message when it is done. It says how many images are ready, never
+# the file names, and links to the result so you can download it on any device.
 
 services:
   imgcompress:
@@ -13,8 +13,9 @@ services:
     environment:
       # Any Apprise URL works (ntfy, Telegram, Discord, mail, ...). Without it the switch is hidden.
       - NOTIFY_URL=ntfy://ntfy/imgcompress
-      # Optional: the address you open ImgCompress at, added to the message on its
-      # own line. Set it yourself; it is never taken from a request.
+      # The address you open ImgCompress at. The message then links to the result
+      # (a secret for that one job), so keep the ntfy topic private. Set it
+      # yourself; it is never taken from a request.
       - PUBLIC_BASE_URL=http://192.168.1.10:3001
     depends_on:
       - ntfy

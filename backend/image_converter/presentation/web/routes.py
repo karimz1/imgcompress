@@ -159,6 +159,22 @@ def conversion_job_notify(job_id: str):
     return "", 204
 
 
+@api_blueprint.route("/jobs/<job_id>/claim", methods=["POST"])
+def conversion_job_claim(job_id: str):
+    """Opens a job from the notification's share link on another device.
+
+    The share token comes in the body, not the URL, and is traded for a job
+    token of this device's own, which then works with X-Job-Token as usual.
+    """
+    body = request.get_json(silent=True) or {}
+    claimed = conversion_jobs.claim(job_id, body.get("share_token"))
+    if claimed is None:
+        return _job_not_found()
+    response = jsonify(claimed)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @api_blueprint.route("/jobs/<job_id>/files/<path:file_name>", methods=["GET"])
 def conversion_job_file(job_id: str, file_name: str):
     folder = conversion_jobs.result_folder(job_id, _job_token())

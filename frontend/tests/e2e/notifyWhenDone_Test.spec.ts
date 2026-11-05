@@ -24,6 +24,15 @@ const JOB_STATUS = /\/api\/jobs\/[^/]+$/;
 
 type Message = { title?: string; message?: string };
 
+function devicesLikePhone() {
+  return {
+    viewport: { width: 390, height: 844 },
+    userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1',
+    hasTouch: true,
+  };
+}
+
 async function notifyEnabledAsync(request: APIRequestContext): Promise<boolean> {
   const response = await request.get('/config/runtime.json');
   expect(response.ok()).toBeTruthy();
@@ -67,8 +76,11 @@ test.describe('Notify me when done', () => {
   });
 
   test.describe('with NOTIFY_URL', () => {
+    // The share link test opens the link the first test received.
+    test.describe.configure({ mode: 'serial' });
     let server: http.Server;
     const received: Message[] = [];
+    let shareLink = '';
 
     test.beforeAll(async ({ request }) => {
       if (!(await notifyEnabledAsync(request))) return;
@@ -116,10 +128,14 @@ test.describe('Notify me when done', () => {
       const [message] = received;
       // Server-side duration, worded like the done sheet.
       expect(message.title).toMatch(/^1 image ready in (\d+ s|\d+ min \d+ s)$/);
-      // Where to open the result (it belongs to this browser). The link comes only from
-      // PUBLIC_BASE_URL; CI sets it to https://imgcompress.example (never the request's host).
-      expect(message.message).toMatch(/^Open imgcompress in .+ on your .+ to get your result\.\nhttps:\/\/imgcompress\.example$/);
+      // A share link for this job. Its host comes only from PUBLIC_BASE_URL; CI sets it
+      // to https://imgcompress.example (never the request's host). It is not the job token.
+      expect(message.message).toMatch(
+        new RegExp(`^Open this link to download it:\\nhttps://imgcompress\\.example/r/${mine.id}/[A-Za-z0-9_-]{43}$`)
+      );
+      expect(message.message).not.toContain(mine.token);
       expect(JSON.stringify(message)).not.toContain('private-holiday-photo');
+      shareLink = message.message!.split('\n')[1];
 
       // A second job without the switch: no message. Forget the first result,
       // so the page opens on an empty form rather than on that result.
@@ -129,6 +145,34 @@ test.describe('Notify me when done', () => {
       await waitDoneAsync(request, other);
       await page.waitForTimeout(3000);
       expect(received).toHaveLength(1);
+    });
+
+    test('the share link opens the result on another device, which can download it', async ({ browser }) => {
+      test.skip(!shareLink, 'needs the message from the test above');
+      const { pathname } = new URL(shareLink);
+      // A fresh browser context stands in for the phone: no storage from the PC.
+      const phone = await browser.newContext({ ...devicesLikePhone() });
+      try {
+        const page = await phone.newPage();
+        const claimed = page.waitForResponse((r) => r.url().endsWith('/claim'));
+        await page.goto(pathname);
+        expect((await claimed).status()).toBe(200);
+        // The secret leaves the address bar right after the claim.
+        await expect.poll(() => new URL(page.url()).pathname).toBe('/');
+        await expect(page.getByTestId('compressed-files-drawer-close-btn')).toBeVisible({ timeout: 60_000 });
+        const link = page.getByTestId('drawer-uploaded-file-item-link');
+        await expect(link).toHaveCount(1);
+        const [download] = await Promise.all([page.waitForEvent('download'), link.click()]);
+        const image = await sharp(await download.path()).metadata();
+        expect(image.width).toBeGreaterThan(1280);
+
+        // Opened again with a wrong secret: the usual "no longer available", no result.
+        const stranger = await phone.newPage();
+        await stranger.goto(pathname.replace(/[^/]{6}$/, 'AAAAAA'));
+        await expect(stranger.getByText('This conversion is no longer available.', { exact: false }).first()).toBeVisible();
+      } finally {
+        await phone.close();
+      }
     });
   });
 });

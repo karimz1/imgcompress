@@ -7,6 +7,7 @@ from backend.image_converter.infrastructure.notifier import (
     Notifier,
     build_message,
     clean_public_base_url,
+    share_link,
     describe_device,
     format_duration,
     resolve_language,
@@ -52,12 +53,31 @@ def test_describe_device(user_agent, expected):
     assert describe_device(user_agent) == expected
 
 
-def test_message_tells_where_to_open_the_result_and_has_the_link():
-    title, body = build_message(
-        done=True, file_count=3, device="iPhone · Safari", link="https://img.example.com"
-    )
+def test_message_with_a_share_link_says_to_open_it():
+    link = "https://img.example.com/r/abc/secret"
+    title, body = build_message(done=True, file_count=3, device="iPhone · Safari", link=link)
     assert title == "3 images ready"
-    assert body == "Open imgcompress in Safari on your iPhone to get your results.\nhttps://img.example.com"
+    assert body == f"Open this link to download them:\n{link}"
+
+
+def test_failed_message_with_a_share_link():
+    _, body = build_message(done=False, file_count=0, device="Mac · Safari", link="https://x.example/r/a/b")
+    assert body == "Open this link to see what went wrong:\nhttps://x.example/r/a/b"
+
+
+@pytest.mark.parametrize(
+    "base, expected",
+    [
+        ("https://img.example.com", "https://img.example.com/r/JOB/SHARE"),
+        ("https://img.example.com/", "https://img.example.com/r/JOB/SHARE"),
+        ("https://example.com/imgcompress", "https://example.com/imgcompress/r/JOB/SHARE"),
+        (None, None),
+        ("https://user:pw@evil.example", None),
+        ("javascript:alert(1)", None),
+    ],
+)
+def test_share_link_only_from_a_clean_public_base_url(base, expected):
+    assert share_link(base, "JOB", "SHARE") == expected
 
 
 def test_message_for_one_file_and_without_a_link():
@@ -195,10 +215,10 @@ def test_format_duration_reads_like_the_done_sheet(seconds, expected):
 
 def test_message_says_how_long_the_job_took():
     title, body = build_message(
-        done=True, file_count=1, device="iPhone · Safari", link="https://img.example.com", duration_seconds=2855
+        done=True, file_count=1, device="iPhone · Safari", link=None, duration_seconds=2855
     )
     assert title == "1 image ready in 47 min 35 s"
-    assert body == "Open imgcompress in Safari on your iPhone to get your result.\nhttps://img.example.com"
+    assert body == "Open imgcompress in Safari on your iPhone to get your result."
 
 
 def test_failed_message_says_after_how_long():
@@ -215,11 +235,11 @@ def test_notify_passes_the_duration_on():
 
 def test_message_in_german():
     title, body = build_message(
-        done=True, file_count=1, device="iPhone · Safari", link="https://img.example.com",
+        done=True, file_count=1, device="iPhone · Safari", link="https://img.example.com/r/a/b",
         duration_seconds=2855, language="de",
     )
     assert title == "1 Bild fertig in 47 min 35 s"
-    assert body == "Öffne imgcompress in Safari auf deinem iPhone, um dein Ergebnis zu holen.\nhttps://img.example.com"
+    assert body == "Öffne diesen Link, um es zu laden:\nhttps://img.example.com/r/a/b"
 
 
 def test_message_in_french_with_hours():
