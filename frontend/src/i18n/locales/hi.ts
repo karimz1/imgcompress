@@ -24,7 +24,7 @@ export const hi: TranslationSchema = {
       cleanupFailed: "फ़ाइलें हटाई नहीं जा सकीं।",
       cleanupError: "सफ़ाई नहीं हो सकी।",
       compressionCancelled: "कंप्रेशन रद्द किया गया।",
-      jobExpired: "यह कन्वर्ज़न अब उपलब्ध नहीं है। कृपया फिर से कन्वर्ट करें।",
+      jobExpired: "यह परिणाम समाप्त हो गया है। ज़रूरत हो तो फिर से कन्वर्ट करें।",
       unexpectedError: "कुछ गलत हो गया। कृपया फिर कोशिश करें।",
       selectionCleared_one: "{{count}} इमेज चयन साफ़ किया गया! 🧹",
       selectionCleared_other: "{{count}} इमेज चयन साफ़ किए गए! 🧹",

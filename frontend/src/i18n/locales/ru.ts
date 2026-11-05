@@ -24,7 +24,7 @@ export const ru: TranslationSchema = {
       cleanupFailed: "Не удалось удалить файлы.",
       cleanupError: "Очистка не удалась.",
       compressionCancelled: "Сжатие отменено.",
-      jobExpired: "Это преобразование больше недоступно. Пожалуйста, запустите его снова.",
+      jobExpired: "Этот результат истёк. Запустите снова, если он ещё нужен.",
       unexpectedError: "Что-то пошло не так. Повторите попытку.",
       selectionCleared_one: "Выбор {{count}} изображения очищен! 🧹",
       selectionCleared_other: "Выбор {{count}} изображений очищен! 🧹",

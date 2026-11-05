@@ -24,7 +24,7 @@ export const hu: TranslationSchema = {
       cleanupFailed: "Nem sikerült törölni a fájlokat.",
       cleanupError: "A takarítás nem sikerült.",
       compressionCancelled: "A tömörítés megszakítva.",
-      jobExpired: "Ez az átalakítás már nem érhető el. Kérlek, alakítsd át újra.",
+      jobExpired: "Ez az eredmény lejárt. Ha még kell, alakítsd át újra.",
       unexpectedError: "Váratlan hiba. Kérlek, próbáld újra.",
       selectionCleared_one: "{{count}} kép eltávolítva a listából! 🧹",
       selectionCleared_other: "{{count}} kép eltávolítva a listából! 🧹",

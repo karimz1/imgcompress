@@ -22,7 +22,7 @@ export const en = {
       cleanupFailed: "Couldn't delete the files.",
       cleanupError: "Cleanup failed.",
       compressionCancelled: "Compression cancelled.",
-      jobExpired: "This conversion is no longer available. Please convert again.",
+      jobExpired: "This result has expired. Convert again if you still need it.",
       unexpectedError: "Something went wrong. Please try again.",
       selectionCleared_one: "{{count}} Image selection cleared! 🧹",
       selectionCleared_other: "{{count}} Images selection cleared! 🧹",

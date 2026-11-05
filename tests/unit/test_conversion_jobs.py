@@ -583,10 +583,19 @@ def test_When_ShareLinkIsMade_Expect_OnlyHashesOnDisk(setup):
     assert hashlib.sha256(share.encode()).hexdigest() in (folder / "share").read_text()
 
 
-def test_When_ShareLinkIsOpenedOnManyDevices_Expect_ALimit(setup):
+def test_When_ShareLinkIsOpenedOnManyBrowsers_Expect_EachGetsAToken(setup):
     job_id, _, share = _notified_link(setup)
-    codes = [_claim(setup, job_id, share).status_code for _ in range(7)]
-    assert codes == [200] * 5 + [404] * 2
+    tokens = []
+    for _ in range(12):
+        response = _claim(setup, job_id, share)
+        assert response.status_code == 200
+        tokens.append(response.get_json()["token"])
+    assert len(set(tokens)) == 12
+    # Later claims still download; hashes were appended, not rewritten away.
+    last = tokens[-1]
+    assert setup.client.get(
+        f"/api/jobs/{job_id}/zip", headers={"X-Job-Token": last}
+    ).status_code == 200
 
 
 def test_When_PublicBaseUrlIsMissing_Expect_NoLinkAndNoShareToken(setup, monkeypatch):

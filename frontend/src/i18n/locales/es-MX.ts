@@ -24,7 +24,7 @@ export const esMX: TranslationSchema = {
       cleanupFailed: "No se pudieron eliminar los archivos.",
       cleanupError: "La limpieza falló.",
       compressionCancelled: "Compresión cancelada.",
-      jobExpired: "Esta conversión ya no está disponible. Vuelve a convertir los archivos.",
+      jobExpired: "Este resultado ha caducado. Vuelve a convertir si aún lo necesitas.",
       unexpectedError: "Algo salió mal. Inténtalo de nuevo.",
       selectionCleared_one: "¡Se limpió la selección de {{count}} imagen! 🧹",
       selectionCleared_other: "¡Se limpió la selección de {{count}} imágenes! 🧹",

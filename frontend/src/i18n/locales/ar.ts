@@ -24,7 +24,7 @@ export const ar: TranslationSchema = {
       cleanupFailed: "تعذّر حذف الملفات.",
       cleanupError: "فشل التنظيف.",
       compressionCancelled: "تم إلغاء الضغط.",
-      jobExpired: "هذا التحويل لم يعد متاحًا. يرجى التحويل مرة أخرى.",
+      jobExpired: "انتهت صلاحية هذه النتيجة. حوّل من جديد إذا كنت ما زلت بحاجة إليها.",
       unexpectedError: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
       selectionCleared_one: "تم مسح اختيار {{count}} صورة! 🧹",
       selectionCleared_other: "تم مسح اختيار {{count}} صورة! 🧹",

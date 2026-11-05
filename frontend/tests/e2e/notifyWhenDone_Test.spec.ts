@@ -166,10 +166,10 @@ test.describe('Notify me when done', () => {
         const image = await sharp(await download.path()).metadata();
         expect(image.width).toBeGreaterThan(1280);
 
-        // Opened again with a wrong secret: the usual "no longer available", no result.
+        // Opened again with a wrong secret: the usual "result has expired", no result.
         const stranger = await phone.newPage();
         await stranger.goto(pathname.replace(/[^/]{6}$/, 'AAAAAA'));
-        await expect(stranger.getByText('This conversion is no longer available.', { exact: false }).first()).toBeVisible();
+        await expect(stranger.getByText('This result has expired.', { exact: false }).first()).toBeVisible();
       } finally {
         await phone.close();
       }
