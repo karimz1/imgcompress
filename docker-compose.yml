@@ -29,6 +29,8 @@ services:
       # without user/password; an invalid value is ignored with a warning.
       # Default: not set = no link in the message. Example:
       # - PUBLIC_BASE_URL=http://192.168.1.10:3001
+      # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
+      # - TZ=Europe/Berlin
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       interval: 30s

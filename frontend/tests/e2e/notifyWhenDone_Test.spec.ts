@@ -132,7 +132,7 @@ test.describe('Notify me when done', () => {
       // to https://imgcompress.example (never the request's host). It is not the job token.
       expect(message.message).toMatch(
         new RegExp(
-          `^Open this link to download it:\\nhttps://imgcompress\\.example/r/${mine.id}/[A-Za-z0-9_-]{43}\\nLink expires \\d{1,2} [A-Za-z]+ \\d{4}, \\d{2}:\\d{2} UTC\\.$`
+          `^Open this link to download it:\\nhttps://imgcompress\\.example/r/${mine.id}/[A-Za-z0-9_-]{43}\\nLink expires \\d{1,2} [A-Za-z.]+ \\d{4}, \\d{2}:\\d{2} \\S+\\.$`
         )
       );
       expect(message.message).not.toContain(mine.token);

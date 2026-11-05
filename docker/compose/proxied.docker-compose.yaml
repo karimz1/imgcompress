@@ -177,6 +177,8 @@ services:
       # Optional: your public address; the message then links to the result
       # (never taken from the request, the Host header can be faked):
       # - PUBLIC_BASE_URL=https://${TRAEFIK_DOMAIN_NAME}
+      # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
+      # - TZ=Europe/Berlin
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck

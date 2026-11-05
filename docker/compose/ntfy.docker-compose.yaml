@@ -17,6 +17,8 @@ services:
       # (a secret for that one job), so keep the ntfy topic private. Set it
       # yourself; it is never taken from a request.
       - PUBLIC_BASE_URL=http://192.168.1.10:3001
+      # Optional: clock for "Link expires …" (defaults to the image TZ).
+      - TZ=Europe/Berlin
     depends_on:
       - ntfy
 
