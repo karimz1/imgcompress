@@ -6,9 +6,9 @@ browser that started it. The status file keeps only the token's SHA-256, and
 id, so nobody can read, or even detect, another user's job.
 
 The "notify me when done" message can carry a share link with a second
-secret (also kept only as SHA-256). Another device trades it once per device
-for a job token of its own (``claim``), so a job started on a PC can be
-downloaded on a phone.
+secret (also kept only as SHA-256). Another browser trades it for a job
+token of its own (``claim``), so a job started on a PC can be downloaded on
+a phone. Each claim adds one device token; there is no cap.
 
 Each job gets a folder ``job_<id>`` in the temp dir with one ``status.json``.
 Any worker process can answer a poll, because the state lives on disk, not in
@@ -99,9 +99,8 @@ class RunningJob:
 _NOTIFY_FILE = "notify"
 # SHA-256 of the share link token sent in the notification (one line).
 _SHARE_FILE = "share"
-# SHA-256 of tokens handed to other devices through the share link (one per line).
+# SHA-256 of tokens handed to other browsers through the share link (one per line).
 _DEVICES_FILE = "devices"
-_MAX_DEVICES = 5
 
 
 class ConversionJobStore:
@@ -222,8 +221,8 @@ class ConversionJobStore:
 
     def claim(self, job_id: Optional[str], share_token: Optional[str]) -> Optional[str]:
         """
-        Trades the share link token for a job token of this device's own.
-        None for an unknown id, a wrong token or too many devices, all alike.
+        Trades the share link token for a job token of this browser's own.
+        None for an unknown id or a wrong token, both alike (opaque 404).
         """
         path = self._folder(job_id)
         given = share_token if isinstance(share_token, str) and 0 < len(share_token) <= _TOKEN_MAX_LENGTH else ""
@@ -232,12 +231,11 @@ class ConversionJobStore:
             return None
         if not os.path.isfile(os.path.join(path, _STATUS_FILE)):
             return None
-        devices = self._read_lines(path, _DEVICES_FILE)
-        if len(devices) >= _MAX_DEVICES:
-            return None
         token = secrets.token_urlsafe(32)
         try:
-            self._write_file(path, _DEVICES_FILE, "".join(f"{h}\n" for h in [*devices, _hash_token(token)]))
+            # Append so concurrent claims never rewrite older hashes away.
+            with open(os.path.join(path, _DEVICES_FILE), "a", encoding="utf-8") as f:
+                f.write(_hash_token(token) + "\n")
         except OSError:
             return None
         return token
@@ -253,7 +251,8 @@ class ConversionJobStore:
     def _read_lines(path: str, name: str) -> list:
         try:
             with open(os.path.join(path, name), encoding="utf-8") as f:
-                return [line.strip() for line in f.read(4096).splitlines() if len(line.strip()) == 64]
+                # Whole file: claims keep appending device hashes with no cap.
+                return [line.strip() for line in f.read().splitlines() if len(line.strip()) == 64]
         except OSError:
             return []
 

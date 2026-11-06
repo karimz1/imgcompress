@@ -131,7 +131,9 @@ test.describe('Notify me when done', () => {
       // A share link for this job. Its host comes only from PUBLIC_BASE_URL; CI sets it
       // to https://imgcompress.example (never the request's host). It is not the job token.
       expect(message.message).toMatch(
-        new RegExp(`^Open this link to download it:\\nhttps://imgcompress\\.example/r/${mine.id}/[A-Za-z0-9_-]{43}$`)
+        new RegExp(
+          `^Open this link to download it:\\nhttps://imgcompress\\.example/r/${mine.id}/[A-Za-z0-9_-]{43}\\nLink expires \\d{1,2} [A-Za-z.]+ \\d{4}, \\d{2}:\\d{2} \\S+\\.$`
+        )
       );
       expect(message.message).not.toContain(mine.token);
       expect(JSON.stringify(message)).not.toContain('private-holiday-photo');
@@ -166,10 +168,10 @@ test.describe('Notify me when done', () => {
         const image = await sharp(await download.path()).metadata();
         expect(image.width).toBeGreaterThan(1280);
 
-        // Opened again with a wrong secret: the usual "no longer available", no result.
+        // Opened again with a wrong secret: the usual "result has expired", no result.
         const stranger = await phone.newPage();
         await stranger.goto(pathname.replace(/[^/]{6}$/, 'AAAAAA'));
-        await expect(stranger.getByText('This conversion is no longer available.', { exact: false }).first()).toBeVisible();
+        await expect(stranger.getByText('This result has expired.', { exact: false }).first()).toBeVisible();
       } finally {
         await phone.close();
       }

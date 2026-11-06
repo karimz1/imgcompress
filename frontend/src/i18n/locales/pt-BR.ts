@@ -24,7 +24,7 @@ export const ptBR: TranslationSchema = {
       cleanupFailed: "Não foi possível apagar os arquivos.",
       cleanupError: "A limpeza falhou.",
       compressionCancelled: "Compressão cancelada.",
-      jobExpired: "Esta conversão não está mais disponível. Converta novamente.",
+      jobExpired: "Este resultado expirou. Converta de novo se ainda precisar.",
       unexpectedError: "Algo deu errado. Tente novamente.",
       selectionCleared_one: "Seleção de {{count}} imagem limpa! 🧹",
       selectionCleared_other: "Seleção de {{count}} imagens limpa! 🧹",

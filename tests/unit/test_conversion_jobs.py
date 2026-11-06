@@ -89,7 +89,7 @@ def setup(tmp_path, monkeypatch):
         sent.append((title, body))
         return True
 
-    notifier = Notifier(url="json://fake", base_url="https://img.example.com", logger=logger, send=fake_send)
+    notifier = Notifier(url="json://fake", base_url="https://img.example.com", logger=logger, send=fake_send, result_ttl_seconds=172800)
     jobs = ConversionJobService(
         logger, compression, ConversionJobStore(str(tmp_path)), start_thread=start_thread, notifier=notifier
     )
@@ -408,9 +408,10 @@ def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(set
     title, body = setup.sent[0]
     # Server-side duration, worded like the done sheet; no language sent means English.
     assert re.fullmatch(r"1 image ready in \d+ s", title)
-    text, link = body.split("\n")
-    assert text == "Open this link to download it:"
-    assert re.fullmatch(rf"https://img\.example\.com/r/{job_id}/[A-Za-z0-9_-]{{43}}", link)
+    lines = body.split("\n")
+    assert lines[0] == "Open this link to download it:"
+    assert re.fullmatch(rf"https://img\.example\.com/r/{job_id}/[A-Za-z0-9_-]{{43}}", lines[1])
+    assert re.fullmatch(r"Link expires \d{1,2} [A-Za-z.]+ \d{4}, \d{2}:\d{2} \S+\.", lines[2])
     # A share secret of its own, never the job token.
     assert token not in body
     assert "secret-holiday" not in title + body
@@ -529,7 +530,8 @@ def _notified_link(setup, user_agent=IPHONE_UA):
     assert _opt_in(setup, job_id, token).status_code == 204
     setup.use_case.release.set()
     setup.wait_done()
-    link = setup.sent[-1][1].split("\n")[-1]
+    # The expiry line follows the link, so pick the link out by its path.
+    link = next(line for line in setup.sent[-1][1].split("\n") if f"/r/{job_id}/" in line)
     share = link.rsplit("/", 1)[1]
     return job_id, token, share
 
@@ -583,10 +585,19 @@ def test_When_ShareLinkIsMade_Expect_OnlyHashesOnDisk(setup):
     assert hashlib.sha256(share.encode()).hexdigest() in (folder / "share").read_text()
 
 
-def test_When_ShareLinkIsOpenedOnManyDevices_Expect_ALimit(setup):
+def test_When_ShareLinkIsOpenedOnManyBrowsers_Expect_EachGetsAToken(setup):
     job_id, _, share = _notified_link(setup)
-    codes = [_claim(setup, job_id, share).status_code for _ in range(7)]
-    assert codes == [200] * 5 + [404] * 2
+    tokens = []
+    for _ in range(12):
+        response = _claim(setup, job_id, share)
+        assert response.status_code == 200
+        tokens.append(response.get_json()["token"])
+    assert len(set(tokens)) == 12
+    # Later claims still download; hashes were appended, not rewritten away.
+    last = tokens[-1]
+    assert setup.client.get(
+        f"/api/jobs/{job_id}/zip", headers={"X-Job-Token": last}
+    ).status_code == 200
 
 
 def test_When_PublicBaseUrlIsMissing_Expect_NoLinkAndNoShareToken(setup, monkeypatch):

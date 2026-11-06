@@ -24,7 +24,7 @@ export const fr: TranslationSchema = {
       cleanupFailed: "Impossible de supprimer les fichiers.",
       cleanupError: "Le nettoyage a échoué.",
       compressionCancelled: "Compression annulée.",
-      jobExpired: "Cette conversion n'est plus disponible. Veuillez relancer la conversion.",
+      jobExpired: "Ce résultat a expiré. Relancez la conversion si vous en avez encore besoin.",
       unexpectedError: "Une erreur est survenue. Veuillez réessayer.",
       selectionCleared_one: "Sélection de {{count}} image effacée ! 🧹",
       selectionCleared_other: "Sélection de {{count}} images effacée ! 🧹",

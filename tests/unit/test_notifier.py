@@ -1,6 +1,8 @@
 """Optional "Notify me when done": off unless NOTIFY_URL is set, and the
 message never carries file names, only a count, the device and a link."""
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from backend.image_converter.infrastructure.notifier import (
@@ -10,6 +12,7 @@ from backend.image_converter.infrastructure.notifier import (
     share_link,
     describe_device,
     format_duration,
+    format_link_expiry,
     resolve_language,
 )
 
@@ -55,14 +58,27 @@ def test_describe_device(user_agent, expected):
 
 def test_message_with_a_share_link_says_to_open_it():
     link = "https://img.example.com/r/abc/secret"
-    title, body = build_message(done=True, file_count=3, device="iPhone · Safari", link=link)
+    now = datetime(2026, 11, 5, 17, 51, tzinfo=timezone.utc)
+    title, body = build_message(
+        done=True, file_count=3, device="iPhone · Safari", link=link,
+        link_ttl_seconds=172800, now=now,
+    )
     assert title == "3 images ready"
-    assert body == f"Open this link to download them:\n{link}"
+    when = format_link_expiry(now + timedelta(seconds=172800), "en")
+    assert body == f"Open this link to download them:\n{link}\nLink expires {when}."
 
 
 def test_failed_message_with_a_share_link():
-    _, body = build_message(done=False, file_count=0, device="Mac · Safari", link="https://x.example/r/a/b")
-    assert body == "Open this link to see what went wrong:\nhttps://x.example/r/a/b"
+    now = datetime(2026, 11, 5, 17, 51, tzinfo=timezone.utc)
+    _, body = build_message(
+        done=False, file_count=0, device="Mac · Safari", link="https://x.example/r/a/b",
+        link_ttl_seconds=172800, now=now,
+    )
+    when = format_link_expiry(now + timedelta(seconds=172800), "en")
+    assert body == (
+        f"Open this link to see what went wrong:\nhttps://x.example/r/a/b\n"
+        f"Link expires {when}."
+    )
 
 
 @pytest.mark.parametrize(
@@ -234,12 +250,18 @@ def test_notify_passes_the_duration_on():
 
 
 def test_message_in_german():
+    now = datetime(2026, 11, 5, 17, 51, tzinfo=timezone.utc)
     title, body = build_message(
         done=True, file_count=1, device="iPhone · Safari", link="https://img.example.com/r/a/b",
         duration_seconds=2855, language="de",
+        link_ttl_seconds=172800, now=now,
     )
     assert title == "1 Bild fertig in 47 min 35 s"
-    assert body == "Öffne diesen Link, um es zu laden:\nhttps://img.example.com/r/a/b"
+    when = format_link_expiry(now + timedelta(seconds=172800), "de")
+    assert body == (
+        f"Öffne diesen Link, um es zu laden:\nhttps://img.example.com/r/a/b\n"
+        f"Der Link gilt bis {when}."
+    )
 
 
 def test_message_in_french_with_hours():
@@ -263,9 +285,33 @@ def test_unsupported_or_missing_language_gives_english(language):
 
 
 def test_every_locale_has_a_message():
+    now = datetime(2026, 11, 5, 17, 51, tzinfo=timezone.utc)
     for code in ["en", "de", "fr", "es-MX", "pt-BR", "ru", "ja", "zh-CN", "hi", "hu", "ar"]:
         assert resolve_language(code) == code
         title, body = build_message(done=True, file_count=2, device="Mac · Safari", link=None, duration_seconds=75, language=code)
         assert title and "imgcompress" in body and "{" not in title + body
         failed, _ = build_message(done=False, file_count=0, device="a browser", link=None, duration_seconds=5, language=code)
         assert failed and "{" not in failed
+        _, linked = build_message(
+            done=True, file_count=1, device="a browser", link="https://img.example.com/r/a/b",
+            language=code, link_ttl_seconds=172800, now=now,
+        )
+        assert "https://img.example.com/r/a/b" in linked and "{" not in linked
+        assert linked.splitlines()[-1]  # expiry line present
+
+
+def test_notify_with_share_link_includes_expiry_line():
+    sent = []
+    notifier = Notifier(
+        "json://localhost",
+        "https://img.example.com",
+        _Logger(),
+        send=lambda t, b: sent.append(b) or True,
+        result_ttl_seconds=172800,
+    )
+    notifier.notify(done=True, file_count=1, device="iPhone · Safari", link="https://img.example.com/r/a/b")
+    assert len(sent) == 1
+    lines = sent[0].split("\n")
+    assert lines[0] == "Open this link to download it:"
+    assert lines[1] == "https://img.example.com/r/a/b"
+    assert lines[2].startswith("Link expires ") and lines[2].endswith(".")

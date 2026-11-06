@@ -24,7 +24,7 @@ export const ja: TranslationSchema = {
       cleanupFailed: "ファイルを削除できませんでした。",
       cleanupError: "クリーンアップに失敗しました。",
       compressionCancelled: "圧縮をキャンセルしました。",
-      jobExpired: "この変換はもう利用できません。もう一度変換してください。",
+      jobExpired: "この結果の期限が切れました。必要ならもう一度変換してください。",
       unexpectedError: "問題が発生しました。もう一度お試しください。",
       selectionCleared_one: "{{count}} 件の画像選択をクリアしました! 🧹",
       selectionCleared_other: "{{count}} 件の画像選択をクリアしました! 🧹",

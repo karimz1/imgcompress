@@ -24,7 +24,7 @@ export const zhCN: TranslationSchema = {
       cleanupFailed: "无法删除这些文件。",
       cleanupError: "清理失败。",
       compressionCancelled: "压缩已取消。",
-      jobExpired: "此转换已不可用。请重新转换。",
+      jobExpired: "此结果已过期。如仍需要，请重新转换。",
       unexpectedError: "出了点问题。请重试。",
       selectionCleared_one: "已清除 {{count}} 张图片的选择！🧹",
       selectionCleared_other: "已清除 {{count}} 张图片的选择！🧹",

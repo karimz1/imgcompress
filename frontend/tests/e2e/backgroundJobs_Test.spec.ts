@@ -195,7 +195,7 @@ test.describe('Background conversion jobs', () => {
       await bobPage.goto('/');
       await bobPage.evaluate((id) => localStorage.setItem('imgcompress.activeJob', JSON.stringify({ id, token: 'guess' })), job.id);
       await bobPage.reload();
-      await expect(bobPage.getByText('This conversion is no longer available.').first()).toBeVisible();
+      await expect(bobPage.getByText('This result has expired.').first()).toBeVisible();
       await expect(bobPage.getByTestId('drawer-uploaded-file-item-link')).toHaveCount(0);
     } finally {
       await alice.close();

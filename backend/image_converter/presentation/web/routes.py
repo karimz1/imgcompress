@@ -56,7 +56,10 @@ use_case = CompressImagesUseCase(
 temp_folder_service = TemporaryFolderService(TEMP_DIR, EXPIRATION_TIME, logger)
 compression_service = CompressionService(logger, use_case, temp_folder_service)
 conversion_jobs = ConversionJobService(
-    logger, compression_service, ConversionJobStore(TEMP_DIR), notifier=Notifier.from_env(logger)
+    logger,
+    compression_service,
+    ConversionJobStore(TEMP_DIR),
+    notifier=Notifier.from_env(logger, result_ttl_seconds=EXPIRATION_TIME),
 )
 storage_management_service = StorageManagementService(
     is_enabled=_config.features.is_storage_management_enabled,
