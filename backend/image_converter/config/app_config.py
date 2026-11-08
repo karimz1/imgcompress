@@ -56,6 +56,7 @@ class FeaturesConfig:
     is_storage_management_enabled: bool
     is_logo_enabled: bool
     is_dev_mode_enabled: bool
+    is_update_check_enabled: bool
 
 
 @dataclass(frozen=True)

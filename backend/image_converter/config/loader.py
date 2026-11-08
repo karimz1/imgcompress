@@ -62,6 +62,11 @@ _OVERRIDES = (
         env_var="DEV_MODE",
         inverted=False,
     ),
+    _FeatureFlagOverride(
+        json_path=("features", "is_update_check_enabled"),
+        env_var="DISABLE_UPDATE_CHECK",
+        inverted=True,
+    ),
 )
 
 
@@ -117,6 +122,10 @@ def load_from_file(path: Path) -> AppConfig:
         ),
         is_dev_mode_enabled=reader.require_feature_flag(
             ("features", "is_dev_mode_enabled"),
+        ),
+        # Optional so existing config files keep working unchanged.
+        is_update_check_enabled=reader.optional_feature_flag(
+            ("features", "is_update_check_enabled"), default=True
         ),
     )
     rembg = RembgConfig(model_name=reader.require_str(("rembg", "model_name")))
@@ -306,12 +315,32 @@ class _Reader:
         return tuple(normalized)
 
     def require_feature_flag(self, path: Tuple[str, ...]) -> bool:
-        override = self._matching_override(path)
-        if override is not None:
-            env_value = _read_env_bool(override.env_var, self._errors)
-            if env_value is not None:
-                return (not env_value) if override.inverted else env_value
+        env_value = self._feature_flag_from_env(path)
+        if env_value is not None:
+            return env_value
         return self.require_bool(path)
+
+    def optional_feature_flag(self, path: Tuple[str, ...], *, default: bool) -> bool:
+        """Like ``require_feature_flag`` but returns ``default`` when the key is absent."""
+        env_value = self._feature_flag_from_env(path)
+        if env_value is not None:
+            return env_value
+        raw = self._peek(path)
+        if raw is _SENTINEL:
+            return default
+        if not isinstance(raw, bool):
+            self._errors.append(f"config key '{_render(path)}' must be a boolean")
+            return default
+        return raw
+
+    def _feature_flag_from_env(self, path: Tuple[str, ...]) -> Optional[bool]:
+        override = self._matching_override(path)
+        if override is None:
+            return None
+        env_value = _read_env_bool(override.env_var, self._errors)
+        if env_value is None:
+            return None
+        return (not env_value) if override.inverted else env_value
 
     @staticmethod
     def _matching_override(path: Tuple[str, ...]) -> Optional[_FeatureFlagOverride]:

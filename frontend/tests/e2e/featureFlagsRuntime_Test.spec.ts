@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { UpdateBannerTestData } from './utls/updateBannerTestData';
+import {
+    mockLatestVersionResponseAsync,
+    trackLatestVersionRequests,
+    waitForFooterVersionAsync,
+} from './utls/updateBannerHelpers';
 
 const LOGO_ALT = 'ImgCompress - Image Compression Tool';
 const FALLBACK_TAGLINE = 'An Image Compression Tool';
@@ -11,11 +17,16 @@ test('feature flags served by the running container match the rendered UI', asyn
 
     const logoDisabled = config.DISABLE_LOGO === 'true';
     const storageDisabled = config.DISABLE_STORAGE_MANAGEMENT === 'true';
+    const updateCheckDisabled = config.DISABLE_UPDATE_CHECK === 'true';
 
     test.info().annotations.push({
         type: 'runtime-config',
-        description: `DISABLE_LOGO=${logoDisabled} DISABLE_STORAGE_MANAGEMENT=${storageDisabled}`,
+        description: `DISABLE_LOGO=${logoDisabled} DISABLE_STORAGE_MANAGEMENT=${storageDisabled} DISABLE_UPDATE_CHECK=${updateCheckDisabled}`,
     });
+
+    // Answered here, so the spec never depends on GitHub being reachable.
+    await mockLatestVersionResponseAsync(page, UpdateBannerTestData.createLatestReleasePayload('0.0.1'));
+    const latestVersionRequests = trackLatestVersionRequests(page);
 
     await page.goto('/');
 
@@ -38,12 +49,21 @@ test('feature flags served by the running container match the rendered UI', asyn
         await expect(storageBtn).toBeVisible();
     }
 
+    await waitForFooterVersionAsync(page);
+    await page.waitForLoadState('networkidle');
+    if (updateCheckDisabled) {
+        expect(latestVersionRequests).toHaveLength(0);
+    } else {
+        expect(latestVersionRequests.length).toBeGreaterThan(0);
+    }
+
     // Visual proof of the rendered UI for this flag combination.
     // Small JPEG so artifact size stays low even when all 3 matrix runs upload.
     const label = `logo-${logoDisabled ? 'disabled' : 'enabled'}__storage-${storageDisabled ? 'disabled' : 'enabled'}`;
     const bannerText =
         `DISABLE_LOGO=${logoDisabled} (logo ${logoDisabled ? 'HIDDEN' : 'SHOWN'})  •  ` +
-        `DISABLE_STORAGE_MANAGEMENT=${storageDisabled} (storage btn ${storageDisabled ? 'HIDDEN' : 'SHOWN'})`;
+        `DISABLE_STORAGE_MANAGEMENT=${storageDisabled} (storage btn ${storageDisabled ? 'HIDDEN' : 'SHOWN'})  •  ` +
+        `DISABLE_UPDATE_CHECK=${updateCheckDisabled} (update check ${updateCheckDisabled ? 'OFF' : 'ON'})`;
 
     // Inject a top-left banner so the screenshot self-documents which
     // feature-flag combination it was captured under. Removed after capture

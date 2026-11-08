@@ -10,6 +10,7 @@ runtime_config = {
     "DISABLE_LOGO": os.environ.get("DISABLE_LOGO", "false"),
     "DISABLE_STORAGE_MANAGEMENT": os.environ.get("DISABLE_STORAGE_MANAGEMENT", "false"),
     "DEV_MODE": os.environ.get("DEV_MODE", "false"),
+    "DISABLE_UPDATE_CHECK": os.environ.get("DISABLE_UPDATE_CHECK", "false"),
     # Empty means the app.json default; the backend serves the resolved value.
     "MAX_UPLOAD_SIZE_MB": os.environ.get("MAX_UPLOAD_SIZE_MB", ""),
     # Set in app.json only; empty means the default, the backend serves the resolved value.
