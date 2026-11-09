@@ -327,10 +327,10 @@ export function SplashScreen({
                 </p>
               )}
               {notify && (
-                <div className="sm:-mt-2 flex w-full max-w-2xl flex-col items-center gap-2">
+                <>
                   <label
                     htmlFor="notifyWhenDone"
-                    className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer"
+                    className="sm:-mt-2 flex items-center gap-3 text-sm text-gray-200 cursor-pointer"
                   >
                     <Switch
                       id="notifyWhenDone"
@@ -358,7 +358,7 @@ export function SplashScreen({
                       </div>
                     </div>
                   )}
-                </div>
+                </>
               )}
               {progressText && (
                 <p className="text-sm text-gray-300 -mt-1 sm:-mt-4" data-testid="job-progress" aria-live="polite">
