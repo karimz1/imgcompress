@@ -21,6 +21,10 @@ export default defineConfig({
     },
     video: { mode: "on" },
   },
+  // CI also writes JUnit next to the videos so the job summary can list failures.
+  reporter: process.env.CI
+    ? [["list"], ["junit", { outputFile: path.join(__dirname, "e2e-test-results", "junit.xml") }]]
+    : "list",
   // Playwright clears this once per run. Clearing it on config import also
   // erased earlier image comparisons whenever a worker was restarted.
   outputDir: path.join(__dirname, "e2e-test-results"),
