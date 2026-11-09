@@ -1,0 +1,60 @@
+# This is just an example. I run this in my home lab; it's not perfect but it
+# works for me. On my other setups I use HTTPS, but here I want to show a
+# simple setup most self-hosters understand. It should help you get started.
+#
+# ntfy sits on proxy-no-internet (with Traefik and imgcompress) and on
+# ntfy-internet so it can reach ntfy.sh for iOS wake-ups only (no message text).
+
+name: homelab-ntfy
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    command: serve
+    restart: always
+    environment:
+      - TZ=${TZ:-Europe/Berlin}
+      - NTFY_BASE_URL=http://ntfy.lan
+      # Needed for instant push on iOS: ntfy.sh only wakes the app up; the
+      # message itself is fetched from your server.
+      - NTFY_UPSTREAM_BASE_URL=https://ntfy.sh
+      - NTFY_CACHE_FILE=/var/cache/ntfy/cache.db
+      - NTFY_BEHIND_PROXY=true
+    volumes:
+      - ./ntfy/cache:/var/cache/ntfy
+    networks:
+      - proxy-no-internet
+      - ntfy-internet
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy-no-internet"
+      - "traefik.http.routers.ntfy.rule=Host(`ntfy.lan`)"
+      - "traefik.http.routers.ntfy.entrypoints=web"
+      - "traefik.http.routers.ntfy.service=ntfy"
+      - "traefik.http.services.ntfy.loadbalancer.server.port=80"
+      # Optional: Homepage dashboard
+      # - "homepage.group=Tools"
+      # - "homepage.name=ntfy"
+      # - "homepage.href=http://ntfy.lan"
+      # - "homepage.description=Push-Benachrichtigungen"
+      # - "homepage.icon=ntfy.png"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:80/v1/health || exit 1"]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+networks:
+  proxy-no-internet:
+    external: true
+    name: proxy-no-internet
+  ntfy-internet:
+    driver: bridge

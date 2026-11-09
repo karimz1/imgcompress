@@ -85,7 +85,7 @@ services:
   # topic "imgcompress" in the ntfy app (iOS, Android, web).
   # iPhone: NTFY_UPSTREAM_BASE_URL lets ntfy.sh wake the iOS app; the message
   # itself is fetched from this server, so away from home you need a VPN
-  # (e.g. WireGuard, Tailscale). Full guide: docker/compose/ntfy.docker-compose.yaml
+  # (e.g. WireGuard, Tailscale). Full guide: docker/compose/homelab-traefik-ntfy/
   # ntfy:
   #   image: binwiederhier/ntfy:latest
   #   container_name: ntfy

@@ -153,13 +153,15 @@ Prefer Docker Compose? Ready-made configurations live in [`docker/compose/`](doc
 
 Step-by-step instructions for both are in the **[compose guide](docker/compose/README.md)**.
 
+**Home-lab example (Traefik + ntfy):** a great starting point for self-hosters. Every self-hoster uses a different approach; this is one I find simple and easy to get started with. Traefik, ImgCompress and your own ntfy with `.lan` names — short steps and a diagram in [`docker/compose/homelab-traefik-ntfy/`](docker/compose/homelab-traefik-ntfy/).
+
 Each upload can be up to 40 GB. Cap it with `-e MAX_UPLOAD_SIZE_MB=1024` (1 GB is a good public limit). [Upload limit](https://imgcompress.karimzouine.com/docs/configuration#upload-limit).
 
 `WEB_WORKERS` defaults to `auto` (one per CPU). Lower it on small machines to save RAM, e.g. `-e WEB_WORKERS=2`. [Web workers](https://imgcompress.karimzouine.com/docs/configuration#web-workers-and-ram).
 
 Set `-e DISABLE_UPDATE_CHECK=true` to stop the browser checking GitHub for new releases (version stays in the footer). [Update check](https://imgcompress.karimzouine.com/docs/privacy#update-notifications).
 
-**Notify me when done (optional):** set `NOTIFY_URL` (e.g. `NOTIFY_URL=ntfy://notify.lan/<topic>`) plus optional `PUBLIC_BASE_URL` and `TZ`. A switch appears while a job runs; you get one message when it finishes, with a private result link if `PUBLIC_BASE_URL` is set. Full setup: [Notify me when done](https://imgcompress.karimzouine.com/docs/notifications). Ready-made compose: **[ntfy.docker-compose.yaml](docker/compose/ntfy.docker-compose.yaml)**.
+**Notify me when done (optional):** set `NOTIFY_URL` (e.g. `NOTIFY_URL=ntfy://notify.lan/<topic>`) plus optional `PUBLIC_BASE_URL` and `TZ`. A switch appears while a job runs; you get one message when it finishes, with a private result link if `PUBLIC_BASE_URL` is set. Full setup: [Notify me when done](https://imgcompress.karimzouine.com/docs/notifications). Ready-made compose: **[homelab-traefik-ntfy](docker/compose/homelab-traefik-ntfy/)**.
 
 For more settings, such as hiding the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 

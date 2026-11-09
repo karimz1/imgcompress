@@ -1,0 +1,62 @@
+# This is just an example. I run this in my home lab; it's not perfect but it
+# works for me. On my other setups I use HTTPS, but here I want to show a
+# simple setup most self-hosters understand. It should help you get started.
+#
+# imgcompress only joins proxy-no-internet (--internal), so it has no outbound
+# Internet. It talks to ntfy on that same network via the container name.
+
+name: homelab-imgcompress
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "50m"
+    max-file: "10"
+    compress: "true"
+x-healthcheck: &default-healthcheck
+  interval: 30s
+  retries: 3
+  timeout: 10s
+  start_period: 10s
+services:
+  imgcompress:
+    image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
+    container_name: imgcompress
+    restart: always
+    environment:
+      - DISABLE_LOGO=${IMGCOMPRESS_DISABLE_LOGO:-false}
+      - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-false}
+      # On a LAN-only ntfy, a long random topic is enough (no password).
+      - NOTIFY_URL=ntfy://ntfy/${NTFY_TOPIC:-imgcompress-7185477bfe6ab346f6c51b08}?priority=high
+      - PUBLIC_BASE_URL=http://imgcompress.lan
+      - TZ=${TZ:-Europe/Berlin}
+    networks:
+      - proxy-no-internet
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy-no-internet"
+      - "traefik.http.routers.imgcompress.rule=Host(`imgcompress.lan`)"
+      - "traefik.http.routers.imgcompress.entrypoints=web"
+      - "traefik.http.routers.imgcompress.service=imgcompress"
+      - "traefik.http.services.imgcompress.loadbalancer.server.port=5000"
+      # Optional: Homepage dashboard
+      # - "homepage.group=Bilder"
+      # - "homepage.name=ImgCompress"
+      # - "homepage.href=http://imgcompress.lan"
+      # - "homepage.description=Bilder komprimieren"
+      # - "homepage.icon=sh-imgcompress.png"
+    healthcheck:
+      test: ["CMD", "python", "/container/healthcheck.py"]
+      <<: *default-healthcheck
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    stop_grace_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      <<: *default-logging
+networks:
+  proxy-no-internet:
+    external: true
+    name: proxy-no-internet
