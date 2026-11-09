@@ -177,7 +177,7 @@ services:
       # Optional: "Notify me when done" (opt-in per job, never sends file names).
       # Default: not set = off. imgcompress-network is internal (no Internet), so
       # NOTIFY_URL can only reach a service on this network, e.g. an ntfy container
-      # added to imgcompress-network (see ntfy.docker-compose.yaml). Example:
+      # added to imgcompress-network (see docker/compose/homelab-traefik-ntfy/). Example:
       # - NOTIFY_URL=ntfy://ntfy/imgcompress
       # Optional: your public address; the message then links to the result
       # (never taken from the request, the Host header can be faked):

@@ -1,0 +1,40 @@
+# This is just an example. I run this in my home lab; it's not perfect but it
+# works for me. On my other setups I use HTTPS, but here I want to show a
+# simple setup most self-hosters understand. It should help you get started.
+
+name: homelab-traefik
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - "--global.checkNewVersion=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entryPoints.web.address=:80"
+      - "--api.dashboard=true"
+    networks:
+      - proxy
+      - proxy-no-internet
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.lan`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.service=api@internal"
+      # Optional: Homepage dashboard
+      # - "homepage.group=Administration"
+      # - "homepage.name=Traefik"
+      # - "homepage.icon=traefik.png"
+      # - "homepage.href=http://traefik.lan/dashboard/"
+      # - "homepage.description=Reverse Proxy"
+networks:
+  proxy:
+    external: true
+  proxy-no-internet:
+    external: true
+    name: proxy-no-internet

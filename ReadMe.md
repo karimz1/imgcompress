@@ -116,8 +116,6 @@ Make small photos and drawings bigger and sharper, up to 16K. The AI is already 
 | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-face-original.webp" width="440" alt="Anime girl's face and eyes from the original image, enlarged the normal way, soft and slightly blurry lines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-face-upscaled.webp" width="440" alt="The same face after AI upscaling with Anime, clean sharp lines around the eyes and hair"/> |
 | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-eye-original.webp" width="440" alt="Close-up of one eye from the original image, enlarged the normal way, fuzzy outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-eye-upscaled.webp" width="440" alt="The same eye after AI upscaling with Anime, crisp eyelashes and outlines"/> |
 
-<sub>Original image: [Pixabay](https://pixabay.com/illustrations/ai-generated-girl-dystopia-ruins-9062885/), made bigger from 3100 to 8640 px.</sub>
-
 **A tiny drawing (118 × 104 px) made 4x bigger.** Left: normal enlargement. Right: AI upscaling (Anime), done by the AI built into ImgCompress, inside your own container. Nothing is uploaded, your images never leave your server. The second row zooms in on one fingernail.
 
 | Original | AI upscaled (Anime) |
@@ -155,13 +153,15 @@ Prefer Docker Compose? Ready-made configurations live in [`docker/compose/`](doc
 
 Step-by-step instructions for both are in the **[compose guide](docker/compose/README.md)**.
 
-Each upload can be up to 40 GB, so big PSD and PDF files work. To set a smaller limit, add `MAX_UPLOAD_SIZE_MB` (for example `-e MAX_UPLOAD_SIZE_MB=500`). If other people can reach your copy over the internet, a smaller limit like 1 GB (`1024`) is a good idea. More in the [upload limit guide](https://imgcompress.karimzouine.com/docs/installation#upload-limit).
+**Home-lab example (Traefik + ntfy):** a great starting point for self-hosters. Every self-hoster uses a different approach; this is one I find simple and easy to get started with. Traefik, ImgCompress and your own ntfy with `.lan` names — short steps and a diagram in [`docker/compose/homelab-traefik-ntfy/`](docker/compose/homelab-traefik-ntfy/).
 
-`WEB_WORKERS` sets the number of web workers. The default `auto` starts one per CPU core. Lower it on small machines to save RAM (for example `-e WEB_WORKERS=2`).
+Each upload can be up to 40 GB. Cap it with `-e MAX_UPLOAD_SIZE_MB=1024` (1 GB is a good public limit). [Upload limit](https://imgcompress.karimzouine.com/docs/configuration#upload-limit).
 
-Set `DISABLE_UPDATE_CHECK=true` to stop the browser from checking GitHub for new releases. The version stays in the footer.
+`WEB_WORKERS` defaults to `auto` (one per CPU). Lower it on small machines to save RAM, e.g. `-e WEB_WORKERS=2`. [Web workers](https://imgcompress.karimzouine.com/docs/configuration#web-workers-and-ram).
 
-**Notify me when done (optional):** set `NOTIFY_URL` to any [Apprise](https://github.com/caronc/apprise) URL, for example your own ntfy server (`NOTIFY_URL=ntfy://ntfy/imgcompress`). A switch then shows up while a conversion runs. Turn it on, close the tab, and you get one message when it is done. It says how many images are ready, never file names. Set `PUBLIC_BASE_URL` to the address you open imgcompress at, and the message carries a private link to that one result: start on your PC, open the link on your iPhone and download it there. The link holds a secret made just for this job and works until the result is cleaned up, so keep your ntfy topic private. The message also stamps when the link is expected to expire, in the container's local time — set `TZ` (for example `TZ=Europe/Berlin`); there is no separate imgcompress time setting. `PUBLIC_BASE_URL` is never taken from a request, because the Host header can be faked. Without it there is no link, and the message tells you which browser to open, for example "Open imgcompress in Safari on your iPhone to get your result." A ready-made setup with ntfy is in **[ntfy.docker-compose.yaml](docker/compose/ntfy.docker-compose.yaml)**. On iOS the ntfy app fetches the message from your ntfy server, so away from home you need a VPN to your network.
+Set `-e DISABLE_UPDATE_CHECK=true` to stop the browser checking GitHub for new releases (version stays in the footer). [Update check](https://imgcompress.karimzouine.com/docs/privacy#update-notifications).
+
+**Notify me when done (optional):** set `NOTIFY_URL` (e.g. `NOTIFY_URL=ntfy://notify.lan/<topic>`) plus optional `PUBLIC_BASE_URL` and `TZ`. A switch appears while a job runs; you get one message when it finishes, with a private result link if `PUBLIC_BASE_URL` is set. Full setup: [Notify me when done](https://imgcompress.karimzouine.com/docs/notifications). Ready-made compose: **[homelab-traefik-ntfy](docker/compose/homelab-traefik-ntfy/)**.
 
 For more settings, such as hiding the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
