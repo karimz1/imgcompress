@@ -44,6 +44,7 @@ QUEUED = "queued"
 RUNNING = "running"
 DONE = "done"
 FAILED = "failed"
+CANCELED = "canceled"
 _ACTIVE = (QUEUED, RUNNING)
 
 INTERRUPTED_MESSAGE = "The conversion stopped unexpectedly. Please try again."
@@ -97,6 +98,8 @@ class RunningJob:
 
 
 _NOTIFY_FILE = "notify"
+# Empty flag file: the browser asked to stop; the worker checks it and finishes canceled.
+_CANCEL_FILE = "cancel"
 # SHA-256 of the share link token sent in the notification (one line).
 _SHARE_FILE = "share"
 # SHA-256 of tokens handed to other browsers through the share link (one per line).
@@ -203,6 +206,34 @@ class ConversionJobStore:
                 return f.read(32).strip() or None
         except OSError:
             return None
+
+    def request_cancel(self, job_id: Optional[str], token: Optional[str]) -> Optional[str]:
+        """
+        Asks the worker to stop. Returns "canceled" when the flag was set,
+        "already" when the job is already canceled, "finished" when it already
+        ended as done/failed, or None when the id/token do not match (opaque).
+        """
+        state = self.read(job_id, token)
+        if state is None:
+            return None
+        status = state.get("status")
+        if status == CANCELED:
+            return "already"
+        if status not in _ACTIVE:
+            return "finished"
+        path = self._folder(job_id)
+        if path is None:
+            return None
+        try:
+            # Separate file so the worker can keep rewriting status.json.
+            open(os.path.join(path, _CANCEL_FILE), "a").close()
+        except OSError:
+            return None
+        return "canceled"
+
+    def is_canceled(self, job_id: Optional[str]) -> bool:
+        path = self._folder(job_id)
+        return path is not None and os.path.isfile(os.path.join(path, _CANCEL_FILE))
 
     def create_share_token(self, job_id: Optional[str]) -> Optional[str]:
         """

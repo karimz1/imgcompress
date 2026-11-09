@@ -14,12 +14,14 @@ from backend.image_converter.application.dtos import CompressionFormData
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure import job_progress
 from backend.image_converter.infrastructure.conversion_job_store import (
+    CANCELED,
     DONE,
     FAILED,
     RUNNING,
     ConversionJobStore,
     RunningJob,
 )
+from backend.image_converter.infrastructure.job_progress import JobCanceled
 from backend.image_converter.infrastructure.notifier import Notifier, describe_device, resolve_language, share_link
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 from backend.image_converter.presentation.web.services.compression_service import (
@@ -100,6 +102,13 @@ class ConversionJobService:
     ) -> bool:
         return self.store.set_notify(job_id, token, enabled, resolve_language(language))
 
+    def cancel(self, job_id: Optional[str], token: Optional[str]) -> Optional[str]:
+        """Stops a running job for its own token. See ConversionJobStore.request_cancel."""
+        result = self.store.request_cancel(job_id, token)
+        if result in ("canceled", "already"):
+            self.store.touch(job_id)
+        return result
+
     def claim(self, job_id: Optional[str], share_token: Optional[str]) -> Optional[dict]:
         """A job token for this device from the notification's share link, else None."""
         token = self.store.claim(job_id, share_token)
@@ -122,6 +131,8 @@ class ConversionJobService:
 
         def on_progress(fields: dict) -> None:
             nonlocal last_write
+            if self.store.is_canceled(job.job_id):
+                raise JobCanceled()
             changed = {k: v for k, v in fields.items() if progress.get(k) != v}
             if not changed:
                 return
@@ -136,22 +147,30 @@ class ConversionJobService:
 
         try:
             job.update(status=RUNNING)
-            with job_progress.reporting_to(on_progress):
+            with job_progress.reporting_to(on_progress, cancel_check=lambda: self.store.is_canceled(job.job_id)):
                 result = self.compression_service.run(prepared)
-            if result.is_successful:
+            if self.store.is_canceled(job.job_id):
+                job.finish(CANCELED, progress=progress)
+            elif result.is_successful:
                 progress.update(files_done=progress.get("files_total", 0), waiting=False)
                 summary = result.value.to_json_dict()
                 summary.pop("dest_folder", None)
                 job.finish(DONE, progress=progress, result=summary)
             else:
                 job.finish(FAILED, progress=progress, error=result.error)
+        except JobCanceled:
+            try:
+                job.finish(CANCELED, progress=progress)
+            except Exception:
+                pass
         except Exception:
             self.logger.log(f"Conversion job {job.job_id} crashed: {traceback.format_exc()}", "error")
             try:
                 job.finish(FAILED, error="Unexpected compression failure.")
             except Exception:
                 pass
-        self._notify(job)
+        if job.state.get("status") != CANCELED:
+            self._notify(job)
 
     def _notify(self, job: RunningJob) -> None:
         """One message for an opted-in job; never lets a failure reach the job."""

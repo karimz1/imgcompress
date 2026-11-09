@@ -50,7 +50,10 @@ class _ScriptedUseCase:
     def execute(self, req):
         self.started.set()
         job_progress.report(files_done=0, tiles_done=10, tiles_total=36)
-        assert self.release.wait(10)
+        # Same as a long upscale: keep checking cancel between "tiles".
+        while not self.release.wait(0.05):
+            job_progress.check_canceled()
+        job_progress.check_canceled()
         if self.fail:
             return CompressResult(processed_files=[], errors=["photo.png: model missing"])
         names = []
@@ -610,3 +613,55 @@ def test_When_PublicBaseUrlIsMissing_Expect_NoLinkAndNoShareToken(setup, monkeyp
     [(_, body)] = setup.sent
     assert body == "Open imgcompress in Safari on your iPhone to get your result."
     assert not (setup.tmp_path / f"job_{job_id}" / "share").exists()
+
+
+def _cancel(setup, job_id, token):
+    headers = {"X-Job-Token": token} if token is not None else {}
+    return setup.client.post(f"/api/jobs/{job_id}/cancel", headers=headers)
+
+
+def test_When_UserCancelsRunningJob_Expect_CanceledStatusNoResultNoNotify(setup):
+    setup.use_case.release.clear()
+    job_id, token = _started(setup)
+    assert setup.use_case.started.wait(5)
+    _opt_in(setup, job_id, token)
+    assert _cancel(setup, job_id, token).status_code == 204
+
+    setup.wait_done()
+    state = setup.status(job_id, token).get_json()
+    assert state["status"] == "canceled"
+    assert "result" not in state or state.get("result") in (None, {})
+    assert setup.client.get(f"/api/jobs/{job_id}/files/photo.jpg", headers={"X-Job-Token": token}).status_code == 404
+    assert setup.client.get(f"/api/jobs/{job_id}/zip", headers={"X-Job-Token": token}).status_code == 404
+    assert setup.sent == []
+    # Temp output for this job is gone; only the job folder with status remains.
+    dest_dirs = [p for p in setup.tmp_path.iterdir() if p.is_dir() and not p.name.startswith("job_")]
+    assert dest_dirs == []
+
+
+def test_When_CancelUsesWrongToken_Expect_404AndJobKeepsRunning(setup):
+    setup.use_case.release.clear()
+    job_id, token = _started(setup)
+    assert setup.use_case.started.wait(5)
+    assert _cancel(setup, job_id, "guess").status_code == 404
+    assert _cancel(setup, job_id, None).status_code == 404
+    setup.use_case.release.set()
+    setup.wait_done()
+    assert setup.status(job_id, token).get_json()["status"] == "done"
+
+
+def test_When_CancelAfterDone_Expect_409(setup):
+    job_id, token = _started(setup)
+    setup.wait_done()
+    assert setup.status(job_id, token).get_json()["status"] == "done"
+    assert _cancel(setup, job_id, token).status_code == 409
+
+
+def test_When_CancelTwice_Expect_Idempotent204(setup):
+    setup.use_case.release.clear()
+    job_id, token = _started(setup)
+    assert setup.use_case.started.wait(5)
+    assert _cancel(setup, job_id, token).status_code == 204
+    assert _cancel(setup, job_id, token).status_code == 204
+    setup.wait_done()
+    assert setup.status(job_id, token).get_json()["status"] == "canceled"

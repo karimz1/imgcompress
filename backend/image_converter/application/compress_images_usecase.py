@@ -2,6 +2,7 @@ import os
 from typing import Optional
 
 from backend.image_converter.infrastructure import job_progress
+from backend.image_converter.infrastructure.job_progress import JobCanceled
 from .dtos import CompressRequest, CompressResult
 from backend.image_converter.domain.size_targeting import find_best_quality_under_target
 from backend.image_converter.domain.units import TargetSize
@@ -72,6 +73,8 @@ class CompressImagesUseCase:
                 if not expand_result.is_successful:
                     raise ValueError(expand_result.error)
                 page_payloads = expand_result.value
+            except JobCanceled:
+                raise
             except Exception as e:
                 errors.append(f"{item.name}: {e}")
                 continue
@@ -156,6 +159,8 @@ class CompressImagesUseCase:
                             errors.append(f"{page_label}: {result.error}")
                         else:
                             processed.append(dest_name)
+                except JobCanceled:
+                    raise
                 except Exception as e:
                     errors.append(f"{page_label}: {e}")
 

@@ -162,6 +162,19 @@ def conversion_job_notify(job_id: str):
     return "", 204
 
 
+@api_blueprint.route("/jobs/<job_id>/cancel", methods=["POST"])
+def conversion_job_cancel(job_id: str):
+    """Stops a running job for its own token. Wrong token and unknown id look the same."""
+    result = conversion_jobs.cancel(job_id, _job_token())
+    if result is None:
+        return _job_not_found()
+    if result == "finished":
+        response = jsonify({"error": "Job already finished."})
+        response.headers["Cache-Control"] = "no-store"
+        return response, 409
+    return "", 204
+
+
 @api_blueprint.route("/jobs/<job_id>/claim", methods=["POST"])
 def conversion_job_claim(job_id: str):
     """Opens a job from the notification's share link on another device.
