@@ -149,11 +149,12 @@ def test_web_workers_env_auto_wins_over_app_json(config_file, monkeypatch):
     assert settings.get().web.workers.is_auto is True
 
 
-def test_web_workers_env_empty_keeps_app_json(config_file, monkeypatch):
+@pytest.mark.parametrize("value", ["", " "])
+def test_web_workers_env_empty_keeps_app_json(config_file, monkeypatch, value):
     cfg = _copy_config()
     cfg["web"]["workers"] = 8
     config_file(cfg)
-    monkeypatch.setenv("WEB_WORKERS", " ")
+    monkeypatch.setenv("WEB_WORKERS", value)
 
     assert settings.get().web.workers.resolve(fallback_when_auto=999) == 8
 
