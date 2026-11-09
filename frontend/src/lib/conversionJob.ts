@@ -169,6 +169,29 @@ export function saveActiveJob(job: JobRef | null): void {
   }
 }
 
+const NOTIFY_PREFERENCE_KEY = "imgcompress.notifyWhenDone";
+
+/**
+ * The last "notify me when done" choice in this browser. Off until the user
+ * turns it on once; only this browser remembers it, never the container.
+ */
+export function loadNotifyPreference(): boolean {
+  try {
+    return localStorage.getItem(NOTIFY_PREFERENCE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function saveNotifyPreference(enabled: boolean): void {
+  try {
+    if (enabled) localStorage.setItem(NOTIFY_PREFERENCE_KEY, "true");
+    else localStorage.removeItem(NOTIFY_PREFERENCE_KEY);
+  } catch {
+    // Private mode or storage full: the switch just starts off next time.
+  }
+}
+
 export function loadActiveJob(): JobRef | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

@@ -208,8 +208,8 @@ export const hu: TranslationSchema = {
       },
       hint:
         "A képarány nem változik. A már elég nagy képek változatlanok maradnak.",
-      slowHint: "Képenként pár percig tarthat. Nyugodtan zárd be a lapot, és gyere vissza később.",
-      notifyTip: "Tipp: kapj értesítést a telefonodra, ha kész.",
+      slowHint: "Az MI-felskálázás a képtől függően eltarthat egy kis ideig.",
+      notifyTip: "Tudtad? ntfy-on keresztül szólhatok, ha elkészültek a képeid.",
       notifyTipLink: "Értesítések beállítása",
       unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",
       fitActiveHint: "Nem használatos, amíg a pontos méretre igazítás be van kapcsolva.",

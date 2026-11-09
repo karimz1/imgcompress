@@ -205,8 +205,8 @@ export const en = {
       },
       hint:
         "The aspect ratio stays the same. Images that are already big enough stay unchanged.",
-      slowHint: "Can take a few minutes per image. Feel free to close the tab and come back later.",
-      notifyTip: "Tip: get a notification on your phone when it's done.",
+      slowHint: "AI upscaling can take a moment, depending on the image.",
+      notifyTip: "Did you know? I can let you know via ntfy when your images are ready.",
       notifyTipLink: "Set up notifications",
       unavailableHint: "AI upscaling is not included in this version.",
       fitActiveHint: "Not used while Fit to exact size is on.",

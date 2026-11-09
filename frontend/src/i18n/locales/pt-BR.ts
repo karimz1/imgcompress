@@ -208,8 +208,8 @@ export const ptBR: TranslationSchema = {
       },
       hint:
         "A proporção continua a mesma. Imagens que já são grandes o bastante ficam inalteradas.",
-      slowHint: "Pode levar alguns minutos por imagem. Pode fechar a aba e voltar mais tarde.",
-      notifyTip: "Dica: receba uma notificação no celular quando terminar.",
+      slowHint: "Dependendo da imagem, o aumento com IA pode levar um momento.",
+      notifyTip: "Sabia que posso te avisar pelo ntfy quando suas imagens estiverem prontas?",
       notifyTipLink: "Configurar notificações",
       unavailableHint: "A ampliação com IA não está incluída nesta versão.",
       fitActiveHint: "Não é usado enquanto Ajustar ao tamanho exato estiver ativado.",

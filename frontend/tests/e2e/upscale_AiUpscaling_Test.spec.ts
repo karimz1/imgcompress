@@ -203,14 +203,18 @@ test.describe('AI upscaling', () => {
       await page.goto('/');
       await setOutputFormatAsync(page, 'JPEG');
       await page.getByTestId('upscale-switch').click();
-      await expect(page.getByTestId('upscale-slow-hint')).toBeVisible();
+      const notice = page.getByTestId('upscale-slow-hint');
+      await expect(notice).toBeVisible();
 
       const tip = page.getByTestId('upscale-notify-tip');
       if (notifyEnabled) {
+        // ntfy is already set up: only the first sentence, no tip.
+        await expect(notice).toHaveText('AI upscaling can take a moment, depending on the image.');
         await expect(tip).toHaveCount(0);
         return;
       }
-      await expect(tip).toContainText("Tip: get a notification on your phone when it's done.");
+      await expect(notice).toContainText('AI upscaling can take a moment, depending on the image.');
+      await expect(tip).toHaveText('Did you know? I can let you know via ntfy when your images are ready. Set up notifications');
       const link = tip.getByRole('link', { name: 'Set up notifications' });
       await expect(link).toHaveAttribute('href', 'https://imgcompress.karimzouine.com/docs/notifications#set-up-ntfy-step-by-step');
       await expect(link).toHaveAttribute('target', '_blank');
@@ -235,9 +239,9 @@ test.describe('AI upscaling', () => {
     const slowNotice = page.getByTestId('upscale-slow-hint');
     await expect(slowNotice).toBeVisible();
     await expect(slowNotice).toHaveAttribute('role', 'note');
-    await expect(slowNotice).toContainText(
-      "Can take a few minutes per image. Feel free to close the tab and come back later."
-    );
+    await expect(slowNotice).toContainText('AI upscaling can take a moment, depending on the image.');
+    // Nothing is running yet when the notice shows, so it must not suggest closing the tab.
+    await expect(slowNotice).not.toContainText('close the tab');
     await expect(slowNotice).toHaveClass(/blue/);
     await expect(page.getByTestId('upscale-hint')).not.toContainText('slower servers');
 
@@ -296,7 +300,7 @@ test.describe('AI upscaling', () => {
   ] as const;
   const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  test('lets General keep more detail with the photo preset', async ({ page }) => {
+  test('starts on the photo preset that keeps detail and smooths old photos on request', async ({ page }) => {
     // A noisy photo crop: the presets differ in how much of the grain they smooth away.
     const source = await sharp(SKYLINE_PHOTO).resize(160, 90, { fit: 'cover' }).jpeg({ quality: 40 }).toBuffer();
     const sent: string[] = [];
@@ -307,27 +311,28 @@ test.describe('AI upscaling', () => {
       await route.continue();
     });
     const outputs: Buffer[] = [];
-    for (const [index, level] of (['strong', 'low'] as const).entries()) {
+    for (const [index, level] of (['low', 'strong'] as const).entries()) {
       const photo = new ImageFileDto(`grain-${index}.jpg`);
       await page.goto('/');
       await setOutputFormatAsync(page, 'PNG');
       await uploadGeneratedImageToDropzoneAsync(page, photo.fileName, 'image/jpeg', source);
       await setUpscaleAsync(page, '4x');
       const group = page.getByRole('radiogroup', { name: 'Image type' });
-      // Default stays as before: the released General model.
-      await expect(group.getByRole('radio', { name: /Old or noisy photo \(smooth\)/ })).toHaveAttribute('aria-checked', 'true');
+      // Most uploads are sharp photos, so the detail-keeping preset is preselected.
+      await expect(group.getByRole('radio', { name: /Photo \(keep details\)/ })).toHaveAttribute('aria-checked', 'true');
+      await expect(group.getByRole('radio', { name: /Old or noisy photo \(smooth\)/ })).toHaveAttribute('aria-checked', 'false');
       for (const [label, hint] of PRESETS) {
         await expect(group.getByRole('radio', { name: new RegExp(escapeRegExp(label)) })).toContainText(hint);
       }
-      if (level === 'low') {
-        const photoPreset = group.getByRole('radio', { name: /Photo \(keep details\)/ });
-        await photoPreset.click();
-        await expect(photoPreset).toHaveAttribute('aria-checked', 'true');
+      if (level === 'strong') {
+        const noisyPreset = group.getByRole('radio', { name: /Old or noisy photo \(smooth\)/ });
+        await noisyPreset.click();
+        await expect(noisyPreset).toHaveAttribute('aria-checked', 'true');
       }
       const output = await convertAndDownloadSingleAsync(page, photo, '.png');
       outputs.push(await sharp(output).raw().toBuffer());
     }
-    expect(sent).toEqual(['general', 'general-denoise-low']);
+    expect(sent).toEqual(['general-denoise-low', 'general']);
     expect(outputs[0].equals(outputs[1])).toBe(false);
 
     // Anime has no noise setting.
@@ -337,6 +342,24 @@ test.describe('AI upscaling', () => {
     await expect(page.getByTestId('upscale-denoise-group')).toBeVisible();
     await page.getByTestId('upscale-model-option-anime').click();
     await expect(page.getByTestId('upscale-denoise-group')).toHaveCount(0);
+  });
+
+  test('falls back to the released General model when the photo preset is not installed', async ({ page }) => {
+    // A self-built container without the blended model files.
+    await page.route('**/api/upscale_model', (route) => route.fulfill({ json: {
+      models: [
+        { id: 'general', model_name: 'realesr-general-x4v3', available: true },
+        { id: 'anime', model_name: 'realesr-animevideov3', available: true },
+        { id: 'general-denoise-medium', model_name: 'realesr-general-x4v3-denoise-medium', available: true },
+        { id: 'general-denoise-low', model_name: 'realesr-general-x4v3-denoise-low', available: false },
+      ],
+    } }));
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'PNG');
+    await setUpscaleAsync(page, '2x');
+    const group = page.getByRole('radiogroup', { name: 'Image type' });
+    await expect(group.getByRole('radio', { name: /Photo \(keep details\)/ })).toHaveCount(0);
+    await expect(group.getByRole('radio', { name: /Old or noisy photo \(smooth\)/ })).toHaveAttribute('aria-checked', 'true');
   });
 
   test('marks an uninstalled anime model unavailable', async ({ page }) => {

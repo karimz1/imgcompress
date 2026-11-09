@@ -109,7 +109,7 @@ test.describe('Notify me when done', () => {
       received.length = 0;
     });
 
-    test('off by default; turned on, exactly one message for that job and none for another', async ({ page, request }) => {
+    test('off by default; turned on, exactly one message for that job; remembered, turned off again, none for the next', async ({ page, request }) => {
       test.setTimeout(300_000);
       const mine = await startJobAsync(page, 'private-holiday-photo.jpg', true);
       const toggle = page.locator(SWITCH);
@@ -120,6 +120,8 @@ test.describe('Notify me when done', () => {
       await toggle.click();
       expect((await saved).status()).toBe(204);
       await expect(toggle).toHaveAttribute('aria-checked', 'true');
+      // Only this browser remembers the choice.
+      expect(await page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBe('true');
 
       // The tab may close now: the server sends the message on its own.
       await page.goto('about:blank');
@@ -139,11 +141,18 @@ test.describe('Notify me when done', () => {
       expect(JSON.stringify(message)).not.toContain('private-holiday-photo');
       shareLink = message.message!.split('\n')[1];
 
-      // A second job without the switch: no message. Forget the first result,
-      // so the page opens on an empty form rather than on that result.
+      // The next job starts with the remembered choice; this time the user turns it
+      // off: no message. Forget the first result, so the page opens on an empty form
+      // rather than on that result.
       await page.goto('/');
       await page.evaluate(() => localStorage.removeItem('imgcompress.activeJob'));
-      const other = await startJobAsync(page, 'second.jpg', false);
+      const other = await startJobAsync(page, 'second.jpg', true);
+      await expect(toggle).toHaveAttribute('aria-checked', 'true');
+      const turnedOff = page.waitForResponse((r) => r.url().endsWith(`/api/jobs/${other.id}/notify`));
+      await toggle.click();
+      expect((await turnedOff).status()).toBe(204);
+      await expect(toggle).toHaveAttribute('aria-checked', 'false');
+      expect(await page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBeNull();
       await waitDoneAsync(request, other);
       await page.waitForTimeout(3000);
       expect(received).toHaveLength(1);

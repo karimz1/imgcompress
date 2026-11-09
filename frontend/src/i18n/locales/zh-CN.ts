@@ -208,8 +208,8 @@ export const zhCN: TranslationSchema = {
       },
       hint:
         "宽高比保持不变。已经足够大的图片保持不变。",
-      slowHint: "每张图可能需要几分钟。可以放心关闭标签页，稍后再回来。",
-      notifyTip: "提示：完成时可以在手机上收到通知。",
+      slowHint: "视图片而定，AI 放大可能需要一点时间。",
+      notifyTip: "你知道吗？图片准备好时，我可以通过 ntfy 通知你。",
       notifyTipLink: "设置通知",
       unavailableHint: "此版本不包含 AI 放大。",
       fitActiveHint: "开启“调整为精确尺寸”时不使用此项。",
