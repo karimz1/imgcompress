@@ -47,7 +47,13 @@ VALID_CONFIG = {
     "rembg": {"model_name": "u2net"},
 }
 
-_FEATURE_ENV_VARS = ("DISABLE_LOGO", "DISABLE_STORAGE_MANAGEMENT", "DEV_MODE", "MAX_UPLOAD_SIZE_MB")
+_FEATURE_ENV_VARS = (
+    "DISABLE_LOGO",
+    "DISABLE_STORAGE_MANAGEMENT",
+    "DEV_MODE",
+    "MAX_UPLOAD_SIZE_MB",
+    "WEB_WORKERS",
+)
 
 
 @pytest.fixture
@@ -119,6 +125,47 @@ def test_web_workers_auto_resolves_via_fallback(config_file):
     workers = settings.get().web.workers
 
     assert workers.resolve(fallback_when_auto=4) == 4
+
+
+@pytest.mark.parametrize(("env_value", "expected"), [("2", 2), (" 16 ", 16)])
+def test_web_workers_env_wins_over_app_json(config_file, monkeypatch, env_value, expected):
+    cfg = _copy_config()
+    cfg["web"]["workers"] = 8
+    config_file(cfg)
+    monkeypatch.setenv("WEB_WORKERS", env_value)
+
+    workers = settings.get().web.workers
+
+    assert workers.is_auto is False
+    assert workers.resolve(fallback_when_auto=999) == expected
+
+
+def test_web_workers_env_auto_wins_over_app_json(config_file, monkeypatch):
+    cfg = _copy_config()
+    cfg["web"]["workers"] = 8
+    config_file(cfg)
+    monkeypatch.setenv("WEB_WORKERS", "Auto")
+
+    assert settings.get().web.workers.is_auto is True
+
+
+@pytest.mark.parametrize("value", ["", " "])
+def test_web_workers_env_empty_keeps_app_json(config_file, monkeypatch, value):
+    cfg = _copy_config()
+    cfg["web"]["workers"] = 8
+    config_file(cfg)
+    monkeypatch.setenv("WEB_WORKERS", value)
+
+    assert settings.get().web.workers.resolve(fallback_when_auto=999) == 8
+
+
+@pytest.mark.parametrize("value", ["0", "-1", "1.5", "many", "4 workers"])
+def test_web_workers_env_invalid_refuses_to_start(config_file, monkeypatch, value):
+    config_file(VALID_CONFIG)
+    monkeypatch.setenv("WEB_WORKERS", value)
+
+    with pytest.raises(ConfigError, match="WEB_WORKERS"):
+        settings.get()
 
 
 @pytest.mark.parametrize(

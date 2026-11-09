@@ -1,4 +1,4 @@
-"""Builds `AppConfig` from `app.json` (with feature-flag and upload-limit env overrides).
+"""Builds `AppConfig` from `app.json` (with feature-flag, upload-limit and web-worker env overrides).
 
 The loader is the *only* module that knows the JSON key paths and the env-var
 names. Everywhere else in the codebase reads typed attributes off `AppConfig`.
@@ -67,6 +67,8 @@ _OVERRIDES = (
 
 # Self-hosters set the upload limit (MiB) in docker-compose; it wins over app.json.
 MAX_UPLOAD_SIZE_ENV = "MAX_UPLOAD_SIZE_MB"
+# Same for the Granian worker count ("auto" or a whole number).
+WEB_WORKERS_ENV = "WEB_WORKERS"
 
 
 def load_from_file(path: Path) -> AppConfig:
@@ -86,7 +88,7 @@ def load_from_file(path: Path) -> AppConfig:
     web = WebConfig(
         host=reader.require_str(("web", "host")),
         port=reader.require_int(("web", "port"), minimum=1, maximum=65535),
-        workers=reader.require_web_workers(("web", "workers")),
+        workers=reader.require_web_workers_with_env(("web", "workers"), WEB_WORKERS_ENV),
     )
     logging_cfg = LoggingConfig(
         backend_log_file=reader.require_str(("logging", "backend_log_file")),
@@ -270,6 +272,15 @@ class _Reader:
             return WebWorkerCount.auto()
         return WebWorkerCount.fixed(raw)
 
+    def require_web_workers_with_env(
+        self, path: Tuple[str, ...], env_var: str
+    ) -> WebWorkerCount:
+        """Like ``require_web_workers``; a set env var wins over the JSON value."""
+        env_value = _read_env_web_workers(env_var, self._errors)
+        if env_value is not None:
+            return env_value
+        return self.require_web_workers(path)
+
     def optional_thread_count(self, path: Tuple[str, ...]) -> Optional[int]:
         """``"auto"`` or a missing key gives None; otherwise an integer >= 1."""
         raw = self._peek(path)
@@ -388,3 +399,18 @@ def _read_env_int(name: str, minimum: int, errors: list[str]) -> Optional[int]:
         )
         return None
     return int(normalized)
+
+
+def _read_env_web_workers(name: str, errors: list[str]) -> Optional[WebWorkerCount]:
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return None
+    normalized = raw.strip()
+    if normalized.lower() == "auto":
+        return WebWorkerCount.auto()
+    if normalized.isascii() and normalized.isdigit() and int(normalized) >= 1:
+        return WebWorkerCount.fixed(int(normalized))
+    errors.append(
+        f"environment variable '{name}' must be a whole number >= 1 or \"auto\", got '{raw}'"
+    )
+    return None

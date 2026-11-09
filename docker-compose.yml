@@ -15,6 +15,8 @@ services:
       # Optional: largest upload per file in MB, also for editor pictures. Default 40960 (40 GB) for big PSD/PDF files; remove the line to keep it.
       # For a public instance, use a smaller limit like 1 GB (1024).
       - MAX_UPLOAD_SIZE_MB=40960
+      # Optional: number of web workers. Default "auto" = one per CPU core. Lower it on small machines to save RAM.
+      # - WEB_WORKERS=2
       # Set to true to disable the storage management features (e.g., for your users to not see all the files)
       - DISABLE_STORAGE_MANAGEMENT=false
       # Optional: "Notify me when done" (opt-in per job). Apprise URL the container
