@@ -567,6 +567,8 @@ jobs:
   ci-status:
     # One check that is green only when every job above is. Require this one
     # instead of each matrix entry, so renaming a scenario never blocks merges.
+    # Keep real permissions (not {}) so the job can register as a check, and make
+    # deploy-nightly / auto-merge need this job so the scheduler cannot drop it.
     name: ci-status
     needs:
       - lint-python
@@ -578,7 +580,8 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions: {}
+    permissions:
+      contents: read
     steps:
       - name: Summarize and gate
         env:
@@ -602,6 +605,7 @@ jobs:
 
   deploy-nightly:
     needs:
+      - ci-status
       - test-backend
       - test-e2e
       - test-feature-flags-matrix
@@ -628,6 +632,7 @@ jobs:
 
   auto-merge-dependabot:
     needs:
+      - ci-status
       - test-backend
       - test-e2e
       - test-feature-flags-matrix
