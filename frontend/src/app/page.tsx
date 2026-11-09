@@ -750,8 +750,14 @@ function HomePageContent() {
       if (!followedJob) return;
       notifyTouched.current = true;
       setNotifyOn(checked);
-      if (await setJobNotify(followedJob, checked, i18n.language)) saveNotifyPreference(checked);
-      else setNotifyOn(!checked);
+      // Keep the preference in sync with the switch right away. Waiting for the
+      // POST to finish left a window where the UI and localStorage disagreed
+      // (and a closed tab could forget the choice). Revert both if the request fails.
+      saveNotifyPreference(checked);
+      if (!(await setJobNotify(followedJob, checked, i18n.language))) {
+        setNotifyOn(!checked);
+        saveNotifyPreference(!checked);
+      }
     },
     [followedJob, i18n]
   );

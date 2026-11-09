@@ -120,8 +120,9 @@ test.describe('Notify me when done', () => {
       await toggle.click();
       expect((await saved).status()).toBe(204);
       await expect(toggle).toHaveAttribute('aria-checked', 'true');
-      // Only this browser remembers the choice.
-      expect(await page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBe('true');
+      // Only this browser remembers the choice. Poll: preference is written with
+      // the switch, but a stale read right after the network response was flaky.
+      await expect.poll(() => page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBe('true');
 
       // The tab may close now: the server sends the message on its own.
       await page.goto('about:blank');
@@ -152,7 +153,7 @@ test.describe('Notify me when done', () => {
       await toggle.click();
       expect((await turnedOff).status()).toBe(204);
       await expect(toggle).toHaveAttribute('aria-checked', 'false');
-      expect(await page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBeNull();
+      await expect.poll(() => page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBeNull();
       await waitDoneAsync(request, other);
       await page.waitForTimeout(3000);
       expect(received).toHaveLength(1);
