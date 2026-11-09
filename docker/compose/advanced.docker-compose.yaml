@@ -39,6 +39,9 @@ services:
       # Optional: largest upload per file in MB, also for editor pictures. Default 40960 (40 GB) for big PSD/PDF files; remove the line to keep it.
       # For a public instance, use a smaller limit like 1 GB (1024).
       - MAX_UPLOAD_SIZE_MB=${IMGCOMPRESS_MAX_UPLOAD_SIZE_MB:-40960}
+      # Optional: number of web workers. Default "auto" = one per CPU core. Lower it on small machines to save RAM.
+      # Empty keeps the value from app.json.
+      - WEB_WORKERS=${IMGCOMPRESS_WEB_WORKERS:-}
       # Set to true to disable the storage management features (e.g., for your users to not see all the files)
       - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-false}
       # Set to true to turn off the update check: the browser then stops asking GitHub (api.github.com) for the latest release, and no update banner is shown
