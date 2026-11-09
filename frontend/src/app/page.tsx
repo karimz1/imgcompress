@@ -41,6 +41,8 @@ import {
   takeSharedJobLink,
   saveActiveJob,
   setJobNotify,
+  loadNotifyPreference,
+  saveNotifyPreference,
   waitForJob,
 } from "@/lib/conversionJob";
 import { SplashScreen } from "@/components/SplashScreen";
@@ -586,6 +588,9 @@ function HomePageContent() {
         }
         const job: JobRef = { id: payload.id, token: payload.token };
         saveActiveJob(job);
+        // A new job takes over the last choice of this browser; the first status
+        // poll then shows the switch as the container has it.
+        if (notifyAvailable && loadNotifyPreference()) await setJobNotify(job, true, i18n.language);
         await followJob(job, controller);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
@@ -626,6 +631,8 @@ function HomePageContent() {
       pdfQuality,
       crops,
       followJob,
+      notifyAvailable,
+      i18n,
     ]
   );
 
@@ -731,7 +738,8 @@ function HomePageContent() {
       if (!followedJob) return;
       notifyTouched.current = true;
       setNotifyOn(checked);
-      if (!(await setJobNotify(followedJob, checked, i18n.language))) setNotifyOn(!checked);
+      if (await setJobNotify(followedJob, checked, i18n.language)) saveNotifyPreference(checked);
+      else setNotifyOn(!checked);
     },
     [followedJob, i18n]
   );

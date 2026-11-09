@@ -72,7 +72,7 @@ test.describe('Real-world journeys with several images', () => {
     // Sharp photos: the detail-keeping preset is already selected, no extra click.
     const photoPreset = page.getByRole('radiogroup', { name: 'Image type' }).getByRole('radio', { name: /Photo \(keep details\)/ });
     await expect(photoPreset).toHaveAttribute('aria-checked', 'true');
-    await expect(page.getByTestId('upscale-slow-hint')).toContainText('AI upscaling can take a moment.');
+    await expect(page.getByTestId('upscale-slow-hint')).toContainText('AI upscaling can take a moment, depending on the image.');
     await expect(page.getByTestId('upscale-notify-tip')).toHaveCount(notifyEnabled ? 0 : 1);
 
     const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/jobs'));

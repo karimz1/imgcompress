@@ -203,13 +203,17 @@ test.describe('AI upscaling', () => {
       await page.goto('/');
       await setOutputFormatAsync(page, 'JPEG');
       await page.getByTestId('upscale-switch').click();
-      await expect(page.getByTestId('upscale-slow-hint')).toBeVisible();
+      const notice = page.getByTestId('upscale-slow-hint');
+      await expect(notice).toBeVisible();
 
       const tip = page.getByTestId('upscale-notify-tip');
       if (notifyEnabled) {
+        // ntfy is already set up: only the first sentence, no tip.
+        await expect(notice).toHaveText('AI upscaling can take a moment, depending on the image.');
         await expect(tip).toHaveCount(0);
         return;
       }
+      await expect(notice).toContainText('AI upscaling can take a moment, depending on the image.');
       await expect(tip).toHaveText('Did you know? I can let you know via ntfy when your images are ready. Set up notifications');
       const link = tip.getByRole('link', { name: 'Set up notifications' });
       await expect(link).toHaveAttribute('href', 'https://imgcompress.karimzouine.com/docs/notifications#set-up-ntfy-step-by-step');
@@ -235,7 +239,7 @@ test.describe('AI upscaling', () => {
     const slowNotice = page.getByTestId('upscale-slow-hint');
     await expect(slowNotice).toBeVisible();
     await expect(slowNotice).toHaveAttribute('role', 'note');
-    await expect(slowNotice).toContainText('AI upscaling can take a moment.');
+    await expect(slowNotice).toContainText('AI upscaling can take a moment, depending on the image.');
     // Nothing is running yet when the notice shows, so it must not suggest closing the tab.
     await expect(slowNotice).not.toContainText('close the tab');
     await expect(slowNotice).toHaveClass(/blue/);

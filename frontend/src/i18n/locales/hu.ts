@@ -208,7 +208,7 @@ export const hu: TranslationSchema = {
       },
       hint:
         "A képarány nem változik. A már elég nagy képek változatlanok maradnak.",
-      slowHint: "Az MI-felskálázás eltarthat egy kis ideig.",
+      slowHint: "Az MI-felskálázás a képtől függően eltarthat egy kis ideig.",
       notifyTip: "Tudtad? ntfy-on keresztül szólhatok, ha elkészültek a képeid.",
       notifyTipLink: "Értesítések beállítása",
       unavailableHint: "Az MI-felskálázás nem része ennek a verziónak.",

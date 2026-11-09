@@ -208,7 +208,7 @@ export const ja: TranslationSchema = {
       },
       hint:
         "縦横比はそのまま保たれます。すでに十分大きい画像は変更されません。",
-      slowHint: "AIアップスケールには少し時間がかかることがあります。",
+      slowHint: "画像によっては、AIアップスケールに少し時間がかかることがあります。",
       notifyTip: "知っていましたか？画像ができあがったら ntfy でお知らせできます。",
       notifyTipLink: "通知を設定する",
       unavailableHint: "このバージョンには AI アップスケールが含まれていません。",

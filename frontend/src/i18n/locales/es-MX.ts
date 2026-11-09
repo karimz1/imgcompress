@@ -208,7 +208,7 @@ export const esMX: TranslationSchema = {
       },
       hint:
         "La relación de aspecto se mantiene. Las imágenes que ya son lo bastante grandes no cambian.",
-      slowHint: "El escalado con IA puede tardar un momento.",
+      slowHint: "Según la imagen, el escalado con IA puede tardar un momento.",
       notifyTip: "¿Sabías que puedo avisarte por ntfy cuando tus imágenes estén listas?",
       notifyTipLink: "Configurar notificaciones",
       unavailableHint: "La ampliación con IA no está incluida en esta versión.",

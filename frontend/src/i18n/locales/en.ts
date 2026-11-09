@@ -205,7 +205,7 @@ export const en = {
       },
       hint:
         "The aspect ratio stays the same. Images that are already big enough stay unchanged.",
-      slowHint: "AI upscaling can take a moment.",
+      slowHint: "AI upscaling can take a moment, depending on the image.",
       notifyTip: "Did you know? I can let you know via ntfy when your images are ready.",
       notifyTipLink: "Set up notifications",
       unavailableHint: "AI upscaling is not included in this version.",
