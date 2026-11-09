@@ -116,8 +116,6 @@ Make small photos and drawings bigger and sharper, up to 16K. The AI is already 
 | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-face-original.webp" width="440" alt="Anime girl's face and eyes from the original image, enlarged the normal way, soft and slightly blurry lines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-face-upscaled.webp" width="440" alt="The same face after AI upscaling with Anime, clean sharp lines around the eyes and hair"/> |
 | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-eye-original.webp" width="440" alt="Close-up of one eye from the original image, enlarged the normal way, fuzzy outlines"/> | <img src="images/ai-upscaler-examples/models/realesr-animevideov3/guren-eye-upscaled.webp" width="440" alt="The same eye after AI upscaling with Anime, crisp eyelashes and outlines"/> |
 
-<sub>Original image: [Pixabay](https://pixabay.com/illustrations/ai-generated-girl-dystopia-ruins-9062885/), made bigger from 3100 to 8640 px.</sub>
-
 **A tiny drawing (118 × 104 px) made 4x bigger.** Left: normal enlargement. Right: AI upscaling (Anime), done by the AI built into ImgCompress, inside your own container. Nothing is uploaded, your images never leave your server. The second row zooms in on one fingernail.
 
 | Original | AI upscaled (Anime) |
