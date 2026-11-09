@@ -208,8 +208,8 @@ export const fr: TranslationSchema = {
       },
       hint:
         "Le rapport d'aspect reste le même. Les images déjà assez grandes restent inchangées.",
-      slowHint: "Peut prendre quelques minutes par image. Fermez l'onglet et revenez plus tard.",
-      notifyTip: "Astuce : recevez une notification sur votre téléphone quand c'est terminé.",
+      slowHint: "L'agrandissement IA peut prendre un moment.",
+      notifyTip: "Le saviez-vous ? Je peux vous prévenir via ntfy quand vos images sont prêtes.",
       notifyTipLink: "Configurer les notifications",
       unavailableHint: "L'agrandissement par IA n'est pas inclus dans cette version.",
       fitActiveHint: "Non utilisé tant que « Ajuster à une taille exacte » est activé.",

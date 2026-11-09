@@ -208,8 +208,8 @@ export const de: TranslationSchema = {
       },
       hint:
         "Das Seitenverhältnis bleibt gleich. Bilder, die schon groß genug sind, bleiben unverändert.",
-      slowHint: "Kann je nach Bild ein paar Minuten dauern. Schließ ruhig den Tab und komm später wieder.",
-      notifyTip: "Tipp: Lass dich auf dem Handy benachrichtigen, wenn es fertig ist.",
+      slowHint: "Die KI-Hochskalierung kann einen Moment dauern.",
+      notifyTip: "Wusstest du schon? Ich kann dir per ntfy Bescheid sagen, wenn deine Bilder fertig sind.",
       notifyTipLink: "Benachrichtigungen einrichten",
       unavailableHint: "KI-Hochskalierung ist in dieser Version nicht enthalten.",
       fitActiveHint: "Wird nicht verwendet, solange „Auf exakte Größe bringen“ aktiv ist.",

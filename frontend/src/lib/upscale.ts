@@ -15,8 +15,9 @@ export const UPSCALE_MODEL_NAMES: Record<UpscaleModel, string> = {
 
 /**
  * General model presets, shown as image types. "strong" is the model as released
- * (old or noisy photo, the default); "medium" and "low" are the official
- * weak-denoise blend (built into the image) that keeps more fine detail. Same speed.
+ * (old or noisy photo); "medium" and "low" are the official weak-denoise blend
+ * (built into the image) that keeps more fine detail. Same speed. "low" (photo,
+ * keep details) is the default; without its model file the UI falls back to "strong".
  * Ordered as shown: least to most smoothing.
  */
 export const UPSCALE_DENOISE_LEVELS = ["low", "medium", "strong"] as const;
@@ -48,7 +49,7 @@ export const DEFAULT_UPSCALE_SETTINGS: UpscaleSettings = {
   enabled: false,
   target: "2x",
   model: "general",
-  denoise: "strong",
+  denoise: "low",
 };
 
 /** The `upscale_model` form value: General's noise presets are model files of their own. */

@@ -208,8 +208,8 @@ export const esMX: TranslationSchema = {
       },
       hint:
         "La relación de aspecto se mantiene. Las imágenes que ya son lo bastante grandes no cambian.",
-      slowHint: "Puede tardar unos minutos por imagen. Cierra la pestaña tranquilo y vuelve más tarde.",
-      notifyTip: "Consejo: recibe una notificación en tu celular cuando termine.",
+      slowHint: "El escalado con IA puede tardar un momento.",
+      notifyTip: "¿Sabías que puedo avisarte por ntfy cuando tus imágenes estén listas?",
       notifyTipLink: "Configurar notificaciones",
       unavailableHint: "La ampliación con IA no está incluida en esta versión.",
       fitActiveHint: "No se usa mientras Ajustar a tamaño exacto está activado.",
