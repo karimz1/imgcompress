@@ -230,3 +230,9 @@ docs/assets/vendor/
 
 # local worktrees
 **/worktrees/
+# Trivy scan output
+scan-result.log
+trivy-results.json
+trivy-results.log
+trivy-results.sarif
+issue-body.md
