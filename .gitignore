@@ -231,3 +231,5 @@ docs/assets/vendor/
 # local worktrees
 **/worktrees/
 work/
+test-reports/
+ci-logs/

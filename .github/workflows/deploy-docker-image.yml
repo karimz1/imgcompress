@@ -30,6 +30,7 @@ concurrency:
 jobs:
   select-source:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       mode: ${{ steps.source.outputs.mode }}
       ref: ${{ steps.source.outputs.ref }}
@@ -78,6 +79,7 @@ jobs:
     needs: select-source
     if: needs.select-source.outputs.mode == 'release'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write  # generate-notes needs it; nothing is written here
       issues: read
@@ -116,6 +118,7 @@ jobs:
       (needs.select-source.outputs.mode == 'nightly' ||
        (needs.select-source.outputs.mode == 'release' && needs.release-notes.result == 'success'))
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     permissions:
       contents: read
       packages: write  # needed for pushing to GHCR with GITHUB_TOKEN
@@ -225,6 +228,7 @@ jobs:
     # Only after the version image is pushed. A failed build leaves no draft.
     if: needs.select-source.outputs.mode == 'release'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write  # create the draft release
     steps:
@@ -256,6 +260,7 @@ jobs:
     needs: select-source
     if: needs.select-source.outputs.mode == 'promote'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       packages: write  # retag on GHCR
@@ -326,6 +331,7 @@ jobs:
     # Only the release that also got `latest`, so a backport keeps the current README.
     if: needs.promote-latest.outputs.latest == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:

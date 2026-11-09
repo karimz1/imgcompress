@@ -170,10 +170,20 @@ ENV U2NET_HOME=/container/.u2net
 # from the internet, then copy it to the persistent U2NET_HOME inside the image.
 RUN --mount=type=cache,target=/cache/u2net,uid=65532,gid=65532 \
     U2NET_HOME=/cache/u2net python - <<'PY' && cp -a /cache/u2net/. /container/.u2net/
+import time
 from backend.image_converter.config import settings
 from rembg import new_session
 model_name = settings.get().rembg.model_name
-new_session(model_name)
+# The model comes from GitHub releases, which sometimes time out in CI.
+for attempt in range(1, 6):
+    try:
+        new_session(model_name)
+        break
+    except Exception as exc:
+        if attempt == 5:
+            raise
+        print(f"rembg download failed (attempt {attempt}/5): {exc}; retrying in {attempt * 15}s", flush=True)
+        time.sleep(attempt * 15)
 print(f"rembg model cached: {model_name}")
 PY
 
