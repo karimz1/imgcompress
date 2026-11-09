@@ -38,7 +38,7 @@ export interface JobResult {
 
 export interface JobState {
   id: string;
-  status: "queued" | "running" | "done" | "failed";
+  status: "queued" | "running" | "done" | "failed" | "canceled";
   progress?: JobProgress;
   error?: string;
   result?: JobResult;
@@ -63,6 +63,19 @@ export async function setJobNotify(job: JobRef, enabled: boolean, language?: str
       headers: { ...jobHeaders(job), "Content-Type": "application/json" },
       // The message is written in this UI language (the server falls back to English).
       body: JSON.stringify({ enabled, language }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Asks the container to stop the job. Wrong token looks like "not found". */
+export async function cancelJob(job: JobRef): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/jobs/${encodeURIComponent(job.id)}/cancel`, {
+      method: "POST",
+      headers: jobHeaders(job),
     });
     return res.ok;
   } catch {
@@ -273,7 +286,7 @@ export function waitForJob(
         if (request !== current) return;
         failures = 0;
         onProgress(state);
-        if (state.status === "done" || state.status === "failed") {
+        if (state.status === "done" || state.status === "failed" || state.status === "canceled") {
           cleanup();
           resolve(state);
           return;

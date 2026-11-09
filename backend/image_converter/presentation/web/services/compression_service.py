@@ -16,6 +16,7 @@ from backend.image_converter.application.dtos import (
 )
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.infrastructure.job_progress import JobCanceled
 from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
@@ -224,6 +225,8 @@ class CompressionService:
                 process_summary=result,
             ))
 
+        except JobCanceled:
+            raise
         except Exception:
             self.logger.log(
                 f"Unexpected compression failure: {traceback.format_exc()}",

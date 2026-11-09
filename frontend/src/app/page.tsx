@@ -37,6 +37,7 @@ import {
   jobZipUrl,
   jobStartedAtLocal,
   loadActiveJob,
+  cancelJob,
   claimSharedJob,
   takeSharedJobLink,
   saveActiveJob,
@@ -361,6 +362,11 @@ function HomePageContent() {
           message: state.error || t("page.toast.unexpectedError"),
           isApiError: true,
         });
+        return;
+      }
+      if (state.status === "canceled") {
+        saveActiveJob(null);
+        toast.info(t("page.toast.compressionCancelled"));
         return;
       }
       const names = state.result?.converted_files ?? [];
@@ -725,16 +731,19 @@ function HomePageContent() {
   }, []);
 
   const handleAbort = useCallback(() => {
+    const job = followedJob;
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
-      // The server may still finish it, but this page stops waiting for it.
-      saveActiveJob(null);
-      setIsLoading(false);
-      setJobProgress(null);
-      toast.info(t("page.toast.compressionCancelled"));
     }
-  }, []);
+    saveActiveJob(null);
+    setIsLoading(false);
+    setJobProgress(null);
+    setFollowedJob(null);
+    toast.info(t("page.toast.compressionCancelled"));
+    // Stop the worker in the container; fire-and-forget so the UI stays snappy.
+    if (job) void cancelJob(job);
+  }, [followedJob, t]);
 
   const handleNotifyChange = useCallback(
     async (checked: boolean) => {
