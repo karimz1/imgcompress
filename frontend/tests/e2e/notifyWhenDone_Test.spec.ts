@@ -165,7 +165,7 @@ test.describe('Notify me when done', () => {
       await page.route(/\/api\/jobs\/[^/]+\/notify$/, async (route) => {
         await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
       });
-      await startJobAsync(page, 'notify-fail.jpg', false);
+      await startJobAsync(page, 'notify-fail.jpg', true);
       const toggle = page.locator(SWITCH);
       await expect(toggle).toBeVisible();
       await expect(toggle).toHaveAttribute('aria-checked', 'false');
