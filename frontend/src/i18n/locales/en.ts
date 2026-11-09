@@ -48,6 +48,8 @@ export const en = {
     tipUpscale: "Upscaling runs inside your container and can take a few minutes per image. You can close the tab and come back later.",
     tipUpscaleNotify: "Upscaling can take a few minutes per image. Turn on “Notify me when done” and I'll let you know.",
     notifyTip: "Did you know? I can tell you when your images are ready.",
+    notifyErrorOn: "Couldn't turn on notifications. Please try again.",
+    notifyErrorOff: "Couldn't turn off notifications. Please try again.",
     messages: [
       "Compressing your files…",
       "Optimizing quality and size.",

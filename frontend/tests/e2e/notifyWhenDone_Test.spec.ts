@@ -159,6 +159,37 @@ test.describe('Notify me when done', () => {
       expect(received).toHaveLength(1);
     });
 
+
+    test('failed notify POST shows toast and inline alert; both clear after retry', async ({ page }) => {
+      test.setTimeout(180_000);
+      await page.route(/\/api\/jobs\/[^/]+\/notify$/, async (route) => {
+        await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
+      });
+      await startJobAsync(page, 'notify-fail.jpg', true);
+      const toggle = page.locator(SWITCH);
+      await expect(toggle).toBeVisible();
+      await expect(toggle).toHaveAttribute('aria-checked', 'false');
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+      const msg = "Couldn't turn on notifications. Please try again.";
+      const inline = page.getByTestId('notify-switch-error');
+      await expect(inline).toBeVisible();
+      await expect(inline).toContainText(msg);
+      const toastErr = page.locator('.Toastify__toast--error').filter({ hasText: msg });
+      await expect(toastErr).toBeVisible();
+      await expect.poll(() => page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBeNull();
+
+      // Retry succeeds: inline alert and sticky toast both go away; switch stays on.
+      await page.unroute(/\/api\/jobs\/[^/]+\/notify$/);
+      const saved = page.waitForResponse((r) => r.url().includes('/notify') && r.request().method() === 'POST');
+      await toggle.click();
+      expect((await saved).status()).toBe(204);
+      await expect(toggle).toHaveAttribute('aria-checked', 'true');
+      await expect(inline).toHaveCount(0);
+      await expect(page.locator('.Toastify__toast--error').filter({ hasText: msg })).toHaveCount(0);
+    });
+
     test('the share link opens the result on another device, which can download it', async ({ browser }) => {
       test.skip(!shareLink, 'needs the message from the test above');
       const { pathname } = new URL(shareLink);
