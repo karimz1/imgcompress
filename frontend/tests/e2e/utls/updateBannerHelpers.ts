@@ -21,6 +21,21 @@ export async function mockLatestVersionResponseAsync(
   });
 }
 
+export function trackLatestVersionRequests(page: Page): string[] {
+  const urls: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/repos/karimz1/imgcompress/releases/latest')) urls.push(request.url());
+  });
+  return urls;
+}
+
+export async function mockRuntimeConfigAsync(page: Page, overrides: Record<string, string>): Promise<void> {
+  await page.route('**/config/runtime.json', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, json: { ...(await response.json()), ...overrides } });
+  });
+}
+
 export async function mockLatestVersionErrorAsync(page: Page): Promise<void> {
   await page.route(latestVersionRoute, async (route) => {
     await route.abort('failed');

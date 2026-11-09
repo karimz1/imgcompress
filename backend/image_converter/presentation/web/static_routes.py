@@ -20,6 +20,7 @@ def serve_runtime_config():
         "DISABLE_LOGO": _flag(not features.is_logo_enabled),
         "DISABLE_STORAGE_MANAGEMENT": _flag(not features.is_storage_management_enabled),
         "DEV_MODE": _flag(features.is_dev_mode_enabled),
+        "DISABLE_UPDATE_CHECK": _flag(not features.is_update_check_enabled),
         "MAX_UPLOAD_SIZE_MB": str(config.uploads.max_file_size_mebibytes),
         "MAX_OUTPUT_MEGAPIXELS": str(config.upscaling.max_output_megapixels),
         # Only whether it is on; the URL often holds a secret token.

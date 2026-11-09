@@ -68,6 +68,7 @@ function HomePageContent() {
   const [configReady, setConfigReady] = useState(false);
   const [storageManagementDisabled, setStorageManagementDisabled] = useState(false);
   const [devMode, setDevMode] = useState(false);
+  const [updateCheckDisabled, setUpdateCheckDisabled] = useState(false);
   const [notifyAvailable, setNotifyAvailable] = useState(false);
   // The job the splash screen follows, and its "notify me when done" switch.
   const [followedJob, setFollowedJob] = useState<JobRef | null>(null);
@@ -85,6 +86,7 @@ function HomePageContent() {
           config.DISABLE_STORAGE_MANAGEMENT === "true";
         setStorageManagementDisabled(disableStorage);
         setDevMode(config.DEV_MODE === "true");
+        setUpdateCheckDisabled(config.DISABLE_UPDATE_CHECK === "true");
         setMaxUploadSizeMb(config.MAX_UPLOAD_SIZE_MB);
         setMaxOutputMegapixels(config.MAX_OUTPUT_MEGAPIXELS);
         setNotifyAvailable(config.NOTIFY_ENABLED === "true");
@@ -93,6 +95,7 @@ function HomePageContent() {
         setDisableLogo(false);
         setStorageManagementDisabled(false);
         setDevMode(false);
+        setUpdateCheckDisabled(false);
       } finally {
         setConfigReady(true);
       }
@@ -896,7 +899,7 @@ function HomePageContent() {
 
         <ErrorModal />
         {configReady && devMode && <DevModePanel />}
-        <PageFooter />
+        <PageFooter checkForUpdates={configReady && !updateCheckDisabled} />
       </div>
     </div>
   );

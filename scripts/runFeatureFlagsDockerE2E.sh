@@ -4,9 +4,9 @@ set -euo pipefail
 
 # Build the Docker image once, then run the runtime feature-flags Playwright
 # specs against flag combinations to prove DISABLE_LOGO,
-# DISABLE_STORAGE_MANAGEMENT and MAX_UPLOAD_SIZE_MB propagate end-to-end
-# (env -> runtime.json -> UI and server). The upload limit spec skips itself
-# unless the limit is small.
+# DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB and DISABLE_UPDATE_CHECK
+# propagate end-to-end (env -> runtime.json -> UI and server). The upload
+# limit spec skips itself unless the limit is small.
 
 IMAGE_NAME="${IMAGE_NAME:-karimz1/imgcompress:local-test-flags}"
 BUILDX_BUILDER="${BUILDX_BUILDER:-imgcompress-builder}"
@@ -47,13 +47,14 @@ docker buildx build \
     -t "$IMAGE_NAME" \
     "$APP_ROOT"
 
-# (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB; "-" = default) combinations
+# (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK; "-" = default) combinations
 COMBOS=(
-    "false false -"
-    "true  false -"
-    "false true  -"
-    "true  true  -"
-    "false false 5"
+    "false false - -"
+    "true  false - -"
+    "false true  - -"
+    "true  true  - -"
+    "false false 5 -"
+    "false false - true"
 )
 
 FAILURES=()
@@ -64,11 +65,14 @@ for combo in "${COMBOS[@]}"; do
     DL="$1"
     DSM="$2"
     MAX_MB="$3"
+    DUC="$4"
     [ "$MAX_MB" = "-" ] && MAX_MB=""
+    [ "$DUC" = "-" ] && DUC=""
+    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default}"
 
     echo
     echo "==========================================================="
-    echo "▶ Combo: DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default}"
+    echo "▶ Combo: $COMBO"
     echo "==========================================================="
 
     cleanup_container
@@ -79,6 +83,7 @@ for combo in "${COMBOS[@]}"; do
         -e DISABLE_LOGO="$DL" \
         -e DISABLE_STORAGE_MANAGEMENT="$DSM" \
         -e MAX_UPLOAD_SIZE_MB="$MAX_MB" \
+        -e DISABLE_UPDATE_CHECK="$DUC" \
         "$IMAGE_NAME" >/dev/null
 
     echo "⏳ Waiting for http://localhost:$PORT_HOST/api/health/backend ..."
@@ -95,7 +100,7 @@ for combo in "${COMBOS[@]}"; do
     if (( HEALTHY != 1 )); then
         echo "❌ Backend did not become healthy within ${HEALTH_TIMEOUT}s"
         docker logs --tail 100 "$CONTAINER_NAME" || true
-        FAILURES+=("DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} (health timeout)")
+        FAILURES+=("$COMBO (health timeout)")
         cleanup_container
         continue
     fi
@@ -107,10 +112,10 @@ for combo in "${COMBOS[@]}"; do
         PLAYWRIGHT_BASE_URL="http://localhost:$PORT_HOST" \
         pnpm exec playwright test "${SPEC_PATHS[@]}"
     ); then
-        echo "✅ Spec passed for DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default}"
+        echo "✅ Spec passed for $COMBO"
     else
-        echo "❌ Spec failed for DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default}"
-        FAILURES+=("DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} (spec failed)")
+        echo "❌ Spec failed for $COMBO"
+        FAILURES+=("$COMBO (spec failed)")
     fi
 
     cleanup_container

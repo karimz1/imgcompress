@@ -43,6 +43,7 @@ VALID_CONFIG = {
         "is_storage_management_enabled": True,
         "is_logo_enabled": True,
         "is_dev_mode_enabled": False,
+        "is_update_check_enabled": True,
     },
     "rembg": {"model_name": "u2net"},
 }
@@ -51,6 +52,7 @@ _FEATURE_ENV_VARS = (
     "DISABLE_LOGO",
     "DISABLE_STORAGE_MANAGEMENT",
     "DEV_MODE",
+    "DISABLE_UPDATE_CHECK",
     "MAX_UPLOAD_SIZE_MB",
     "WEB_WORKERS",
 )
@@ -98,6 +100,7 @@ def test_valid_config_loads_into_typed_app_config(config_file):
     assert config.features.is_storage_management_enabled is True
     assert config.features.is_logo_enabled is True
     assert config.features.is_dev_mode_enabled is False
+    assert config.features.is_update_check_enabled is True
     assert config.rembg.model_name == "u2net"
 
 
@@ -192,6 +195,14 @@ def test_required_keys_must_exist(config_file, remove_key, expected_path):
         settings.get()
 
 
+def test_update_check_defaults_on_when_omitted(config_file):
+    cfg = _copy_config()
+    del cfg["features"]["is_update_check_enabled"]
+    config_file(cfg)
+
+    assert settings.get().features.is_update_check_enabled is True
+
+
 def test_logging_size_and_backups_default_when_omitted(config_file):
     cfg = _copy_config()
     del cfg["logging"]["max_size_mebibytes"]
@@ -212,6 +223,7 @@ def test_logging_size_and_backups_default_when_omitted(config_file):
         (("temporary_storage", "max_age_seconds"), "3600", "integer"),
         (("temporary_storage", "max_age_seconds"), True, "integer"),
         (("features", "is_dev_mode_enabled"), "false", "boolean"),
+        (("features", "is_update_check_enabled"), "false", "boolean"),
         (("web", "workers"), True, 'integer or "auto"'),
         (("web", "workers"), "many", 'integer or "auto"'),
         (("crop_preview", "unsupported_input_extensions"), ".pdf", "must be a list"),
@@ -321,6 +333,13 @@ def test_missing_malformed_or_non_object_config_file_raises(tmp_path):
             "is_storage_management_enabled",
         ),
         ("DEV_MODE", "is_dev_mode_enabled", True, False, "is_dev_mode_enabled"),
+        (
+            "DISABLE_UPDATE_CHECK",
+            "is_update_check_enabled",
+            False,
+            True,
+            "is_update_check_enabled",
+        ),
     ],
 )
 def test_feature_flag_env_overrides(

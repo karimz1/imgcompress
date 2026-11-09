@@ -24,7 +24,7 @@ const compareVersions = (current: string, latest: string): boolean => {
   return gt(normalizedLatest, normalizedCurrent);
 };
 
-export function useVersionCheck(installedVersion?: string): VersionInfo {
+export function useVersionCheck(installedVersion?: string, checkForUpdates = true): VersionInfo {
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,7 +44,7 @@ export function useVersionCheck(installedVersion?: string): VersionInfo {
           setCurrentVersion(current);
 
           // Fetch latest version from API
-          if (current) {
+          if (current && checkForUpdates) {
             try {
               const apiResponse = await fetch(APP_CONFIG.LATEST_VERSION_API, {
                 cache: "no-store",
@@ -72,7 +72,7 @@ export function useVersionCheck(installedVersion?: string): VersionInfo {
     };
 
     fetchVersionInfo();
-  }, [installedVersion]);
+  }, [installedVersion, checkForUpdates]);
 
   // Metadata and notes can arrive in either order. Compare against the same
   // installed version used in the footer, rather than retaining a stale result.

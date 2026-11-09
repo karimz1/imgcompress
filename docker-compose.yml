@@ -19,6 +19,8 @@ services:
       # - WEB_WORKERS=2
       # Set to true to disable the storage management features (e.g., for your users to not see all the files)
       - DISABLE_STORAGE_MANAGEMENT=false
+      # Set to true to turn off the update check: the browser then stops asking GitHub (api.github.com) for the latest release, and no update banner is shown
+      - DISABLE_UPDATE_CHECK=false
       # Optional: "Notify me when done" (opt-in per job). Apprise URL the container
       # sends a short message to when a job finishes: image count and device/browser,
       # never file names or images. Default: not set = feature off, switch hidden.

@@ -7,6 +7,8 @@ import {
   getWhatsNewLinkLocator,
   mockLatestVersionErrorAsync,
   mockLatestVersionResponseAsync,
+  mockRuntimeConfigAsync,
+  trackLatestVersionRequests,
   waitForFooterVersionAsync,
 } from './utls/updateBannerHelpers';
 
@@ -70,6 +72,30 @@ test.describe('Update Banner', () => {
       UpdateBannerTestData.releaseNotesUrl
     );
   });
+
+  for (const updateCheckDisabled of [false, true]) {
+    test(`DISABLE_UPDATE_CHECK=${updateCheckDisabled} ${updateCheckDisabled ? 'skips' : 'runs'} the GitHub check`, async ({ page, request }) => {
+      const currentVersion = await getCurrentVersionFromReleaseNotesAsync(request);
+      await mockLatestVersionResponseAsync(
+        page,
+        UpdateBannerTestData.createLatestReleasePayload(UpdateBannerTestData.bumpPatchVersion(currentVersion))
+      );
+      await mockRuntimeConfigAsync(page, { DISABLE_UPDATE_CHECK: String(updateCheckDisabled) });
+      const latestVersionRequests = trackLatestVersionRequests(page);
+
+      await page.goto('/');
+      await waitForFooterVersionAsync(page);
+      await page.waitForLoadState('networkidle');
+
+      if (updateCheckDisabled) {
+        expect(latestVersionRequests).toHaveLength(0);
+        await expect(getUpdateBannerLocator(page)).not.toBeVisible();
+      } else {
+        expect(latestVersionRequests.length).toBeGreaterThan(0);
+        await expect(getUpdateBannerLocator(page)).toBeVisible();
+      }
+    });
+  }
 
   test('handles API error gracefully', async ({ page }) => {
     await mockLatestVersionErrorAsync(page);
