@@ -64,7 +64,7 @@ sequenceDiagram
 - **Leaving and coming back:** the job keeps running on the server when the phone switches apps, the tab is closed or the page reloads. On `visibilitychange`, `pageshow` and `focus` the page drops any request that may be frozen and asks again right away. Each status request gives up after 15 seconds and is retried.
 - **Reload:** the page reads the job id and token from `localStorage` and picks the job up again, running or finished. It forgets the job when you clear the result, start a new conversion or the server answers 404.
 - **Privacy on a shared server:** each job has its own secret token. The server keeps only its SHA-256. A wrong token, a missing token and an unknown id all get the same 404.
-- **Retention:** finished results are kept for at least 24 hours. The cleanup service runs every hour and deletes temp folders with no activity for 48 hours (`temporary_storage.max_age_seconds` in `backend/image_converter/config/app.json`). Every poll or download counts as activity. Folders of running jobs are locked and never deleted.
+- **Retention:** finished results are kept for 48 hours after the last activity (`temporary_storage.max_age_seconds` in `backend/image_converter/config/app.json`). The cleanup service runs every hour. Every poll or download counts as activity and restarts the clock. Folders of running jobs are locked and never deleted.
 
 ## Why polling and not WebSockets
 
