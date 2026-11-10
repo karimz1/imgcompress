@@ -38,9 +38,14 @@ This is the behavior contract agreed with the user. The PDF workspace is part of
 - Enlarge and delete controls are visible on each thumbnail.
 - The enlarged document viewer scrolls through the ordered pages continuously and provides previous/next, a page number field, and a thumbnail navigation rail on wider screens.
 - The enlarged viewer's thumbnail rail has an include/exclude checkbox for every page. The same checkbox is available by each full-size page so it works on narrow screens too. Both update the editor's shared selection immediately.
+- Marking pages is separate from including them in the output. Click marks one page, Shift+click marks a range, Ctrl/Cmd+click adds or removes individual marks, and Ctrl/Cmd+A marks all visible pages. Space includes the marked pages if any are excluded, otherwise excludes them. Keep native text-field shortcuts intact.
+- Show a marked-page count, batch include/exclude and move actions, and a discoverable shortcut hint in the viewer. Marked pages can be reordered together by dragging their thumbnails or using the move buttons. Escape cancels a drag without closing the viewer.
+- Ctrl/Cmd+mouse wheel zooms around the pointer; an ordinary wheel scrolls the continuous document. Dragging a full-size page pans the view, with grab/grabbing cursors. Touch swipes retain native scrolling.
+- A **Hide excluded pages** control shows only the included pages in final output order, renumbered for the result. Hiding is a reversible view filter; it never deletes pages or changes inclusion. Explain how to restore pages when the result is empty.
 - Provide percentage zoom up to 400%, plus fit page and fit width. Zoomed pages must scroll instead of remaining constrained inside a fixed image box.
 - Display actual output paper formats such as A4/Letter, orientation and dimensions. This is a paper-size label, not an AI classification.
 - Fetch detailed rasters only near the viewport and bound preview resolution and memory.
+- Detailed zoom previews rerender the requested original PDF sheet at the needed resolution rather than enlarging its thumbnail or export-quality raster. Keep export DPI unchanged. Debounce zoom requests, retain the last raster while loading, release offscreen detail, and cap previews at 8192 pixels per side and 40 million pixels.
 
 ## Raster export and OCR
 
