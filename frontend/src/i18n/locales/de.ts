@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const de: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "Ausgeschlossene Seiten ausblenden",
+    "markedPages": "{{count}} Seiten markiert",
+    "toggleMarked": "Markierte ein-/ausschließen",
+    "moveMarkedEarlier": "Markierte Seiten nach vorne",
+    "moveMarkedLater": "Markierte Seiten nach hinten",
+    "shortcuts": "Tastenkürzel & Bedienung",
+    "shortcutHelp": "Klick: markieren · Shift+Klick: Bereich · Strg/Cmd+Klick: hinzufügen/entfernen · Strg/Cmd+A: alle sichtbaren markieren · Leertaste: ein-/ausschließen · Strg/Cmd+Mausrad: zoomen · Seite ziehen: Ansicht verschieben · Miniaturen ziehen: Reihenfolge ändern · Esc: schließen/Ziehen abbrechen",
+    "noVisiblePages": "Keine Seiten eingeschlossen. Deaktiviere „Ausgeschlossene Seiten ausblenden“, um Seiten wieder aufzunehmen.",
     "filesTitle": "Deine Dateien",
     "filesDescription": "Lade deine fertigen Dateien herunter.",
     "filesTrigger": "Dateien ({{count}})",

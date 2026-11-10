@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const hi: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "निकाले गए पन्ने छिपाएँ",
+    "markedPages": "{{count}} पन्ने चिह्नित",
+    "toggleMarked": "चिह्नित पन्ने शामिल / बाहर करें",
+    "moveMarkedEarlier": "चिह्नित पन्ने पहले ले जाएँ",
+    "moveMarkedLater": "चिह्नित पन्ने बाद में ले जाएँ",
+    "shortcuts": "शॉर्टकट और नियंत्रण",
+    "shortcutHelp": "क्लिक: चिह्नित · Shift+क्लिक: दायरा · Ctrl/Cmd+क्लिक: जोड़ें/हटाएँ · Ctrl/Cmd+A: सभी दिखते पन्ने चिह्नित · Space: शामिल/बाहर · Ctrl/Cmd+व्हील: ज़ूम · पन्ना खींचें: दृश्य खिसकाएँ · थंबनेल खींचें: क्रम बदलें · Esc: बंद/खींचना रद्द",
+    "noVisiblePages": "कोई पन्ना शामिल नहीं है। पन्ने वापस लाने के लिए निकाले गए पन्ने छिपाना बंद करें।",
     "filesTitle": "आपकी फ़ाइलें",
     "filesDescription": "अपनी तैयार फ़ाइलें डाउनलोड करें।",
     "filesTrigger": "फ़ाइलें ({{count}})",

@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const ru: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "Скрыть исключённые страницы",
+    "markedPages": "Отмечено страниц: {{count}}",
+    "toggleMarked": "Включить / исключить отмеченные",
+    "moveMarkedEarlier": "Переместить отмеченные раньше",
+    "moveMarkedLater": "Переместить отмеченные позже",
+    "shortcuts": "Клавиши и управление",
+    "shortcutHelp": "Щелчок: отметить · Shift+щелчок: диапазон · Ctrl/Cmd+щелчок: добавить/убрать · Ctrl/Cmd+A: отметить все видимые · Пробел: включить/исключить · Ctrl/Cmd+колесо: масштаб · Перетаскивание страницы: сдвиг вида · Перетаскивание миниатюр: порядок · Esc: закрыть/отменить перенос",
+    "noVisiblePages": "Нет включённых страниц. Отключите скрытие исключённых страниц, чтобы вернуть их.",
     "filesTitle": "Ваши файлы",
     "filesDescription": "Скачайте готовые файлы.",
     "filesTrigger": "Файлы ({{count}})",

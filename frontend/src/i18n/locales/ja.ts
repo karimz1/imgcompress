@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const ja: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "除外したページを非表示",
+    "markedPages": "{{count}} ページを選択中",
+    "toggleMarked": "選択ページを含める / 除外",
+    "moveMarkedEarlier": "選択ページを前へ移動",
+    "moveMarkedLater": "選択ページを後ろへ移動",
+    "shortcuts": "ショートカットと操作",
+    "shortcutHelp": "クリック: 選択 · Shift+クリック: 範囲 · Ctrl/Cmd+クリック: 追加/解除 · Ctrl/Cmd+A: 表示中をすべて選択 · Space: 含める/除外 · Ctrl/Cmd+ホイール: ズーム · ページをドラッグ: 表示移動 · サムネイルをドラッグ: 並べ替え · Esc: 閉じる/ドラッグ取消",
+    "noVisiblePages": "含まれるページがありません。「除外したページを非表示」をオフにしてページを戻せます。",
     "filesTitle": "作成したファイル",
     "filesDescription": "完成したファイルをダウンロードできます。",
     "filesTrigger": "ファイル（{{count}}）",

@@ -279,7 +279,7 @@ export function PdfWorkspace({ files, onAddFiles, disabled, visible, settings: f
           </div>
         </DialogContent>
       </Dialog>
-      <PdfDocumentPreview pages={pages} initialPage={open ? zoom : null} settings={settings} onToggleIncluded={(id) => updatePages((current) => current.map((page) => page.id === id ? { ...page, included: !page.included } : page))} onClose={() => setZoom(null)} returnFocus={() => zoomTrigger.current?.focus()} />
+      <PdfDocumentPreview pages={pages} initialPage={open ? zoom : null} settings={settings} onChange={updatePages} onClose={() => setZoom(null)} returnFocus={() => zoomTrigger.current?.focus()} />
     </>
   );
 }

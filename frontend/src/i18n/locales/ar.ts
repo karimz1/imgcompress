@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const ar: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "إخفاء الصفحات المستبعدة",
+    "markedPages": "تم تحديد {{count}} صفحة",
+    "toggleMarked": "تضمين / استبعاد المحدد",
+    "moveMarkedEarlier": "نقل الصفحات المحددة إلى الأمام",
+    "moveMarkedLater": "نقل الصفحات المحددة إلى الخلف",
+    "shortcuts": "الاختصارات والتحكم",
+    "shortcutHelp": "نقر: تحديد · Shift+نقر: نطاق · Ctrl/Cmd+نقر: إضافة/إزالة · Ctrl/Cmd+A: تحديد كل الصفحات الظاهرة · مسافة: تضمين/استبعاد · Ctrl/Cmd+عجلة الفأرة: تكبير · سحب الصفحة: تحريك العرض · سحب المصغرات: إعادة ترتيب · Esc: إغلاق/إلغاء السحب",
+    "noVisiblePages": "لا توجد صفحات مضمنة. أوقف إخفاء الصفحات المستبعدة لاستعادتها.",
     "filesTitle": "ملفاتك",
     "filesDescription": "نزّل ملفاتك الجاهزة.",
     "filesTrigger": "الملفات ({{count}})",

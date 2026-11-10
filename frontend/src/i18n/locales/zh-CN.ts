@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const zhCN: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "隐藏已排除的页面",
+    "markedPages": "已选中 {{count}} 页",
+    "toggleMarked": "包含 / 排除选中页面",
+    "moveMarkedEarlier": "向前移动选中页面",
+    "moveMarkedLater": "向后移动选中页面",
+    "shortcuts": "快捷键与操作",
+    "shortcutHelp": "单击：选中 · Shift+单击：范围选择 · Ctrl/Cmd+单击：添加/移除 · Ctrl/Cmd+A：选中所有可见页面 · 空格：包含/排除 · Ctrl/Cmd+滚轮：缩放 · 拖动页面：平移视图 · 拖动缩略图：排序 · Esc：关闭/取消拖动",
+    "noVisiblePages": "没有包含的页面。关闭“隐藏已排除的页面”以恢复页面。",
     "filesTitle": "您的文件",
     "filesDescription": "下载已生成的文件。",
     "filesTrigger": "文件（{{count}}）",

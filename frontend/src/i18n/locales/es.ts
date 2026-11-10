@@ -4,6 +4,14 @@ import type { TranslationSchema } from "../types";
 export const es: TranslationSchema = {
   ...esMX,
   pdfWorkspace: {
+    "hideExcluded": "Ocultar páginas excluidas",
+    "markedPages": "{{count}} páginas marcadas",
+    "toggleMarked": "Incluir / excluir marcadas",
+    "moveMarkedEarlier": "Adelantar páginas marcadas",
+    "moveMarkedLater": "Retrasar páginas marcadas",
+    "shortcuts": "Atajos y controles",
+    "shortcutHelp": "Clic: marcar · Mayús+clic: intervalo · Ctrl/Cmd+clic: añadir/quitar · Ctrl/Cmd+A: marcar todas las visibles · Espacio: incluir/excluir · Ctrl/Cmd+rueda: zoom · Arrastrar página: desplazar vista · Arrastrar miniaturas: reordenar · Esc: cerrar/cancelar arrastre",
+    "noVisiblePages": "No hay páginas incluidas. Desactiva «Ocultar páginas excluidas» para recuperar páginas.",
     "filesTitle": "Tus archivos",
     "filesDescription": "Descarga los archivos terminados.",
     "filesTrigger": "Archivos ({{count}})",

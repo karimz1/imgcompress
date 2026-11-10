@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const hu: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "Kizárt oldalak elrejtése",
+    "markedPages": "{{count}} oldal megjelölve",
+    "toggleMarked": "Megjelöltek bevonása / kizárása",
+    "moveMarkedEarlier": "Megjelölt oldalak előrébb",
+    "moveMarkedLater": "Megjelölt oldalak hátrébb",
+    "shortcuts": "Billentyűparancsok és vezérlés",
+    "shortcutHelp": "Kattintás: megjelölés · Shift+kattintás: tartomány · Ctrl/Cmd+kattintás: hozzáadás/eltávolítás · Ctrl/Cmd+A: minden látható megjelölése · Szóköz: bevonás/kizárás · Ctrl/Cmd+görgő: nagyítás · Oldal húzása: nézet mozgatása · Bélyegképek húzása: átrendezés · Esc: bezárás/húzás megszakítása",
+    "noVisiblePages": "Nincs bevont oldal. Kapcsold ki a kizárt oldalak elrejtését az oldalak visszaállításához.",
     "filesTitle": "Saját fájlok",
     "filesDescription": "Töltsd le az elkészült fájlokat.",
     "filesTrigger": "Fájlok ({{count}})",

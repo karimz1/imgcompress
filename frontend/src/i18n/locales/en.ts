@@ -1,5 +1,13 @@
 export const en = {
   pdfWorkspace: {
+    "hideExcluded": "Hide excluded pages",
+    "markedPages": "{{count}} pages marked",
+    "toggleMarked": "Include / exclude marked",
+    "moveMarkedEarlier": "Move marked pages earlier",
+    "moveMarkedLater": "Move marked pages later",
+    "shortcuts": "Shortcuts & controls",
+    "shortcutHelp": "Click: mark · Shift+click: range · Ctrl/Cmd+click: add/remove · Ctrl/Cmd+A: mark all visible · Space: include/exclude · Ctrl/Cmd+wheel: zoom · Drag page: pan · Drag thumbnails: reorder · Esc: close/cancel drag",
+    "noVisiblePages": "No included pages. Turn off “Hide excluded pages” to restore pages.",
     "filesTitle": "Your files",
     "filesDescription": "Download your finished files.",
     "filesTrigger": "Files ({{count}})",

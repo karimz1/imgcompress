@@ -2,6 +2,14 @@ import type { TranslationSchema } from "../types";
 
 export const ptBR: TranslationSchema = {
   pdfWorkspace: {
+    "hideExcluded": "Ocultar páginas excluídas",
+    "markedPages": "{{count}} páginas marcadas",
+    "toggleMarked": "Incluir / excluir marcadas",
+    "moveMarkedEarlier": "Mover páginas marcadas para antes",
+    "moveMarkedLater": "Mover páginas marcadas para depois",
+    "shortcuts": "Atalhos e controles",
+    "shortcutHelp": "Clique: marcar · Shift+clique: intervalo · Ctrl/Cmd+clique: adicionar/remover · Ctrl/Cmd+A: marcar todas as visíveis · Espaço: incluir/excluir · Ctrl/Cmd+roda: zoom · Arrastar página: mover visualização · Arrastar miniaturas: reordenar · Esc: fechar/cancelar arraste",
+    "noVisiblePages": "Nenhuma página incluída. Desative “Ocultar páginas excluídas” para restaurar páginas.",
     "filesTitle": "Seus arquivos",
     "filesDescription": "Baixe seus arquivos prontos.",
     "filesTrigger": "Arquivos ({{count}})",
