@@ -135,3 +135,16 @@ export function movePdfPage(pages: WorkspacePage[], fromId: string, toId: string
   next.splice(to, 0, next.splice(from, 1)[0]);
   return next;
 }
+
+/** Move a marked group together, retaining its document order. */
+export function movePdfPages(pages: WorkspacePage[], ids: ReadonlySet<string>, toId: string): WorkspacePage[] {
+  if (ids.has(toId)) return pages;
+  const target = pages.findIndex((page) => page.id === toId);
+  const first = pages.findIndex((page) => ids.has(page.id));
+  if (target < 0 || first < 0) return pages;
+  const group = pages.filter((page) => ids.has(page.id));
+  const rest = pages.filter((page) => !ids.has(page.id));
+  const slot = rest.findIndex((page) => page.id === toId) + (target > first ? 1 : 0);
+  rest.splice(slot, 0, ...group);
+  return rest;
+}

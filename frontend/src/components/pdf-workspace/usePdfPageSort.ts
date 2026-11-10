@@ -1,22 +1,23 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type TouchEvent as ReactTouchEvent } from "react";
-import { movePdfPage, type WorkspacePage } from "@/lib/pdfWorkspace";
+import { movePdfPages, type WorkspacePage } from "@/lib/pdfWorkspace";
 
 type Point = { x: number; y: number };
-type Slot = Point & { width: number; height: number };
+type Slot = Point & { width: number; height: number; id: string };
 
 /** Pointer-following cards, live grid reordering, and animated layout changes. */
-export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages: WorkspacePage[]) => WorkspacePage[]) => void, disabled: boolean) {
+export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages: WorkspacePage[]) => WorkspacePage[]) => void, disabled: boolean, selection?: ReadonlySet<string>) {
   const gridRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [dragged, setDragged] = useState<string | null>(null);
-  const current = useRef({ pages, onChange, disabled });
-  current.current = { pages, onChange, disabled };
+  const current = useRef({ pages, onChange, disabled, selection });
+  current.current = { pages, onChange, disabled, selection };
   const positions = useRef(new Map<string, Point>());
   const animations = useRef(new Map<string, Animation>());
   const cleanup = useRef<(() => void) | null>(null);
   const activeDrag = useRef(0);
+  const suppressClick = useRef(false);
 
   useLayoutEffect(() => {
     const next = new Map<string, Point>();
@@ -49,6 +50,7 @@ export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages
   function prepare(element: HTMLElement, id: string, point: Point, touch: boolean) {
     if (current.current.disabled || cleanup.current) return;
     const initialPages = current.current.pages;
+    const group = current.current.selection?.has(id) ? new Set(current.current.selection) : new Set([id]);
     const rect = element.getBoundingClientRect();
     let latest = point;
     let ghost: HTMLElement | null = null;
@@ -58,6 +60,7 @@ export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages
     let token = 0;
     let slots: Slot[] = [];
     let initialScroll = 0;
+    let lastTarget = id;
 
     const tick = () => {
       if (!ghost) return;
@@ -78,8 +81,11 @@ export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages
             const d = Math.hypot(center.x - slot.x, center.y - (slot.y - scrollDelta));
             if (d < distance) { closest = index; distance = d; }
           });
-          const target = current.current.pages[closest];
-          if (target && target.id !== id) current.current.onChange((items) => movePdfPage(items, id, target.id));
+          const target = slots[closest];
+          if (target && target.id !== lastTarget) {
+            lastTarget = target.id;
+            if (!group.has(target.id)) current.current.onChange((items) => movePdfPages(items, group, target.id));
+          }
         }
       }
       frame = requestAnimationFrame(tick);
@@ -88,12 +94,13 @@ export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages
     const begin = () => {
       if (active) return;
       active = true;
+      suppressClick.current = true;
       token = ++activeDrag.current;
       animations.current.forEach((animation) => animation.cancel());
       animations.current.clear();
       slots = Array.from(gridRef.current?.querySelectorAll<HTMLElement>("[data-page-id]") ?? []).map((card) => {
         const bounds = card.getBoundingClientRect();
-        return { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2, width: bounds.width, height: bounds.height };
+        return { id: card.dataset.pageId!, x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2, width: bounds.width, height: bounds.height };
       });
       initialScroll = scrollRef.current?.scrollTop ?? 0;
       ghost = element.cloneNode(true) as HTMLElement;
@@ -126,6 +133,7 @@ export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages
 
     const finish = (cancelled = false, immediate = false) => {
       detach();
+      if (active) window.setTimeout(() => { suppressClick.current = false; }, 0);
       if (cancelled && active) current.current.onChange(() => initialPages);
       const clone = ghost;
       ghost = null;
@@ -176,9 +184,11 @@ export function usePdfPageSort(pages: WorkspacePage[], onChange: (update: (pages
     cleanup.current = () => finish(true, true);
   }
 
-  const interactive = (target: EventTarget) => (target as HTMLElement).closest("button, input, label, a, select");
+  const interactive = (target: EventTarget) => (target as HTMLElement).closest("button:not([data-pdf-sort-surface]), input, label, a, select");
   return {
     gridRef, scrollRef, dragged,
+    isDragging: () => cleanup.current !== null && suppressClick.current,
+    onClickCapture: (event: React.MouseEvent<HTMLElement>) => { if (suppressClick.current) { event.preventDefault(); event.stopPropagation(); } },
     onPointerDown: (event: ReactPointerEvent<HTMLElement>, id: string) => {
       if (event.pointerType === "touch" || event.button !== 0 || interactive(event.target)) return;
       prepare(event.currentTarget, id, { x: event.clientX, y: event.clientY }, false);
