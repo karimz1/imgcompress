@@ -6,6 +6,7 @@ is needed. Every source page is rendered to pixels before a fresh PDF is made.
 
 import base64
 from contextlib import ExitStack, closing
+from dataclasses import replace
 from io import BytesIO
 from math import ceil, isfinite, sqrt
 
@@ -31,11 +32,14 @@ class PdfWorkspaceService:
         import pypdfium2 as pdfium
 
         self._require_upload(upload)
-        if type(max_side) is not int or not 128 <= max_side <= 4096:
-            raise PdfWorkspaceError("Preview size must be between 128 and 4096 pixels.")
+        if type(max_side) is not int or not 128 <= max_side <= 8192:
+            raise PdfWorkspaceError("Preview size must be between 128 and 8192 pixels.")
+        if page_index is not None and (type(page_index) is not int or page_index < 0):
+            raise PdfWorkspaceError("Invalid page number.")
         with PDFIUM_LOCK, ExitStack() as stack:
             source_map = []
-            document = self._open_source(upload, stack, pdfium, options, preview=page_index is None, source_map=source_map)
+            document = self._open_source(upload, stack, pdfium, options, preview=page_index is None,
+                                         source_map=source_map, detail_page=page_index, detail_side=max_side)
             count = len(document)
             if page_index is not None and (type(page_index) is not int or not 0 <= page_index < count):
                 raise PdfWorkspaceError("Invalid page number.")
@@ -47,10 +51,12 @@ class PdfWorkspaceService:
                     if not all(isfinite(side) and side > 0 for side in (width, height)):
                         raise PdfWorkspaceError("This document has an invalid page size.")
                     side = 360 if page_index is None else max_side
-                    with closing(page.render(scale=min(side / max(width, height), 2 if page_index is None else 8))) as bitmap:
+                    # Leave room for PDFium rounding each bitmap dimension up.
+                    scale = min(side / max(width, height), sqrt((40_000_000 - 2 * side - 1) / (width * height)))
+                    with closing(page.render(scale=scale)) as bitmap:
                         with bitmap.to_pil() as image:
                             with BytesIO() as buffer:
-                                image.convert("RGB").save(buffer, format="JPEG", quality=85)
+                                image.convert("RGB").save(buffer, format="JPEG", quality=85 if page_index is None else 95)
                                 preview = base64.b64encode(buffer.getvalue()).decode("ascii")
                     previews.append({
                         **source_map[index],
@@ -114,7 +120,7 @@ class PdfWorkspaceService:
             raise PdfWorkspaceError("Choose a PDF or image file.")
 
     @staticmethod
-    def _open_source(upload, stack, pdfium, options=None, preview=False, source_map=None):
+    def _open_source(upload, stack, pdfium, options=None, preview=False, source_map=None, detail_page=None, detail_side=None):
         options = options or PdfWorkspaceSettings()
         converter = PdfConverter(
             Logger(), pdf_preset=options.preset, pdf_scale=options.scale,
@@ -122,6 +128,20 @@ class PdfWorkspaceService:
             pdf_quality=options.quality,
         )
         prepared = stack.enter_context(pdfium.PdfDocument.new())
+
+        def output_geometry(width, height):
+            page_w, page_h = options.preset.size or (width, height)
+            if options.preset.size and options.preset.auto_rotate and (width > height) != (page_w > page_h):
+                page_w, page_h = page_h, page_w
+            margin = options.margin_mm * 72 / 25.4 if options.preset.size else 0
+            if min(page_w, page_h) <= 2 * margin:
+                raise PdfWorkspaceError("PDF margin is too large for the page size.")
+            return page_w, page_h, page_w - 2 * margin, page_h - 2 * margin
+
+        if detail_page is not None:
+            # Viewer resolution is independent of the export quality setting.
+            # Never downsample a detailed source back to the 96/220 DPI preset.
+            converter.quality = replace(converter.quality, dpi=10000, jpeg_quality=95, original_max_dimension=None)
 
         def append_image(image, original_size, source_page=0):
             # Reject excessive pagination before the converter allocates pages.
@@ -163,6 +183,31 @@ class PdfWorkspaceService:
                     # Pagination must use the exact same pixel boundaries in preview and export.
                     dpi = min(options.quality.preset.dpi, 96) if preview and not options.paginate else options.quality.preset.dpi
                     scale = min(dpi / 72, 16000 / max(width, height), sqrt(40_000_000 / (width * height)))
+                    if detail_page is not None:
+                        page_w, page_h, inner_w, inner_h = output_geometry(width, height)
+                        base_w, base_h = ceil(width * scale), ceil(height * scale)
+                        count = ceil(base_h * inner_w / (base_w * inner_h)) if options.paginate and options.preset.size else 1
+                        if len(prepared) + count > MAX_PAGES:
+                            raise PdfWorkspaceError(f"The output contains more than {MAX_PAGES} pages.")
+                        if not len(prepared) <= detail_page < len(prepared) + count:
+                            # Preserve output indices cheaply; only rasterize the requested source sheet.
+                            for part in range(count):
+                                prepared.new_page(page_w, page_h).close()
+                                if source_map is not None:
+                                    source_map.append({"source_page": index, "part": part})
+                            continue
+                        # Integer multiples preserve pagination's original pixel boundaries.
+                        if options.preset.size:
+                            ratios = (inner_w / base_w, inner_h / base_h)
+                            placement = inner_w / base_w if options.paginate else (max(ratios) if options.scale == "fill" else min(ratios))
+                        else:
+                            placement = min(page_w / base_w, page_h / base_h)
+                        factor = max(1, ceil(detail_side / max(page_w, page_h) * placement))
+                        factor = min(factor, max(1, int(min(16000 / max(base_w, base_h), sqrt(40_000_000 / (base_w * base_h))))))
+                        with closing(page.render(scale=scale * factor, may_draw_forms=True)) as bitmap, bitmap.to_pil() as image:
+                            with image.resize((base_w * factor, base_h * factor)) as aligned:
+                                append_image(aligned, (width, height), source_page=index)
+                        continue
                     with closing(page.render(scale=scale, may_draw_forms=True)) as bitmap, bitmap.to_pil() as image:
                         append_image(image, (width, height), source_page=index)
         else:

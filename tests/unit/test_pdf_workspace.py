@@ -254,6 +254,60 @@ def test_detailed_previews_honor_requested_resolution_and_limit_allocations():
     preview = service.preview(upload(pdf_bytes("DETAIL")), 0, max_side=2400)
     with Image.open(BytesIO(base64.b64decode(preview["pages"][0]["preview"].split(",")[1]))) as image:
         assert max(image.size) == 2400
-    for invalid in (0, -1, 4097, True, "2400"):
+    for invalid in (0, -1, 8193, True, "2400"):
         with pytest.raises(PdfWorkspaceError, match="Preview size"):
             service.preview(upload(pdf_bytes("DETAIL")), 0, max_side=invalid)
+
+
+def test_zoom_rerenders_original_fine_detail_instead_of_upscaling_export_pixels():
+    import base64
+    from PIL import ImageChops, ImageStat
+
+    original = FPDF(unit="pt", format=(300, 450))
+    original.add_page()
+    original.set_line_width(0.2)
+    for x in range(40, 260):
+        original.line(x, 100, x, 160)
+    data = bytes(original.output())
+    options = PdfWorkspaceSettings.from_form({"apply_layout": "true", "pdf_quality": "small"})
+    result = PdfWorkspaceService().preview(upload(data), 0, options=options, max_side=4800)
+    with Image.open(BytesIO(base64.b64decode(result["pages"][0]["preview"].split(",")[1]))) as actual:
+        with PDFIUM_LOCK, pdfium.PdfDocument(data) as document, closing(document[0]) as page, closing(page.render(scale=4800 / 450)) as bitmap, bitmap.to_pil() as expected:
+            region = (500, 1150, 2700, 1650)
+            with ImageChops.difference(actual.convert("RGB").crop(region), expected.convert("RGB").crop(region)) as difference:
+                assert max(ImageStat.Stat(difference).mean) < 12
+
+
+def test_zoom_only_rasterizes_the_requested_source_page(monkeypatch):
+    scales = []
+    original_render = pdfium.PdfPage.render
+
+    def render(page, *args, **kwargs):
+        scales.append(kwargs["scale"])
+        return original_render(page, *args, **kwargs)
+
+    monkeypatch.setattr(pdfium.PdfPage, "render", render)
+    result = PdfWorkspaceService().preview(upload(pdf_bytes("ONE", "TWO", "THREE")), 1, max_side=4800)
+    assert result["count"] == 3
+    assert result["pages"][0]["source_page"] == 1
+    assert len(scales) == 2  # one original sheet, then the output preview
+    assert min(scales) >= 4800 / 400
+
+
+def test_detailed_paginated_preview_keeps_source_mapping_and_geometry():
+    options = PdfWorkspaceSettings.from_form({
+        "apply_layout": "true", "pdf_preset": "a4-portrait", "pdf_margin_mm": "12",
+        "pdf_paginate": "true", "pdf_quality": "small",
+    })
+    original = FPDF(unit="pt", format=(240, 1400))
+    original.add_page()
+    original.set_font("Helvetica", size=14)
+    original.text(20, 1000, "LOWER SOURCE DETAIL")
+    source = upload(bytes(original.output()))
+    service = PdfWorkspaceService()
+    thumbnails = service.preview(source, options=options)
+    assert thumbnails["count"] > 1
+    detail = service.preview(source, 1, options=options, max_side=4800)
+    assert detail["count"] == thumbnails["count"]
+    for key in ("page", "source_page", "part", "width", "height"):
+        assert detail["pages"][0][key] == thumbnails["pages"][1][key]
