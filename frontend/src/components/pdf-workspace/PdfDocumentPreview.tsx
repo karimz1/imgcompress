@@ -148,10 +148,13 @@ export function PdfDocumentPreview({ pages, initialPage, settings, onChange, onC
   }, [initialPage, viewportNode]);
 
   function shortcuts(event: React.KeyboardEvent) {
-    if ((event.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]") || event.altKey) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("input:not([type=checkbox]):not([type=radio]),textarea,select,[contenteditable=true]") || event.altKey) return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
       event.preventDefault(); setMarked(new Set(visiblePages.map((page) => page.id))); return;
     }
+    // Checkboxes retain their native Space behavior; Ctrl/Cmd+A still marks pages.
+    if (target.closest("input")) return;
     const button = (event.target as HTMLElement).closest("button");
     if (event.code === "Space" && (!button || button.hasAttribute("data-pdf-sort-surface"))) {
       event.preventDefault(); if (!event.repeat && selected.size) toggleIncluded(selected); return;
