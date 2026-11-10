@@ -78,6 +78,9 @@ test.describe('Real-world journeys with several images', () => {
     const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/jobs'));
     await clickConversionButtonAsync(page);
     expect((await started).status()).toBe(202);
+    // The 202 can arrive before the page writes the job to localStorage.
+    // Reloading earlier leaves an empty form.
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('imgcompress.activeJob'))).toBeTruthy();
 
     // The user closes the tab mid-job and comes back in the same browser.
     await page.reload();

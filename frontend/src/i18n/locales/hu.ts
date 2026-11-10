@@ -50,6 +50,8 @@ export const hu: TranslationSchema = {
     tipUpscale: "A nagyítás a konténeredben fut, és képenként pár percig tarthat. Bezárhatod a lapot, és később visszajöhetsz.",
     tipUpscaleNotify: "A nagyítás képenként pár percig tarthat. Kapcsold be: „Értesíts, ha kész”, és szólok.",
     notifyTip: "Tudtad? Szólok, ha elkészültek a képeid.",
+    notifyErrorOn: 'Nem sikerült bekapcsolni az értesítéseket. Próbáld meg újra.',
+    notifyErrorOff: 'Nem sikerült kikapcsolni az értesítéseket. Próbáld meg újra.',
     messages: [
       "Fájlok tömörítése folyamatban…",
       "Minőség és méret optimalizálása.",

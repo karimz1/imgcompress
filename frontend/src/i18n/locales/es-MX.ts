@@ -50,6 +50,8 @@ export const esMX: TranslationSchema = {
     tipUpscale: "El escalado se ejecuta dentro de tu contenedor y puede tardar unos minutos por imagen. Puedes cerrar la pestaña y volver más tarde.",
     tipUpscaleNotify: "El escalado puede tardar unos minutos por imagen. Activa “Avísame cuando termine” y te aviso.",
     notifyTip: "¿Sabías que te aviso cuando tus imágenes estén listas?",
+    notifyErrorOn: 'No se pudieron activar las notificaciones. Inténtalo de nuevo.',
+    notifyErrorOff: 'No se pudieron desactivar las notificaciones. Inténtalo de nuevo.',
     messages: [
       "Comprimiendo tus archivos…",
       "Optimizando calidad y tamaño.",
