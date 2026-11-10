@@ -50,8 +50,6 @@ export const de: TranslationSchema = {
     tipUpscale: "Hochskalieren läuft in deinem Container und kann ein paar Minuten pro Bild dauern. Du kannst den Tab schließen und später wiederkommen.",
     tipUpscaleNotify: "Hochskalieren kann ein paar Minuten pro Bild dauern. Schalte „Benachrichtige mich, wenn fertig“ ein, dann sage ich dir Bescheid.",
     notifyTip: "Wusstest du schon? Ich sag dir Bescheid, wenn deine Bilder fertig sind.",
-    notifyErrorOn: 'Benachrichtigungen konnten nicht eingeschaltet werden. Bitte versuch es noch mal.',
-    notifyErrorOff: 'Benachrichtigungen konnten nicht ausgeschaltet werden. Bitte versuch es noch mal.',
     messages: [
       "Deine Dateien werden komprimiert…",
       "Qualität und Größe werden optimiert.",

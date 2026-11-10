@@ -50,8 +50,6 @@ export const ptBR: TranslationSchema = {
     tipUpscale: "O upscaling roda dentro do seu contêiner e pode levar alguns minutos por imagem. Você pode fechar a aba e voltar mais tarde.",
     tipUpscaleNotify: "O upscaling pode levar alguns minutos por imagem. Ative “Avise-me quando terminar” e eu te aviso.",
     notifyTip: "Sabia que eu te aviso quando suas imagens estiverem prontas?",
-    notifyErrorOn: 'Não foi possível ativar as notificações. Tente de novo.',
-    notifyErrorOff: 'Não foi possível desativar as notificações. Tente de novo.',
     messages: [
       "Comprimindo seus arquivos…",
       "Otimizando qualidade e tamanho.",
