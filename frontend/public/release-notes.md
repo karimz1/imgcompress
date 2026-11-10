@@ -1,4 +1,4 @@
-## v1.0.0 — 2026-10-26
+## v1.0.0 — 2026-11-10
 
 ### Features
 
@@ -36,11 +36,36 @@
 
 - Cleanup and "Delete all" no longer remove files of a job that is still running. Folders of running jobs are locked across all workers, and their age counts from the last activity, so a file you are downloading is not deleted underneath you.
 - Downloads only serve finished conversion results. Uploaded originals and other temp files can no longer be downloaded by folder name.
+- Fix notify-when-done localStorage race in e2e [#1028](https://github.com/karimz1/imgcompress/pull/1028)
+- Show toast + inline alert when notify switch fails [#1029](https://github.com/karimz1/imgcompress/pull/1029)
 
 ### Other Changes
 
 - Releases: A `release_*` tag now prepares a GitHub release draft with generated notes, RC tags publish test images without touching `latest`, and published notes are synced into the app's "What's new". [#911](https://github.com/karimz1/imgcompress/issues/911) [#912](https://github.com/karimz1/imgcompress/issues/912)
 - Docs: Every v1.0 feature has a short guide with screenshots on the [docs site](https://imgcompress.karimzouine.com/docs/web-ui).
+- Background jobs, faster upscaling and safer CI secrets [#979](https://github.com/karimz1/imgcompress/pull/979)
+- Fix CodeQL path alerts in the job store [#980](https://github.com/karimz1/imgcompress/pull/980)
+- Keep finished results for at least 24 hours [#981](https://github.com/karimz1/imgcompress/pull/981)
+- Copy buttons: work over plain http on iPhone [#982](https://github.com/karimz1/imgcompress/pull/982)
+- Show elapsed time while a job runs and how long it took [#983](https://github.com/karimz1/imgcompress/pull/983)
+- Pick up a finished job after Safari comes back, and keep it on reload [#984](https://github.com/karimz1/imgcompress/pull/984)
+- docs: architecture overview with diagrams [#987](https://github.com/karimz1/imgcompress/pull/987)
+- Optional "Notify me when done" via ntfy (Apprise) [#988](https://github.com/karimz1/imgcompress/pull/988)
+- Fit the wait screen on phones; clearer notification text [#989](https://github.com/karimz1/imgcompress/pull/989)
+- AI upscaling: image type presets for General [#990](https://github.com/karimz1/imgcompress/pull/990)
+- Docker: fix apt 'held broken packages' for libgomp1 on DHI [#1003](https://github.com/karimz1/imgcompress/pull/1003)
+- Make the AI upscaling slow-CPU notice easy to see [#1002](https://github.com/karimz1/imgcompress/pull/1002)
+- Text pass: short, direct texts across all screens [#1004](https://github.com/karimz1/imgcompress/pull/1004)
+- Notify: open the result on any device [#1007](https://github.com/karimz1/imgcompress/pull/1007)
+- Share link: no device cap + clearer expired message [#1009](https://github.com/karimz1/imgcompress/pull/1009)
+- CI: steadier builds, reports and one ci-status check [#1020](https://github.com/karimz1/imgcompress/pull/1020)
+- AI upscale: shorter hint with ntfy tip, keep-details preset as default [#1023](https://github.com/karimz1/imgcompress/pull/1023)
+- CI: keep ci-status gate on the job graph [#1025](https://github.com/karimz1/imgcompress/pull/1025)
+- Cancel stops the container job [#1024](https://github.com/karimz1/imgcompress/pull/1024)
+- Docs: results kept 48 hours (release notes + architecture) [#1026](https://github.com/karimz1/imgcompress/pull/1026)
+- Revert notify switch error UI (#1029) [#1030](https://github.com/karimz1/imgcompress/pull/1030)
+- Restore notify switch error toast and warning [#1031](https://github.com/karimz1/imgcompress/pull/1031)
+- prepare release/v1.0.0 [#937](https://github.com/karimz1/imgcompress/pull/937) (Closes [#905](https://github.com/karimz1/imgcompress/issues/905), [#906](https://github.com/karimz1/imgcompress/issues/906), [#907](https://github.com/karimz1/imgcompress/issues/907), [#912](https://github.com/karimz1/imgcompress/issues/912), [#913](https://github.com/karimz1/imgcompress/issues/913))
 
 ### Security Patches
 
@@ -50,7 +75,49 @@ This release also includes **security fixes** to keep `imgcompress` up to date w
 - [chore(docker): refresh 2 DHI base image digests - #964](https://github.com/karimz1/imgcompress/pull/964)
 - [chore(docker): refresh 2 DHI base image digests - #965](https://github.com/karimz1/imgcompress/pull/965)
 - [chore(deps): bump next from 16.3.8 to 16.4.1 - #967](https://github.com/karimz1/imgcompress/pull/967)
-- More dependency updates for the frontend and Python packages.
+- [chore(docker): refresh 1 DHI base image digest - #829](https://github.com/karimz1/imgcompress/pull/829)
+- [chore(docker): refresh 1 DHI base image digest - #841](https://github.com/karimz1/imgcompress/pull/841)
+- [chore(docker): refresh 1 DHI base image digest - #851](https://github.com/karimz1/imgcompress/pull/851)
+- [chore(docker): refresh 2 DHI base image digests - #852](https://github.com/karimz1/imgcompress/pull/852)
+- [chore(deps): bump karimz1/devcontainer-image-only-for-devs from 2026-07 to 2026-09 in /.devcontainer - #853](https://github.com/karimz1/imgcompress/pull/853)
+- [chore(docker): refresh 2 DHI base image digests - #861](https://github.com/karimz1/imgcompress/pull/861)
+- [chore(docker): refresh 2 DHI base image digests - #869](https://github.com/karimz1/imgcompress/pull/869)
+- [chore(docker): refresh 2 DHI base image digests - #870](https://github.com/karimz1/imgcompress/pull/870)
+- [chore(docker): refresh 1 DHI base image digest - #880](https://github.com/karimz1/imgcompress/pull/880)
+- [chore(docker): refresh 2 DHI base image digests - #881](https://github.com/karimz1/imgcompress/pull/881)
+- [chore(docker): refresh 2 DHI base image digests - #886](https://github.com/karimz1/imgcompress/pull/886)
+- [chore(docker): refresh 2 DHI base image digests - #887](https://github.com/karimz1/imgcompress/pull/887)
+- [chore(docker): refresh 1 DHI base image digest - #904](https://github.com/karimz1/imgcompress/pull/904)
+- [chore(docker): refresh 2 DHI base image digests - #985](https://github.com/karimz1/imgcompress/pull/985)
+- [chore(docker): refresh 2 DHI base image digests - #1005](https://github.com/karimz1/imgcompress/pull/1005)
+- [chore(docker): refresh 2 DHI base image digests - #1006](https://github.com/karimz1/imgcompress/pull/1006)
+- [chore(docker): refresh 1 DHI base image digest - #1008](https://github.com/karimz1/imgcompress/pull/1008)
+- [chore(deps): bump karimz1/devcontainer-image-only-for-devs from 2026-09 to 2026-11 in /.devcontainer - #1010](https://github.com/karimz1/imgcompress/pull/1010)
+- [chore(docker): refresh 2 DHI base image digests - #1019](https://github.com/karimz1/imgcompress/pull/1019)
+- More dependency updates for the frontend and Python packages, see the [full changelog](https://github.com/karimz1/imgcompress/compare/release_0.9.0...release_1.0.0).
+
+You can review the latest Docker image tags and related security information here:
+https://hub.docker.com/r/karimz1/imgcompress/tags
+
+### New Contributors
+
+- @stupleb made their first contribution in https://github.com/karimz1/imgcompress/pull/1022
+
+**Full Changelog**: https://github.com/karimz1/imgcompress/compare/release_0.9.0...release_1.0.0
+
+### Setup & Updates
+
+To install the latest version or learn how to update `imgcompress`, follow the official guide:
+
+[Installation & Update Guide](https://imgcompress.karimzouine.com/docs/installation)
+
+### Pinned Version
+
+If you need to pin your deployment to this specific release, use:
+
+```
+karimz1/imgcompress:1.0.0
+```
 
 ## v0.9.0 — 2026-08-22
 
@@ -65,7 +132,6 @@ This release also focuses on **important security fixes** to keep `imgcompress`s
 - [fix: close open Dependabot and CodeQL security alerts - #812](https://github.com/karimz1/imgcompress/pull/812)
 - [chore(docker): refresh 2 DHI base image digests (fixes CVE-2026-45447)](https://github.com/karimz1/imgcompress/pull/813)
 - [fix(docker): move the image to Python 3.14 and drop dead dependencies](https://github.com/karimz1/imgcompress/pull/818)
-
 
 ## v0.8.3 — 2026-07-01
 
@@ -143,7 +209,6 @@ This patch release addresses a dependency oversight from [v0.8.0](https://github
 - Request: Add a Documentation button to the UI [#457](https://github.com/karimz1/imgcompress/issues/457)
 - Internal: Clean Up in Backend [#454](https://github.com/karimz1/imgcompress/issues/454)
 
-
 ## v0.3.1 — 2025-12-30
 - Feature: Adds local AI background removal option to CLI [#439](https://github.com/karimz1/imgcompress/issues/439)
 - 🚀 Optimize Docker cold start by lazy-loading heavy dependencies in imgcompress. Starts in under 2 Seconds [#437](https://github.com/karimz1/imgcompress/issues/437)
@@ -190,7 +255,6 @@ This patch release addresses a dependency oversight from [v0.8.0](https://github
 
 ## v0.2.2 — 2025-11-08
 - New Feature "Implement .EPS file format support and verification: ([#343](https://github.com/karimz1/imgcompress/issues/343))
-
 
 ## v0.2.1 — 2025-10-12
 - Enhances "Support Formats" by using Dialog: ([#325](https://github.com/karimz1/imgcompress/issues/325))
