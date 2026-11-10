@@ -13,10 +13,13 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { InputFileBadge } from "@/components/InputFileBadge"
 
 const APP_CONFIG = {
     GITHUB_ISSUES_URL: "https://github.com/karimz1/imgcompress/issues",
 }
+
+const SEARCH_MATCH_CLASS_NAME = "bg-blue-50 text-blue-900 border-blue-300 dark:bg-blue-500/10 dark:text-blue-200 dark:border-blue-400/60"
 
 interface SupportedFormatsDialogProps {
     supportedExtensions: string[]
@@ -82,6 +85,11 @@ export function SupportedFormatsDialog({
             <DialogContent
                 data-testid="supported-formats-dialog"
                 className="max-w-2xl bg-white dark:bg-[#0f172a] border-slate-200 dark:border-slate-800 p-0 shadow-2xl rounded-xl overflow-hidden sm:max-h-[85vh]"
+                onEscapeKeyDown={(event) => {
+                    if (document.querySelector('[data-file-kind-details][data-state$="open"]')) {
+                        event.preventDefault()
+                    }
+                }}
             >
                 <div className="p-8 pb-4">
                     <DialogHeader>
@@ -137,13 +145,14 @@ export function SupportedFormatsDialog({
                                         data-testid={formatTestId(ext)}
                                         data-format={ext}
                                         data-search-match={match}
-                                        className={`px-3 py-1.5 text-[11px] font-mono border rounded-md transition-all duration-300 ${
+                                        className={`inline-flex h-9 items-center gap-1 px-3 text-[11px] font-mono font-bold border rounded-md transition-colors duration-200 ${
                                             match 
-                                            ? "bg-blue-600 text-white border-blue-400 scale-110 shadow-lg shadow-blue-500/20 z-10" 
-                                            : "bg-emerald-50/50 dark:bg-[#1e293b]/30 border-emerald-200 dark:border-slate-800 text-emerald-700 dark:text-emerald-400 font-bold"
+                                            ? SEARCH_MATCH_CLASS_NAME
+                                            : "bg-emerald-50/50 dark:bg-[#1e293b]/30 border-emerald-200 dark:border-slate-800 text-emerald-700 dark:text-emerald-400"
                                         }`}
                                     >
                                         {ext}
+                                        <InputFileBadge filename={ext} />
                                     </span>
                                 );
                             })}
@@ -166,13 +175,14 @@ export function SupportedFormatsDialog({
                                         data-testid={formatTestId(ext)}
                                         data-format={ext}
                                         data-search-match={match}
-                                        className={`px-3 py-1.5 text-[11px] font-mono border rounded-md transition-all duration-300 ${
+                                        className={`inline-flex h-9 items-center gap-1 px-3 text-[11px] font-mono border rounded-md transition-colors duration-200 ${
                                             match 
-                                            ? "bg-blue-600 text-white border-blue-400 scale-110 shadow-lg shadow-blue-500/20 z-10" 
-                                            : "bg-slate-50 dark:bg-[#1e293b]/20 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-500"
+                                            ? SEARCH_MATCH_CLASS_NAME
+                                            : "bg-slate-50 dark:bg-[#1e293b]/20 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400"
                                         }`}
                                     >
                                         {ext}
+                                        <InputFileBadge filename={ext} />
                                     </span>
                                 );
                             })}

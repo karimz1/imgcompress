@@ -11,7 +11,7 @@ test('should display detailed error modal when backend returns 500 with stacktra
     await page.goto('/');
 
     // Mock the API response to simulate a backend crash
-    await page.route('/api/compress', async (route) => {
+    await page.route('**/api/jobs', async (route) => {
         await route.fulfill({
             status: 500,
             contentType: 'application/json',

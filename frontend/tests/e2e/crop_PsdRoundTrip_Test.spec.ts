@@ -20,6 +20,7 @@ test('crop runs first: PSD round-trip through backend bitmap render + compress',
 
   await page.getByTestId('dropzone-crop-file-btn').first().click();
   await expect(page.getByTestId('crop-dialog')).toBeVisible();
+  await page.getByTestId('crop-precise-selection-toggle').click();
   await expect(page.getByTestId('crop-width-input')).toBeVisible({ timeout: 60_000 });
 
   await page.getByTestId('crop-width-input').fill('480');

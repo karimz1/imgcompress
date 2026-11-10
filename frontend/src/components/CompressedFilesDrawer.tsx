@@ -17,6 +17,8 @@ import GitHubStarBanner from "@/components/GitHubStarBanner";
 
 interface CompressedFilesDrawerProps {
   converted: string[];
+  /** How long the job took on the server, when known. */
+  durationSeconds?: number | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onDownloadAll: () => void;
@@ -25,6 +27,7 @@ interface CompressedFilesDrawerProps {
 
 const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
   converted,
+  durationSeconds = null,
   isOpen,
   onOpenChange,
   onDownloadAll,
@@ -48,6 +51,11 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
             <DrawerDescription className="text-center">
               {t("drawer.description", { count })}
             </DrawerDescription>
+            {durationSeconds !== null && (
+              <p className="text-center text-sm text-muted-foreground" data-testid="job-duration">
+                {t("drawer.doneIn", { time: formatDuration(durationSeconds, t) })}
+              </p>
+            )}
           </DrawerHeader>
           <GitHubStarBanner compressionId={converted.join(",")} />
           <div className="p-1 pb-0 flex flex-col items-center">
@@ -96,3 +104,14 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
 };
 
 export default CompressedFilesDrawer;
+
+function formatDuration(
+  seconds: number,
+  t: (key: string, options?: Record<string, unknown>) => string
+): string {
+  const total = Math.max(1, Math.round(seconds));
+  const minutes = Math.floor(total / 60);
+  const rest = total % 60;
+  if (minutes === 0) return t("drawer.durationSeconds", { seconds: rest });
+  return t("drawer.durationMinutes", { minutes, seconds: rest });
+}

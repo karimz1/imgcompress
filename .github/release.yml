@@ -1,0 +1,17 @@
+# Categories for GitHub's generated notes. scripts/prepare-release.mjs turns
+# them into the Changelog sections of the release draft.
+changelog:
+  exclude:
+    labels:
+      - skip-release-notes
+  categories:
+    - title: Features
+      labels: [enhancement, feature, breaking-change]
+    - title: Bug Fixes
+      labels: [bug, bugfix]
+    - title: Security Patches
+      labels: [Security, security, CVEs, docker, automated-digest-refresh, docker-dependencies-update]
+    - title: Dependencies
+      labels: [dependencies, dependabot, backend-dependencies-update, frontend-dependencies-update, github-actions-dependencies-update]
+    - title: Other Changes
+      labels: ['*']

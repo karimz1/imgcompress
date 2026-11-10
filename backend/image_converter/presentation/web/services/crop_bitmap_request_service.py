@@ -11,6 +11,7 @@ class CropBitmapResponse:
     value: Optional[BytesIO]
     error: Optional[str]
     status_code: int
+    source_size: tuple[int, int] | None = None
 
     @property
     def is_successful(self) -> bool:
@@ -43,7 +44,9 @@ class CropBitmapRequestService:
 
         if not result.is_successful:
             return self._failure(result.error, 415)
-        return CropBitmapResponse(result.value, None, 200)
+        return CropBitmapResponse(
+            result.value, None, 200, getattr(result.value, "source_size", None)
+        )
 
     def _save_upload(self, upload) -> str:
         fd, path = tempfile.mkstemp(

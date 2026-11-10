@@ -1,4 +1,4 @@
-"""Builds `AppConfig` from `app.json` (with feature-flag env overrides).
+"""Builds `AppConfig` from `app.json` (with feature-flag, upload-limit and web-worker env overrides).
 
 The loader is the *only* module that knows the JSON key paths and the env-var
 names. Everywhere else in the codebase reads typed attributes off `AppConfig`.
@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Callable, Optional, Tuple, TypeVar
 
 from backend.image_converter.config.app_config import (
+    DEFAULT_MAX_OUTPUT_MEGAPIXELS,
+    MAX_OUTPUT_MEGAPIXELS_LIMIT,
     AppConfig,
     CropPreviewConfig,
     FeaturesConfig,
@@ -22,6 +24,7 @@ from backend.image_converter.config.app_config import (
     RembgConfig,
     TemporaryStorageConfig,
     UploadsConfig,
+    UpscalingConfig,
     WebConfig,
 )
 
@@ -59,7 +62,18 @@ _OVERRIDES = (
         env_var="DEV_MODE",
         inverted=False,
     ),
+    _FeatureFlagOverride(
+        json_path=("features", "is_update_check_enabled"),
+        env_var="DISABLE_UPDATE_CHECK",
+        inverted=True,
+    ),
 )
+
+
+# Self-hosters set the upload limit (MiB) in docker-compose; it wins over app.json.
+MAX_UPLOAD_SIZE_ENV = "MAX_UPLOAD_SIZE_MB"
+# Same for the Granian worker count ("auto" or a whole number).
+WEB_WORKERS_ENV = "WEB_WORKERS"
 
 
 def load_from_file(path: Path) -> AppConfig:
@@ -72,12 +86,14 @@ def load_from_file(path: Path) -> AppConfig:
         max_age_seconds=reader.require_int(("temporary_storage", "max_age_seconds"), minimum=1),
     )
     uploads = UploadsConfig(
-        max_file_size_mebibytes=reader.require_int(("uploads", "max_file_size_mebibytes"), minimum=1),
+        max_file_size_mebibytes=reader.require_int_with_env(
+            ("uploads", "max_file_size_mebibytes"), MAX_UPLOAD_SIZE_ENV, minimum=1
+        ),
     )
     web = WebConfig(
         host=reader.require_str(("web", "host")),
         port=reader.require_int(("web", "port"), minimum=1, maximum=65535),
-        workers=reader.require_web_workers(("web", "workers")),
+        workers=reader.require_web_workers_with_env(("web", "workers"), WEB_WORKERS_ENV),
     )
     logging_cfg = LoggingConfig(
         backend_log_file=reader.require_str(("logging", "backend_log_file")),
@@ -109,8 +125,22 @@ def load_from_file(path: Path) -> AppConfig:
         is_dev_mode_enabled=reader.require_feature_flag(
             ("features", "is_dev_mode_enabled"),
         ),
+        # Optional so existing config files keep working unchanged.
+        is_update_check_enabled=reader.optional_feature_flag(
+            ("features", "is_update_check_enabled"), default=True
+        ),
     )
     rembg = RembgConfig(model_name=reader.require_str(("rembg", "model_name")))
+    # Optional block so existing config files keep working unchanged.
+    upscaling = UpscalingConfig(
+        threads=reader.optional_thread_count(("upscaling", "threads")),
+        max_output_megapixels=reader.optional_int(
+            ("upscaling", "max_output_megapixels"),
+            default=DEFAULT_MAX_OUTPUT_MEGAPIXELS,
+            minimum=1,
+            maximum=MAX_OUTPUT_MEGAPIXELS_LIMIT,
+        ),
+    )
 
     if errors:
         raise ConfigError("invalid backend config:\n  - " + "\n  - ".join(errors))
@@ -124,6 +154,7 @@ def load_from_file(path: Path) -> AppConfig:
         formats=formats,
         features=features,
         rembg=rembg,
+        upscaling=upscaling,
     )
 
 
@@ -212,6 +243,15 @@ class _Reader:
             return default
         return raw
 
+    def require_int_with_env(
+        self, path: Tuple[str, ...], env_var: str, *, minimum: int
+    ) -> int:
+        """Like ``require_int``; a set env var wins over the JSON value."""
+        env_value = _read_env_int(env_var, minimum, self._errors)
+        if env_value is not None:
+            return env_value
+        return self.require_int(path, minimum=minimum)
+
     def require_bool(self, path: Tuple[str, ...]) -> bool:
         return self._read(
             path,
@@ -241,6 +281,27 @@ class _Reader:
             return WebWorkerCount.auto()
         return WebWorkerCount.fixed(raw)
 
+    def require_web_workers_with_env(
+        self, path: Tuple[str, ...], env_var: str
+    ) -> WebWorkerCount:
+        """Like ``require_web_workers``; a set env var wins over the JSON value."""
+        env_value = _read_env_web_workers(env_var, self._errors)
+        if env_value is not None:
+            return env_value
+        return self.require_web_workers(path)
+
+    def optional_thread_count(self, path: Tuple[str, ...]) -> Optional[int]:
+        """``"auto"`` or a missing key gives None; otherwise an integer >= 1."""
+        raw = self._peek(path)
+        if raw is _SENTINEL:
+            return None
+        if isinstance(raw, str) and raw.strip().lower() == "auto":
+            return None
+        if isinstance(raw, bool) or not isinstance(raw, int) or raw < 1:
+            self._errors.append(f"config key '{_render(path)}' must be an integer >= 1 or \"auto\"")
+            return None
+        return raw
+
     def require_extension_list(self, path: Tuple[str, ...]) -> Tuple[str, ...]:
         raw = self._lookup(path)
         if raw is _SENTINEL:
@@ -265,12 +326,32 @@ class _Reader:
         return tuple(normalized)
 
     def require_feature_flag(self, path: Tuple[str, ...]) -> bool:
-        override = self._matching_override(path)
-        if override is not None:
-            env_value = _read_env_bool(override.env_var, self._errors)
-            if env_value is not None:
-                return (not env_value) if override.inverted else env_value
+        env_value = self._feature_flag_from_env(path)
+        if env_value is not None:
+            return env_value
         return self.require_bool(path)
+
+    def optional_feature_flag(self, path: Tuple[str, ...], *, default: bool) -> bool:
+        """Like ``require_feature_flag`` but returns ``default`` when the key is absent."""
+        env_value = self._feature_flag_from_env(path)
+        if env_value is not None:
+            return env_value
+        raw = self._peek(path)
+        if raw is _SENTINEL:
+            return default
+        if not isinstance(raw, bool):
+            self._errors.append(f"config key '{_render(path)}' must be a boolean")
+            return default
+        return raw
+
+    def _feature_flag_from_env(self, path: Tuple[str, ...]) -> Optional[bool]:
+        override = self._matching_override(path)
+        if override is None:
+            return None
+        env_value = _read_env_bool(override.env_var, self._errors)
+        if env_value is None:
+            return None
+        return (not env_value) if override.inverted else env_value
 
     @staticmethod
     def _matching_override(path: Tuple[str, ...]) -> Optional[_FeatureFlagOverride]:
@@ -332,5 +413,33 @@ def _read_env_bool(name: str, errors: list[str]) -> Optional[bool]:
     errors.append(
         f"environment variable '{name}' must be one of "
         f"true/false/1/0/yes/no/on/off, got '{raw}'"
+    )
+    return None
+
+
+def _read_env_int(name: str, minimum: int, errors: list[str]) -> Optional[int]:
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return None
+    normalized = raw.strip()
+    if not (normalized.isascii() and normalized.isdigit()) or int(normalized) < minimum:
+        errors.append(
+            f"environment variable '{name}' must be a whole number >= {minimum}, got '{raw}'"
+        )
+        return None
+    return int(normalized)
+
+
+def _read_env_web_workers(name: str, errors: list[str]) -> Optional[WebWorkerCount]:
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return None
+    normalized = raw.strip()
+    if normalized.lower() == "auto":
+        return WebWorkerCount.auto()
+    if normalized.isascii() and normalized.isdigit() and int(normalized) >= 1:
+        return WebWorkerCount.fixed(int(normalized))
+    errors.append(
+        f"environment variable '{name}' must be a whole number >= 1 or \"auto\", got '{raw}'"
     )
     return None

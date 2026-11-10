@@ -1,0 +1,346 @@
+"""Status files of background conversion jobs, shared by all Granian workers.
+
+Every job has a public id and a separate secret token, returned once to the
+browser that started it. The status file keeps only the token's SHA-256, and
+``read`` answers None for a wrong or missing token exactly as for an unknown
+id, so nobody can read, or even detect, another user's job.
+
+The "notify me when done" message can carry a share link with a second
+secret (also kept only as SHA-256). Another browser trades it for a job
+token of its own (``claim``), so a job started on a PC can be downloaded on
+a phone. Each claim adds one device token; there is no cap.
+
+Each job gets a folder ``job_<id>`` in the temp dir with one ``status.json``.
+Any worker process can answer a poll, because the state lives on disk, not in
+the memory of the worker that started the job. Writes go to a temp file that
+replaces status.json in one step, so a reader never sees half a file.
+
+While the job runs, its worker holds a shared lock on the folder (see
+job_folder_lock). Cleanup skips locked folders, and a reader that finds a
+"running" job without a lock knows its worker died.
+"""
+
+import hashlib
+import hmac
+import json
+import os
+import re
+import secrets
+import shutil
+import tempfile
+import time
+from typing import Optional
+
+from backend.image_converter.infrastructure import job_folder_lock
+from backend.image_converter.infrastructure.safe_path import direct_child
+
+JOB_PREFIX = "job_"
+_STATUS_FILE = "status.json"
+# secrets.token_urlsafe(16): 22 URL-safe characters, so the pattern rules out any path.
+_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{22}$")
+_TOKEN_MAX_LENGTH = 128
+
+QUEUED = "queued"
+RUNNING = "running"
+DONE = "done"
+FAILED = "failed"
+CANCELED = "canceled"
+_ACTIVE = (QUEUED, RUNNING)
+
+INTERRUPTED_MESSAGE = "The conversion stopped unexpectedly. Please try again."
+
+
+def is_valid_job_id(job_id: Optional[str]) -> bool:
+    return isinstance(job_id, str) and _ID_PATTERN.fullmatch(job_id) is not None
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+class RunningJob:
+    """A job owned by this process; holds the folder lock until ``finish``."""
+
+    def __init__(
+        self, store: "ConversionJobStore", job_id: str, token: str, lock_fd: Optional[int], state: dict
+    ):
+        self.store = store
+        self.job_id = job_id
+        # Only the browser that started the job gets this, once.
+        self.token = token
+        self._lock_fd = lock_fd
+        self._state = state
+
+    @property
+    def state(self) -> dict:
+        return dict(self._state)
+
+    def update(self, **fields) -> None:
+        if self._state["status"] not in _ACTIVE:
+            return
+        self._state.update(fields)
+        now = time.time()
+        self._state["updated_at"] = now
+        if fields.get("status") == RUNNING:
+            # The timer counts the work itself, not the wait in the queue.
+            self._state.setdefault("started_at", now)
+        self.store._write(self.job_id, self._state)
+
+    def finish(self, status: str, **fields) -> None:
+        try:
+            now = time.time()
+            self._state.update(fields, status=status, updated_at=now, finished_at=now)
+            self._state.setdefault("started_at", self._state.get("created_at", now))
+            self.store._write(self.job_id, self._state)
+        finally:
+            job_folder_lock.release(self._lock_fd)
+            self._lock_fd = None
+
+
+_NOTIFY_FILE = "notify"
+# Empty flag file: the browser asked to stop; the worker checks it and finishes canceled.
+_CANCEL_FILE = "cancel"
+# SHA-256 of the share link token sent in the notification (one line).
+_SHARE_FILE = "share"
+# SHA-256 of tokens handed to other browsers through the share link (one per line).
+_DEVICES_FILE = "devices"
+
+
+class ConversionJobStore:
+    def __init__(self, temp_dir: str):
+        self.temp_dir = temp_dir
+
+    def create(self, **fields) -> RunningJob:
+        while True:
+            job_id = secrets.token_urlsafe(16)
+            path = self._folder(job_id)
+            if path is None:
+                continue
+            try:
+                os.mkdir(path, 0o700)
+            except FileExistsError:
+                continue
+            try:
+                lock_fd = job_folder_lock.hold_shared(path)
+            except FileNotFoundError:
+                # A forced cleanup won the race for the empty folder; take a new id.
+                shutil.rmtree(path, ignore_errors=True)
+                continue
+            token = secrets.token_urlsafe(32)
+            now = time.time()
+            state = {
+                **fields,
+                "id": job_id,
+                "token_sha256": _hash_token(token),
+                "status": QUEUED,
+                "created_at": now,
+                "updated_at": now,
+            }
+            job = RunningJob(self, job_id, token, lock_fd, state)
+            self._write(job_id, state)
+            return job
+
+    def read(self, job_id: Optional[str], token: Optional[str]) -> Optional[dict]:
+        """
+        The job's state, or None for an unknown, invalid or cleaned-up id and
+        for a missing or wrong token. Callers must not tell these apart.
+        """
+        if not is_valid_job_id(job_id):
+            return None
+        path = self._folder(job_id)
+        if path is None:
+            return None
+        try:
+            with open(os.path.join(path, _STATUS_FILE), encoding="utf-8") as f:
+                state = json.load(f)
+        except (OSError, ValueError):
+            return None
+        given = token if isinstance(token, str) and 0 < len(token) <= _TOKEN_MAX_LENGTH else ""
+        # Always hash and compare, so a missing token takes as long as a wrong one.
+        if not self._token_matches(path, state.get("token_sha256"), given) or not given:
+            return None
+        if state.get("status") in _ACTIVE and self._worker_is_gone(path):
+            # Re-read first: the job may have finished between the two steps.
+            try:
+                with open(os.path.join(path, _STATUS_FILE), encoding="utf-8") as f:
+                    state = json.load(f)
+            except (OSError, ValueError):
+                return None
+            if state.get("status") in _ACTIVE:
+                state.update(status=FAILED, error=INTERRUPTED_MESSAGE)
+        return state
+
+    def set_notify(
+        self, job_id: Optional[str], token: Optional[str], enabled: bool, language: str = "en"
+    ) -> bool:
+        """
+        Saves the "notify me when done" choice for the job's own token. It is a
+        file of its own, not a status field, because the worker running the job
+        rewrites status.json and another worker may take this request. It
+        holds the UI language for the message (an allow-listed locale code).
+        """
+        if self.read(job_id, token) is None:
+            return False
+        flag = os.path.join(self._folder(job_id), _NOTIFY_FILE)
+        try:
+            if enabled:
+                with open(flag, "w", encoding="utf-8") as f:
+                    f.write(language)
+            elif os.path.exists(flag):
+                os.remove(flag)
+        except OSError:
+            return False
+        return True
+
+    def wants_notify(self, job_id: Optional[str]) -> bool:
+        path = self._folder(job_id)
+        return path is not None and os.path.isfile(os.path.join(path, _NOTIFY_FILE))
+
+    def notify_language(self, job_id: Optional[str]) -> Optional[str]:
+        """The saved UI language; the notifier checks it against its locales."""
+        path = self._folder(job_id)
+        if path is None:
+            return None
+        try:
+            with open(os.path.join(path, _NOTIFY_FILE), encoding="utf-8") as f:
+                return f.read(32).strip() or None
+        except OSError:
+            return None
+
+    def request_cancel(self, job_id: Optional[str], token: Optional[str]) -> Optional[str]:
+        """
+        Asks the worker to stop. Returns "canceled" when the flag was set,
+        "already" when the job is already canceled, "finished" when it already
+        ended as done/failed, or None when the id/token do not match (opaque).
+        """
+        state = self.read(job_id, token)
+        if state is None:
+            return None
+        status = state.get("status")
+        if status == CANCELED:
+            return "already"
+        if status not in _ACTIVE:
+            return "finished"
+        path = self._folder(job_id)
+        if path is None:
+            return None
+        try:
+            # Separate file so the worker can keep rewriting status.json.
+            open(os.path.join(path, _CANCEL_FILE), "a").close()
+        except OSError:
+            return None
+        return "canceled"
+
+    def is_canceled(self, job_id: Optional[str]) -> bool:
+        path = self._folder(job_id)
+        return path is not None and os.path.isfile(os.path.join(path, _CANCEL_FILE))
+
+    def create_share_token(self, job_id: Optional[str]) -> Optional[str]:
+        """
+        A new secret for the notification link; replaces any older one. Only
+        its SHA-256 is kept, so the plain token exists only in the message.
+        """
+        path = self._folder(job_id)
+        if path is None:
+            return None
+        share = secrets.token_urlsafe(32)
+        try:
+            self._write_file(path, _SHARE_FILE, _hash_token(share) + "\n")
+        except OSError:
+            return None
+        return share
+
+    def claim(self, job_id: Optional[str], share_token: Optional[str]) -> Optional[str]:
+        """
+        Trades the share link token for a job token of this browser's own.
+        None for an unknown id or a wrong token, both alike (opaque 404).
+        """
+        path = self._folder(job_id)
+        given = share_token if isinstance(share_token, str) and 0 < len(share_token) <= _TOKEN_MAX_LENGTH else ""
+        expected = self._read_lines(path, _SHARE_FILE)[:1] if path else []
+        if not expected or not hmac.compare_digest(_hash_token(given), expected[0]) or not given:
+            return None
+        if not os.path.isfile(os.path.join(path, _STATUS_FILE)):
+            return None
+        token = secrets.token_urlsafe(32)
+        try:
+            # Append so concurrent claims never rewrite older hashes away.
+            with open(os.path.join(path, _DEVICES_FILE), "a", encoding="utf-8") as f:
+                f.write(_hash_token(token) + "\n")
+        except OSError:
+            return None
+        return token
+
+    def _token_matches(self, path: str, primary, given: str) -> bool:
+        digest = _hash_token(given)
+        ok = isinstance(primary, str) and hmac.compare_digest(digest, primary)
+        for other in self._read_lines(path, _DEVICES_FILE):
+            ok = hmac.compare_digest(digest, other) or ok
+        return ok
+
+    @staticmethod
+    def _read_lines(path: str, name: str) -> list:
+        try:
+            with open(os.path.join(path, name), encoding="utf-8") as f:
+                # Whole file: claims keep appending device hashes with no cap.
+                return [line.strip() for line in f.read().splitlines() if len(line.strip()) == 64]
+        except OSError:
+            return []
+
+    @staticmethod
+    def _write_file(folder: str, name: str, text: str) -> None:
+        fd, tmp = tempfile.mkstemp(dir=folder, prefix=f".{name}-", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(text)
+            os.replace(tmp, os.path.join(folder, name))
+        except BaseException:
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            raise
+
+    def touch(self, job_id: str) -> None:
+        """Age-based cleanup counts from the last activity, so a poll restarts the clock."""
+        path = self._folder(job_id)
+        if path is None:
+            return
+        try:
+            os.utime(path)
+        except OSError:
+            pass
+
+    def _folder(self, job_id: Optional[str]) -> Optional[str]:
+        """
+        ``temp_dir/job_<id>`` as a real path, or None for an invalid id or a
+        folder that is a link, so a job path can never point outside temp_dir.
+        """
+        if not is_valid_job_id(job_id):
+            return None
+        return direct_child(self.temp_dir, JOB_PREFIX + job_id)
+
+    @staticmethod
+    def _worker_is_gone(path: str) -> bool:
+        try:
+            acquired, fd = job_folder_lock.try_exclusive(path)
+        except OSError:
+            return False
+        job_folder_lock.release(fd)
+        return acquired and fd is not None
+
+    def _write(self, job_id: str, state: dict) -> None:
+        folder = self._folder(job_id)
+        if folder is None:
+            raise FileNotFoundError(JOB_PREFIX + job_id)
+        fd, tmp = tempfile.mkstemp(dir=folder, prefix=".status-", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(state, f)
+            os.replace(tmp, os.path.join(folder, _STATUS_FILE))
+        except BaseException:
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            raise

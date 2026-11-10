@@ -27,8 +27,9 @@ for (const sample of BACKEND_BITMAP_FILES) {
     await expect(page.getByTestId('crop-dialog')).toBeVisible();
 
     await bitmapResponsePromise;
-    await expect(page.getByTestId('crop-width-input')).toBeVisible();
-    await expect(page.getByTestId('crop-height-input')).toBeVisible();
+    await expect(page.getByTestId('crop-selection')).toBeVisible();
+    await expect(page.getByTestId('crop-width-input')).toBeHidden();
+    await expect(page.getByTestId('crop-height-input')).toBeHidden();
     await expect(page.getByTestId('crop-dims-label')).toContainText('px');
 
     await page.getByTestId('crop-save-btn').click();

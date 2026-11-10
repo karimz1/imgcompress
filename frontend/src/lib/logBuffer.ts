@@ -18,9 +18,19 @@ function safeStringify(arg: unknown): string {
   }
 }
 
+// Job tokens open a user's conversion results; they never go into a log export.
+const TOKEN_PATTERNS: RegExp[] = [
+  /("token"\s*:\s*")[^"]*/gi,
+  /(x-job-token["']?\s*[:=]\s*["']?)[A-Za-z0-9_-]+/gi,
+];
+
+export function redactSecrets(text: string): string {
+  return TOKEN_PATTERNS.reduce((out, pattern) => out.replace(pattern, "$1[redacted]"), text);
+}
+
 function record(level: ConsoleLevel, args: unknown[]): void {
   const ts = new Date().toISOString();
-  const text = args.map(safeStringify).join(" ");
+  const text = redactSecrets(args.map(safeStringify).join(" "));
   entries.push(`[${ts}] [${level.toUpperCase()}] ${text}`);
   while (entries.length > MAX_ENTRIES) entries.shift();
 }

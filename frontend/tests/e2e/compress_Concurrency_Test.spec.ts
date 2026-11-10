@@ -6,6 +6,7 @@ import {
     assertFilesPresentInDropzoneAsync,
     clickConversionButtonAsync,
     assertDownloadLinksAsync,
+    waitForFinishedJobAsync,
 } from './utls/helpers';
 import { ImageFileDto } from './utls/ImageFileDto';
 
@@ -37,25 +38,16 @@ test('compression pipeline serves N simultaneous users without collisions', asyn
                 await uploadFilesToDropzoneAsync(page, [FIXTURE]);
                 await assertFilesPresentInDropzoneAsync(page, [FIXTURE]);
 
-                // Capture the /api/compress response so we can assert each
-                // session got its own dest_folder (no cross-contamination).
-                const compressResponsePromise = page.waitForResponse((response) => {
-                    const request = response.request();
-                    return (
-                        request.method() === 'POST' &&
-                        response.url().includes('/api/compress')
-                    );
-                });
+                // Capture the finished job so we can assert each
+                // session got its own job (no cross-contamination).
+                const finishedJob = waitForFinishedJobAsync(page);
 
                 await clickConversionButtonAsync(page);
 
-                const compressResponse = await compressResponsePromise;
-                expect(compressResponse.ok(), `user ${idx} /api/compress not OK`).toBeTruthy();
-                const body = await compressResponse.json();
+                const body = await finishedJob;
                 expect(Array.isArray(body.converted_files)).toBeTruthy();
                 expect(body.converted_files.length).toBeGreaterThan(0);
-                expect(typeof body.dest_folder).toBe('string');
-                expect(body.dest_folder.length).toBeGreaterThan(0);
+                expect(body.id.length).toBeGreaterThan(0);
 
                 // The drawer (with download links) opens once converted_files state lands.
                 await expect(page.getByTestId('compressed-files-drawer-close-btn')).toBeVisible();
@@ -64,7 +56,7 @@ test('compression pipeline serves N simultaneous users without collisions', asyn
 
                 return {
                     idx,
-                    destFolder: body.dest_folder as string,
+                    jobId: body.id,
                     convertedFiles: body.converted_files as string[],
                 };
             })
@@ -73,12 +65,10 @@ test('compression pipeline serves N simultaneous users without collisions', asyn
         // Every user finished with a working download link.
         expect(results).toHaveLength(PARALLEL_USERS);
 
-        // No two users shared the same dest_folder. If they did, the temp-
-        // storage isolation between sessions is broken and one user could
+        // No two users shared one job. If they did, one user could get or
         // overwrite another's output.
-        const destFolders = results.map((r) => r.destFolder);
-        const uniqueDestFolders = new Set(destFolders);
-        expect(uniqueDestFolders.size, `dest_folder collision: ${destFolders.join(', ')}`)
+        const jobIds = results.map((r) => r.jobId);
+        expect(new Set(jobIds).size, `job collision: ${jobIds.join(', ')}`)
             .toBe(PARALLEL_USERS);
 
         // Sanity: every session's converted file names share the source basename.

@@ -11,9 +11,10 @@ export const zipDownloadUrl = (folder: string) =>
  */
 export async function fetchDownload(
   url: string,
-  fallbackName?: string
+  fallbackName?: string,
+  headers?: Record<string, string>
 ): Promise<boolean> {
-  const res = await fetch(url);
+  const res = await fetch(url, headers ? { headers } : undefined);
   if (!res.ok) return false;
 
   const objectUrl = URL.createObjectURL(await res.blob());

@@ -1,0 +1,58 @@
+name: Build image with one retry
+description: >-
+  docker/build-push-action with --load, one retry after 30s for transient
+  registry errors (dhi.io, ghcr.io), and an optional GHA cache write. Only one
+  job per scope should write the cache; the others read it.
+
+inputs:
+  context:
+    description: Build context
+    required: true
+  platform:
+    description: Single target platform, e.g. linux/amd64
+    required: true
+  tags:
+    description: Image tag to load into the local daemon
+    required: true
+  cache-scope:
+    description: GHA cache scope
+    required: true
+  cache-write:
+    description: "'true' to export the cache to the scope"
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Build
+      id: first
+      continue-on-error: true
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+      with:
+        context: ${{ inputs.context }}
+        platforms: ${{ inputs.platform }}
+        load: true
+        tags: ${{ inputs.tags }}
+        cache-from: type=gha,scope=${{ inputs.cache-scope }}
+        cache-to: ${{ inputs.cache-write == 'true' && format('type=gha,mode=max,scope={0}', inputs.cache-scope) || '' }}
+
+    - name: Wait before retrying
+      if: steps.first.outcome == 'failure'
+      shell: bash
+      env:
+        IMAGE_TAG: ${{ inputs.tags }}
+      run: |
+        echo "::warning::Build of ${IMAGE_TAG} failed once, retrying in 30s (usually a registry or download hiccup)."
+        sleep 30
+
+    - name: Retry build
+      if: steps.first.outcome == 'failure'
+      uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+      with:
+        context: ${{ inputs.context }}
+        platforms: ${{ inputs.platform }}
+        load: true
+        tags: ${{ inputs.tags }}
+        cache-from: type=gha,scope=${{ inputs.cache-scope }}
+        cache-to: ${{ inputs.cache-write == 'true' && format('type=gha,mode=max,scope={0}', inputs.cache-scope) || '' }}

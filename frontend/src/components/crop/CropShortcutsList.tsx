@@ -18,18 +18,18 @@ export const CropShortcutsList: React.FC<CropShortcutsListProps> = ({
     : [];
 
   return (
-    <div
+    <details
       className={cn(
         "text-xs rounded-md border p-2 opacity-90",
         surfaceClass
       )}
       data-testid="crop-shortcuts"
     >
-      <div className="font-medium uppercase tracking-wide opacity-70 mb-2">
+      <summary className="cursor-pointer font-medium opacity-70">
         {t("crop.shortcuts.title")}
-      </div>
+      </summary>
       <div
-        className="grid gap-x-3 gap-y-1.5 items-center leading-relaxed"
+        className="mt-2 grid gap-x-3 gap-y-1.5 items-center leading-relaxed"
         style={{ gridTemplateColumns: "auto 1fr" }}
       >
         {shortcuts.map(({ keys, desc }) => (
@@ -48,6 +48,6 @@ export const CropShortcutsList: React.FC<CropShortcutsListProps> = ({
           </React.Fragment>
         ))}
       </div>
-    </div>
+    </details>
   );
 };

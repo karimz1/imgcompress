@@ -148,9 +148,8 @@ def get_access_token(username: str, password: str) -> str:
     response = requests.post(login_url, json=payload)
 
     if response.status_code != 200:
-        raise RuntimeError(
-            f"Login failed: HTTP {response.status_code}\n{response.text}"
-        )
+        # Only the status code: the response body may echo request details.
+        raise RuntimeError(f"Docker Hub login failed: HTTP {response.status_code}")
     
     token = response.json().get("access_token")
     if not token:
@@ -232,7 +231,7 @@ def main():
     
     token = get_access_token(dockerhub_username, dockerhub_password)
 
-    print("Obtained token (partially shown):", token[:4] + "...")
+    print("Obtained Docker Hub access token.")
 
     update_dockerhub_description(readme_content, dockerhub_username, token, dockerhub_repo)
 

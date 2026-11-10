@@ -6,6 +6,7 @@ class ImageFormat(Enum):
     PNG = "PNG"
     ICO = "ICO"
     AVIF = "AVIF"
+    WEBP = "WEBP"
     PDF = "PDF"
 
     @classmethod
@@ -43,5 +44,6 @@ IMAGE_FORMAT_EXTENSIONS = {
     "PNG": ".png",
     "ICO": ".ico",
     "AVIF": ".avif",
+    "WEBP": ".webp",
     "PDF": ".pdf",
 }

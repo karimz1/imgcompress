@@ -9,6 +9,8 @@ interface DownloadRequest {
   fileName: string;
   successToast: ReactNode;
   onUnavailable?: () => void;
+  /** Sent with the request, e.g. the job token; never put secrets in the URL. */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -20,8 +22,8 @@ export function useDownload() {
   const { notifyDownloadUnavailable } = useDownloadError();
 
   return useCallback(
-    async ({ url, fileName, successToast, onUnavailable }: DownloadRequest) => {
-      if (await fetchDownload(url, fileName)) {
+    async ({ url, fileName, successToast, onUnavailable, headers }: DownloadRequest) => {
+      if (await fetchDownload(url, fileName, headers)) {
         toast(successToast);
         return;
       }

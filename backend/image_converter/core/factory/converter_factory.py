@@ -3,6 +3,7 @@ from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter
 from backend.image_converter.core.factory.png_converter import PngConverter
+from backend.image_converter.core.factory.webp_converter import WebpConverter
 from backend.image_converter.core.factory.pdf_converter import PdfConverter
 from backend.image_converter.domain.pdf_quality import PdfQuality
 from ..interfaces.iconverter import IImageConverter
@@ -22,6 +23,7 @@ class ImageConverterFactory:
         pdf_margin_mm: float | None = None,
         pdf_paginate: bool = False,
         pdf_quality: PdfQuality = PdfQuality.HIGH,
+        webp_lossless: bool = False,
     ) -> IImageConverter:
         
         match (image_format, use_rembg):
@@ -45,6 +47,13 @@ class ImageConverterFactory:
             case (ImageFormat.AVIF, False):
                 from backend.image_converter.core.factory.avif_converter import AvifConverter
                 return AvifConverter(quality=quality, logger=logger)
+
+            case (ImageFormat.WEBP, True):
+                from backend.image_converter.core.factory.rembg_webp_converter import RembgWebpConverter
+                return RembgWebpConverter(quality=quality, logger=logger, lossless=webp_lossless)
+
+            case (ImageFormat.WEBP, False):
+                return WebpConverter(quality=quality, logger=logger, lossless=webp_lossless)
 
             case (ImageFormat.PDF, _):
                 return PdfConverter(
