@@ -102,7 +102,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         sleep 15; \
     done && \
     apt-get install -y --no-install-recommends --allow-downgrades gcc-14-base libgcc-s1 \
-        ghostscript libcairo2 \
+        ghostscript libcairo2 tesseract-ocr tesseract-ocr-eng tesseract-ocr-deu \
         libjpeg62-turbo libpng16-16 libtiff6 libwebp7 libopenjp2-7 \
         libimagequant0 libheif1 liblcms2-2 \
         libfreetype6 libharfbuzz0b libfribidi0 \
@@ -116,7 +116,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     # See extract_deps.sh for details.
     CAIRO_LIBRARY=$(dpkg -L libcairo2 | sed -n '/\/libcairo\.so\.2$/p') && \
     test -n "$CAIRO_LIBRARY" && \
-    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh "/usr/bin/gs $CAIRO_LIBRARY" && \
+    EXTRACT_DEPS_TARGET=/dpkg-export sh /tmp/extract_deps.sh "/usr/bin/gs /usr/bin/tesseract $CAIRO_LIBRARY" && \
     cp --parents -a "$(realpath "$CAIRO_LIBRARY")" "$CAIRO_LIBRARY" /dpkg-export/ && \
     \
     # Generate ld.so.cache so the dynamic linker can find all .so files at runtime.
@@ -297,6 +297,9 @@ EXPOSE 5000
 
 # Check the Cairo shared-library closure in the shell-free runtime image.
 RUN ["/container/venv/bin/python", "-c", "import cairosvg; assert cairosvg.svg2png(bytestring=b'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"2\" height=\"2\"><rect width=\"1\" height=\"1\"/></svg>').startswith(b'\\x89PNG')"]
+
+# Verify OCR's executable, language data, and shared libraries in the final image.
+RUN ["/container/venv/bin/python", "-c", "from backend.image_converter.infrastructure.pdf_ocr import PdfOcr; from PIL import Image, ImageDraw; import pypdfium2 as p; s=PdfOcr().status(); assert s['available'] and {'eng','deu'}.issubset(s['languages']), s; im=Image.new('RGB',(600,180),'white'); ImageDraw.Draw(im).text((30,40),'HELLO OCR',fill='black',font_size=64); d=p.PdfDocument(PdfOcr().recognize(im,'eng')); page=d[0]; text=page.get_textpage(); assert 'HELLO' in text.get_text_range(); d.close()"]
 
 # Constraint: The runtime hardened image lacks a shell (/bin/sh). 
 # We execute the healthcheck via python directly.

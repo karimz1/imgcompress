@@ -92,6 +92,9 @@ copy_data_from_packages \
     fonts-urw-base35 \
     fontconfig-config \
     poppler-data \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-deu \
     dumb-init
 
 echo "[extract_deps] Done."
