@@ -84,6 +84,7 @@ ImgCompress is a **self-hosted image app in a single Docker container**, easy fo
 | **Image Editor** | Crop, exact sizes, backgrounds, text and logos before converting ([guide](https://imgcompress.karimzouine.com/docs/image-editor)) |
 | **Bulk Compression** | Make a whole folder of photos smaller in one go |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, [SVG to PNG](https://imgcompress.karimzouine.com/docs/svg-to-png), image batches to paginated PDF, and more ([WebP guide](https://imgcompress.karimzouine.com/docs/convert-to-webp)) |
+| **PDF Workspace** | Choose conversion with page settings or a simple merge. Preview, reorder, rotate or delete pages with undo. Rebuild pages from images and optionally add searchable text with local OCR. |
 | **Web App + CLI** | An easy web page for everyday use, plus a command line for automation |
 | **One Container** | Everything is included. Nothing else to install |
 | **Works Offline** | After the first download, no internet is needed, ever |
