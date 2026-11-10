@@ -29,6 +29,7 @@ import {
 
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
 import { InputFileBadge } from "@/components/InputFileBadge";
+import { PdfWorkspace } from "@/components/PdfWorkspace";
 import { CropDialog } from "@/components/crop/CropDialog";
 import { clampCrop, CropConfig, isCropableFile, isCropUnsupportedFile, isSvgFile } from "@/lib/crop";
 import {
@@ -42,8 +43,16 @@ import { useImagePixelSizes } from "@/hooks/useImagePixelSizes";
 import { cn } from "@/lib/utils";
 import { APP_CONFIG } from "@/lib/config";
 import { formatUploadLimit, useMaxUploadSizeMb } from "@/lib/uploadLimit";
+import type { PdfWorkspaceSettings, SavedPdfSelection } from "@/lib/pdfWorkspace";
 
 interface FileConversionFormProps {
+  savedPdfSelection: SavedPdfSelection | null;
+  pdfClearRequest: number;
+  pdfError: string | null;
+  onClearPdfSelection: () => void;
+  onSavePdfSelection: (selection: SavedPdfSelection) => void;
+  onExportSavedPdf: (settings: PdfWorkspaceSettings) => void;
+  onAddFiles: (files: File[]) => void;
   isLoading: boolean;
   error: { message: string; details?: string } | null;
   quality: string;
@@ -73,7 +82,7 @@ interface FileConversionFormProps {
   pdfQuality: PdfQualityOption;
   setPdfQuality: (val: PdfQualityOption) => void;
   files: File[];
-  removeFile: (name: string) => void;
+  removeFile: (file: File) => void;
   clearFileSelection: () => void;
   onSubmit: (e: React.FormEvent) => void;
 
@@ -110,6 +119,13 @@ interface FileConversionFormProps {
 }
 
 const FileConversionForm: React.FC<FileConversionFormProps> = ({
+  savedPdfSelection,
+  pdfClearRequest,
+  pdfError,
+  onClearPdfSelection,
+  onSavePdfSelection,
+  onExportSavedPdf,
+  onAddFiles,
   isLoading,
   error,
   quality,
@@ -166,6 +182,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   onReportCropError,
 }) => {
   const [confirmCropRemoveFor, setConfirmCropRemoveFor] = useState<string | null>(null);
+  const [pdfMode, setPdfMode] = useState<"convert" | "merge">("convert");
+  const pdfMergeActive = outputFormat === "pdf" && pdfMode === "merge" && files.length > 0;
+  const workspaceSettings: PdfWorkspaceSettings = {
+    apply_layout: !pdfMergeActive, pdf_preset: pdfMergeActive ? "original" : pdfPreset,
+    pdf_scale: pdfMergeActive ? "fit" : pdfScale, pdf_margin_mm: pdfMergeActive ? "0" : pdfMarginMm,
+    pdf_paginate: !pdfMergeActive && pdfPaginate, pdf_quality: pdfMergeActive ? "high" : pdfQuality,
+  };
+  const emptyPdfSelection = savedPdfSelection !== null && !savedPdfSelection.pages.some((page) => page.included);
   const { isDarkTheme } = useMountedTheme();
   const { t, i18n } = useTranslation();
   const onlySvgFiles = files.length > 0 && files.every(isSvgFile);
@@ -252,16 +276,16 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       files.length > 0 && (
         <div className="mt-2 space-y-1">
           <Label>{t("form.filesList.label")}</Label>
-          {files.map((file) => {
-            const cropUnsupported = isCropUnsupportedFile(file, cropUnsupportedExtensions);
+          {files.map((file, index) => {
+            const cropUnsupported = !pdfMergeActive && isCropUnsupportedFile(file, cropUnsupportedExtensions);
             const cropable =
-              !cropUnsupported && isCropableFile(file, supportedExtensions);
-            const savedCrop = crops[file.name];
+              !pdfMergeActive && !cropUnsupported && isCropableFile(file, supportedExtensions);
+            const savedCrop = !pdfMergeActive ? crops[file.name] : undefined;
             const savedFit = outputFormat !== "pdf" ? savedCrop?.fit : undefined;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
             return (
               <div
-                key={file.name}
+                key={`${file.name}-${index}`}
                 className={cn(
                   "flex flex-col items-stretch gap-2 rounded-md p-2 transition-colors sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
                   filePillClass
@@ -381,7 +405,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                     size="sm"
                     type="button"
                     disabled={isLoading}
-                    onClick={() => removeFile(file.name)}
+                    onClick={() => removeFile(file)}
                     data-testid="dropzone-remove-file-btn"
                   >
                     {t("form.filesList.removeButton")}
@@ -394,6 +418,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       ),
     [
       files,
+      pdfMergeActive,
       isLoading,
       removeFile,
       filePillClass,
@@ -470,7 +495,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   );
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={(event) => {
+      if (outputFormat === "pdf" && savedPdfSelection) { event.preventDefault(); onExportSavedPdf(workspaceSettings); }
+      else onSubmit(event);
+    }} className="space-y-4">
       <div className="flex justify-end">
         <SupportedFormatsDialog
           supportedExtensions={supportedExtensions}
@@ -526,6 +554,20 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
+      {outputFormat === "pdf" && <div role="tablist" aria-label={t("pdfWorkspace.mode")} className="grid grid-cols-2 gap-2" onKeyDown={(event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        const next = pdfMergeActive ? "convert" : files.length > 0 ? "merge" : "convert";
+        setPdfMode(next);
+        document.getElementById(`pdf-${next}-tab`)?.focus();
+      }}>
+        <Button type="button" role="tab" id="pdf-convert-tab" aria-selected={!pdfMergeActive} aria-controls="pdf-convert-panel" tabIndex={!pdfMergeActive ? 0 : -1} variant={!pdfMergeActive ? "default" : "outline"} disabled={isLoading} onClick={() => setPdfMode("convert")}>{t("pdfWorkspace.convertTab")}</Button>
+        <Button type="button" role="tab" id="pdf-merge-tab" aria-selected={pdfMergeActive} aria-controls="pdf-merge-panel" tabIndex={pdfMergeActive ? 0 : -1} variant={pdfMergeActive ? "default" : "outline"} disabled={isLoading || !files.length} onClick={() => setPdfMode("merge")}>{t("pdfWorkspace.mergeTab")}</Button>
+      </div>}
+
+      <div className="space-y-4" role={outputFormat === "pdf" ? "tabpanel" : undefined} id={pdfMergeActive ? "pdf-merge-panel" : "pdf-convert-panel"} aria-labelledby={outputFormat === "pdf" ? `pdf-${pdfMergeActive ? "merge" : "convert"}-tab` : undefined}>
+      {pdfMergeActive && <p className="text-sm text-muted-foreground">{t("pdfWorkspace.mergeHint")}</p>}
+      <div hidden={pdfMergeActive} className="space-y-4">
       {outputFormat === "pdf" && (
         <div className="space-y-1">
           <div className="flex items-center gap-1">
@@ -1148,19 +1190,25 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
+      </div>
+
       {renderError}
 
       {renderDropZone}
+
+      <PdfWorkspace files={files} onAddFiles={onAddFiles} disabled={isLoading} savedSelection={savedPdfSelection} clearRequest={pdfClearRequest} onClearSelection={onClearPdfSelection} onSaveSelection={onSavePdfSelection} visible={outputFormat === "pdf" && files.length > 0} settings={workspaceSettings} />
+      {outputFormat === "pdf" && pdfError && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-sm text-red-700 dark:text-red-300" data-testid="pdf-export-error">{pdfError}</p>}
+      {pdfMergeActive && savedPdfSelection && <Button type="button" disabled={isLoading || emptyPdfSelection} onClick={() => onExportSavedPdf(workspaceSettings)} data-testid="pdf-create-saved">{t("pdfWorkspace.createPdf")}</Button>}
 
       {renderFilesList}
 
       {cropDialogNode}
 
-      <div className="flex items-center justify-between gap-4">
+      {!pdfMergeActive && <div className="flex items-center justify-between gap-4">
         <Button
           type="submit"
           variant="default"
-          disabled={isLoading || !outputFormat}
+          disabled={isLoading || !outputFormat || (outputFormat === "pdf" && emptyPdfSelection)}
           data-testid="convert-btn"
         >
           {isLoading ? (
@@ -1169,13 +1217,13 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               {t("form.buttons.processing")}
             </div>
           ) : (
-            t("form.buttons.convert")
+            outputFormat === "pdf" && savedPdfSelection ? t("pdfWorkspace.createPdf") : t("form.buttons.convert")
           )}
         </Button>
         <Button
           type="button"
           variant="outline"
-          onClick={clearFileSelection}
+          onClick={() => { onClearPdfSelection(); clearFileSelection(); }}
           disabled={isLoading}
           className={cn(
             "flex items-center gap-2 outline outline-1",
@@ -1185,6 +1233,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           <Trash className="h-4 w-4" />
           {t("form.buttons.clear")}
         </Button>
+      </div>}
       </div>
     </form>
   );

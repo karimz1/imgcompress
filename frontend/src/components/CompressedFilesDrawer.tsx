@@ -14,8 +14,12 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import GitHubStarBanner from "@/components/GitHubStarBanner";
+import { Download } from "lucide-react";
+import type { LocalPdfFile } from "@/lib/pdfWorkspace";
 
 interface CompressedFilesDrawerProps {
+  localPdfFiles?: LocalPdfFile[];
+  onDownloadLocalPdf?: (file: LocalPdfFile) => void;
   converted: string[];
   /** How long the job took on the server, when known. */
   durationSeconds?: number | null;
@@ -26,6 +30,8 @@ interface CompressedFilesDrawerProps {
 }
 
 const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
+  localPdfFiles = [],
+  onDownloadLocalPdf,
   converted,
   durationSeconds = null,
   isOpen,
@@ -34,22 +40,22 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
   onDownloadFile,
 }) => {
   const { t } = useTranslation();
-  const count = converted.length;
+  const count = converted.length + localPdfFiles.length;
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerTrigger asChild>
-        <Button variant="secondary" className="mt-8">
-          {t("drawer.trigger", { count })}
+        <Button type="button" variant="secondary" className="mt-8" data-testid="results-drawer-trigger">
+          {localPdfFiles.length ? t("pdfWorkspace.filesTrigger", { count }) : t("drawer.trigger", { count })}
         </Button>
       </DrawerTrigger>
       <DrawerContent className="border-0">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
             <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-center">
-              {t("drawer.title", { count })}
+              {localPdfFiles.length ? t("pdfWorkspace.filesTitle") : t("drawer.title", { count })}
             </DrawerTitle>
             <DrawerDescription className="text-center">
-              {t("drawer.description", { count })}
+              {localPdfFiles.length ? t("pdfWorkspace.filesDescription") : t("drawer.description", { count })}
             </DrawerDescription>
             {durationSeconds !== null && (
               <p className="text-center text-sm text-muted-foreground" data-testid="job-duration">
@@ -57,7 +63,7 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
               </p>
             )}
           </DrawerHeader>
-          <GitHubStarBanner compressionId={converted.join(",")} />
+          {converted.length > 0 && <GitHubStarBanner compressionId={converted.join(",")} />}
           <div className="p-1 pb-0 flex flex-col items-center">
             {converted.length > 1 && (
               <div className="text-center p-5">
@@ -70,6 +76,7 @@ const CompressedFilesDrawer: React.FC<CompressedFilesDrawerProps> = ({
           <div className="p-4 pb-0">
             <div className="overflow-y-auto max-h-40">
               <ul className="space-y-2">
+                {localPdfFiles.map((file) => <li key={file.id} className="rounded-lg border p-3" data-testid="drawer-local-pdf"><button type="button" onClick={() => onDownloadLocalPdf?.(file)} className="flex max-w-full items-center gap-2 text-blue-600 hover:underline dark:text-blue-400" data-testid="drawer-local-pdf-download"><Download className="h-4 w-4 shrink-0" /><span className="truncate">{file.filename}</span></button></li>)}
                 {converted.map((fname) => (
                   <li key={fname} className="text-center" data-testid="drawer-uploaded-file-item">
                     <button

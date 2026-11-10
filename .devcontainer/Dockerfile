@@ -2,7 +2,7 @@ FROM ghcr.io/karimz1/devcontainer-image-only-for-devs:2026-11
 #FROM my-base-image
 
 # Install Python dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends libcairo2 && \
+RUN apt-get update && apt-get install -y --no-install-recommends libcairo2 tesseract-ocr tesseract-ocr-eng tesseract-ocr-deu && \
     rm -rf /var/lib/apt/lists/*
 COPY requirements-dev.txt .
 RUN pip install --upgrade pip && \

@@ -115,6 +115,85 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  test-pdf-workspace:
+    name: test PDF workspace and real OCR
+    needs: lint-python
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    env:
+      CI: "true"
+      IMGCOMPRESS_REQUIRE_OCR: "true"
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Set up Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - name: Install PDF and OCR dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libcairo2 tesseract-ocr tesseract-ocr-eng tesseract-ocr-deu
+          python -m pip install -r requirements.txt pytest==9.2.0
+      - name: Test raster export, preview sizes and real searchable OCR
+        run: |
+          mkdir -p test-reports
+          python -m pytest tests/unit/test_pdf_workspace.py tests/unit/test_pdf_ocr.py tests/unit/test_pdf_output.py tests/unit/test_pdf_support.py tests/unit/test_pdf_quality.py tests/integration/test_pdf_workspace_ocr.py -q --junitxml=test-reports/pdf-workspace.xml
+      - name: Install frontend and Chromium
+        working-directory: frontend
+        run: |
+          PNPM_PACKAGE="$(node -p "require('./package.json').packageManager")"
+          npm exec --yes --package="$PNPM_PACKAGE" -- pnpm install --frozen-lockfile
+          npm exec --yes --package="$PNPM_PACKAGE" -- pnpm exec playwright install --with-deps chromium
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          NEXT_BUILD_MODE: export
+        run: |
+          PNPM_PACKAGE="$(node -p "require('./package.json').packageManager")"
+          npm exec --yes --package="$PNPM_PACKAGE" -- pnpm build
+      - name: Start the local app
+        run: |
+          mkdir -p ci-logs
+          python -m flask --app backend.image_converter.presentation.web.server run --host 127.0.0.1 --port 5000 > ci-logs/pdf-backend.log 2>&1 &
+          NEXT_BUILD_MODE=dev node frontend/node_modules/next/dist/bin/next dev frontend --hostname 127.0.0.1 --port 3000 > ci-logs/pdf-frontend.log 2>&1 &
+          for attempt in $(seq 1 120); do
+            if curl -fsS http://127.0.0.1:5000/api/health/backend > /dev/null && curl -fsS http://127.0.0.1:3000 > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat ci-logs/pdf-backend.log ci-logs/pdf-frontend.log
+          exit 1
+      - name: Test selections, drawer export, zoom, paper sizes and touch sorting
+        working-directory: frontend
+        run: |
+          PNPM_PACKAGE="$(node -p "require('./package.json').packageManager")"
+          npm exec --yes --package="$PNPM_PACKAGE" -- pnpm test:e2e pdf_Workspace_Test.spec.ts translations_Completeness_Test.spec.ts
+      - name: PDF test summary
+        if: always()
+        run: python3 scripts/ciTestSummary.py "PDF workspace and real OCR" test-reports/pdf-workspace.xml frontend/e2e-test-results/junit.xml
+      - name: Upload PDF reports and preview screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: pdf-workspace-results
+          path: |
+            test-reports/pdf-workspace.xml
+            frontend/e2e-test-results/
+            ci-logs/pdf-*.log
+          retention-days: 7
+          if-no-files-found: warn
+
   test-backend:
     name: test-backend (${{ matrix.platform }})
     needs: lint-python
@@ -575,6 +654,7 @@ jobs:
       - scan-image
       - test-backend
       - test-e2e
+      - test-pdf-workspace
       - test-feature-flags-matrix
       - test-unverified-formats-api
     if: always()

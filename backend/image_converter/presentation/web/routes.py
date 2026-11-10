@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 import base64
+import json
 import os
 from io import BytesIO
 
@@ -29,6 +30,8 @@ from backend.image_converter.presentation.web.services.conversion_job_service im
 from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
 from backend.image_converter.presentation.web.services.fit_preview_service import FitPreviewService
+from backend.image_converter.presentation.web.services.pdf_workspace_service import PdfWorkspaceError, PdfWorkspaceService
+from backend.image_converter.domain.pdf_workspace import PdfWorkspaceSettings
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 
@@ -73,6 +76,7 @@ crop_preview_service = CropPreviewService(
 )
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
 fit_preview_service = FitPreviewService()
+pdf_workspace_service = PdfWorkspaceService()
 editor_assets = EditorAssetStore(TEMP_DIR)
 backend_diagnostics_service = BackendDiagnosticsService(
     logger,
@@ -379,6 +383,54 @@ def crop_bitmap():
     if result.source_size:
         response.headers["X-Image-Width"] = str(result.source_size[0])
         response.headers["X-Image-Height"] = str(result.source_size[1])
+    return response
+
+
+@api_blueprint.route("/pdf/preview", methods=["POST"])
+def pdf_workspace_preview():
+    try:
+        page = request.form.get("page")
+        if page is not None:
+            try:
+                page = int(page)
+            except ValueError:
+                raise PdfWorkspaceError("Invalid page number.") from None
+        options = PdfWorkspaceSettings.from_form(request.form)
+        try:
+            side = int(request.form.get("side", "1600"))
+        except ValueError:
+            raise PdfWorkspaceError("Invalid preview size.") from None
+        result = pdf_workspace_service.preview(request.files.get("file"), page, options, side)
+    except (PdfWorkspaceError, ValueError) as error:
+        return jsonify({"error": str(error)}), 400
+    response = jsonify(result)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@api_blueprint.route("/pdf/merge", methods=["POST"])
+def pdf_workspace_merge():
+    try:
+        try:
+            pages = json.loads(request.form.get("pages", "null"))
+        except (ValueError, TypeError):
+            raise PdfWorkspaceError("Invalid page selection.") from None
+        options = PdfWorkspaceSettings.from_form(request.form)
+        buffer = pdf_workspace_service.merge(
+            request.files.getlist("files"), pages, options,
+            ocr=request.form.get("ocr") == "true", language=request.form.get("ocr_language"),
+        )
+    except (PdfWorkspaceError, ValueError) as error:
+        return jsonify({"error": str(error)}), 400
+    response = send_file(buffer, mimetype="application/pdf", as_attachment=True, download_name="merged.pdf")
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@api_blueprint.route("/pdf/ocr", methods=["GET"])
+def pdf_workspace_ocr_status():
+    response = jsonify(pdf_workspace_service.ocr.status())
+    response.headers["Cache-Control"] = "no-store"
     return response
 
 
