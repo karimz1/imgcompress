@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const esMX: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "Ocultar páginas excluidas",
-    "markedPages": "{{count}} páginas marcadas",
+    "markedPages": "Páginas marcadas: {{count}}",
     "toggleMarked": "Incluir / excluir marcadas",
     "moveMarkedEarlier": "Adelantar páginas marcadas",
     "moveMarkedLater": "Retrasar páginas marcadas",

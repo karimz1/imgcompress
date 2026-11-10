@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const ja: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "除外したページを非表示",
-    "markedPages": "{{count}} ページを選択中",
+    "markedPages": "選択したページ数: {{count}}",
     "toggleMarked": "選択ページを含める / 除外",
     "moveMarkedEarlier": "選択ページを前へ移動",
     "moveMarkedLater": "選択ページを後ろへ移動",

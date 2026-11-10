@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const zhCN: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "隐藏已排除的页面",
-    "markedPages": "已选中 {{count}} 页",
+    "markedPages": "已选页面数：{{count}}",
     "toggleMarked": "包含 / 排除选中页面",
     "moveMarkedEarlier": "向前移动选中页面",
     "moveMarkedLater": "向后移动选中页面",

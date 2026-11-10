@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const ptBR: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "Ocultar páginas excluídas",
-    "markedPages": "{{count}} páginas marcadas",
+    "markedPages": "Páginas marcadas: {{count}}",
     "toggleMarked": "Incluir / excluir marcadas",
     "moveMarkedEarlier": "Mover páginas marcadas para antes",
     "moveMarkedLater": "Mover páginas marcadas para depois",

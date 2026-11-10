@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const hi: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "निकाले गए पन्ने छिपाएँ",
-    "markedPages": "{{count}} पन्ने चिह्नित",
+    "markedPages": "चिह्नित पन्ने: {{count}}",
     "toggleMarked": "चिह्नित पन्ने शामिल / बाहर करें",
     "moveMarkedEarlier": "चिह्नित पन्ने पहले ले जाएँ",
     "moveMarkedLater": "चिह्नित पन्ने बाद में ले जाएँ",

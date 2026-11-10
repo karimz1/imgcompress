@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const ar: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "إخفاء الصفحات المستبعدة",
-    "markedPages": "تم تحديد {{count}} صفحة",
+    "markedPages": "الصفحات المحددة: {{count}}",
     "toggleMarked": "تضمين / استبعاد المحدد",
     "moveMarkedEarlier": "نقل الصفحات المحددة إلى الأمام",
     "moveMarkedLater": "نقل الصفحات المحددة إلى الخلف",

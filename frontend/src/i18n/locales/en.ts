@@ -1,7 +1,7 @@
 export const en = {
   pdfWorkspace: {
     "hideExcluded": "Hide excluded pages",
-    "markedPages": "{{count}} pages marked",
+    "markedPages": "Marked pages: {{count}}",
     "toggleMarked": "Include / exclude marked",
     "moveMarkedEarlier": "Move marked pages earlier",
     "moveMarkedLater": "Move marked pages later",

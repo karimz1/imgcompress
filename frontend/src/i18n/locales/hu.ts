@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const hu: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "Kizárt oldalak elrejtése",
-    "markedPages": "{{count}} oldal megjelölve",
+    "markedPages": "Megjelölt oldalak: {{count}}",
     "toggleMarked": "Megjelöltek bevonása / kizárása",
     "moveMarkedEarlier": "Megjelölt oldalak előrébb",
     "moveMarkedLater": "Megjelölt oldalak hátrébb",

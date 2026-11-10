@@ -3,7 +3,7 @@ import type { TranslationSchema } from "../types";
 export const de: TranslationSchema = {
   pdfWorkspace: {
     "hideExcluded": "Ausgeschlossene Seiten ausblenden",
-    "markedPages": "{{count}} Seiten markiert",
+    "markedPages": "Markierte Seiten: {{count}}",
     "toggleMarked": "Markierte ein-/ausschließen",
     "moveMarkedEarlier": "Markierte Seiten nach vorne",
     "moveMarkedLater": "Markierte Seiten nach hinten",
