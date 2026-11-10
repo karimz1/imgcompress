@@ -420,3 +420,49 @@ test("a network failure leaves the applied selection intact and can be retried",
   await page.getByTestId("compressed-files-drawer-close-btn").click();
   await expect(page.getByTestId("pdf-selection-summary")).toContainText("1 pages");
 });
+
+test("the upload list and workspace share added and removed sources in both PDF modes", async ({ page }) => {
+  await start(page);
+  await openFiles(page, [await pdfFile("first-source.pdf", [[300, 400], [320, 420]]), await pdfFile("second-source.pdf", [[340, 440]])]);
+  const workspace = page.getByTestId("pdf-workspace");
+  await workspace.getByTestId("dialog-close").click();
+  await expect(page.getByTestId("dropzone-added-file")).toHaveCount(2);
+  await page.getByTestId("dropzone-added-file-wrapper").filter({ hasText: "first-source.pdf" }).getByTestId("dropzone-remove-file-btn").click();
+  await expect(page.getByTestId("pdf-selection-summary")).toContainText("1 pages");
+  await page.getByTestId("pdf-workspace-open").click();
+  await expect(workspace.getByTestId("pdf-workspace-page")).toHaveCount(1);
+  await expect(workspace.getByTestId("pdf-workspace-page")).toContainText("second-source.pdf");
+  await page.getByTestId("pdf-workspace-input").setInputFiles(await imageFile("added-in-editor.png"));
+  await expect(workspace.getByTestId("pdf-workspace-page")).toHaveCount(2);
+  await expect(page.getByTestId("pdf-workspace-input")).toBeEnabled();
+  await workspace.getByTestId("dialog-close").click();
+  await expect(page.getByTestId("dropzone-added-file")).toHaveCount(2);
+  await expect(page.getByTestId("dropzone-added-file").last()).toHaveText("added-in-editor.png");
+  await page.getByRole("tab", { name: "Convert", exact: true }).click();
+  await expect(page.getByTestId("dropzone-added-file")).toHaveCount(2);
+  await page.getByTestId("dropzone-added-file-wrapper").filter({ hasText: "added-in-editor.png" }).getByTestId("dropzone-remove-file-btn").click();
+  await expect(page.getByTestId("pdf-selection-summary")).toContainText("1 pages");
+  await page.getByTestId("pdf-workspace-open").click();
+  await expect(workspace.getByTestId("pdf-workspace-page")).toHaveCount(1);
+});
+
+test("zoomed preview checkboxes immediately update the editor selection", async ({ page }) => {
+  await start(page);
+  await openFiles(page, [await pdfFile("include-pages.pdf", [[595, 842], [595, 842]])]);
+  const workspace = page.getByTestId("pdf-workspace");
+  const cards = workspace.getByTestId("pdf-workspace-page");
+  await cards.first().getByRole("checkbox").uncheck();
+  await cards.first().getByRole("button", { name: /^Preview/ }).click();
+  const viewer = page.getByTestId("pdf-document-preview");
+  const thumbnails = viewer.getByTestId("pdf-preview-thumbnail");
+  await expect(thumbnails.first().getByRole("checkbox")).not.toBeChecked();
+  await thumbnails.first().getByRole("checkbox").check();
+  await expect(viewer.getByTestId("pdf-preview-sheet").first().getByRole("checkbox")).toBeChecked();
+  await viewer.getByTestId("pdf-preview-sheet").last().getByRole("checkbox").uncheck();
+  await expect(thumbnails.last().getByRole("checkbox")).not.toBeChecked();
+  await page.keyboard.press("Escape");
+  await expect(cards.first().getByRole("checkbox")).toBeChecked();
+  await expect(cards.last().getByRole("checkbox")).not.toBeChecked();
+  await workspace.getByTestId("dialog-close").click();
+  await expect(page.getByTestId("pdf-selection-summary")).toContainText("1 pages");
+});

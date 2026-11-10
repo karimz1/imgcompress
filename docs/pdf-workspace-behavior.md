@@ -21,6 +21,7 @@ This is the behavior contract agreed with the user. The PDF workspace is part of
 - Creating a PDF does not consume the selection. Users can continue editing and create it again.
 - Clearing the main file selection clears the PDF selection too. Clearing only the PDF selection may keep the imported source files.
 - Reimporting different files with the same filename must not confuse their source identity.
+- The upload list is shared by both PDF tabs and the workspace. Importing inside the workspace also adds the source to that list; removing a source there removes its pages from the editor and saved selection. Do not maintain a disconnected second source list.
 
 ## Downloads drawer
 
@@ -36,6 +37,7 @@ This is the behavior contract agreed with the user. The PDF workspace is part of
 - Keep checkbox exclusion, rotation, delete, undo, and move buttons usable independently of dragging. Touch users can hold and drag; Escape cancels a drag without closing the editor.
 - Enlarge and delete controls are visible on each thumbnail.
 - The enlarged document viewer scrolls through the ordered pages continuously and provides previous/next, a page number field, and a thumbnail navigation rail on wider screens.
+- The enlarged viewer's thumbnail rail has an include/exclude checkbox for every page. The same checkbox is available by each full-size page so it works on narrow screens too. Both update the editor's shared selection immediately.
 - Provide percentage zoom up to 400%, plus fit page and fit width. Zoomed pages must scroll instead of remaining constrained inside a fixed image box.
 - Display actual output paper formats such as A4/Letter, orientation and dimensions. This is a paper-size label, not an AI classification.
 - Fetch detailed rasters only near the viewport and bound preview resolution and memory.
