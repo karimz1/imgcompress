@@ -29,6 +29,7 @@ import {
 
 import { SupportedFormatsDialog } from "@/components/SupportedFormatsDialog";
 import { InputFileBadge } from "@/components/InputFileBadge";
+import { PdfWorkspace } from "@/components/PdfWorkspace";
 import { CropDialog } from "@/components/crop/CropDialog";
 import { clampCrop, CropConfig, isCropableFile, isCropUnsupportedFile, isSvgFile } from "@/lib/crop";
 import {
@@ -166,6 +167,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   onReportCropError,
 }) => {
   const [confirmCropRemoveFor, setConfirmCropRemoveFor] = useState<string | null>(null);
+  const [pdfMode, setPdfMode] = useState<"convert" | "merge">("convert");
+  const pdfMergeActive = outputFormat === "pdf" && pdfMode === "merge" && files.length > 0;
   const { isDarkTheme } = useMountedTheme();
   const { t, i18n } = useTranslation();
   const onlySvgFiles = files.length > 0 && files.every(isSvgFile);
@@ -526,6 +529,20 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
+      {outputFormat === "pdf" && <div role="tablist" aria-label={t("pdfWorkspace.mode")} className="grid grid-cols-2 gap-2" onKeyDown={(event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        const next = pdfMergeActive ? "convert" : files.length > 0 ? "merge" : "convert";
+        setPdfMode(next);
+        document.getElementById(`pdf-${next}-tab`)?.focus();
+      }}>
+        <Button type="button" role="tab" id="pdf-convert-tab" aria-selected={!pdfMergeActive} aria-controls="pdf-convert-panel" tabIndex={!pdfMergeActive ? 0 : -1} variant={!pdfMergeActive ? "default" : "outline"} disabled={isLoading} onClick={() => setPdfMode("convert")}>{t("pdfWorkspace.convertTab")}</Button>
+        <Button type="button" role="tab" id="pdf-merge-tab" aria-selected={pdfMergeActive} aria-controls="pdf-merge-panel" tabIndex={pdfMergeActive ? 0 : -1} variant={pdfMergeActive ? "default" : "outline"} disabled={isLoading || !files.length} onClick={() => setPdfMode("merge")}>{t("pdfWorkspace.mergeTab")}</Button>
+      </div>}
+
+      <div className="space-y-4" role={outputFormat === "pdf" ? "tabpanel" : undefined} id={pdfMergeActive ? "pdf-merge-panel" : "pdf-convert-panel"} aria-labelledby={outputFormat === "pdf" ? `pdf-${pdfMergeActive ? "merge" : "convert"}-tab` : undefined}>
+      {pdfMergeActive && <p className="text-sm text-muted-foreground">{t("pdfWorkspace.mergeHint")}</p>}
+      <div hidden={pdfMergeActive} className="space-y-4">
       {outputFormat === "pdf" && (
         <div className="space-y-1">
           <div className="flex items-center gap-1">
@@ -1148,15 +1165,26 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
         )}
       </div>
 
+      </div>
+
       {renderError}
 
       {renderDropZone}
 
-      {renderFilesList}
+      <PdfWorkspace files={files} disabled={isLoading} visible={outputFormat === "pdf" && files.length > 0} settings={{
+        apply_layout: !pdfMergeActive,
+        pdf_preset: pdfMergeActive ? "original" : pdfPreset,
+        pdf_scale: pdfMergeActive ? "fit" : pdfScale,
+        pdf_margin_mm: pdfMergeActive ? "0" : pdfMarginMm,
+        pdf_paginate: !pdfMergeActive && pdfPaginate,
+        pdf_quality: pdfMergeActive ? "high" : pdfQuality,
+      }} />
+
+      {!pdfMergeActive && renderFilesList}
 
       {cropDialogNode}
 
-      <div className="flex items-center justify-between gap-4">
+      {!pdfMergeActive && <div className="flex items-center justify-between gap-4">
         <Button
           type="submit"
           variant="default"
@@ -1185,6 +1213,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           <Trash className="h-4 w-4" />
           {t("form.buttons.clear")}
         </Button>
+      </div>}
       </div>
     </form>
   );
