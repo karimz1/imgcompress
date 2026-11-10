@@ -14,6 +14,7 @@ import { preparePdfSelection, movePdfPage, PDF_WORKSPACE_ACCEPT, PDF_WORKSPACE_M
 
 interface PdfWorkspaceProps {
   files: File[];
+  onAddFiles: (files: File[]) => void;
   disabled: boolean;
   visible: boolean;
   settings: PdfWorkspaceSettings;
@@ -23,7 +24,7 @@ interface PdfWorkspaceProps {
   onSaveSelection: (selection: SavedPdfSelection) => void;
 }
 
-export function PdfWorkspace({ files, disabled, visible, settings: formSettings, savedSelection, clearRequest = 0, onClearSelection, onSaveSelection }: PdfWorkspaceProps) {
+export function PdfWorkspace({ files, onAddFiles, disabled, visible, settings: formSettings, savedSelection, clearRequest = 0, onClearSelection, onSaveSelection }: PdfWorkspaceProps) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState(formSettings);
@@ -44,6 +45,8 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
   const importing = useRef(false);
   const controller = useRef<AbortController | null>(null);
   const imported = useRef(new Set<File>());
+  const currentFiles = useRef(files);
+  currentFiles.current = files;
   const nextSourceId = useRef(0);
   const preparedSettings = useRef("");
   const selected = pages.filter((page) => page.included);
@@ -56,6 +59,17 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
   }
 
   useEffect(() => () => controller.current?.abort(), []);
+
+  useEffect(() => {
+    const sources = new Set(files);
+    setPages((current) => {
+      const retained = current.filter((page) => sources.has(page.file));
+      return retained.length === current.length ? current : retained;
+    });
+    const retained = new Set([...imported.current].filter((file) => sources.has(file)));
+    if (retained.size !== imported.current.size) setRemoved(null);
+    imported.current = retained;
+  }, [files]);
 
   const lastClearRequest = useRef(0);
   useEffect(() => {
@@ -84,7 +98,7 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
     return () => request.abort();
   }, [open, i18n.language]);
 
-  async function addFiles(incoming: File[], reset = false, sourceSettings = settings) {
+  async function addFiles(incoming: File[], reset = false, sourceSettings = settings, registerSources = false) {
     const pending = incoming.filter((file) => !imported.current.has(file));
     if (importing.current || pending.length === 0) return;
     importing.current = true;
@@ -107,6 +121,7 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
           if (count >= PDF_WORKSPACE_MAX_PAGES) throw new Error(t("pdfWorkspace.pageLimit", { count: PDF_WORKSPACE_MAX_PAGES }));
           const previews = await previewPdfSource(file, request.signal, undefined, sourceSettings);
           if (request.signal.aborted) return;
+          if (!registerSources && !currentFiles.current.includes(file)) continue;
           if (count + previews.length > PDF_WORKSPACE_MAX_PAGES) {
             throw new Error(t("pdfWorkspace.pageLimit", { count: PDF_WORKSPACE_MAX_PAGES }));
           }
@@ -115,6 +130,7 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
           const added = previews.map((preview) => ({ ...preview, id: `${sourceId}-${preview.page}`, sourceId, file, included: true, rotation: 0 }));
           count += added.length;
           size += file.size;
+          if (registerSources) onAddFiles([file]);
           imported.current.add(file);
           setPages((current) => [...current, ...added]);
         } catch (cause) {
@@ -139,8 +155,10 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
       try {
         const prepared = await preparePdfSelection(selectionSnapshot(), formSettings, request.signal);
         if (request.signal.aborted) return;
-        setPages(prepared.pages); setSettings(formSettings); preparedSettings.current = nextSettingsKey;
-        onSaveSelection(prepared);
+        const sources = new Set(currentFiles.current);
+        const retained = { ...prepared, pages: prepared.pages.filter((page) => sources.has(page.file)) };
+        setPages(retained.pages); setSettings(formSettings); preparedSettings.current = nextSettingsKey;
+        if (currentFiles.current.length) onSaveSelection(retained);
       } catch (cause) { if (!request.signal.aborted) setError(cause instanceof Error ? cause.message : t("pdfWorkspace.failed")); }
       finally { importing.current = false; setBusy(false); setProgress(""); }
       return;
@@ -158,7 +176,7 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
   }
 
   function closeWorkspace() {
-    if (!importing.current && pages.length) onSaveSelection(selectionSnapshot());
+    if (!importing.current && (pages.length || removed)) onSaveSelection(selectionSnapshot());
     setOpen(false);
   }
 
@@ -181,7 +199,7 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
           if (event.dataTransfer.types.includes("Files")) { event.preventDefault(); setDropActive(true); }
         }} onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDropActive(false); }} onDrop={(event) => {
           event.preventDefault(); setDropActive(false);
-          if (!busy && event.dataTransfer.files.length) void addFiles(Array.from(event.dataTransfer.files));
+          if (!busy && event.dataTransfer.files.length) void addFiles(Array.from(event.dataTransfer.files), false, settings, true);
         }}>
           <DialogHeader className="shrink-0 border-b px-5 pb-4 pt-5 pr-12 text-start">
             <DialogTitle ref={workspaceTitle} tabIndex={-1} className="outline-none">{t("pdfWorkspace.title")}</DialogTitle>
@@ -192,7 +210,7 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
           </DialogHeader>
           <div className="flex shrink-0 flex-wrap items-center gap-2 border-b p-3">
             <input ref={input} type="file" multiple accept={PDF_WORKSPACE_ACCEPT} className="sr-only" aria-label={t("pdfWorkspace.add")} data-testid="pdf-workspace-input" disabled={busy} onChange={(event) => {
-              void addFiles(Array.from(event.target.files ?? [])); event.target.value = "";
+              void addFiles(Array.from(event.target.files ?? []), false, settings, true); event.target.value = "";
             }} />
             <Button type="button" size="sm" disabled={busy} onClick={() => input.current?.click()}><Plus />{t("pdfWorkspace.add")}</Button>
             <Button type="button" size="sm" variant="outline" disabled={busy || !pages.length} onClick={() => updatePages((current) => current.map((page) => ({ ...page, included: true })))}>{t("pdfWorkspace.selectAll")}</Button>
@@ -261,7 +279,7 @@ export function PdfWorkspace({ files, disabled, visible, settings: formSettings,
           </div>
         </DialogContent>
       </Dialog>
-      <PdfDocumentPreview pages={pages} initialPage={open ? zoom : null} settings={settings} onClose={() => setZoom(null)} returnFocus={() => zoomTrigger.current?.focus()} />
+      <PdfDocumentPreview pages={pages} initialPage={open ? zoom : null} settings={settings} onToggleIncluded={(id) => updatePages((current) => current.map((page) => page.id === id ? { ...page, included: !page.included } : page))} onClose={() => setZoom(null)} returnFocus={() => zoomTrigger.current?.focus()} />
     </>
   );
 }

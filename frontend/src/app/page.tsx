@@ -667,8 +667,14 @@ function HomePageContent() {
     }
   }, [files]);
 
-  const removeFile = useCallback((fileName: string) => {
-    setFiles((prev) => prev.filter((f) => f.name !== fileName));
+  const removeFile = useCallback((file: File) => {
+    const fileName = file.name;
+    setFiles((prev) => prev.filter((f) => f !== file));
+    setSavedPdf((current) => {
+      if (!current) return current;
+      const pages = current.pages.filter((page) => page.file !== file);
+      return pages.length === current.pages.length ? current : pages.length ? { ...current, pages } : null;
+    });
     setCrops((prev) => {
       if (!(fileName in prev)) return prev;
       const next = { ...prev };
@@ -866,6 +872,7 @@ function HomePageContent() {
               onClearPdfSelection={clearPdfSelection}
               onSavePdfSelection={savePdfSelection}
               onExportSavedPdf={(settings) => void createSavedPdf(settings)}
+              onAddFiles={onDrop}
               isLoading={isLoading || pdfBusy}
               error={error}
               quality={quality}

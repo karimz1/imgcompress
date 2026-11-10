@@ -13,11 +13,12 @@ interface Props {
   pages: WorkspacePage[];
   initialPage: WorkspacePage | null;
   settings: PdfWorkspaceSettings;
+  onToggleIncluded: (id: string) => void;
   onClose: () => void;
   returnFocus: () => void;
 }
 
-export function PdfDocumentPreview({ pages, initialPage, settings, onClose, returnFocus }: Props) {
+export function PdfDocumentPreview({ pages, initialPage, settings, onToggleIncluded, onClose, returnFocus }: Props) {
   const { t, i18n } = useTranslation();
   const viewport = useRef<HTMLDivElement>(null);
   const pageElements = useRef(new Map<string, HTMLElement>());
@@ -123,10 +124,12 @@ export function PdfDocumentPreview({ pages, initialPage, settings, onClose, retu
       </div>
       <div className="flex min-h-0 flex-1">
         <aside className="hidden w-36 shrink-0 space-y-3 overflow-auto border-e bg-muted/30 p-3 md:block" aria-label={t("pdfWorkspace.pageNavigation")}>
-          {pages.map((page, index) => <button type="button" key={page.id} onClick={() => goTo(index)} aria-current={page.id === currentPage?.id ? "page" : undefined} aria-label={t("pdfWorkspace.outputPage", { page: index + 1 })} className={cn("block w-full rounded border p-2 text-xs", page.id === currentPage?.id ? "border-blue-500 ring-1 ring-blue-500" : "border-transparent hover:border-muted-foreground")}>
+          {pages.map((page, index) => <div key={page.id} className={cn("relative rounded border text-xs", page.id === currentPage?.id ? "border-blue-500 ring-1 ring-blue-500" : "border-transparent hover:border-muted-foreground")} data-testid="pdf-preview-thumbnail">
+            <input type="checkbox" checked={page.included} onChange={() => onToggleIncluded(page.id)} aria-label={t("pdfWorkspace.include", { name: t("pdfWorkspace.pageLabel", { name: page.file.name, page: page.page + 1 }) })} className="absolute start-2 top-2 z-10 h-4 w-4 accent-blue-600" />
+            <button type="button" onClick={() => goTo(index)} aria-current={page.id === currentPage?.id ? "page" : undefined} aria-label={t("pdfWorkspace.outputPage", { page: index + 1 })} className="block w-full rounded px-2 pb-2 pt-6 focus-visible:outline-2 focus-visible:outline-blue-500">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={page.preview} alt="" loading="lazy" className="mx-auto h-24 w-full object-contain" style={{ transform: `rotate(${page.rotation}deg)` }} /><span className="mt-1 block">{index + 1}</span>
-          </button>)}
+            <img src={page.preview} alt="" loading="lazy" className={cn("mx-auto h-24 w-full object-contain", !page.included && "opacity-40")} style={{ transform: `rotate(${page.rotation}deg)` }} /><span className="mt-1 block">{index + 1}</span>
+          </button></div>)}
         </aside>
         <div ref={viewport} className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain bg-slate-100 dark:bg-slate-900" data-testid="pdf-preview-scroll" onScroll={() => {
           cancelAnimationFrame(scrollFrame.current);
@@ -146,7 +149,7 @@ export function PdfDocumentPreview({ pages, initialPage, settings, onClose, retu
         }} tabIndex={0} aria-label={t("pdfWorkspace.pageNavigation")}>
           <div className="relative flex min-w-full w-max flex-col items-center gap-6 p-4 sm:p-6">
             {pages.map((page, index) => <section key={page.id} ref={(element) => { if (element) pageElements.current.set(page.id, element); else pageElements.current.delete(page.id); }} className="shrink-0" data-testid="pdf-preview-sheet" data-preview-page={page.id}>
-              <p className="mb-2 max-w-full text-xs text-slate-600 dark:text-slate-300">{t("pdfWorkspace.pageOf", { page: index + 1, total: pages.length })} · <span data-testid="pdf-page-format">{pdfPageSizeLabel(page, i18n.language)}</span>{!page.included ? ` · ${t("pdfWorkspace.excluded")}` : ""}</p>
+              <label className="mb-2 flex max-w-full cursor-pointer items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><input type="checkbox" checked={page.included} onChange={() => onToggleIncluded(page.id)} aria-label={t("pdfWorkspace.include", { name: t("pdfWorkspace.pageLabel", { name: page.file.name, page: page.page + 1 }) })} className="h-4 w-4 accent-blue-600" /><span>{t("pdfWorkspace.pageOf", { page: index + 1, total: pages.length })} · <span data-testid="pdf-page-format">{pdfPageSizeLabel(page, i18n.language)}</span>{!page.included ? ` · ${t("pdfWorkspace.excluded")}` : ""}</span></label>
               <PageImage page={page} settings={settings} viewport={viewport} zoom={fitZoom} />
             </section>)}
           </div>

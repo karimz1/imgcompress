@@ -52,6 +52,7 @@ interface FileConversionFormProps {
   onClearPdfSelection: () => void;
   onSavePdfSelection: (selection: SavedPdfSelection) => void;
   onExportSavedPdf: (settings: PdfWorkspaceSettings) => void;
+  onAddFiles: (files: File[]) => void;
   isLoading: boolean;
   error: { message: string; details?: string } | null;
   quality: string;
@@ -81,7 +82,7 @@ interface FileConversionFormProps {
   pdfQuality: PdfQualityOption;
   setPdfQuality: (val: PdfQualityOption) => void;
   files: File[];
-  removeFile: (name: string) => void;
+  removeFile: (file: File) => void;
   clearFileSelection: () => void;
   onSubmit: (e: React.FormEvent) => void;
 
@@ -124,6 +125,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   onClearPdfSelection,
   onSavePdfSelection,
   onExportSavedPdf,
+  onAddFiles,
   isLoading,
   error,
   quality,
@@ -274,16 +276,16 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       files.length > 0 && (
         <div className="mt-2 space-y-1">
           <Label>{t("form.filesList.label")}</Label>
-          {files.map((file) => {
-            const cropUnsupported = isCropUnsupportedFile(file, cropUnsupportedExtensions);
+          {files.map((file, index) => {
+            const cropUnsupported = !pdfMergeActive && isCropUnsupportedFile(file, cropUnsupportedExtensions);
             const cropable =
-              !cropUnsupported && isCropableFile(file, supportedExtensions);
-            const savedCrop = crops[file.name];
+              !pdfMergeActive && !cropUnsupported && isCropableFile(file, supportedExtensions);
+            const savedCrop = !pdfMergeActive ? crops[file.name] : undefined;
             const savedFit = outputFormat !== "pdf" ? savedCrop?.fit : undefined;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
             return (
               <div
-                key={file.name}
+                key={`${file.name}-${index}`}
                 className={cn(
                   "flex flex-col items-stretch gap-2 rounded-md p-2 transition-colors sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
                   filePillClass
@@ -403,7 +405,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                     size="sm"
                     type="button"
                     disabled={isLoading}
-                    onClick={() => removeFile(file.name)}
+                    onClick={() => removeFile(file)}
                     data-testid="dropzone-remove-file-btn"
                   >
                     {t("form.filesList.removeButton")}
@@ -416,6 +418,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       ),
     [
       files,
+      pdfMergeActive,
       isLoading,
       removeFile,
       filePillClass,
@@ -1193,11 +1196,11 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
 
       {renderDropZone}
 
-      <PdfWorkspace files={files} disabled={isLoading} savedSelection={savedPdfSelection} clearRequest={pdfClearRequest} onClearSelection={onClearPdfSelection} onSaveSelection={onSavePdfSelection} visible={outputFormat === "pdf" && files.length > 0} settings={workspaceSettings} />
+      <PdfWorkspace files={files} onAddFiles={onAddFiles} disabled={isLoading} savedSelection={savedPdfSelection} clearRequest={pdfClearRequest} onClearSelection={onClearPdfSelection} onSaveSelection={onSavePdfSelection} visible={outputFormat === "pdf" && files.length > 0} settings={workspaceSettings} />
       {outputFormat === "pdf" && pdfError && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-sm text-red-700 dark:text-red-300" data-testid="pdf-export-error">{pdfError}</p>}
       {pdfMergeActive && savedPdfSelection && <Button type="button" disabled={isLoading || emptyPdfSelection} onClick={() => onExportSavedPdf(workspaceSettings)} data-testid="pdf-create-saved">{t("pdfWorkspace.createPdf")}</Button>}
 
-      {!pdfMergeActive && renderFilesList}
+      {renderFilesList}
 
       {cropDialogNode}
 
