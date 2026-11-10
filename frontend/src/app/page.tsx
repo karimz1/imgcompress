@@ -76,6 +76,7 @@ function HomePageContent() {
   // The job the splash screen follows, and its "notify me when done" switch.
   const [followedJob, setFollowedJob] = useState<JobRef | null>(null);
   const [notifyOn, setNotifyOn] = useState(false);
+  const [notifyError, setNotifyError] = useState<string | null>(null);
   const notifyTouched = React.useRef(false);
 
   useEffect(() => {
@@ -331,6 +332,8 @@ function HomePageContent() {
       setJobDuration(null);
       setFollowedJob(job);
       setNotifyOn(false);
+      setNotifyError(null);
+      toast.dismiss('notify-switch-error');
       notifyTouched.current = false;
       let state;
       try {
@@ -750,6 +753,8 @@ function HomePageContent() {
       if (!followedJob) return;
       notifyTouched.current = true;
       setNotifyOn(checked);
+      setNotifyError(null);
+      toast.dismiss("notify-switch-error");
       // Keep the preference in sync with the switch right away. Waiting for the
       // POST to finish left a window where the UI and localStorage disagreed
       // (and a closed tab could forget the choice). Revert both if the request fails.
@@ -757,9 +762,13 @@ function HomePageContent() {
       if (!(await setJobNotify(followedJob, checked, i18n.language))) {
         setNotifyOn(!checked);
         saveNotifyPreference(!checked);
+        const message = t(checked ? "splash.notifyErrorOn" : "splash.notifyErrorOff");
+        setNotifyError(message);
+        // Stay until dismissed or a retry succeeds — same text as the inline alert.
+        toast.error(message, { autoClose: false, toastId: "notify-switch-error" });
       }
     },
-    [followedJob, i18n]
+    [followedJob, i18n, t]
   );
 
   return (
@@ -769,7 +778,7 @@ function HomePageContent() {
         onAbort={handleAbort}
         progress={jobProgress}
         startedAt={jobStartedAt}
-        notify={notifyAvailable && followedJob ? { checked: notifyOn, onChange: handleNotifyChange } : null}
+        notify={notifyAvailable && followedJob ? { checked: notifyOn, onChange: handleNotifyChange, error: notifyError } : null}
         disableLogo={configReady ? disableLogo : false}
       />
       <BackendStatusBanner backendDown={isDown} />
