@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.infrastructure.pdfium_lock import PDFIUM_LOCK
 
 
 class PdfPageExtractor:
@@ -27,11 +28,16 @@ class PdfPageExtractor:
             def page_generator():
                 try:
                     scale = self._dpi_to_scale()
-                    for page_index in range(len(document)):
-                        page = document[page_index]
-                        yield self._render_single_page(page, scale)
+                    with PDFIUM_LOCK:
+                        count = len(document)
+                    for page_index in range(count):
+                        with PDFIUM_LOCK:
+                            page = document[page_index]
+                            rendered = self._render_single_page(page, scale)
+                        yield rendered
                 finally:
-                    document.close()
+                    with PDFIUM_LOCK:
+                        document.close()
             
             return Result.success(page_generator())
         except Exception:
@@ -40,9 +46,11 @@ class PdfPageExtractor:
 
     def _open_document(self, pdf_bytes: bytes) -> Any:
         import pypdfium2 as pdfium
-        document = pdfium.PdfDocument(pdf_bytes)
-        if len(document) == 0:
-            raise ValueError("PDF contains no renderable pages.")
+        with PDFIUM_LOCK:
+            document = pdfium.PdfDocument(pdf_bytes)
+            if len(document) == 0:
+                document.close()
+                raise ValueError("PDF contains no renderable pages.")
         return document
 
     def _render_single_page(self, page: Any, scale: float) -> bytes:

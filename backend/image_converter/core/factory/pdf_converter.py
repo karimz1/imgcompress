@@ -48,13 +48,17 @@ class PdfConverter(BaseImageConverter):
 
     def encode_to_bytes(self, image_data: bytes) -> bytes:
         with Image.open(BytesIO(image_data)) as img:
-            img = _normalize_for_pdf(img)
-            if self.pdf_preset and self.pdf_preset.size:
-                return self._encode_with_preset(img)
-            return self._encode_original(img)
+            return self.encode_image(img)
 
-    def _encode_original(self, img: Image.Image) -> bytes:
-        page_w, page_h = img.size
+    def encode_image(self, img: Image.Image, original_size=None) -> bytes:
+        """Encode a decoded raster, optionally retaining an original PDF's point size."""
+        img = _normalize_for_pdf(img)
+        if self.pdf_preset and self.pdf_preset.size:
+            return self._encode_with_preset(img)
+        return self._encode_original(img, original_size)
+
+    def _encode_original(self, img: Image.Image, original_size=None) -> bytes:
+        page_w, page_h = original_size or img.size
         img = self._limit_original_dimensions(img)
         pdf = FPDF(unit="pt", format=(page_w, page_h))
         pdf.add_page()
