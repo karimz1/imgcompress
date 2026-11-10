@@ -186,6 +186,8 @@ def test_output_settings_apply_to_preview_and_export_including_pagination():
     service = PdfWorkspaceService()
     preview = service.preview(source, options=options)
     assert preview["count"] == 4
+    assert [item["source_page"] for item in preview["pages"]] == [0, 0, 0, 0]
+    assert [item["part"] for item in preview["pages"]] == [0, 1, 2, 3]
     assert {(item["width"], item["height"]) for item in preview["pages"]} == {(595, 842)}
     merged = service.merge([source], [{"source": 0, "page": 3}, {"source": 0, "page": 0}], options=options)
     with PDFIUM_LOCK, pdfium.PdfDocument(merged) as document, closing(document[0]) as page:
@@ -243,3 +245,15 @@ def test_ocr_checks_installation_and_languages_before_reading_sources(monkeypatc
     monkeypatch.setattr(service.ocr, "status", lambda: {"available": True, "languages": ["eng"]})
     with pytest.raises(PdfWorkspaceError, match="installed OCR language"):
         service.merge([None], [{"source": 0, "page": 0}], ocr=True, language="eng; echo bad")
+
+
+def test_detailed_previews_honor_requested_resolution_and_limit_allocations():
+    import base64
+
+    service = PdfWorkspaceService()
+    preview = service.preview(upload(pdf_bytes("DETAIL")), 0, max_side=2400)
+    with Image.open(BytesIO(base64.b64decode(preview["pages"][0]["preview"].split(",")[1]))) as image:
+        assert max(image.size) == 2400
+    for invalid in (0, -1, 4097, True, "2400"):
+        with pytest.raises(PdfWorkspaceError, match="Preview size"):
+            service.preview(upload(pdf_bytes("DETAIL")), 0, max_side=invalid)

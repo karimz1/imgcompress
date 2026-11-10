@@ -27,12 +27,15 @@ class PdfWorkspaceService:
     def __init__(self):
         self.ocr = PdfOcr()
 
-    def preview(self, upload, page_index=None, options=None):
+    def preview(self, upload, page_index=None, options=None, max_side=1600):
         import pypdfium2 as pdfium
 
         self._require_upload(upload)
+        if type(max_side) is not int or not 128 <= max_side <= 4096:
+            raise PdfWorkspaceError("Preview size must be between 128 and 4096 pixels.")
         with PDFIUM_LOCK, ExitStack() as stack:
-            document = self._open_source(upload, stack, pdfium, options, preview=True)
+            source_map = []
+            document = self._open_source(upload, stack, pdfium, options, preview=page_index is None, source_map=source_map)
             count = len(document)
             if page_index is not None and (type(page_index) is not int or not 0 <= page_index < count):
                 raise PdfWorkspaceError("Invalid page number.")
@@ -43,13 +46,14 @@ class PdfWorkspaceService:
                     width, height = page.get_size()
                     if not all(isfinite(side) and side > 0 for side in (width, height)):
                         raise PdfWorkspaceError("This document has an invalid page size.")
-                    side = 360 if page_index is None else 1600
-                    with closing(page.render(scale=min(side / max(width, height), 2))) as bitmap:
+                    side = 360 if page_index is None else max_side
+                    with closing(page.render(scale=min(side / max(width, height), 2 if page_index is None else 8))) as bitmap:
                         with bitmap.to_pil() as image:
                             with BytesIO() as buffer:
                                 image.convert("RGB").save(buffer, format="JPEG", quality=85)
                                 preview = base64.b64encode(buffer.getvalue()).decode("ascii")
                     previews.append({
+                        **source_map[index],
                         "page": index,
                         "width": width,
                         "height": height,
@@ -110,7 +114,7 @@ class PdfWorkspaceService:
             raise PdfWorkspaceError("Choose a PDF or image file.")
 
     @staticmethod
-    def _open_source(upload, stack, pdfium, options=None, preview=False):
+    def _open_source(upload, stack, pdfium, options=None, preview=False, source_map=None):
         options = options or PdfWorkspaceSettings()
         converter = PdfConverter(
             Logger(), pdf_preset=options.preset, pdf_scale=options.scale,
@@ -119,7 +123,7 @@ class PdfWorkspaceService:
         )
         prepared = stack.enter_context(pdfium.PdfDocument.new())
 
-        def append_image(image, original_size):
+        def append_image(image, original_size, source_page=0):
             # Reject excessive pagination before the converter allocates pages.
             if options.paginate and options.preset.size:
                 width, height = options.preset.size
@@ -140,6 +144,8 @@ class PdfWorkspaceService:
                 if len(prepared) + len(page_pdf) > MAX_PAGES:
                     raise PdfWorkspaceError(f"The output contains more than {MAX_PAGES} pages.")
                 prepared.import_pages(page_pdf)
+                if source_map is not None:
+                    source_map.extend({"source_page": source_page, "part": part} for part in range(len(page_pdf)))
 
         upload.stream.seek(0)
         if upload.filename.lower().endswith(".pdf"):
@@ -158,7 +164,7 @@ class PdfWorkspaceService:
                     dpi = min(options.quality.preset.dpi, 96) if preview and not options.paginate else options.quality.preset.dpi
                     scale = min(dpi / 72, 16000 / max(width, height), sqrt(40_000_000 / (width * height)))
                     with closing(page.render(scale=scale, may_draw_forms=True)) as bitmap, bitmap.to_pil() as image:
-                        append_image(image, (width, height))
+                        append_image(image, (width, height), source_page=index)
         else:
             result = open_limited(upload, "image")
             if not result.is_successful:

@@ -396,7 +396,11 @@ def pdf_workspace_preview():
             except ValueError:
                 raise PdfWorkspaceError("Invalid page number.") from None
         options = PdfWorkspaceSettings.from_form(request.form)
-        result = pdf_workspace_service.preview(request.files.get("file"), page, options)
+        try:
+            side = int(request.form.get("side", "1600"))
+        except ValueError:
+            raise PdfWorkspaceError("Invalid preview size.") from None
+        result = pdf_workspace_service.preview(request.files.get("file"), page, options, side)
     except (PdfWorkspaceError, ValueError) as error:
         return jsonify({"error": str(error)}), 400
     response = jsonify(result)
