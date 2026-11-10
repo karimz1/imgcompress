@@ -84,7 +84,8 @@ done
 
 echo "[extract_deps] Phase 2: Copying data files from packages..."
 # Only list packages that own DATA (fonts, CMaps, configs, executables).
-# .so packages are handled by Phase 1 — no need to name them here.
+# Shared libraries are handled by Phase 1. libtesseract5 is also listed because
+# it owns the PDF renderer config and pdf.ttf, not just its shared library.
 copy_data_from_packages \
     ghostscript \
     libgs10-common \
@@ -93,8 +94,13 @@ copy_data_from_packages \
     fontconfig-config \
     poppler-data \
     tesseract-ocr \
+    libtesseract5 \
     tesseract-ocr-eng \
     tesseract-ocr-deu \
     dumb-init
+
+# --list-langs succeeds without these files, but PDF OCR needs both at runtime.
+test -f "$TARGET_DIR/usr/share/tesseract-ocr/5/tessdata/configs/pdf"
+test -f "$TARGET_DIR/usr/share/tesseract-ocr/5/tessdata/pdf.ttf"
 
 echo "[extract_deps] Done."
