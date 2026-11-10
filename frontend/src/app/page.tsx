@@ -63,6 +63,7 @@ import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/upl
 import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
+import { createWorkspacePdf, preparePdfSelection, pdfFilename, type LocalPdfFile, type PdfWorkspaceSettings, type SavedPdfSelection } from "@/lib/pdfWorkspace";
 
 
 function HomePageContent() {
@@ -176,6 +177,15 @@ function HomePageContent() {
   const [useRembg, setUseRembg] = useState(false);
   const [webpLossless, setWebpLossless] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [savedPdf, setSavedPdf] = useState<SavedPdfSelection | null>(null);
+  const [localPdfFiles, setLocalPdfFiles] = useState<LocalPdfFile[]>([]);
+  const [pdfClearRequest, setPdfClearRequest] = useState(0);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const pdfUrls = React.useRef(new Set<string>());
+  const pdfSequence = React.useRef(0);
+  const pdfRequest = React.useRef<AbortController | null>(null);
+  useEffect(() => () => { pdfRequest.current?.abort(); pdfUrls.current.forEach((url) => URL.revokeObjectURL(url)); }, []);
   const [fileManagerOpen, setFileManagerOpen] = useState(false);
   const [crops, setCrops] = useState<Record<string, CropConfig>>({});
   const [openCropFor, setOpenCropFor] = useState<string | null>(null);
@@ -771,12 +781,46 @@ function HomePageContent() {
     [followedJob, i18n, t]
   );
 
+  const registerPdf = (blob: Blob, selection: SavedPdfSelection) => {
+    const url = URL.createObjectURL(blob);
+    pdfUrls.current.add(url);
+    const filename = pdfFilename(selection.filename);
+    localPdfFiles.filter((file) => file.filename === filename).forEach((file) => { setTimeout(() => { URL.revokeObjectURL(file.url); pdfUrls.current.delete(file.url); }, 1000); });
+    setLocalPdfFiles((current) => [...current.filter((file) => file.filename !== filename), { id: ++pdfSequence.current, filename, url, pageCount: selection.pages.filter((page) => page.included).length }]);
+    setSavedPdf(selection);
+  };
+  const savePdfSelection = (selection: SavedPdfSelection) => {
+    setSavedPdf(selection);
+    setPdfError(null);
+  };
+  const clearPdfSelection = () => {
+    setSavedPdf(null);
+    setPdfError(null);
+    setPdfClearRequest((value) => value + 1);
+  };
+  const createSavedPdf = async (settings?: PdfWorkspaceSettings) => {
+    if (!savedPdf || pdfRequest.current) return;
+    clearError();
+    setPdfBusy(true);
+    setPdfError(null);
+    const request = new AbortController();
+    pdfRequest.current = request;
+    try {
+      const prepared = settings ? await preparePdfSelection(savedPdf, settings, request.signal) : savedPdf;
+      setSavedPdf(prepared);
+      registerPdf(await createWorkspacePdf(prepared, request.signal), prepared);
+      setDrawerOpen(true);
+    } catch (cause) {
+      if (!request.signal.aborted) setPdfError(cause instanceof Error ? cause.message : t("pdfWorkspace.failed"));
+    } finally { pdfRequest.current = null; setPdfBusy(false); }
+  };
+
   return (
     <div className={cn("min-h-screen flex flex-col transition-colors", backgroundClass)}>
       <SplashScreen
-        isVisible={isLoading}
-        onAbort={handleAbort}
-        progress={jobProgress}
+        isVisible={isLoading || pdfBusy}
+        onAbort={() => { if (pdfRequest.current) pdfRequest.current.abort(); else handleAbort(); }}
+        progress={pdfBusy ? null : jobProgress}
         startedAt={jobStartedAt}
         notify={notifyAvailable && followedJob ? { checked: notifyOn, onChange: handleNotifyChange, error: notifyError } : null}
         disableLogo={configReady ? disableLogo : false}
@@ -816,7 +860,13 @@ function HomePageContent() {
           )}
           <CardContent className="px-6 pb-8 sm:px-10 sm:pb-12">
             <FileConversionForm
-              isLoading={isLoading}
+              savedPdfSelection={savedPdf}
+              pdfClearRequest={pdfClearRequest}
+              pdfError={pdfError}
+              onClearPdfSelection={clearPdfSelection}
+              onSavePdfSelection={savePdfSelection}
+              onExportSavedPdf={(settings) => void createSavedPdf(settings)}
+              isLoading={isLoading || pdfBusy}
               error={error}
               quality={quality}
               setQuality={setQuality}
@@ -918,8 +968,10 @@ function HomePageContent() {
           <HelpButton />
         </div>
 
-        {converted.length > 0 && (
+        {(converted.length > 0 || localPdfFiles.length > 0) && (
           <CompressedFilesDrawer
+            localPdfFiles={localPdfFiles}
+            onDownloadLocalPdf={(file) => { const link = document.createElement("a"); link.href = file.url; link.download = file.filename; document.body.appendChild(link); link.click(); link.remove(); }}
             converted={converted}
             durationSeconds={jobDuration}
             isOpen={drawerOpen}

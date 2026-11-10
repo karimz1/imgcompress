@@ -2,40 +2,50 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, ArrowRight, Download, FileStack, GripVertical, Info, Loader2, Plus, RotateCw, Trash2, Undo2, ZoomIn } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileStack, GripVertical, Loader2, Plus, RotateCw, Trash2, Undo2, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePdfPageSort } from "@/components/pdf-workspace/usePdfPageSort";
+import { PdfDocumentPreview } from "@/components/pdf-workspace/PdfDocumentPreview";
 import { cn } from "@/lib/utils";
 import { formatUploadLimit, maxUploadBytes } from "@/lib/uploadLimit";
-import { appendPdfSettings, movePdfPage, PDF_WORKSPACE_ACCEPT, PDF_WORKSPACE_MAX_PAGES, pdfResponseError, previewPdfSource, type WorkspacePage, type PdfWorkspaceSettings } from "@/lib/pdfWorkspace";
+import { preparePdfSelection, movePdfPage, PDF_WORKSPACE_ACCEPT, PDF_WORKSPACE_MAX_PAGES, previewPdfSource, type SavedPdfSelection, type WorkspacePage, type PdfWorkspaceSettings } from "@/lib/pdfWorkspace";
 
-export function PdfWorkspace({ files, disabled, visible, settings }: { files: File[]; disabled: boolean; visible: boolean; settings: PdfWorkspaceSettings }) {
+interface PdfWorkspaceProps {
+  files: File[];
+  disabled: boolean;
+  visible: boolean;
+  settings: PdfWorkspaceSettings;
+  savedSelection?: SavedPdfSelection | null;
+  clearRequest?: number;
+  onClearSelection: () => void;
+  onSaveSelection: (selection: SavedPdfSelection) => void;
+}
+
+export function PdfWorkspace({ files, disabled, visible, settings: formSettings, savedSelection, clearRequest = 0, onClearSelection, onSaveSelection }: PdfWorkspaceProps) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [settings, setSettings] = useState(formSettings);
   const [pages, setPages] = useState<WorkspacePage[]>([]);
   const [removed, setRemoved] = useState<WorkspacePage[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [filename, setFilename] = useState("merged");
   const [dropActive, setDropActive] = useState(false);
   const [zoom, setZoom] = useState<WorkspacePage | null>(null);
-  const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [ocr, setOcr] = useState(false);
   const [ocrStatus, setOcrStatus] = useState<{ available: boolean; languages: string[] } | null>(null);
   const [ocrLanguage, setOcrLanguage] = useState("");
   const input = useRef<HTMLInputElement>(null);
+  const workspaceTitle = useRef<HTMLHeadingElement>(null);
   const zoomTrigger = useRef<HTMLButtonElement | null>(null);
   const importing = useRef(false);
   const controller = useRef<AbortController | null>(null);
   const imported = useRef(new Set<File>());
   const nextSourceId = useRef(0);
   const preparedSettings = useRef("");
-  const settingsKey = JSON.stringify(settings);
   const selected = pages.filter((page) => page.included);
   const sort = usePdfPageSort(pages, updatePages, busy || !open);
 
@@ -47,15 +57,18 @@ export function PdfWorkspace({ files, disabled, visible, settings }: { files: Fi
 
   useEffect(() => () => controller.current?.abort(), []);
 
+  const lastClearRequest = useRef(0);
   useEffect(() => {
-    setZoomImage(null);
-    if (!zoom) return;
-    const request = new AbortController();
-    previewPdfSource(zoom.file, request.signal, zoom.page, JSON.parse(settingsKey))
-      .then((result) => setZoomImage(result[0].preview))
-      .catch(() => { /* The thumbnail remains visible if a larger preview fails. */ });
-    return () => request.abort();
-  }, [zoom, settingsKey]);
+    if (clearRequest === lastClearRequest.current) return;
+    lastClearRequest.current = clearRequest;
+    controller.current?.abort();
+    setPages([]);
+    imported.current.clear();
+    preparedSettings.current = "";
+    setRemoved(null);
+    setError(null);
+    setOcr(false);
+  }, [clearRequest]);
 
   useEffect(() => {
     if (!open) return;
@@ -71,12 +84,11 @@ export function PdfWorkspace({ files, disabled, visible, settings }: { files: Fi
     return () => request.abort();
   }, [open, i18n.language]);
 
-  async function addFiles(incoming: File[], reset = false) {
+  async function addFiles(incoming: File[], reset = false, sourceSettings = settings) {
     const pending = incoming.filter((file) => !imported.current.has(file));
     if (importing.current || pending.length === 0) return;
     importing.current = true;
     setBusy(true);
-    setSuccess(false);
     setError(null);
     setRemoved(null);
     const request = new AbortController();
@@ -93,7 +105,8 @@ export function PdfWorkspace({ files, disabled, visible, settings }: { files: Fi
             throw new Error(t("pdfWorkspace.uploadLimit", { size: formatUploadLimit(i18n.language) }));
           }
           if (count >= PDF_WORKSPACE_MAX_PAGES) throw new Error(t("pdfWorkspace.pageLimit", { count: PDF_WORKSPACE_MAX_PAGES }));
-          const previews = await previewPdfSource(file, request.signal, undefined, settings);
+          const previews = await previewPdfSource(file, request.signal, undefined, sourceSettings);
+          if (request.signal.aborted) return;
           if (count + previews.length > PDF_WORKSPACE_MAX_PAGES) {
             throw new Error(t("pdfWorkspace.pageLimit", { count: PDF_WORKSPACE_MAX_PAGES }));
           }
@@ -117,59 +130,36 @@ export function PdfWorkspace({ files, disabled, visible, settings }: { files: Fi
     }
   }
 
-  function openWorkspace() {
-    const reset = preparedSettings.current !== settingsKey;
-    if (reset) { setPages([]); setRemoved(null); imported.current.clear(); }
-    preparedSettings.current = settingsKey;
+  async function openWorkspace() {
+    const nextSettingsKey = JSON.stringify(formSettings);
     setOpen(true);
-    void addFiles(files, reset);
+    if (preparedSettings.current !== nextSettingsKey && pages.length > 0) {
+      importing.current = true; setBusy(true); setError(null); setProgress(t("pdfWorkspace.exporting"));
+      const request = new AbortController(); controller.current = request;
+      try {
+        const prepared = await preparePdfSelection(selectionSnapshot(), formSettings, request.signal);
+        if (request.signal.aborted) return;
+        setPages(prepared.pages); setSettings(formSettings); preparedSettings.current = nextSettingsKey;
+        onSaveSelection(prepared);
+      } catch (cause) { if (!request.signal.aborted) setError(cause instanceof Error ? cause.message : t("pdfWorkspace.failed")); }
+      finally { importing.current = false; setBusy(false); setProgress(""); }
+      return;
+    }
+    preparedSettings.current = nextSettingsKey; setSettings(formSettings);
+    void addFiles(files, pages.length === 0, formSettings);
   }
 
   function updatePages(update: (current: WorkspacePage[]) => WorkspacePage[]) {
     setPages(update);
-    setSuccess(false);
   }
 
-  async function downloadPdf() {
-    if (!selected.length || importing.current) return;
-    importing.current = true;
-    setBusy(true);
-    setError(null);
-    setSuccess(false);
-    setProgress(t("pdfWorkspace.exporting"));
-    const request = new AbortController();
-    controller.current = request;
-    try {
-      const body = new FormData();
-      const sources = [...new Set(selected.map((page) => page.sourceId))];
-      const sourceFiles = sources.map((source) => selected.find((page) => page.sourceId === source)!.file);
-      if (sourceFiles.reduce((sum, file) => sum + file.size, 0) > maxUploadBytes()) {
-        throw new Error(t("pdfWorkspace.uploadLimit", { size: formatUploadLimit(i18n.language) }));
-      }
-      sourceFiles.forEach((file) => body.append("files", file));
-      body.append("pages", JSON.stringify(selected.map((page) => ({ source: sources.indexOf(page.sourceId), page: page.page, rotation: page.rotation }))));
-      appendPdfSettings(body, settings);
-      body.append("ocr", String(ocr));
-      if (ocr) body.append("ocr_language", ocrLanguage);
-      const response = await fetch("/api/pdf/merge", { method: "POST", body, signal: request.signal });
-      if (!response.ok) throw new Error(await pdfResponseError(response));
-      const url = URL.createObjectURL(await response.blob());
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${filename.trim().replace(/\.pdf$/i, "").replace(/[<>:"/\\|?*\x00-\x1f]/g, "_") || "merged"}.pdf`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      // Allow the browser to start reading the object URL before releasing it.
-      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setSuccess(true);
-    } catch (cause) {
-      if (!request.signal.aborted) setError(cause instanceof Error ? cause.message : t("pdfWorkspace.failed"));
-    } finally {
-      importing.current = false;
-      setBusy(false);
-      setProgress("");
-    }
+  function selectionSnapshot(): SavedPdfSelection {
+    return { pages: pages.map((page) => ({ ...page })), settings: { ...settings }, filename, ocr, language: ocrLanguage };
+  }
+
+  function closeWorkspace() {
+    if (!importing.current && pages.length) onSaveSelection(selectionSnapshot());
+    setOpen(false);
   }
 
   let outputNumber = 0;
@@ -178,22 +168,23 @@ export function PdfWorkspace({ files, disabled, visible, settings }: { files: Fi
       {visible && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-500/25 bg-blue-500/5 p-4">
         <div className="min-w-0">
           <p className="flex items-center gap-2 font-medium"><FileStack className="h-5 w-5 shrink-0" />{t("pdfWorkspace.title")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t(settings.apply_layout ? "pdfWorkspace.layoutIntro" : "pdfWorkspace.intro")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t(formSettings.apply_layout ? "pdfWorkspace.layoutIntro" : "pdfWorkspace.intro")}</p>
+          {savedSelection && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border bg-background/60 px-3 py-2" data-testid="pdf-selection-summary"><Check className="h-4 w-4 shrink-0" /><span className="text-sm font-medium">{t("pdfWorkspace.selectionSaved", { count: savedSelection.pages.filter((page) => page.included).length })}</span><Button type="button" variant="ghost" size="sm" className="ms-auto" disabled={disabled || busy} onClick={onClearSelection} data-testid="pdf-selection-clear"><Trash2 />{t("pdfWorkspace.discardSelection")}</Button></div>}
         </div>
         <Button type="button" variant="outline" disabled={disabled || busy} onClick={openWorkspace} data-testid="pdf-workspace-open">{t("pdfWorkspace.open")}</Button>
       </div>}
       <Dialog open={open} onOpenChange={(value) => {
         if (!value && zoom) { setZoom(null); return; }
-        setOpen(value);
+        if (!value) closeWorkspace(); else setOpen(true);
       }}>
-        <DialogContent className="flex h-[92dvh] w-[96vw] max-w-6xl flex-col gap-0 overflow-hidden rounded-xl p-0" data-testid="pdf-workspace" onInteractOutside={(event) => { if (zoom) event.preventDefault(); }} onDragOver={(event) => {
+        <DialogContent onOpenAutoFocus={(event) => { event.preventDefault(); workspaceTitle.current?.focus(); }} className="flex h-[92dvh] w-[96vw] max-w-6xl flex-col gap-0 overflow-hidden rounded-xl p-0" data-testid="pdf-workspace" onInteractOutside={(event) => { if (zoom) event.preventDefault(); }} onDragOver={(event) => {
           if (event.dataTransfer.types.includes("Files")) { event.preventDefault(); setDropActive(true); }
         }} onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDropActive(false); }} onDrop={(event) => {
           event.preventDefault(); setDropActive(false);
           if (!busy && event.dataTransfer.files.length) void addFiles(Array.from(event.dataTransfer.files));
         }}>
           <DialogHeader className="shrink-0 border-b px-5 pb-4 pt-5 pr-12 text-start">
-            <DialogTitle>{t("pdfWorkspace.title")}</DialogTitle>
+            <DialogTitle ref={workspaceTitle} tabIndex={-1} className="outline-none">{t("pdfWorkspace.title")}</DialogTitle>
             <DialogDescription>{t("pdfWorkspace.description")}</DialogDescription>
             <p className="text-xs text-muted-foreground" data-testid="pdf-workspace-settings">{settings.apply_layout
               ? `${t("pdfWorkspace.usingSettings")}: ${t(`form.pdfPreset.options.${({ "original": "original", "a4-auto": "a4Auto", "a4-portrait": "a4Portrait", "a4-landscape": "a4Landscape", "letter-auto": "letterAuto", "letter-portrait": "letterPortrait", "letter-landscape": "letterLandscape", "mobile-portrait": "mobilePortrait", "mobile-landscape": "mobileLandscape" } as Record<string, string>)[settings.pdf_preset]}`)} · ${t(`form.pdfQuality.options.${settings.pdf_quality}`)}${settings.pdf_preset !== "original" ? ` · ${settings.pdf_margin_mm || "10"} mm · ${t(`form.pdfScale.options.${settings.pdf_paginate ? "fit" : settings.pdf_scale}`)}${settings.pdf_paginate ? ` · ${t("form.pdfPaginate.label")}` : ""}` : ""}`
@@ -257,33 +248,20 @@ export function PdfWorkspace({ files, disabled, visible, settings }: { files: Fi
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-3 border-t p-4">
             <div className="flex w-full flex-wrap items-center gap-2 text-sm">
-              <label className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={ocr} disabled={busy || !ocrStatus?.available} onChange={(event) => { setOcr(event.target.checked); setSuccess(false); }} className="h-4 w-4 accent-blue-600" />{t("pdfWorkspace.ocr")}</label>
-              <Tooltip><TooltipTrigger asChild><button type="button" className="rounded p-1 text-muted-foreground" aria-label={t("pdfWorkspace.rasterHint")}><Info className="h-4 w-4" /></button></TooltipTrigger><TooltipContent className="max-w-xs"><p>{t("pdfWorkspace.rasterHint")}</p><p className="mt-2">{t("pdfWorkspace.ocrHint")}</p></TooltipContent></Tooltip>
-              <Button type="button" variant="ghost" size="sm" className="ms-auto" disabled={busy || !pages.length} onClick={() => { setPages([]); setRemoved(null); imported.current.clear(); setError(null); setSuccess(false); }}>{t("pdfWorkspace.clear")}</Button>
+              <label className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={ocr} disabled={busy || !ocrStatus?.available} onChange={(event) => setOcr(event.target.checked)} className="h-4 w-4 accent-blue-600" />{t("pdfWorkspace.ocr")}</label>
+              <Button type="button" variant="ghost" size="sm" className="ms-auto" disabled={busy || !pages.length} onClick={onClearSelection}>{t("pdfWorkspace.clear")}</Button>
               {ocr && <select aria-label={t("pdfWorkspace.ocrLanguage")} value={ocrLanguage} disabled={busy} onChange={(event) => setOcrLanguage(event.target.value)} className="rounded border bg-background px-2 py-1">{ocrStatus?.languages.map((language) => <option key={language} value={language}>{languageName(language)}</option>)}</select>}
               {!ocrStatus?.available && <span className="w-full text-xs text-muted-foreground">{t("pdfWorkspace.ocrUnavailable")}</span>}
             </div>
-            <div className="ms-auto grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto">
-              <div className="flex min-w-0 items-center gap-2"><label htmlFor="pdf-workspace-filename" className="sr-only">{t("pdfWorkspace.filename")}</label>
+            <div className="ms-auto flex w-full items-center justify-end gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none"><label htmlFor="pdf-workspace-filename" className="sr-only">{t("pdfWorkspace.filename")}</label>
               <Input id="pdf-workspace-filename" value={filename} disabled={busy} onChange={(event) => setFilename(event.target.value)} className="min-w-0 sm:w-44" aria-label={t("pdfWorkspace.filename")} /><span className="shrink-0 text-sm text-muted-foreground">.pdf</span></div>
-              <Button type="button" disabled={busy || !selected.length} onClick={() => void downloadPdf()} data-testid="pdf-workspace-download"><Download />{t("pdfWorkspace.download", { count: selected.length })}</Button>
+              <Button type="button" className="min-w-0 px-2 sm:px-4" disabled={busy || !pages.length} onClick={closeWorkspace} data-testid="pdf-workspace-save"><Check /><span className="truncate">{t("pdfWorkspace.saveSelection")}</span></Button>
             </div>
-            {success && <p role="status" className="w-full text-end text-sm text-green-700 dark:text-green-300">{t("pdfWorkspace.success")}</p>}
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog open={!!zoom && open} onOpenChange={(value) => { if (!value) setZoom(null); }}>
-        <DialogContent className="flex h-[90dvh] w-[94vw] max-w-4xl flex-col overflow-hidden" onEscapeKeyDown={(event) => { event.preventDefault(); event.stopPropagation(); setZoom(null); }} onCloseAutoFocus={(event) => { event.preventDefault(); zoomTrigger.current?.focus(); }}>
-          <DialogHeader className="shrink-0 pr-6 text-start">
-            <DialogTitle className="truncate">{zoom?.file.name}</DialogTitle>
-            <DialogDescription>{t("pdfWorkspace.sourcePage", { page: (zoom?.page ?? 0) + 1 })}</DialogDescription>
-          </DialogHeader>
-          {zoom && <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded bg-slate-100 p-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={zoomImage ?? zoom.preview} alt={t("pdfWorkspace.sourcePage", { page: zoom.page + 1 })} className="h-full w-full object-contain" style={{ transform: `rotate(${zoom.rotation}deg)`, scale: zoom.rotation % 180 ? "0.7" : "1" }} />
-          </div>}
-        </DialogContent>
-      </Dialog>
+      <PdfDocumentPreview pages={pages} initialPage={open ? zoom : null} settings={settings} onClose={() => setZoom(null)} returnFocus={() => zoomTrigger.current?.focus()} />
     </>
   );
 }
