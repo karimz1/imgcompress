@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@/components/visually-hidden";
 import { BrandLogo } from "@/components/BrandLogo";
-import { AlertTriangle, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_CONFIG } from "@/lib/config";
 import { Switch } from "@/components/ui/switch";
@@ -20,7 +20,7 @@ interface SplashScreenProps {
   /** When the job started, in this browser's clock (ms); drives the live timer. */
   startedAt?: number | null;
   /** "Notify me when done"; null hides it (not configured on this server). */
-  notify?: { checked: boolean; onChange: (checked: boolean) => void; error?: string | null } | null;
+  notify?: { checked: boolean; onChange: (checked: boolean) => void } | null;
 }
 
 
@@ -327,38 +327,18 @@ export function SplashScreen({
                 </p>
               )}
               {notify && (
-                <>
-                  <label
-                    htmlFor="notifyWhenDone"
-                    className="sm:-mt-2 flex items-center gap-3 text-sm text-gray-200 cursor-pointer"
-                  >
-                    <Switch
-                      id="notifyWhenDone"
-                      data-testid="notify-switch"
-                      checked={notify.checked}
-                      onCheckedChange={notify.onChange}
-                      aria-describedby={notify.error ? "notifyWhenDone-error" : undefined}
-                      aria-invalid={notify.error ? true : undefined}
-                    />
-                    {t("splash.notify")}
-                  </label>
-                  {notify.error && (
-                    <div
-                      id="notifyWhenDone-error"
-                      role="alert"
-                      aria-live="assertive"
-                      data-testid="notify-switch-error"
-                      className="w-full rounded-xl border border-red-400/60 bg-red-500/15 px-3 py-2.5 sm:px-4 sm:py-3 text-left shadow-inner shadow-black/20"
-                    >
-                      <div className="flex items-start gap-2.5 text-red-200">
-                        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" aria-hidden="true" />
-                        <p className="text-sm sm:text-base font-medium leading-snug text-red-100">
-                          {notify.error}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </>
+                <label
+                  htmlFor="notifyWhenDone"
+                  className="sm:-mt-2 flex items-center gap-3 text-sm text-gray-200 cursor-pointer"
+                >
+                  <Switch
+                    id="notifyWhenDone"
+                    data-testid="notify-switch"
+                    checked={notify.checked}
+                    onCheckedChange={notify.onChange}
+                  />
+                  {t("splash.notify")}
+                </label>
               )}
               {progressText && (
                 <p className="text-sm text-gray-300 -mt-1 sm:-mt-4" data-testid="job-progress" aria-live="polite">

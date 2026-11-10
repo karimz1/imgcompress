@@ -50,8 +50,6 @@ export const zhCN: TranslationSchema = {
     tipUpscale: "放大在你的容器内运行，每张图可能需要几分钟。你可以关闭标签页，稍后再回来。",
     tipUpscaleNotify: "放大每张图可能需要几分钟。打开“完成后通知我”，完成后我会通知你。",
     notifyTip: "你知道吗？图片准备好时我会通知你。",
-    notifyErrorOn: '无法开启通知。请再试一次。',
-    notifyErrorOff: '无法关闭通知。请再试一次。',
     messages: [
       "正在压缩你的文件…",
       "正在优化质量和大小。",

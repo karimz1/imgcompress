@@ -50,8 +50,6 @@ export const fr: TranslationSchema = {
     tipUpscale: "L'agrandissement tourne dans votre conteneur et peut prendre quelques minutes par image. Vous pouvez fermer l'onglet et revenir plus tard.",
     tipUpscaleNotify: "L'agrandissement peut prendre quelques minutes par image. Activez « Me prévenir une fois terminé » et je vous préviens.",
     notifyTip: "Le saviez-vous ? Je vous préviens quand vos images sont prêtes.",
-    notifyErrorOn: "Impossible d'activer les notifications. Veuillez réessayer.",
-    notifyErrorOff: 'Impossible de désactiver les notifications. Veuillez réessayer.',
     messages: [
       "Compression de vos fichiers…",
       "Optimisation de la qualité et de la taille.",
