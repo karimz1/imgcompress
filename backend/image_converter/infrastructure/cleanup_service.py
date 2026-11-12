@@ -13,6 +13,7 @@ from backend.image_converter.application.dtos import (
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
 from backend.image_converter.infrastructure import job_folder_lock
+from backend.image_converter.infrastructure.folder_files import list_files
 
 
 _KIND_DIRECTORY = "directory"
@@ -74,17 +75,15 @@ class CleanupService:
         for folder in os.listdir(self.temp_dir):
             folder_path = os.path.join(self.temp_dir, folder)
             if os.path.isdir(folder_path) and folder.startswith("converted_"):
-                for fname in os.listdir(folder_path):
-                    file_path = os.path.join(folder_path, fname)
-                    if os.path.isfile(file_path):
-                        size_mb = self._file_size_mb(file_path)
-                        files.append(ContainerFile(
-                            folder=folder,
-                            folder_path=folder_path,
-                            filename=fname,
-                            size_mb=size_mb,
-                        ))
-                        total_size += size_mb
+                for fname in list_files(folder_path):
+                    size_mb = self._file_size_mb(os.path.join(folder_path, *fname.split("/")))
+                    files.append(ContainerFile(
+                        folder=folder,
+                        folder_path=folder_path,
+                        filename=fname,
+                        size_mb=size_mb,
+                    ))
+                    total_size += size_mb
 
         for fname in os.listdir(self.temp_dir):
             if fname.startswith("converted_") and fname.endswith(".zip"):

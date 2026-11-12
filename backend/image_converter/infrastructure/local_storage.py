@@ -11,17 +11,25 @@ class FileItem:
     path: str
     name: str
     stem: str
+    # Folder of the file below the source folder, "" at the top. Always "/"-separated.
+    relative_dir: str = ""
 
 class LocalStorage:
     def __init__(self, logger: Logger | None = None):
         self.logger = logger
 
     def iter_files(self, folder: str) -> Iterable[FileItem]:
-        for name in self._list_directory(folder):
-            p = os.path.join(folder, name)
-            if os.path.isfile(p):
-                stem, _ = os.path.splitext(name)
-                yield FileItem(path=p, name=name, stem=stem)
+        """Every file below ``folder``: its own files first, then those of the sub folders, in name order."""
+        for current, dirs, names in os.walk(folder):
+            dirs.sort()
+            relative_dir = os.path.relpath(current, folder).replace(os.sep, "/")
+            if relative_dir == ".":
+                relative_dir = ""
+            for name in sorted(names):
+                path = os.path.join(current, name)
+                if os.path.isfile(path):
+                    stem, _ = os.path.splitext(name)
+                    yield FileItem(path=path, name=name, stem=stem, relative_dir=relative_dir)
 
     def read_bytes(self, path: str) -> Result[bytes]:
         try:
@@ -44,13 +52,10 @@ class LocalStorage:
             return Result.failure("Failed to write file.")
 
     def build_dest_path(self, folder: str, name: str) -> str:
-        return os.path.join(folder, name)
-
-    def _list_directory(self, folder: str) -> Iterable[str]:
-        try:
-            return os.listdir(folder)
-        except FileNotFoundError:
-            return []
+        """``name`` may carry sub folders ("a/b/photo.jpg"); they are created here."""
+        path = os.path.join(folder, *name.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        return path
 
     def _log_failure(self, action: str, path: str) -> None:
         if self.logger is None:

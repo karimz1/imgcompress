@@ -59,6 +59,7 @@ import {
 } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
+import { relativeDirOf } from "@/lib/folderPath";
 import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
 import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
@@ -524,6 +525,12 @@ function HomePageContent() {
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
+      // Dropped folders keep their layout in the results. processedFiles
+      // follows the order of files, even where a crop made a new File.
+      const folders = files.map(relativeDirOf);
+      if (folders.some(Boolean)) {
+        folders.forEach((folder) => formData.append("relative_dirs[]", folder));
+      }
       if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }

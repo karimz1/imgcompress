@@ -17,6 +17,10 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         unsupported_names = ", ".join(f.filename for f in unsupported_files)
         return Result.failure(f"Unsupported file types: {unsupported_names}")
 
+    relative_dirs = tuple(request.form.getlist("relative_dirs[]"))
+    if relative_dirs and len(relative_dirs) != len(uploaded_files):
+        return Result.failure("The folder of every uploaded file must be given, or none.")
+
     raw_format = request.form.get("format", ImageFormat.JPEG.value).lower()
     format_result = ImageFormat.from_string_result(raw_format)
     if not format_result.is_successful:
@@ -45,6 +49,7 @@ def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFor
         fit_scale=request.form.get("fit_scale", "").strip(),
         fit_x=request.form.get("fit_x", "").strip(),
         fit_y=request.form.get("fit_y", "").strip(),
+        relative_dirs=relative_dirs,
     )
     return Result.success(form_data)
 
