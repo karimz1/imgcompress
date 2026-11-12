@@ -112,6 +112,8 @@ class CompressionFormData:
     fit_scale: str = ""
     fit_x: str = ""
     fit_y: str = ""
+    # Folder of each uploaded file ("" for none), in the order of uploaded_files.
+    relative_dirs: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

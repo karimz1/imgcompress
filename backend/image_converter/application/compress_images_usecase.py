@@ -30,7 +30,8 @@ class CompressImagesUseCase:
     def execute(self, req: CompressRequest) -> CompressResult:
         processed, errors = [], []
         # Output names already used in this batch, e.g. photo.png and photo.jpg
-        # both become photo.webp; later ones get a _1, _2, ... suffix.
+        # both become photo.webp; later ones get a _1, _2, ... suffix. Names
+        # include the sub folder, so the same name in two folders does not clash.
         reserved_names: set[str] = set()
         new_ext = req.image_format.get_file_extension()
         pdf_preset: Optional[PdfPreset] = None
@@ -118,7 +119,9 @@ class CompressImagesUseCase:
                         dest_name = self._build_dest_name(
                             item.stem, new_ext, payload.page_index, upscaled=upscaled
                         )
-                        dest_name = self._reserve_dest_name(dest_name, reserved_names)
+                        dest_name = self._reserve_dest_name(
+                            self._in_folder(item.relative_dir, dest_name), reserved_names
+                        )
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         write_result = self.storage.write_bytes(dest_path, out)
                         if not write_result.is_successful:
@@ -148,7 +151,9 @@ class CompressImagesUseCase:
                             converter.removes_background,
                             upscaled=upscaled,
                         )
-                        dest_name = self._reserve_dest_name(dest_name, reserved_names)
+                        dest_name = self._reserve_dest_name(
+                            self._in_folder(item.relative_dir, dest_name), reserved_names
+                        )
                         dest_path = self.storage.build_dest_path(req.dest_folder, dest_name)
                         result = converter.convert(
                             image_data=data,
@@ -183,6 +188,11 @@ class CompressImagesUseCase:
             return self.resizer.resize_image(data, width)
         return data
 
+
+    @staticmethod
+    def _in_folder(relative_dir: str, name: str) -> str:
+        """``name`` inside the source's sub folder, so uploaded folders keep their layout."""
+        return f"{relative_dir}/{name}" if relative_dir else name
 
     @staticmethod
     def _reserve_dest_name(name: str, reserved_names: set[str]) -> str:

@@ -161,8 +161,9 @@ export class JobNotFoundError extends Error {
   }
 }
 
+// A file in a sub folder ("a/b/photo.avif") keeps its slashes: one path segment per folder.
 export const jobFileUrl = (job: JobRef, file: string) =>
-  `/api/jobs/${encodeURIComponent(job.id)}/files/${encodeURIComponent(file)}`;
+  `/api/jobs/${encodeURIComponent(job.id)}/files/${file.split("/").map(encodeURIComponent).join("/")}`;
 
 export const jobZipUrl = (job: JobRef) => `/api/jobs/${encodeURIComponent(job.id)}/zip`;
 
