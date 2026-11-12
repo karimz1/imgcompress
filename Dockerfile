@@ -202,7 +202,7 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 # torch.load(weights_only=True) and exported to ONNX (graph and weights, no code).
 # Only the .onnx files and their .sha256 files are copied into the final image; torch,
 # onnx and the .pth files stay here. See scripts/build_upscale_model.py.
-FROM dhi.io/debian-base:trixie-debian13-dev@sha256:c6fc0de84b65bc20346cee5f071fd976ccf383431515db2a4d9721ca936feb9f AS upscale-model-stage
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:94571f3dc07fbc7166f6f1cbf1fe068a7647198ee2554e6b90d59a68cc8b053c AS upscale-model-stage
 
 COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
 
@@ -257,7 +257,7 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/upscale-weights,uid=65532,gid
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
-FROM dhi.io/debian-base:trixie-debian13@sha256:5c9d8c2c90a0a4672f44a42a485c99e1b95f4bfad5c8ef49934f34b7ffb6e23b AS final-stage
+FROM dhi.io/debian-base:trixie-debian13@sha256:c12f6059a81c93b872dfbc6042d8c045256db32b7e23ed5765a90b89726eac93 AS final-stage
 
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
