@@ -143,6 +143,11 @@ export const esMX: TranslationSchema = {
       tooltip:
         "Conserva cada píxel exactamente como en el original. Los archivos son más grandes, por eso Calidad y Tamaño máximo se desactivan.\nIdeal para capturas de pantalla, logos e imágenes con texto.",
     },
+    keepFolders: {
+      label: "Mantener estructura de carpetas",
+      tooltip:
+        "Mantiene las carpetas que arrastraste en los resultados y en el ZIP, en lugar de una sola lista.\nSolo funciona arrastrando y soltando. Las carpetas con el mismo nombre se combinan y los nombres de archivo repetidos reciben un número.",
+    },
     compressionMode: {
       label: "Modo de ajustes de {{format}}",
       byQuality: "Definir por calidad",

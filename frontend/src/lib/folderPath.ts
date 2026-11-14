@@ -24,3 +24,26 @@ export function fileKeyOf(file: File): string {
   const dir = relativeDirOf(file);
   return dir ? `${dir}/${file.name}` : file.name;
 }
+
+const KEEP_FOLDERS_PREFERENCE_KEY = "imgcompress.keepFolderStructure";
+
+/**
+ * The last "keep folder structure" choice in this browser. Off until the user
+ * turns it on, so dropped folders come back flat like they always did.
+ */
+export function loadKeepFoldersPreference(): boolean {
+  try {
+    return localStorage.getItem(KEEP_FOLDERS_PREFERENCE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function saveKeepFoldersPreference(enabled: boolean): void {
+  try {
+    if (enabled) localStorage.setItem(KEEP_FOLDERS_PREFERENCE_KEY, "true");
+    else localStorage.removeItem(KEEP_FOLDERS_PREFERENCE_KEY);
+  } catch {
+    // Private mode or storage full: the switch just starts off next time.
+  }
+}

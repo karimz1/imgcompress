@@ -527,3 +527,32 @@ def test_the_zip_never_contains_unsafe_entries(service):
 
 def test_capped_names_leave_room_below_the_file_system_limit():
     assert MAX_FOLDER_NAME_BYTES + 9 < 255
+
+
+# --- "Keep folder structure" switch off: the browser sends no folders --------
+
+
+def test_without_folders_same_named_files_from_different_folders_get_unique_names(service):
+    # Switch off: trip/holiday.png and trip/sub/holiday.png arrive without folders.
+    result = _run(service, ["holiday.png", "holiday.png", "holiday.png"], [])
+
+    assert result.converted_files == ["holiday.jpg", "holiday_1.jpg", "holiday_2.jpg"]
+    archive = service.create_all_files_zip(result.dest_folder)
+    with zipfile.ZipFile(archive.value) as zf:
+        assert sorted(zf.namelist()) == result.converted_files
+
+
+def test_without_folders_outputs_that_only_differ_in_case_stay_apart_in_the_flat_zip(service):
+    result = _run(service, ["Holiday.png", "holiday.png"], [])
+
+    assert sorted(f.casefold() for f in result.converted_files) == ["holiday.jpg", "holiday_1.jpg"]
+
+
+def test_a_request_with_folders_keeps_them_and_one_without_is_flat():
+    flat = extract_form_data(_request({"format": "jpeg"}, ["a.png", "a.png"]), _Logger())
+    kept = extract_form_data(
+        _request({"format": "jpeg", "relative_dirs[]": ["x", "y"]}, ["a.png", "a.png"]), _Logger()
+    )
+
+    assert flat.value.relative_dirs == ()
+    assert kept.value.relative_dirs == ("x", "y")

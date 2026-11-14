@@ -143,6 +143,11 @@ export const zhCN: TranslationSchema = {
       tooltip:
         "每个像素都与原图完全一样。文件会更大，所以质量和最大文件大小会关闭。\n适合截图、标志和带文字的图片。",
     },
+    keepFolders: {
+      label: "保留文件夹结构",
+      tooltip:
+        "在结果和 ZIP 中保留拖入的文件夹结构，而不是全部放在同一层。\n仅支持拖放。同名文件夹会合并，重名文件会自动加上编号。",
+    },
     compressionMode: {
       label: "{{format}} 设置模式",
       byQuality: "按质量设置",

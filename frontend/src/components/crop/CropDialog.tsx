@@ -150,7 +150,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
                   )}
                   <span>{t("crop.editorTitle")}</span>
                   <span className="opacity-40 px-1.5">·</span>
-                  <span className="opacity-90">{fileKeyOf(openFile)}</span>
+                  <span className="opacity-90">{openFile.name}</span>
                 </DialogTitle>
                 {inputFileKind(openFile.name) !== "image" && (
                   <span className="shrink-0" data-testid="crop-file-info">

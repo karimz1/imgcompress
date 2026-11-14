@@ -96,6 +96,9 @@ interface FileConversionFormProps {
   webpLossless: boolean;
   setWebpLossless: (val: boolean) => void;
 
+  keepFolders: boolean;
+  setKeepFolders: (val: boolean) => void;
+
   getRootProps: ReturnType<typeof useDropzone>["getRootProps"];
   getInputProps: ReturnType<typeof useDropzone>["getInputProps"];
   isDragActive: boolean;
@@ -155,6 +158,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   rembgModelName,
   webpLossless,
   setWebpLossless,
+  keepFolders,
+  setKeepFolders,
   getRootProps,
   getInputProps,
   isDragActive,
@@ -185,7 +190,10 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
     targetSize: t("form.targetSize.tooltip"),
     rembg: t("form.rembg.tooltip"),
     webpLossless: t("form.webpLossless.tooltip"),
+    keepFolders: t("form.keepFolders.tooltip"),
   };
+  // The switch only matters, and only shows, once a file of a dropped folder is queued.
+  const hasFolderFiles = files.some((file) => relativeDirOf(file) !== "");
   const subtleText = isDarkTheme ? "text-gray-400" : "text-slate-600";
   const surfaceInputClass = isDarkTheme
     ? "bg-gray-800 text-gray-100 placeholder-gray-400 border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
@@ -258,7 +266,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             const cropable =
               !cropUnsupported && isCropableFile(file, supportedExtensions);
             const fileKey = fileKeyOf(file);
-            const folder = relativeDirOf(file);
+            const folder = keepFolders ? relativeDirOf(file) : "";
             const savedCrop = crops[fileKey];
             const savedFit = outputFormat !== "pdf" ? savedCrop?.fit : undefined;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -421,6 +429,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
       upscale.target,
       pixelSizes,
       maxOutputMegapixels,
+      keepFolders,
     ]
   );
 
@@ -1159,6 +1168,40 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           />
         )}
       </div>
+
+      {hasFolderFiles && (
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="keepFoldersToggle"
+              className="text-sm flex items-center gap-1"
+            >
+              {t("form.keepFolders.label")}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span data-testid="keep-folders-info">
+                    <Info className={cn("h-4 w-4 cursor-pointer", subtleText)} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className={cn("max-w-80 p-2 rounded shadow-lg whitespace-pre-line border", tooltipSurface)}
+                  data-testid="keep-folders-tooltip"
+                >
+                  <p className="text-sm">{tooltipContent.keepFolders}</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Switch
+              data-testid="keep-folders-switch"
+              id="keepFoldersToggle"
+              checked={keepFolders}
+              onCheckedChange={setKeepFolders}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      )}
 
       {renderError}
 

@@ -143,6 +143,11 @@ export const ptBR: TranslationSchema = {
       tooltip:
         "Mantém cada pixel exatamente como no original. Os arquivos ficam maiores, por isso Qualidade e Tamanho máximo ficam desligados.\nBom para capturas de tela, logos e imagens com texto.",
     },
+    keepFolders: {
+      label: "Manter estrutura de pastas",
+      tooltip:
+        "Mantém as pastas que você soltou nos resultados e no ZIP, em vez de uma lista única.\nSó funciona arrastando e soltando. Pastas com o mesmo nome são mescladas e nomes de arquivo repetidos ganham um número.",
+    },
     compressionMode: {
       label: "Modo de configurações de {{format}}",
       byQuality: "Definir por qualidade",

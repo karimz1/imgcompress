@@ -140,6 +140,11 @@ export const en = {
       tooltip:
         "Keeps every pixel exactly like the original. Files get bigger, so Quality and Max file size are turned off.\nGood for screenshots, logos and images with text.",
     },
+    keepFolders: {
+      label: "Keep folder structure",
+      tooltip:
+        "Keeps the folders you dropped in the results and the ZIP, instead of one flat list.\nOnly works with drag and drop. Folders with the same name are merged, and duplicate file names get a number.",
+    },
     compressionMode: {
       label: "{{format}} settings mode",
       byQuality: "Set by Quality",
