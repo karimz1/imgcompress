@@ -64,7 +64,7 @@ importers:
         version: 1.62.0(@types/react@19.2.18)(react@19.2.8)
       next:
         specifier: 16.4.1
-        version: 16.4.1(@playwright/test@1.63.0)(@types/node@26.6.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 16.4.1(@playwright/test@1.63.0)(@types/node@26.6.6)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -88,7 +88,7 @@ importers:
         version: 7.8.6
       sharp:
         specifier: ^0.35.3
-        version: 0.35.3(@types/node@26.6.5)
+        version: 0.35.3(@types/node@26.6.6)
       tailwind-merge:
         specifier: ^3.7.0
         version: 3.7.0
@@ -109,8 +109,8 @@ importers:
         specifier: ^0.5.8
         version: 0.5.8
       '@types/node':
-        specifier: ^26.6.5
-        version: 26.6.5
+        specifier: ^26.6.6
+        version: 26.6.6
       '@types/react':
         specifier: ^19.2.15
         version: 19.2.18
@@ -1236,8 +1236,8 @@ packages:
   '@types/adm-zip@0.5.8':
     resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
 
-  '@types/node@26.6.5':
-    resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
+  '@types/node@26.6.6':
+    resolution: {integrity: sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==}
 
   '@types/react-dom@19.2.4':
     resolution: {integrity: sha512-Bsc+QHgp+P/F02XDzNCY9jnZNCUuLki36KT7VKrTXXLdHf+vHMNZnW1rVu5DNW/rCK+fya3DATySbLM4yhtKUw==}
@@ -1602,9 +1602,6 @@ packages:
     resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders'
-
-  tailwindcss@4.3.3:
-    resolution: {integrity: sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==}
 
   tailwindcss@4.3.4:
     resolution: {integrity: sha512-PCJZTFFdG+sL3gvnP1Do9o6GbkvH2q0p04xSs3f7cSvmAeK+sttG+/7ncK1fdRwKFfC7n+wDDJaOMBSefkI9ow==}
@@ -2554,9 +2551,9 @@ snapshots:
 
   '@types/adm-zip@0.5.8':
     dependencies:
-      '@types/node': 26.6.5
+      '@types/node': 26.6.6
 
-  '@types/node@26.6.5':
+  '@types/node@26.6.6':
     dependencies:
       undici-types: 8.9.0
 
@@ -2694,7 +2691,7 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
-  next@16.4.1(@playwright/test@1.63.0)(@types/node@26.6.5)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+  next@16.4.1(@playwright/test@1.63.0)(@types/node@26.6.6)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
       '@next/env': 16.4.1
       '@swc/helpers': 0.5.23
@@ -2714,7 +2711,7 @@ snapshots:
       '@next/swc-win32-arm64-msvc': 16.4.1
       '@next/swc-win32-x64-msvc': 16.4.1
       '@playwright/test': 1.63.0
-      sharp: 0.35.5(@types/node@26.6.5)
+      sharp: 0.35.5(@types/node@26.6.6)
     transitivePeerDependencies:
       - '@babel/core'
       - '@types/node'
@@ -2814,7 +2811,7 @@ snapshots:
 
   semver@7.8.6: {}
 
-  sharp@0.35.3(@types/node@26.6.5):
+  sharp@0.35.3(@types/node@26.6.6):
     dependencies:
       '@img/colour': 1.1.0
       detect-libc: 2.1.2
@@ -2845,9 +2842,9 @@ snapshots:
       '@img/sharp-win32-arm64': 0.35.3
       '@img/sharp-win32-ia32': 0.35.3
       '@img/sharp-win32-x64': 0.35.3
-      '@types/node': 26.6.5
+      '@types/node': 26.6.6
 
-  sharp@0.35.5(@types/node@26.6.5):
+  sharp@0.35.5(@types/node@26.6.6):
     dependencies:
       '@img/colour': 1.1.0
       detect-libc: 2.1.2
@@ -2878,7 +2875,7 @@ snapshots:
       '@img/sharp-win32-arm64': 0.35.5
       '@img/sharp-win32-ia32': 0.35.5
       '@img/sharp-win32-x64': 0.35.5
-      '@types/node': 26.6.5
+      '@types/node': 26.6.6
     optional: true
 
   source-map-js@1.2.2: {}
@@ -2893,8 +2890,6 @@ snapshots:
   tailwindcss-animate@1.0.7(tailwindcss@4.3.4):
     dependencies:
       tailwindcss: 4.3.4
-
-  tailwindcss@4.3.3: {}
 
   tailwindcss@4.3.4: {}
 
