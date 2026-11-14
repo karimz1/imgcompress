@@ -19,13 +19,15 @@ const DROPPED_FILES = [
   { path: '/photos/test-nested1/test-nested2/test3.png', color: '#0000ff' },
 ];
 
-async function dropFolderAsync(page: Page): Promise<void> {
+type DroppedFile = { path: string; color: string; width?: number; height?: number };
+
+async function dropFolderAsync(page: Page, dropped: DroppedFile[] = DROPPED_FILES): Promise<void> {
   await waitForSupportedFormatsCountAsync(page);
   const files = await Promise.all(
-    DROPPED_FILES.map(async ({ path, color }) => ({
+    dropped.map(async ({ path, color, width = 16, height = 16 }) => ({
       path,
       bytes: [
-        ...(await sharp({ create: { width: 16, height: 16, channels: 3, background: color } }).png().toBuffer()),
+        ...(await sharp({ create: { width, height, channels: 3, background: color } }).png().toBuffer()),
       ],
     }))
   );
@@ -69,5 +71,57 @@ test.describe('Dropped folders keep their structure', () => {
     expect(download.suggestedFilename()).toBe('test3.jpg');
     const metadata = await sharp(await download.path()).metadata();
     expect(metadata.format).toBe('jpeg');
+  });
+
+  test('the same file name in different folders stays independent', async ({ page }) => {
+    // holiday.png three times: top, sub and sub-sub folder. Sizes tell them apart.
+    const sameName: DroppedFile[] = [
+      { path: '/trip/holiday.png', color: '#ff0000', width: 400, height: 200 },
+      { path: '/trip/sub/holiday.png', color: '#00ff00', width: 360, height: 180 },
+      { path: '/trip/sub/subsub/holiday.png', color: '#0000ff', width: 300, height: 150 },
+    ];
+    const item = (folder: string) =>
+      page.getByTestId('dropzone-added-file-wrapper').filter({
+        has: page.getByTestId('dropzone-added-file-folder').getByText(`${folder}/`, { exact: true }),
+      });
+
+    await page.goto('/');
+    await setOutputFormatAsync(page, 'JPEG');
+    await dropFolderAsync(page, sameName);
+    await expect(page.getByTestId('dropzone-added-file')).toHaveCount(3);
+    await expect(page.getByTestId('dropzone-added-file')).toHaveText(['holiday.png', 'holiday.png', 'holiday.png']);
+    await expect(item('trip')).toHaveCount(1);
+    await expect(item('trip/sub')).toHaveCount(1);
+    await expect(item('trip/sub/subsub')).toHaveCount(1);
+
+    // Removing one keeps the others.
+    await item('trip/sub').getByTestId('dropzone-remove-file-btn').click();
+    await expect(page.getByTestId('dropzone-added-file')).toHaveCount(2);
+    await expect(item('trip/sub')).toHaveCount(0);
+    await expect(item('trip')).toHaveCount(1);
+    await expect(item('trip/sub/subsub')).toHaveCount(1);
+
+    // A crop on one applies to that one only.
+    await item('trip').getByTestId('dropzone-crop-file-btn').click();
+    await expect(page.getByTestId('crop-dialog')).toBeVisible();
+    await page.getByTestId('crop-preset-1:1').click();
+    await page.getByTestId('crop-save-btn').click();
+    await expect(page.getByTestId('crop-dialog')).toHaveCount(0);
+    await expect(item('trip').getByTestId('dropzone-crop-badge')).toBeVisible();
+    await expect(item('trip/sub/subsub').getByTestId('dropzone-crop-badge')).toHaveCount(0);
+    await expect(page.getByTestId('dropzone-crop-badge')).toHaveCount(1);
+
+    const finished = waitForFinishedJobAsync(page);
+    await clickConversionButtonAsync(page);
+    const job = await finished;
+    // The crop is cut in the browser, which names the file holiday_cropped.
+    expect([...job.converted_files].sort()).toEqual(['trip/holiday_cropped.jpg', 'trip/sub/subsub/holiday.jpg']);
+
+    const zip = new AdmZip(await clickDownloadZipButtonAndGetUrlAsync(page));
+    expect(zip.getEntries().map((entry) => entry.entryName).sort()).toEqual([...job.converted_files].sort());
+    const cropped = await sharp(zip.readFile('trip/holiday_cropped.jpg')!).metadata();
+    expect(cropped.width).toBe(cropped.height);
+    const untouched = await sharp(zip.readFile('trip/sub/subsub/holiday.jpg')!).metadata();
+    expect([untouched.width, untouched.height]).toEqual([300, 150]);
   });
 });
