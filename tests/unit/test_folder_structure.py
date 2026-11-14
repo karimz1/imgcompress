@@ -1,6 +1,8 @@
 """Dropped folders keep their layout: results and the ZIP mirror the uploaded tree."""
 
+import dataclasses
 import io
+import unicodedata
 import zipfile
 from io import BytesIO
 
@@ -19,6 +21,13 @@ from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.infrastructure.folder_files import list_files
 from backend.image_converter.infrastructure.local_storage import LocalStorage
+from backend.image_converter.infrastructure.safe_path import path_inside
+from backend.image_converter.infrastructure.upload_folders import (
+    MAX_FOLDER_DEPTH,
+    MAX_FOLDER_NAME_BYTES,
+    UploadTree,
+    folder_segments,
+)
 from backend.image_converter.presentation.web.parse_services import extract_form_data
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
 from backend.image_converter.presentation.web.services.temporary_folder_service import (
@@ -111,12 +120,41 @@ def test_same_name_in_the_same_folder_still_gets_a_counter(tmp_path, service):
         ("写真/Фото", ["写真", "Фото"]),
         ("", []),
         (None, []),
-        ("a/" + "b" * 300, ["a", "b" * 100]),
-        ("/".join(f"d{i}" for i in range(40)), [f"d{i}" for i in range(20)]),
+        # Names that only become ".." after a second cleaning pass.
+        (".. .", []),
+        ("..  .", []),
+        (" .. ", []),
+        (". . .", []),
+        (".. ./.. ./etc", ["etc"]),
+        ("a/.. ./b", ["a", "b"]),
+        ("..\\..\\windows", ["windows"]),
+        ("\\\\server\\share", ["server", "share"]),
+        ("/etc/passwd", ["etc", "passwd"]),
+        ("C:/Windows", ["C_", "Windows"]),
+        ("a\x00b/..\x00", ["a_b", ".._"]),
+        ("%2e%2e/%2e%2e", ["%2e%2e", "%2e%2e"]),
+        ("x.", ["x"]),
+        ("CON/nul.txt", ["CON_", "nul.txt_"]),
     ],
 )
 def test_folder_segments_can_never_leave_the_upload_folder(raw, expected):
     assert CompressionService._folder_segments(raw) == expected
+
+
+@pytest.mark.parametrize(
+    "hostile",
+    [".. .", "..  .", " .. ", ".. ./.. ./escape", "..\\..\\escape", "/tmp/escape", ".. .\\.. ./escape"],
+)
+def test_hostile_folders_never_leave_the_upload_folder(tmp_path, service, hostile):
+    upload_root = tmp_path / "jobs" / "source"
+
+    result = service._save_uploaded_files([_upload("pwn.png")], str(upload_root), (hostile,))
+
+    assert result.is_successful
+    saved = list_files(str(upload_root))
+    assert len(saved) == 1 and saved[0].endswith("pwn.png")
+    assert sorted(p.name for p in tmp_path.rglob("pwn.png")) == ["pwn.png"]
+    assert not (tmp_path / "escape").exists() and not (tmp_path / "jobs" / "escape").exists()
 
 
 def test_a_hostile_folder_stays_inside_the_upload_folder(tmp_path, service):
@@ -224,3 +262,227 @@ def test_the_request_is_refused_when_folders_and_files_do_not_match():
 
     assert not result.is_successful
     assert "folder" in result.error
+
+
+# --- Hardening: names, limits, collisions -----------------------------------
+
+def _run(service, names, relative_dirs, image_format=ImageFormat.JPEG):
+    prepared = service.prepare(_form_data(names, relative_dirs, image_format))
+    assert prepared.is_successful, prepared.error
+    result = service.run(prepared.value)
+    assert result.is_successful, result.error
+    return result.value
+
+
+def test_long_folder_names_are_capped_in_bytes_not_characters():
+    (segment,) = folder_segments("写" * 100)  # 300 bytes of UTF-8
+
+    assert len(segment.encode("utf-8")) <= MAX_FOLDER_NAME_BYTES
+    assert segment.startswith("写" * 60)
+    segment.encode("utf-8").decode("utf-8")  # cut on a character boundary
+
+
+def test_emoji_folder_names_are_cut_on_a_character_boundary():
+    (segment,) = folder_segments("📷" * 80)  # 4 bytes each
+
+    assert len(segment.encode("utf-8")) <= MAX_FOLDER_NAME_BYTES
+    assert segment.rstrip("~0123456789abcdef").strip("📷") == ""
+
+
+def test_names_within_the_cap_are_kept_as_they_are():
+    name = "a" * MAX_FOLDER_NAME_BYTES
+
+    assert folder_segments(name) == [name]
+
+
+def test_long_names_that_differ_after_the_cap_stay_apart():
+    first, second = folder_segments("a" * 300 + "X")[0], folder_segments("a" * 300 + "Y")[0]
+
+    assert first != second
+    assert folder_segments("a" * 300 + "X") == [first]  # same name, same folder every time
+
+
+def test_a_job_with_a_long_cjk_folder_name_works(service):
+    result = _run(service, ["p.png"], ["写" * 100])
+
+    (converted,) = result.converted_files
+    folder, name = converted.split("/")
+    assert name == "p.jpg" and len(folder.encode("utf-8")) <= MAX_FOLDER_NAME_BYTES
+
+
+def test_folder_names_are_normalized_to_nfc():
+    nfd = unicodedata.normalize("NFD", "Ä")
+    assert folder_segments(nfd) == [unicodedata.normalize("NFC", "Ä")]
+
+
+def test_nfc_and_nfd_spellings_share_one_folder(service):
+    spellings = [unicodedata.normalize("NFC", "Ärger"), unicodedata.normalize("NFD", "Ärger")]
+
+    result = _run(service, ["p.png", "p.png"], spellings)
+
+    assert result.converted_files == ["Ärger/p.jpg", "Ärger/p_1.jpg"]
+
+
+def test_folders_deeper_than_the_cap_are_joined_into_the_last_level():
+    parts = [f"d{i}" for i in range(25)]
+
+    segments = folder_segments("/".join(parts))
+
+    assert len(segments) == MAX_FOLDER_DEPTH
+    assert segments[:-1] == parts[: MAX_FOLDER_DEPTH - 1]
+    assert segments[-1] == "_".join(parts[MAX_FOLDER_DEPTH - 1 :])
+
+
+def test_deep_folders_keep_their_files_apart(service):
+    cap = "/".join(f"d{i}" for i in range(MAX_FOLDER_DEPTH))
+    deep = "/".join(f"d{i}" for i in range(25))
+
+    result = _run(service, ["p.png", "p.png", "p.png"], [cap, deep, cap + "/d20"])
+
+    files = result.converted_files
+    assert len(set(files)) == 3
+    assert not any("p_1" in f for f in files)  # no silent squashing into one folder
+
+
+def test_joined_deep_folders_respect_the_byte_cap():
+    segments = folder_segments("/".join("x" * 50 for _ in range(30)))
+
+    assert len(segments) == MAX_FOLDER_DEPTH
+    assert all(len(s.encode("utf-8")) <= MAX_FOLDER_NAME_BYTES for s in segments)
+
+
+def test_names_that_clean_to_the_same_folder_never_overwrite(service):
+    result = _run(service, ["p.png"] * 4, ["a:b", "a_b", "x.", "x"])
+
+    assert result.converted_files == ["a_b/p.jpg", "a_b/p_1.jpg", "x/p.jpg", "x/p_1.jpg"]
+
+
+def test_folders_that_only_differ_in_case_share_one_folder(service):
+    result = _run(service, ["p.png", "p.png", "q.png"], ["Case", "case", "CASE/sub"])
+
+    assert result.converted_files == ["Case/p.jpg", "Case/p_1.jpg", "Case/sub/q.jpg"]
+
+
+def test_outputs_that_only_differ_in_case_get_a_counter(service):
+    result = _run(service, ["Photo.png", "photo.png"], ["x", "x"])
+
+    assert sorted(f.casefold() for f in result.converted_files) == ["x/photo.jpg", "x/photo_1.jpg"]
+
+
+def test_a_folder_named_like_an_uploaded_file_does_not_fail_the_job(service):
+    result = _run(service, ["holiday.png", "other.png"], ["x", "x/holiday.png"])
+
+    assert result.converted_files == ["x/holiday.jpg", "x/holiday.png_1/other.jpg"]
+
+
+def test_an_uploaded_file_named_like_a_folder_does_not_fail_the_job(service):
+    result = _run(service, ["other.png", "holiday.png"], ["x/holiday.png", "x"])
+
+    assert sorted(result.converted_files) == ["x/holiday.png/other.jpg", "x/holiday_1.jpg"]
+
+
+def test_a_folder_named_like_an_output_does_not_drop_the_file(service):
+    result = _run(service, ["holiday.png", "holiday.png"], ["x", "x/holiday.avif"], ImageFormat.AVIF)
+
+    assert sorted(result.converted_files) == ["x/holiday.avif/holiday.avif", "x/holiday_1.avif"]
+
+
+def test_upload_tree_reuses_the_first_spelling(tmp_path):
+    tree = UploadTree(str(tmp_path))
+
+    first = tree.folder_for("Trip/Day1")
+    second = tree.folder_for("trip/DAY1")
+
+    assert first == second == str((tmp_path / "Trip" / "Day1").resolve())
+
+
+def test_upload_tree_refuses_a_link_out_of_the_upload_folder(tmp_path):
+    root = tmp_path / "source"
+    root.mkdir()
+    (tmp_path / "outside").mkdir()
+    (root / "evil").symlink_to(tmp_path / "outside")
+
+    with pytest.raises(ValueError):
+        UploadTree(str(root)).folder_for("evil/x")
+    assert not (tmp_path / "outside" / "x").exists()
+
+
+@pytest.mark.parametrize("parts", [("..",), ("a", "..", ".."), ("/etc",), ("a\x00",)])
+def test_path_inside_refuses_paths_outside_the_base(tmp_path, parts):
+    assert path_inside(str(tmp_path), *parts) is None
+
+
+def test_output_paths_outside_the_result_folder_are_refused(tmp_path):
+    storage = LocalStorage()
+
+    for name in ["../x.jpg", "a/../../x.jpg", "", "a//x.jpg"]:
+        with pytest.raises(ValueError):
+            storage.build_dest_path(str(tmp_path), name)
+    assert storage.build_dest_path(str(tmp_path), "a/b/x.jpg") == str((tmp_path / "a" / "b" / "x.jpg").resolve())
+
+
+def test_output_errors_do_not_show_container_paths(tmp_path):
+    (tmp_path / "a").write_bytes(b"file, not a folder")
+
+    with pytest.raises(ValueError) as error:
+        LocalStorage().build_dest_path(str(tmp_path), "a/x.jpg")
+
+    assert str(tmp_path) not in str(error.value)
+
+
+def test_file_system_errors_in_a_job_do_not_show_container_paths():
+    error = IsADirectoryError(21, "Is a directory", "/tmp/converted_abc/x/holiday.avif")
+
+    assert CompressImagesUseCase._describe(error) == "Is a directory"
+
+
+def test_a_nested_holiday_tree_keeps_every_file_apart(service):
+    dirs = ["trip", "trip/sub", "trip/sub/subsub", "a", "b", "trip", "trip"]
+    names = ["holiday.png"] * 5 + ["holiday.png", "holiday.jpg"]
+
+    result = _run(service, names, dirs, ImageFormat.AVIF)
+
+    files = result.converted_files
+    assert len(set(files)) == len(names)
+    assert [f for f in files if not f.startswith("trip/holiday")] == [
+        "a/holiday.avif",
+        "b/holiday.avif",
+        "trip/sub/holiday.avif",
+        "trip/sub/subsub/holiday.avif",
+    ]
+    assert len([f for f in files if f.count("/") == 1 and f.startswith("trip/")]) == 3
+
+    archive = service.create_all_files_zip(result.dest_folder)
+    with zipfile.ZipFile(archive.value) as zf:
+        assert sorted(zf.namelist()) == result.converted_files
+
+
+def test_a_psd_and_a_png_with_the_same_name_both_survive(service):
+    from psd_tools import PSDImage
+
+    psd = BytesIO()
+    PSDImage.frompil(Image.new("RGB", (8, 8), "blue")).save(psd)
+    form = _form_data(["holiday.png"], ["trip"], ImageFormat.AVIF)
+    form = dataclasses.replace(
+        form,
+        uploaded_files=form.uploaded_files + (FileStorage(stream=BytesIO(psd.getvalue()), filename="holiday.psd"),),
+        relative_dirs=("trip", "trip"),
+    )
+    prepared = service.prepare(form)
+    result = service.run(prepared.value)
+
+    assert result.is_successful, result.error
+    assert result.value.converted_files == ["trip/holiday.avif", "trip/holiday_1.avif"]
+
+
+def test_the_zip_never_contains_unsafe_entries(service):
+    result = _run(service, ["p.png", "p.png", "p.png"], [".. ./.. ./x", "/abs/y", "..\\..\\z"])
+
+    archive = service.create_all_files_zip(result.dest_folder)
+    with zipfile.ZipFile(archive.value) as zf:
+        names = zf.namelist()
+    assert names and all(not n.startswith("/") and ".." not in n.split("/") and "\\" not in n for n in names)
+
+
+def test_capped_names_leave_room_below_the_file_system_limit():
+    assert MAX_FOLDER_NAME_BYTES + 9 < 255

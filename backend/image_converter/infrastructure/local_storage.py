@@ -5,6 +5,7 @@ from typing import Iterable
 
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.infrastructure.safe_path import path_inside
 
 @dataclass
 class FileItem:
@@ -52,9 +53,20 @@ class LocalStorage:
             return Result.failure("Failed to write file.")
 
     def build_dest_path(self, folder: str, name: str) -> str:
-        """``name`` may carry sub folders ("a/b/photo.jpg"); they are created here."""
-        path = os.path.join(folder, *name.split("/"))
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        """``name`` may carry sub folders ("a/b/photo.jpg"); they are created here.
+
+        The path must stay inside ``folder``. Errors never name the path, since
+        they are shown to the user and would reveal the container's folders.
+        """
+        parts = name.split("/")
+        path = path_inside(folder, *parts)
+        if path is None or path == os.path.realpath(folder) or any(p in ("", ".", "..") for p in parts):
+            raise ValueError("Invalid output path.")
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        except OSError:
+            self._log_failure("create the folder of", path)
+            raise ValueError("Could not create the output folder.") from None
         return path
 
     def _log_failure(self, action: str, path: str) -> None:

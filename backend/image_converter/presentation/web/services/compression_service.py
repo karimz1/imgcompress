@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import tempfile
 import traceback
@@ -19,6 +18,7 @@ from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.folder_files import list_files
 from backend.image_converter.infrastructure.job_progress import JobCanceled
+from backend.image_converter.infrastructure.upload_folders import UploadTree, folder_segments
 from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
@@ -45,11 +45,6 @@ class PreparedCompression:
 # ZIPs up to this size stay in memory; larger ones spill to an unnamed temp
 # file that disappears when the download is closed.
 _ZIP_SPOOL_MAX_BYTES = 32 * 1024 * 1024
-
-
-# Limits for the folder names of an uploaded directory tree.
-_MAX_FOLDER_NAME_LENGTH = 100
-_MAX_FOLDER_DEPTH = 20
 
 
 class CompressionService:
@@ -258,11 +253,9 @@ class CompressionService:
         """Saves each upload into ``folder``, or into its own sub folder when the browser sent one."""
         try:
             os.makedirs(folder, exist_ok=True)
+            tree = UploadTree(folder)
             for index, file in enumerate(files, start=1):
-                target = folder
-                if relative_dirs:
-                    target = os.path.join(folder, *self._folder_segments(relative_dirs[index - 1]))
-                    os.makedirs(target, exist_ok=True)
+                target = tree.folder_for(relative_dirs[index - 1]) if relative_dirs else folder
                 path = self._create_unique_file(target, self._upload_name(file.filename, index))
                 with open(path, "wb") as f:
                     while True:
@@ -278,17 +271,8 @@ class CompressionService:
 
     @staticmethod
     def _folder_segments(relative_dir: Optional[str]) -> list[str]:
-        """
-        The folder names of a path such as "holiday/day1", made safe to create.
-        Unlike file names they keep non-ASCII letters; "..", "." and empty parts
-        are dropped, so the result can never leave the upload folder.
-        """
-        segments = []
-        for part in re.split(r"[/\\]", relative_dir or ""):
-            part = re.sub(r'[\x00-\x1f<>:"|?*]', "_", part).strip().rstrip(".").strip()
-            if part:
-                segments.append(part[:_MAX_FOLDER_NAME_LENGTH])
-        return segments[:_MAX_FOLDER_DEPTH]
+        """The cleaned folder names of a path such as "holiday/day1" (see upload_folders)."""
+        return folder_segments(relative_dir)
 
     @staticmethod
     def _upload_name(filename: Optional[str], index: int) -> str:

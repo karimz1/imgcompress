@@ -32,7 +32,11 @@ class CompressImagesUseCase:
         # Output names already used in this batch, e.g. photo.png and photo.jpg
         # both become photo.webp; later ones get a _1, _2, ... suffix. Names
         # include the sub folder, so the same name in two folders does not clash.
-        reserved_names: set[str] = set()
+        # They are compared without case, so the ZIP unpacks the same on macOS
+        # and Windows, and the folders of the batch are taken up front, so
+        # photo.png next to a folder "photo.webp" becomes photo_1.webp.
+        items = list(self.storage.iter_files(req.source_folder))
+        reserved_names: set[str] = self._folder_names(items)
         new_ext = req.image_format.get_file_extension()
         pdf_preset: Optional[PdfPreset] = None
         pdf_scale = "fit"
@@ -53,7 +57,7 @@ class CompressImagesUseCase:
                 return CompressResult(processed_files=[], errors=[scale_res.error])
             pdf_scale = scale_res.value
 
-        for files_done, item in enumerate(self.storage.iter_files(req.source_folder)):
+        for files_done, item in enumerate(items):
             job_progress.report(files_done=files_done, tiles_done=0, tiles_total=0)
             try:
                 read_result = self.storage.read_bytes(item.path)
@@ -77,7 +81,7 @@ class CompressImagesUseCase:
             except JobCanceled:
                 raise
             except Exception as e:
-                errors.append(f"{item.name}: {e}")
+                errors.append(f"{item.name}: {self._describe(e)}")
                 continue
 
             # page_payloads is now an iterable (generator for PDFs) to save memory
@@ -167,7 +171,7 @@ class CompressImagesUseCase:
                 except JobCanceled:
                     raise
                 except Exception as e:
-                    errors.append(f"{page_label}: {e}")
+                    errors.append(f"{page_label}: {self._describe(e)}")
 
         return CompressResult(processed_files=processed, errors=errors)
 
@@ -195,14 +199,31 @@ class CompressImagesUseCase:
         return f"{relative_dir}/{name}" if relative_dir else name
 
     @staticmethod
+    def _folder_names(items) -> set[str]:
+        """Every sub folder of the batch ("a", "a/b", ...), casefolded."""
+        names: set[str] = set()
+        for item in items:
+            parts = item.relative_dir.split("/") if item.relative_dir else []
+            for depth in range(1, len(parts) + 1):
+                names.add("/".join(parts[:depth]).casefold())
+        return names
+
+    @staticmethod
     def _reserve_dest_name(name: str, reserved_names: set[str]) -> str:
         stem, extension = os.path.splitext(name)
         candidate, counter = name, 0
-        while candidate in reserved_names:
+        while candidate.casefold() in reserved_names:
             counter += 1
             candidate = f"{stem}_{counter}{extension}"
-        reserved_names.add(candidate)
+        reserved_names.add(candidate.casefold())
         return candidate
+
+    @staticmethod
+    def _describe(error: Exception) -> str:
+        """The error for the user; file system errors carry container paths, so only their reason is kept."""
+        if isinstance(error, OSError):
+            return error.strerror or "Could not write the file."
+        return str(error)
 
     _BG_REMOVED_SUFFIX = "_ai-bg-removed"
     _UPSCALED_SUFFIX = "_ai-upscaled"
