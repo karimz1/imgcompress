@@ -20,11 +20,12 @@ from backend.image_converter.core.factory.converter_factory import ImageConverte
 from backend.image_converter.domain.image_resizer import ImageResizer
 from backend.image_converter.infrastructure.cleanup_service import CleanupService
 from backend.image_converter.infrastructure.folder_files import list_files
+from backend.image_converter.infrastructure import upload_folders
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.safe_path import path_inside
 from backend.image_converter.infrastructure.upload_folders import (
-    MAX_FOLDER_DEPTH,
     MAX_FOLDER_NAME_BYTES,
+    FolderPathTooLong,
     UploadTree,
     folder_segments,
 )
@@ -323,32 +324,72 @@ def test_nfc_and_nfd_spellings_share_one_folder(service):
     assert result.converted_files == ["Ärger/p.jpg", "Ärger/p_1.jpg"]
 
 
-def test_folders_deeper_than_the_cap_are_joined_into_the_last_level():
-    parts = [f"d{i}" for i in range(25)]
+def test_deep_folders_keep_every_level():
+    parts = [f"d{i}" for i in range(40)]
 
-    segments = folder_segments("/".join(parts))
-
-    assert len(segments) == MAX_FOLDER_DEPTH
-    assert segments[:-1] == parts[: MAX_FOLDER_DEPTH - 1]
-    assert segments[-1] == "_".join(parts[MAX_FOLDER_DEPTH - 1 :])
+    assert folder_segments("/".join(parts)) == parts
 
 
-def test_deep_folders_keep_their_files_apart(service):
-    cap = "/".join(f"d{i}" for i in range(MAX_FOLDER_DEPTH))
-    deep = "/".join(f"d{i}" for i in range(25))
+def test_a_tree_30_plus_levels_deep_is_kept_in_results_and_zip(service):
+    deep = "/".join(f"level{i}" for i in range(35))
 
-    result = _run(service, ["p.png", "p.png", "p.png"], [cap, deep, cap + "/d20"])
+    result = _run(service, ["p.png", "p.png", "q.png"], [deep, deep + "/next", deep[: deep.index("/level20")]])
 
-    files = result.converted_files
-    assert len(set(files)) == 3
-    assert not any("p_1" in f for f in files)  # no silent squashing into one folder
+    assert result.converted_files == sorted([
+        "/".join(f"level{i}" for i in range(20)) + "/q.jpg",
+        f"{deep}/next/p.jpg",
+        f"{deep}/p.jpg",
+    ])
+    archive = service.create_all_files_zip(result.dest_folder)
+    with zipfile.ZipFile(archive.value) as zf:
+        assert sorted(zf.namelist()) == result.converted_files
 
 
-def test_joined_deep_folders_respect_the_byte_cap():
-    segments = folder_segments("/".join("x" * 50 for _ in range(30)))
+def test_every_level_of_a_deep_tree_respects_the_byte_cap():
+    segments = folder_segments("/".join("写" * 100 for _ in range(30)))
 
-    assert len(segments) == MAX_FOLDER_DEPTH
+    assert len(segments) == 30
     assert all(len(s.encode("utf-8")) <= MAX_FOLDER_NAME_BYTES for s in segments)
+
+
+def test_a_path_past_the_file_system_limit_is_refused_cleanly(tmp_path, service):
+    too_long = "/".join(f"{i:02d}" + "x" * 150 for i in range(40))  # ~6 KB
+
+    prepared = service.prepare(_form_data(["p.png"], [too_long]))
+
+    assert not prepared.is_successful
+    assert "too deep" in prepared.error
+    assert str(tmp_path) not in prepared.error and "/" not in prepared.error
+    assert not any(p.name.startswith(("source_", "converted_")) for p in tmp_path.iterdir())
+
+
+def test_the_path_limit_is_checked_before_anything_is_created(tmp_path):
+    tree = UploadTree(str(tmp_path))
+
+    with pytest.raises(FolderPathTooLong):
+        tree.folder_for("/".join("y" * 190 for _ in range(30)))
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_the_path_limit_comes_from_the_file_system(tmp_path, monkeypatch):
+    monkeypatch.setattr(upload_folders.os, "pathconf", lambda *_: 600)
+    tree = UploadTree(str(tmp_path))
+
+    tree.folder_for("short")
+    with pytest.raises(FolderPathTooLong):
+        tree.folder_for("/".join("z" * 100 for _ in range(4)))
+
+
+def test_the_request_is_refused_with_a_400(tmp_path):
+    from backend.image_converter.presentation.web import server
+
+    files = {"files[]": (BytesIO(_png()), "p.png")}
+    data = {"format": "jpeg", "relative_dirs[]": "/".join("w" * 190 for _ in range(30)), **files}
+    response = server.app.test_client().post("/api/jobs", data=data, content_type="multipart/form-data")
+
+    assert response.status_code == 400
+    body = response.get_data(as_text=True)
+    assert "too deep" in body and "source_" not in body
 
 
 def test_names_that_clean_to_the_same_folder_never_overwrite(service):

@@ -18,7 +18,11 @@ from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.folder_files import list_files
 from backend.image_converter.infrastructure.job_progress import JobCanceled
-from backend.image_converter.infrastructure.upload_folders import UploadTree, folder_segments
+from backend.image_converter.infrastructure.upload_folders import (
+    FolderPathTooLong,
+    UploadTree,
+    folder_segments,
+)
 from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
@@ -265,6 +269,9 @@ class CompressionService:
                         f.write(chunk)
                 self.logger.log(f"Saved file: {path}", "info")
             return Result.success(None)
+        except FolderPathTooLong as error:
+            self.logger.log(f"Refused upload: {error}", "warning")
+            return Result.failure(str(error))
         except Exception:
             self.logger.log(f"Failed saving upload: {traceback.format_exc()}", "error")
             return Result.failure("Failed to save uploaded files.")
