@@ -14,3 +14,13 @@ export function relativeDirOf(file: File): string {
   const parts = full.split(/[\\/]/).filter((part) => part !== "" && part !== ".");
   return parts.slice(0, -1).join("/");
 }
+
+/**
+ * Identifies a file in the selection: "holiday/day1/photo.jpg" for a file of a
+ * dropped folder, just "photo.jpg" for a loose file. Crops, sizes and removal
+ * go by this key, so two photo.jpg in different folders stay independent.
+ */
+export function fileKeyOf(file: File): string {
+  const dir = relativeDirOf(file);
+  return dir ? `${dir}/${file.name}` : file.name;
+}

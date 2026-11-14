@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { autoFitFile, CropConfig, isCropUnsupportedFile } from "@/lib/crop";
 import { InputFileBadge } from "@/components/InputFileBadge";
 import { inputFileKind } from "@/lib/inputFileKind";
+import { fileKeyOf } from "@/lib/folderPath";
 import type { FitOutput } from "@/lib/fitToSize";
 import { BrandLogo } from "@/components/BrandLogo";
 import {
@@ -60,7 +61,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
   const widgetRef = useRef<CropWidgetHandle | null>(null);
 
   const openFile = useMemo(
-    () => (openFileName ? files.find((f) => f.name === openFileName) : null),
+    () => (openFileName ? files.find((f) => fileKeyOf(f) === openFileName) : null),
     [openFileName, files]
   );
 
@@ -68,7 +69,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
   const canFitAll = files.length > 1 && !files.some((file) =>
     isCropUnsupportedFile(file, cropUnsupportedExtensions)
   );
-  const savedCrop = openFile ? crops[openFile.name] : undefined;
+  const savedCrop = openFile ? crops[fileKeyOf(openFile)] : undefined;
   const initialCrop = savedCrop
     ? { ...savedCrop, fit: fitAvailable ? savedCrop.fit : undefined }
     : null;
@@ -77,7 +78,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
     const prepared: { name: string; crop: CropConfig }[] = [];
     for (const file of files) {
       if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
-      prepared.push({ name: file.name, crop: await autoFitFile(file, fit, signal) });
+      prepared.push({ name: fileKeyOf(file), crop: await autoFitFile(file, fit, signal) });
     }
     if (signal.aborted) return;
     // A failure leaves all existing edits intact.
@@ -89,7 +90,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
     if (!confirmRemoveFor) return;
     const removed = confirmRemoveFor;
     setCropForFile(removed, null);
-    if (openFile?.name === removed) {
+    if (openFile && fileKeyOf(openFile) === removed) {
       closeEditor();
       return;
     }
@@ -149,7 +150,7 @@ export const CropDialog: React.FC<CropDialogProps> = ({
                   )}
                   <span>{t("crop.editorTitle")}</span>
                   <span className="opacity-40 px-1.5">·</span>
-                  <span className="opacity-90">{openFile.name}</span>
+                  <span className="opacity-90">{fileKeyOf(openFile)}</span>
                 </DialogTitle>
                 {inputFileKind(openFile.name) !== "image" && (
                   <span className="shrink-0" data-testid="crop-file-info">
@@ -164,17 +165,17 @@ export const CropDialog: React.FC<CropDialogProps> = ({
           </div>
         </DialogHeader>
         <CropWidget
-          key={openFile.name}
+          key={fileKeyOf(openFile)}
           ref={widgetRef}
           file={openFile}
           initialCrop={initialCrop}
           isDarkTheme={isDarkTheme}
           onSave={(cfg) => {
-            setCropForFile(openFile.name, cfg);
+            setCropForFile(fileKeyOf(openFile), cfg);
             closeEditor();
           }}
           onClose={closeEditor}
-          onClearCrop={() => setConfirmRemoveFor(openFile.name)}
+          onClearCrop={() => setConfirmRemoveFor(fileKeyOf(openFile))}
           onReportError={onReportError}
           disableLogo={disableLogo}
           fitAvailable={fitAvailable}

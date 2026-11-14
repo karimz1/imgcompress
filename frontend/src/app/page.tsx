@@ -59,7 +59,7 @@ import {
 } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
-import { relativeDirOf } from "@/lib/folderPath";
+import { fileKeyOf, relativeDirOf } from "@/lib/folderPath";
 import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
 import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
@@ -492,7 +492,7 @@ function HomePageContent() {
       try {
         processedFiles = await Promise.all(
           files.map((file) => {
-            const cfg = crops[file.name];
+            const cfg = crops[fileKeyOf(file)];
             return cfg ? applyCropToFile(file, outputFormat === "pdf" ? { ...cfg, fit: undefined } : cfg, controller.signal) : Promise.resolve(file);
           })
         );
@@ -665,7 +665,7 @@ function HomePageContent() {
   }, [files]);
 
   const removeFile = useCallback((fileName: string) => {
-    setFiles((prev) => prev.filter((f) => f.name !== fileName));
+    setFiles((prev) => prev.filter((f) => fileKeyOf(f) !== fileName));
     setCrops((prev) => {
       if (!(fileName in prev)) return prev;
       const next = { ...prev };

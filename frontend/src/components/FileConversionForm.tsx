@@ -39,6 +39,7 @@ import {
 import { isLargeUpscaleTarget, planUpscale, type PixelSize, type UpscalePlan } from "@/lib/upscalePlan";
 import { useMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { useImagePixelSizes } from "@/hooks/useImagePixelSizes";
+import { fileKeyOf, relativeDirOf } from "@/lib/folderPath";
 import { cn } from "@/lib/utils";
 import { APP_CONFIG } from "@/lib/config";
 import { formatUploadLimit, useMaxUploadSizeMb } from "@/lib/uploadLimit";
@@ -220,9 +221,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   const maxOutputMegapixels = useMaxOutputMegapixels();
   /** What the server will make of this file; null when the browser cannot tell. */
   const upscalePlanFor = (file: File): UpscalePlan | null => {
-    const measured = pixelSizes[file.name];
+    const measured = pixelSizes[fileKeyOf(file)];
     if (!measured) return null;
-    const crop = crops[file.name];
+    const crop = crops[fileKeyOf(file)];
     // A saved crop is cut in the browser first, so the server upscales the cut-out.
     const source = crop ? clampCrop(crop, measured.width, measured.height) : measured;
     return planUpscale(source.width, source.height, upscale.target, maxOutputMegapixels * 1_000_000);
@@ -256,12 +257,14 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             const cropUnsupported = isCropUnsupportedFile(file, cropUnsupportedExtensions);
             const cropable =
               !cropUnsupported && isCropableFile(file, supportedExtensions);
-            const savedCrop = crops[file.name];
+            const fileKey = fileKeyOf(file);
+            const folder = relativeDirOf(file);
+            const savedCrop = crops[fileKey];
             const savedFit = outputFormat !== "pdf" ? savedCrop?.fit : undefined;
             const fileExt = file.name.split(".").pop()?.toLowerCase() ?? "";
             return (
               <div
-                key={file.name}
+                key={fileKey}
                 className={cn(
                   "flex flex-col items-stretch gap-2 rounded-md p-2 transition-colors sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
                   filePillClass
@@ -270,6 +273,15 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
               >
                 <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
                   <div className="flex min-w-0 max-w-full items-center gap-1">
+                    {folder && (
+                      <span
+                        className="-mr-1 min-w-0 shrink text-xs opacity-60 truncate"
+                        title={folder}
+                        data-testid="dropzone-added-file-folder"
+                      >
+                        {folder}/
+                      </span>
+                    )}
                     <span
                       className="min-w-0 text-sm truncate"
                       data-testid="dropzone-added-file"
@@ -300,7 +312,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                             type="button"
                             aria-label={t("form.filesList.removeSavedCropAria")}
                             disabled={isLoading}
-                            onClick={() => setConfirmCropRemoveFor(file.name)}
+                            onClick={() => setConfirmCropRemoveFor(fileKey)}
                             className="rounded-full p-0.5 hover:bg-green-500/25 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             data-testid="dropzone-crop-badge-clear-btn"
                           >
@@ -324,7 +336,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                           size="sm"
                           type="button"
                           disabled={isLoading}
-                          onClick={() => setOpenCropFor(file.name)}
+                          onClick={() => setOpenCropFor(fileKey)}
                           className={cn(
                             "h-7 gap-1.5 px-2",
                             savedCrop
@@ -381,7 +393,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
                     size="sm"
                     type="button"
                     disabled={isLoading}
-                    onClick={() => removeFile(file.name)}
+                    onClick={() => removeFile(fileKey)}
                     data-testid="dropzone-remove-file-btn"
                   >
                     {t("form.filesList.removeButton")}
