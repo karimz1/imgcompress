@@ -65,7 +65,8 @@ test.describe('Skipped files can be expanded to see which ones', () => {
     ]);
 
     await expect(page.getByTestId('error-message-holder')).toContainText('Skipped 1 file(s).');
-    await expect(page.getByTestId('error-message-holder')).toContainText('big.png is larger than 1 MB');
+    await expect(page.getByTestId('error-message-holder')).toContainText('Skipped 1 file(s) over 1 MB.');
+    await expect(page.getByTestId('error-message-holder')).not.toContainText('big.png');
     await toggle(page).click();
     const rows = page.getByTestId('skipped-file');
     await expect(rows).toHaveCount(2);

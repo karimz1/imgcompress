@@ -8,6 +8,7 @@ export const fr: TranslationSchema = {
       unsupportedFormat: "Format de fichier non pris en charge : {{fileName}}",
       filesRejected: "{{count}} fichier(s) ignoré(s). Je ne peux pas ouvrir ce type de fichier.",
       fileTooLarge: "{{fileName}} dépasse {{size}} et n’a pas été ajouté.",
+      filesTooLarge: "{{count}} fichier(s) de plus de {{size}} ignoré(s).",
       batchTooLarge: "Ensemble, les fichiers dépassent {{size}}. Convertissez-les par petits groupes.",
       noFilesError: "Veuillez d'abord déposer ou sélectionner des fichiers.",
       noFormatError: "Veuillez d'abord choisir un format de sortie.",

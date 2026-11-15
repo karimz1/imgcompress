@@ -8,6 +8,7 @@ export const zhCN: TranslationSchema = {
       unsupportedFormat: "不支持的文件格式：{{fileName}}",
       filesRejected: "已跳过 {{count}} 个文件。我无法打开这种文件类型。",
       fileTooLarge: "{{fileName}} 超过 {{size}}，未添加。",
+      filesTooLarge: "已跳过 {{count}} 个大于 {{size}} 的文件。",
       batchTooLarge: "这些文件合计超过 {{size}}，请分批转换。",
       noFilesError: "请先拖入或选择一些文件。",
       noFormatError: "请先选择输出格式。",

@@ -326,7 +326,8 @@ function HomePageContent() {
         const size = formatUploadLimit(i18n.language);
         const messages = tooLargeFiles.map((fileName) => t("page.toast.fileTooLarge", { fileName, size }));
         messages.forEach((message) => toast.error(message));
-        errorLines.push(...messages);
+        // Just the count here; the names are under "Show details".
+        errorLines.push(t("page.toast.filesTooLarge", { count: tooLargeFiles.length, size }));
       }
 
       // One message for the whole drop; the files behind it sit under "Show details".

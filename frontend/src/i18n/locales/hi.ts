@@ -8,6 +8,7 @@ export const hi: TranslationSchema = {
       unsupportedFormat: "असमर्थित फ़ाइल फ़ॉर्मैट: {{fileName}}",
       filesRejected: "{{count}} फ़ाइल(ें) छोड़ दी गईं। यह फ़ाइल टाइप मैं नहीं खोल सकता।",
       fileTooLarge: "{{fileName}} {{size}} से बड़ी है, इसलिए जोड़ी नहीं गई।",
+      filesTooLarge: "{{size}} से बड़ी {{count}} फ़ाइल(ें) छोड़ दी गईं।",
       batchTooLarge: "सभी फ़ाइलें मिलाकर {{size}} से बड़ी हैं। कृपया इन्हें छोटे समूहों में बदलें।",
       noFilesError: "कृपया पहले कुछ फ़ाइलें डालें या चुनें।",
       noFormatError: "कृपया पहले आउटपुट फ़ॉर्मैट चुनें।",

@@ -8,6 +8,7 @@ export const ar: TranslationSchema = {
       unsupportedFormat: "تنسيق ملف غير مدعوم: {{fileName}}",
       filesRejected: "تم تخطي {{count}} ملف(ات). لا أستطيع فتح هذا النوع من الملفات.",
       fileTooLarge: "حجم {{fileName}} أكبر من {{size}} ولم تتم إضافته.",
+      filesTooLarge: "تم تخطي {{count}} ملف(ات) أكبر من {{size}}.",
       batchTooLarge: "حجم الملفات معًا أكبر من {{size}}. يُرجى تحويلها على دفعات أصغر.",
       noFilesError: "يرجى إسقاط أو تحديد بعض الملفات أولاً.",
       noFormatError: "يرجى تحديد تنسيق إخراج أولاً.",

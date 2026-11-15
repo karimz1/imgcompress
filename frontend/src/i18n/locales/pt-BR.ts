@@ -8,6 +8,7 @@ export const ptBR: TranslationSchema = {
       unsupportedFormat: "Formato de arquivo sem suporte: {{fileName}}",
       filesRejected: "{{count}} arquivo(s) ignorado(s). Não consigo abrir esse tipo de arquivo.",
       fileTooLarge: "{{fileName}} tem mais de {{size}} e não foi adicionado.",
+      filesTooLarge: "{{count}} arquivo(s) acima de {{size}} ignorado(s).",
       batchTooLarge: "Juntos, os arquivos passam de {{size}}. Converta em grupos menores.",
       noFilesError: "Primeiro arraste ou selecione alguns arquivos.",
       noFormatError: "Primeiro selecione um formato de saída.",

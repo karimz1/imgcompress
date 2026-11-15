@@ -8,6 +8,7 @@ export const ja: TranslationSchema = {
       unsupportedFormat: "未対応のファイル形式: {{fileName}}",
       filesRejected: "{{count}} 件のファイルをスキップしました。このファイル形式は開けません。",
       fileTooLarge: "{{fileName}} は {{size}} を超えているため追加されませんでした。",
+      filesTooLarge: "{{size}} を超える {{count}} 件のファイルをスキップしました。",
       batchTooLarge: "ファイルの合計が {{size}} を超えています。少しずつ分けて変換してください。",
       noFilesError: "先にファイルをドロップするか選択してください。",
       noFormatError: "先に出力形式を選択してください。",
