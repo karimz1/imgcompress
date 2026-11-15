@@ -324,10 +324,15 @@ function HomePageContent() {
 
       if (tooLargeFiles.length > 0) {
         const size = formatUploadLimit(i18n.language);
-        const messages = tooLargeFiles.map((fileName) => t("page.toast.fileTooLarge", { fileName, size }));
-        messages.forEach((message) => toast.error(message));
+        const summary = t("page.toast.filesTooLarge", { count: tooLargeFiles.length, size });
+        // One toast per drop, like for unsupported files; one file keeps its name.
+        toast.error(
+          tooLargeFiles.length === 1
+            ? t("page.toast.fileTooLarge", { fileName: tooLargeFiles[0], size })
+            : summary
+        );
         // Just the count here; the names are under "Show details".
-        errorLines.push(t("page.toast.filesTooLarge", { count: tooLargeFiles.length, size }));
+        errorLines.push(summary);
       }
 
       // One message for the whole drop; the files behind it sit under "Show details".

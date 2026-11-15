@@ -67,11 +67,34 @@ test.describe('Skipped files can be expanded to see which ones', () => {
     await expect(page.getByTestId('error-message-holder')).toContainText('Skipped 1 file(s).');
     await expect(page.getByTestId('error-message-holder')).toContainText('Skipped 1 file(s) over 1 MB.');
     await expect(page.getByTestId('error-message-holder')).not.toContainText('big.png');
+    await expect(page.locator('.Toastify__toast--error').filter({ hasText: 'big.png is larger than 1 MB' })).toHaveCount(1);
     await toggle(page).click();
     const rows = page.getByTestId('skipped-file');
     await expect(rows).toHaveCount(2);
     await expect(rows.filter({ hasText: 'big.png' }).getByTestId('skipped-file-reason')).toHaveText('Larger than 1 MB');
     await expect(rows.filter({ hasText: 'list.csv' }).getByTestId('skipped-file-reason')).toHaveText('File type not supported');
+  });
+
+  test('several files above the upload limit share one toast', async ({ page, browserName }) => {
+    await page.route('**/config/runtime.json', async (route) => {
+      const response = await route.fetch();
+      const config = await response.json();
+      await route.fulfill({ response, json: { ...config, MAX_UPLOAD_SIZE_MB: '1' } });
+    });
+    await page.goto('/');
+    await expect(page.getByTestId('dropzone-max-size')).toHaveText('Max. 1 MB per file');
+    await dropFolderLikeTheBrowserAsync(page, browserName, [
+      { path: '/scans/one.png', bytes: new Array(2 * MB).fill(0) },
+      { path: '/scans/two.png', bytes: new Array(2 * MB).fill(0) },
+      { path: '/scans/three.png', bytes: new Array(2 * MB).fill(0) },
+    ]);
+
+    const toasts = page.locator('.Toastify__toast--error');
+    await expect(toasts).toHaveCount(1);
+    await expect(toasts).toContainText('Skipped 3 file(s) over 1 MB.');
+    await expect(page.getByTestId('error-message-holder')).toContainText('Skipped 3 file(s) over 1 MB.');
+    await toggle(page).click();
+    await expect(page.getByTestId('skipped-file-name')).toHaveText(['one.png', 'two.png', 'three.png']);
   });
 
   test('a long list is capped with "+N more" and starts collapsed again on the next drop', async ({ page, browserName }) => {
