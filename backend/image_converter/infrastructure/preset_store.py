@@ -79,7 +79,7 @@ class PresetStore:
         self._max_presets = max_presets
         self._clock = clock
 
-    def list(self) -> list[dict]:
+    def all(self) -> list[dict]:
         return self._read()
 
     def create(self, name: str, settings: dict) -> dict:

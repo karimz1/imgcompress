@@ -49,8 +49,8 @@ class PresetService:
         self._store = store
         self.is_enabled = is_enabled
 
-    def list(self) -> PresetResponse:
-        return self._run(lambda: PresetResponse({"presets": self._store.list()}, 200))
+    def list_presets(self) -> PresetResponse:
+        return self._run(lambda: PresetResponse({"presets": self._store.all()}, 200))
 
     def create(self, payload: Any) -> PresetResponse:
         def create() -> PresetResponse:

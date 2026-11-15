@@ -237,7 +237,7 @@ def _store(path, logger=None, **kwargs) -> PresetStore:
 
 
 def test_missing_file_means_no_presets(preset_file):
-    assert _store(preset_file).list() == []
+    assert _store(preset_file).all() == []
     assert not preset_file.exists()
 
 
@@ -264,7 +264,7 @@ def test_created_preset_is_written_in_the_documented_format(preset_file):
 def test_presets_survive_a_new_store_on_the_same_file(preset_file):
     created = _store(preset_file).create("Web JPEG", _settings())
 
-    assert _store(preset_file).list() == [created]
+    assert _store(preset_file).all() == [created]
 
 
 def test_update_changes_name_and_settings_and_keeps_created_at(preset_file):
@@ -279,7 +279,7 @@ def test_update_changes_name_and_settings_and_keeps_created_at(preset_file):
     assert overwritten["settings"]["format"] == "png"
     assert overwritten["created_at"] == NOW
     assert overwritten["updated_at"] == LATER
-    assert store.list() == [overwritten]
+    assert store.all() == [overwritten]
 
 
 def test_delete_removes_only_that_preset(preset_file):
@@ -289,7 +289,7 @@ def test_delete_removes_only_that_preset(preset_file):
 
     store.delete(first["id"])
 
-    assert store.list() == [second]
+    assert store.all() == [second]
 
 
 def test_unknown_ids_raise_not_found(preset_file):
@@ -322,7 +322,7 @@ def test_limit_is_enforced(preset_file):
 
     with pytest.raises(PresetLimitReachedError):
         store.create("Three", _settings())
-    assert len(store.list()) == 2
+    assert len(store.all()) == 2
 
 
 def test_writes_leave_no_temporary_file(preset_file):
@@ -375,7 +375,7 @@ def test_unusable_file_is_reported_and_never_overwritten(preset_file, content):
     store = _store(preset_file, logger)
 
     with pytest.raises(PresetStorageUnavailableError):
-        store.list()
+        store.all()
     with pytest.raises(PresetStorageUnavailableError):
         store.create("One", _settings())
 
@@ -403,7 +403,7 @@ def test_hand_written_presets_are_normalized_on_read(preset_file):
         encoding="utf-8",
     )
 
-    [preset] = _store(preset_file).list()
+    [preset] = _store(preset_file).all()
 
     assert preset["name"] == "Small PNG"
     assert preset["settings"] == _settings(format="png", quality=None, width=640, use_rembg=False)
@@ -437,7 +437,7 @@ def test_concurrent_processes_never_lose_a_preset(preset_file):
         worker.join(timeout=60)
         assert worker.exitcode == 0
 
-    names = sorted(preset["name"] for preset in _store(preset_file).list())
+    names = sorted(preset["name"] for preset in _store(preset_file).all())
     assert names == sorted(f"worker{n}-{i}" for n in range(4) for i in range(10))
 
 

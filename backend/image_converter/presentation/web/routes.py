@@ -297,7 +297,7 @@ def _preset_response(result: PresetResponse):
 
 @api_blueprint.route("/presets", methods=["GET"])
 def list_presets():
-    return _preset_response(preset_service.list())
+    return _preset_response(preset_service.list_presets())
 
 
 @api_blueprint.route("/presets", methods=["POST"])
