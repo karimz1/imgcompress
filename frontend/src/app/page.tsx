@@ -310,9 +310,12 @@ function HomePageContent() {
         }
       });
 
-      unsupportedFiles.forEach((fileName) => {
-        toast.error(t("page.toast.unsupportedFormat", { fileName }));
-      });
+      // One toast per drop: a folder full of such files would stack dozens.
+      if (unsupportedFiles.length === 1) {
+        toast.error(t("page.toast.unsupportedFormat", { fileName: unsupportedFiles[0] }));
+      } else if (unsupportedFiles.length > 1) {
+        toast.error(t("page.toast.filesRejected", { count: unsupportedFiles.length }));
+      }
 
       const errorLines: string[] = [];
       if (unsupportedFiles.length > 0) {

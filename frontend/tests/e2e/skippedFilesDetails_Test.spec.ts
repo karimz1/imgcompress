@@ -27,6 +27,7 @@ test.describe('Skipped files can be expanded to see which ones', () => {
 
     await expect(page.getByTestId('dropzone-added-file')).toHaveText(['beach.png']);
     await expect(page.getByTestId('error-message-holder')).toContainText("Skipped 1 file(s). I can't open that file type.");
+    await expect(page.locator('.Toastify__toast--error')).toHaveText(['Unsupported File Format: readme.txt']);
 
     // Collapsed by default: only the summary and the button.
     await expect(toggle(page)).toHaveText('Show details');
@@ -78,6 +79,10 @@ test.describe('Skipped files can be expanded to see which ones', () => {
     await dropFolderLikeTheBrowserAsync(page, browserName, many);
 
     await expect(page.getByTestId('error-message-holder')).toContainText('Skipped 105 file(s).');
+    // One toast for the whole drop, not one per file.
+    const toasts = page.locator('.Toastify__toast--error');
+    await expect(toasts).toHaveCount(1);
+    await expect(toasts).toContainText("Skipped 105 file(s). I can't open that file type.");
     await toggle(page).click();
     await expect(page.getByTestId('skipped-file')).toHaveCount(100);
     await expect(page.getByTestId('skipped-files-more')).toHaveText('+5 more');
