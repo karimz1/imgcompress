@@ -59,6 +59,12 @@ import {
 } from "@/lib/upscale";
 import { useCropUnsupportedExtensions } from "@/hooks/useCropUnsupportedExtensions";
 import { applyCropToFile, CropConfig } from "@/lib/crop";
+import {
+  fileKeyOf,
+  loadKeepFoldersPreference,
+  relativeDirOf,
+  saveKeepFoldersPreference,
+} from "@/lib/folderPath";
 import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
 import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
@@ -153,6 +159,13 @@ function HomePageContent() {
     }
   }, [upscaleModels, upscale.denoise]);
   const [files, setFiles] = useState<File[]>([]);
+  // Off by default: dropped folders come back flat, like before the switch existed.
+  const [keepFolders, setKeepFolders] = useState(false);
+  useEffect(() => setKeepFolders(loadKeepFoldersPreference()), []);
+  const handleKeepFoldersChange = useCallback((checked: boolean) => {
+    setKeepFolders(checked);
+    saveKeepFoldersPreference(checked);
+  }, []);
   const [converted, setConverted] = useState<string[]>([]);
   const [resultJob, setResultJob] = useState<JobRef | null>(null);
   const [jobProgress, setJobProgress] = useState<JobProgress | null>(null);
@@ -491,7 +504,7 @@ function HomePageContent() {
       try {
         processedFiles = await Promise.all(
           files.map((file) => {
-            const cfg = crops[file.name];
+            const cfg = crops[fileKeyOf(file)];
             return cfg ? applyCropToFile(file, outputFormat === "pdf" ? { ...cfg, fit: undefined } : cfg, controller.signal) : Promise.resolve(file);
           })
         );
@@ -524,6 +537,13 @@ function HomePageContent() {
 
       const formData = new FormData();
       processedFiles.forEach((file) => formData.append("files[]", file));
+      // With "keep folder structure" on, dropped folders keep their layout in
+      // the results. processedFiles follows the order of files, even where a
+      // crop made a new File. Without it the server keeps the flat layout.
+      const folders = files.map(relativeDirOf);
+      if (keepFolders && folders.some(Boolean)) {
+        folders.forEach((folder) => formData.append("relative_dirs[]", folder));
+      }
       if (hasQualitySettings && compressionMode === "quality") {
         formData.append("quality", quality);
       }
@@ -642,6 +662,7 @@ function HomePageContent() {
       pdfPaginate,
       pdfQuality,
       crops,
+      keepFolders,
       followJob,
       notifyAvailable,
       i18n,
@@ -658,7 +679,7 @@ function HomePageContent() {
   }, [files]);
 
   const removeFile = useCallback((fileName: string) => {
-    setFiles((prev) => prev.filter((f) => f.name !== fileName));
+    setFiles((prev) => prev.filter((f) => fileKeyOf(f) !== fileName));
     setCrops((prev) => {
       if (!(fileName in prev)) return prev;
       const next = { ...prev };
@@ -860,6 +881,8 @@ function HomePageContent() {
               rembgModelName={rembgModelName}
               webpLossless={webpLossless}
               setWebpLossless={setWebpLossless}
+              keepFolders={keepFolders}
+              setKeepFolders={handleKeepFoldersChange}
               getRootProps={getRootProps}
               getInputProps={getInputProps}
               isDragActive={isDragActive}

@@ -5,23 +5,32 @@ from typing import Iterable
 
 from backend.image_converter.core.internals.utilities import Result
 from backend.image_converter.infrastructure.logger import Logger
+from backend.image_converter.infrastructure.safe_path import path_inside
 
 @dataclass
 class FileItem:
     path: str
     name: str
     stem: str
+    # Folder of the file below the source folder, "" at the top. Always "/"-separated.
+    relative_dir: str = ""
 
 class LocalStorage:
     def __init__(self, logger: Logger | None = None):
         self.logger = logger
 
     def iter_files(self, folder: str) -> Iterable[FileItem]:
-        for name in self._list_directory(folder):
-            p = os.path.join(folder, name)
-            if os.path.isfile(p):
-                stem, _ = os.path.splitext(name)
-                yield FileItem(path=p, name=name, stem=stem)
+        """Every file below ``folder``: its own files first, then those of the sub folders, in name order."""
+        for current, dirs, names in os.walk(folder):
+            dirs.sort()
+            relative_dir = os.path.relpath(current, folder).replace(os.sep, "/")
+            if relative_dir == ".":
+                relative_dir = ""
+            for name in sorted(names):
+                path = os.path.join(current, name)
+                if os.path.isfile(path):
+                    stem, _ = os.path.splitext(name)
+                    yield FileItem(path=path, name=name, stem=stem, relative_dir=relative_dir)
 
     def read_bytes(self, path: str) -> Result[bytes]:
         try:
@@ -44,13 +53,21 @@ class LocalStorage:
             return Result.failure("Failed to write file.")
 
     def build_dest_path(self, folder: str, name: str) -> str:
-        return os.path.join(folder, name)
+        """``name`` may carry sub folders ("a/b/photo.jpg"); they are created here.
 
-    def _list_directory(self, folder: str) -> Iterable[str]:
+        The path must stay inside ``folder``. Errors never name the path, since
+        they are shown to the user and would reveal the container's folders.
+        """
+        parts = name.split("/")
+        path = path_inside(folder, *parts)
+        if path is None or path == os.path.realpath(folder) or any(p in ("", ".", "..") for p in parts):
+            raise ValueError("Invalid output path.")
         try:
-            return os.listdir(folder)
-        except FileNotFoundError:
-            return []
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+        except OSError:
+            self._log_failure("create the folder of", path)
+            raise ValueError("Could not create the output folder.") from None
+        return path
 
     def _log_failure(self, action: str, path: str) -> None:
         if self.logger is None:

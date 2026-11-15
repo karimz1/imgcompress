@@ -20,6 +20,8 @@ _DOWNLOAD_FOLDER_PREFIX = "converted_"
 class DownloadTarget:
     file_path: str
     download_name: str
+    # The job's result folder; the file can sit in a sub folder of it.
+    folder_path: str
 
 
 @dataclass
@@ -110,7 +112,7 @@ class TemporaryFolderService:
             or not resolved_target.is_file()
         ):
             return None
-        return DownloadTarget(str(resolved_target), resolved_target.name)
+        return DownloadTarget(str(resolved_target), resolved_target.name, str(folder_path))
 
     def _resolve_download_folder(self, path: str) -> Optional[Path]:
         """A direct converted_* child of the temp dir, never the temp dir itself."""

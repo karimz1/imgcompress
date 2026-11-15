@@ -16,7 +16,13 @@ from backend.image_converter.application.dtos import (
 )
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.infrastructure.folder_files import list_files
 from backend.image_converter.infrastructure.job_progress import JobCanceled
+from backend.image_converter.infrastructure.upload_folders import (
+    FolderPathTooLong,
+    UploadTree,
+    folder_segments,
+)
 from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
@@ -67,10 +73,8 @@ class CompressionService:
         try:
             with self.temp_folder_service.use_folder(folder_path):
                 with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
-                    for name in sorted(os.listdir(folder_path)):
-                        path = os.path.join(folder_path, name)
-                        if os.path.isfile(path):
-                            zf.write(path, arcname=name)
+                    for name in list_files(folder_path):
+                        zf.write(os.path.join(folder_path, *name.split("/")), arcname=name)
             archive.seek(0)
             return Result.success(archive)
         except Exception:
@@ -163,7 +167,9 @@ class CompressionService:
             src = self.temp_folder_service.create_job_dir(prefix="source_")
             dst = self.temp_folder_service.create_job_dir(prefix="converted_")
 
-            save_res = self._save_uploaded_files(form_data.uploaded_files, src.path)
+            save_res = self._save_uploaded_files(
+                form_data.uploaded_files, src.path, form_data.relative_dirs
+            )
             if not save_res.is_successful:
                 self._discard(src, dst)
                 return Result.failure(save_res.error)
@@ -214,7 +220,7 @@ class CompressionService:
             if not result.processed_files:
                 return Result.failure(f"Image processing failed: {'; '.join(result.errors)}")
 
-            converted = [f for f in os.listdir(dst.path) if os.path.isfile(os.path.join(dst.path, f))]
+            converted = list_files(dst.path)
             if not converted:
                 return Result.failure("No files were converted")
 
@@ -247,11 +253,14 @@ class CompressionService:
                 shutil.rmtree(folder.path, ignore_errors=True)
                 folder.release()
 
-    def _save_uploaded_files(self, files, folder: str) -> Result[None]:
+    def _save_uploaded_files(self, files, folder: str, relative_dirs=()) -> Result[None]:
+        """Saves each upload into ``folder``, or into its own sub folder when the browser sent one."""
         try:
             os.makedirs(folder, exist_ok=True)
+            tree = UploadTree(folder)
             for index, file in enumerate(files, start=1):
-                path = self._create_unique_file(folder, self._upload_name(file.filename, index))
+                target = tree.folder_for(relative_dirs[index - 1]) if relative_dirs else folder
+                path = self._create_unique_file(target, self._upload_name(file.filename, index))
                 with open(path, "wb") as f:
                     while True:
                         chunk = file.stream.read(8192)
@@ -260,9 +269,17 @@ class CompressionService:
                         f.write(chunk)
                 self.logger.log(f"Saved file: {path}", "info")
             return Result.success(None)
+        except FolderPathTooLong as error:
+            self.logger.log(f"Refused upload: {error}", "warning")
+            return Result.failure(str(error))
         except Exception:
             self.logger.log(f"Failed saving upload: {traceback.format_exc()}", "error")
             return Result.failure("Failed to save uploaded files.")
+
+    @staticmethod
+    def _folder_segments(relative_dir: Optional[str]) -> list[str]:
+        """The cleaned folder names of a path such as "holiday/day1" (see upload_folders)."""
+        return folder_segments(relative_dir)
 
     @staticmethod
     def _upload_name(filename: Optional[str], index: int) -> str:

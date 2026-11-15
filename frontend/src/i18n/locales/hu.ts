@@ -143,6 +143,11 @@ export const hu: TranslationSchema = {
       tooltip:
         "Minden pixelt pontosan úgy tart meg, mint az eredetiben. A fájlok nagyobbak lesznek, ezért a Minőség és a Cél fájlméret ki van kapcsolva.\nKépernyőképekhez, logókhoz és szöveges képekhez jó.",
     },
+    keepFolders: {
+      label: "Mappaszerkezet megtartása",
+      tooltip:
+        "Az eredményekben és a ZIP-ben megmaradnak a behúzott mappák, egyetlen lapos lista helyett.\nCsak húzással és ejtéssel működik. Az azonos nevű mappák összevonódnak, az ismétlődő fájlnevek számot kapnak.",
+    },
     compressionMode: {
       label: "{{format}} beállítási módja",
       byQuality: "Minőség alapján",

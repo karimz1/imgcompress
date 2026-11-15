@@ -143,6 +143,11 @@ export const fr: TranslationSchema = {
       tooltip:
         "Garde chaque pixel exactement comme dans l'original. Les fichiers sont plus lourds, donc Qualité et Taille maximale sont désactivées.\nIdéal pour les captures d'écran, les logos et les images avec du texte.",
     },
+    keepFolders: {
+      label: "Conserver la structure des dossiers",
+      tooltip:
+        "Conserve les dossiers déposés dans les résultats et le ZIP, au lieu d'une seule liste à plat.\nFonctionne uniquement par glisser-déposer. Les dossiers de même nom sont fusionnés et les noms de fichiers en double reçoivent un numéro.",
+    },
     compressionMode: {
       label: "Mode de réglage {{format}}",
       byQuality: "Régler par qualité",

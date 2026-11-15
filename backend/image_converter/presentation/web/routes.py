@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 import base64
-import os
 from io import BytesIO
 
 from flask import Blueprint, Response, request, jsonify, send_file
@@ -197,7 +196,7 @@ def conversion_job_file(job_id: str, file_name: str):
     target = temp_folder_service.resolve_download_target(folder, file_name) if folder else None
     if target is None:
         return _job_not_found()
-    temp_folder_service.mark_activity(os.path.dirname(target.file_path))
+    temp_folder_service.mark_activity(target.folder_path)
     response = send_file(target.file_path, as_attachment=True, download_name=target.download_name)
     response.headers["Cache-Control"] = "no-store"
     return response
@@ -227,7 +226,7 @@ def download_file():
     if target is None:
         return jsonify({"error": "File not available."}), 404
 
-    temp_folder_service.mark_activity(os.path.dirname(target.file_path))
+    temp_folder_service.mark_activity(target.folder_path)
     return send_file(
         target.file_path,
         as_attachment=True,
