@@ -323,6 +323,12 @@ export const ru: TranslationSchema = {
     error: {
       label: "Обнаружена ошибка:",
       detailsLabel: "Подробности:",
+      showDetails: "Показать подробности",
+      hideDetails: "Скрыть подробности",
+      skippedListLabel: "Пропущенные файлы",
+      reasonUnsupported: "Тип файла не поддерживается",
+      reasonTooLarge: "Больше {{size}}",
+      moreSkipped: "Ещё {{count}}",
     },
     buttons: {
       convert: "Начать конвертацию",

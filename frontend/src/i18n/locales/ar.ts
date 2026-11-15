@@ -323,6 +323,12 @@ export const ar: TranslationSchema = {
     error: {
       label: "خطأ:",
       detailsLabel: "التفاصيل:",
+      showDetails: "عرض التفاصيل",
+      hideDetails: "إخفاء التفاصيل",
+      skippedListLabel: "الملفات التي تم تخطيها",
+      reasonUnsupported: "نوع الملف غير مدعوم",
+      reasonTooLarge: "أكبر من {{size}}",
+      moreSkipped: "و{{count}} أخرى",
     },
     buttons: {
       convert: "بدء التحويل",

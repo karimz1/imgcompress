@@ -323,6 +323,12 @@ export const fr: TranslationSchema = {
     error: {
       label: "Erreur détectée :",
       detailsLabel: "Détails techniques :",
+      showDetails: "Afficher les détails",
+      hideDetails: "Masquer les détails",
+      skippedListLabel: "Fichiers ignorés",
+      reasonUnsupported: "Type de fichier non pris en charge",
+      reasonTooLarge: "Dépasse {{size}}",
+      moreSkipped: "+{{count}} autre(s)",
     },
     buttons: {
       convert: "Lancer la conversion",

@@ -323,6 +323,12 @@ export const hu: TranslationSchema = {
     error: {
       label: "Hiba:",
       detailsLabel: "Részletek:",
+      showDetails: "Részletek megjelenítése",
+      hideDetails: "Részletek elrejtése",
+      skippedListLabel: "Kihagyott fájlok",
+      reasonUnsupported: "Nem támogatott fájltípus",
+      reasonTooLarge: "Nagyobb, mint {{size}}",
+      moreSkipped: "+{{count}} további",
     },
     buttons: {
       convert: "Átalakítás indítása",

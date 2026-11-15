@@ -9,6 +9,7 @@ import {
   waitForFinishedJobAsync,
   waitForSupportedFormatsCountAsync,
 } from './utls/helpers';
+import { dropFolderLikeTheBrowserAsync } from './utls/folderDrop';
 
 // With "Keep folder structure" on, a dropped folder keeps its layout in the
 // results and in the ZIP; off (the default) it comes back flat like before.
@@ -48,78 +49,10 @@ async function pngBytesAsync(color: string, width = 16, height = 16): Promise<nu
   return [...(await sharp({ create: { width, height, channels: 3, background: color } }).png().toBuffer())];
 }
 
-/**
- * Drops a folder through a `drop` event, the way the browser hands it over:
- * Chromium gives react-dropzone a directory handle (getAsFileSystemHandle),
- * Firefox only a directory entry (webkitGetAsEntry). Playwright cannot drag
- * from the desktop, so the handle or entry tree is built here; react-dropzone,
- * file-selector and the app run as they would for a real drop.
- */
-async function dropFolderLikeTheBrowserAsync(page: Page, browserName: string, paths: string[]): Promise<void> {
-  await waitForSupportedFormatsCountAsync(page);
+/** A dropped folder of small PNGs, delivered the way this browser hands it over. */
+async function dropPngFolderLikeTheBrowserAsync(page: Page, browserName: string, paths: string[]): Promise<void> {
   const files = await Promise.all(paths.map(async (path, i) => ({ path, bytes: await pngBytesAsync(`#${(i * 40 + 30).toString(16).padStart(2, '0')}2040`) })));
-  await page.getByTestId('dropzone-input').evaluate(
-    (input: HTMLInputElement, { files, useHandles }) => {
-      type Node = { name: string; fullPath: string; file?: File; children: Map<string, Node> };
-      const root: Node = { name: '', fullPath: '', children: new Map() };
-      for (const { path, bytes } of files) {
-        const parts = path.split('/').filter(Boolean);
-        let node = root;
-        parts.forEach((name, i) => {
-          if (!node.children.has(name)) {
-            node.children.set(name, { name, fullPath: `${node.fullPath}/${name}`, children: new Map() });
-          }
-          node = node.children.get(name)!;
-          if (i === parts.length - 1) node.file = new File([new Uint8Array(bytes)], name, { type: 'image/png' });
-        });
-      }
-      const toEntry = (node: Node): unknown =>
-        node.file
-          ? { isFile: true, isDirectory: false, name: node.name, fullPath: node.fullPath, file: (ok: (f: File) => void) => ok(node.file!) }
-          : {
-              isFile: false,
-              isDirectory: true,
-              name: node.name,
-              fullPath: node.fullPath,
-              createReader: () => {
-                let read = false;
-                return {
-                  readEntries: (ok: (batch: unknown[]) => void) => {
-                    // Like the browser: one batch with the children, then an empty one.
-                    const batch = read ? [] : [...node.children.values()].map(toEntry);
-                    read = true;
-                    ok(batch);
-                  },
-                };
-              },
-            };
-      const toHandle = (node: Node): unknown =>
-        node.file
-          ? { kind: 'file', name: node.name, getFile: async () => node.file }
-          : {
-              kind: 'directory',
-              name: node.name,
-              values: async function* () {
-                for (const child of node.children.values()) yield toHandle(child);
-              },
-            };
-      const items = [...root.children.values()].map((top) => ({
-        kind: 'file',
-        type: '',
-        getAsFile: () => top.file ?? null,
-        webkitGetAsEntry: () => toEntry(top),
-        ...(useHandles ? { getAsFileSystemHandle: async () => toHandle(top) } : {}),
-      }));
-      const dataTransfer = { types: ['Files'], items, files: [], dropEffect: 'copy', effectAllowed: 'all' };
-      const zone = input.parentElement!;
-      for (const type of ['dragenter', 'dragover', 'drop']) {
-        const event = new Event(type, { bubbles: true, cancelable: true });
-        Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
-        zone.dispatchEvent(event);
-      }
-    },
-    { files, useHandles: browserName === 'chromium' }
-  );
+  await dropFolderLikeTheBrowserAsync(page, browserName, files);
 }
 
 const keepFoldersSwitch = (page: Page) => page.getByTestId('keep-folders-switch');
@@ -283,7 +216,7 @@ test.describe('Dropped folders keep their structure', () => {
   test('a folder dropped the way this browser delivers it keeps its tree', async ({ page, browserName }) => {
     await page.goto('/');
     await setOutputFormatAsync(page, 'JPEG');
-    await dropFolderLikeTheBrowserAsync(page, browserName, [
+    await dropPngFolderLikeTheBrowserAsync(page, browserName, [
       'trip/holiday.png',
       'trip/sub/holiday.png',
       'trip/sub/subsub/holiday.png',

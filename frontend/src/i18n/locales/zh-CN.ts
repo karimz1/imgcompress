@@ -323,6 +323,12 @@ export const zhCN: TranslationSchema = {
     error: {
       label: "错误：",
       detailsLabel: "详情：",
+      showDetails: "显示详情",
+      hideDetails: "隐藏详情",
+      skippedListLabel: "已跳过的文件",
+      reasonUnsupported: "不支持此文件类型",
+      reasonTooLarge: "大于 {{size}}",
+      moreSkipped: "还有 {{count}} 个",
     },
     buttons: {
       convert: "开始转换",

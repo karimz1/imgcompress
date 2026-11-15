@@ -320,6 +320,12 @@ export const en = {
     error: {
       label: "Error:",
       detailsLabel: "Details:",
+      showDetails: "Show details",
+      hideDetails: "Hide details",
+      skippedListLabel: "Skipped files",
+      reasonUnsupported: "File type not supported",
+      reasonTooLarge: "Larger than {{size}}",
+      moreSkipped: "+{{count}} more",
     },
     buttons: {
       convert: "Start Converting",

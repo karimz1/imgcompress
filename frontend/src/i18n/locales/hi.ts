@@ -323,6 +323,12 @@ export const hi: TranslationSchema = {
     error: {
       label: "त्रुटि मिली:",
       detailsLabel: "विवरण:",
+      showDetails: "विवरण दिखाएँ",
+      hideDetails: "विवरण छिपाएँ",
+      skippedListLabel: "छोड़ी गई फ़ाइलें",
+      reasonUnsupported: "यह फ़ाइल टाइप समर्थित नहीं है",
+      reasonTooLarge: "{{size}} से बड़ी",
+      moreSkipped: "+{{count}} और",
     },
     buttons: {
       convert: "कन्वर्ज़न शुरू करें",

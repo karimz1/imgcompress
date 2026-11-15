@@ -323,6 +323,12 @@ export const ja: TranslationSchema = {
     error: {
       label: "エラー:",
       detailsLabel: "詳細:",
+      showDetails: "詳細を表示",
+      hideDetails: "詳細を隠す",
+      skippedListLabel: "スキップしたファイル",
+      reasonUnsupported: "対応していないファイル形式です",
+      reasonTooLarge: "{{size}} を超えています",
+      moreSkipped: "ほか {{count}} 件",
     },
     buttons: {
       convert: "変換を開始",

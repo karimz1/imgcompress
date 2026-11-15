@@ -66,6 +66,7 @@ import {
   saveKeepFoldersPreference,
 } from "@/lib/folderPath";
 import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
+import type { SkippedFile } from "@/models/ErrorMessage";
 import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
@@ -291,6 +292,7 @@ function HomePageContent() {
       const supportedFiles: File[] = [];
       const unsupportedFiles: string[] = [];
       const tooLargeFiles: string[] = [];
+      const skippedFiles: SkippedFile[] = [];
 
       acceptedFiles.forEach((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
@@ -298,11 +300,13 @@ function HomePageContent() {
           // The server refuses uploads above MAX_UPLOAD_SIZE_MB, so say it right away.
           if (file.size > maxUploadBytes()) {
             tooLargeFiles.push(file.name);
+            skippedFiles.push({ name: file.name, folder: relativeDirOf(file), reason: "tooLarge" });
             return;
           }
           supportedFiles.push(file);
         } else {
           unsupportedFiles.push(file.name);
+          skippedFiles.push({ name: file.name, folder: relativeDirOf(file), reason: "unsupported" });
         }
       });
 
@@ -310,17 +314,21 @@ function HomePageContent() {
         toast.error(t("page.toast.unsupportedFormat", { fileName }));
       });
 
+      const errorLines: string[] = [];
       if (unsupportedFiles.length > 0) {
-        setError({
-          message: t("page.toast.filesRejected", { count: unsupportedFiles.length }),
-        });
+        errorLines.push(t("page.toast.filesRejected", { count: unsupportedFiles.length }));
       }
 
       if (tooLargeFiles.length > 0) {
         const size = formatUploadLimit(i18n.language);
         const messages = tooLargeFiles.map((fileName) => t("page.toast.fileTooLarge", { fileName, size }));
         messages.forEach((message) => toast.error(message));
-        setError({ message: messages.join("\n") });
+        errorLines.push(...messages);
+      }
+
+      // One message for the whole drop; the files behind it sit under "Show details".
+      if (errorLines.length > 0) {
+        setError({ message: errorLines.join("\n"), skippedFiles });
       }
 
       setFiles((prev) => [...prev, ...supportedFiles]);

@@ -323,6 +323,12 @@ export const de: TranslationSchema = {
     error: {
       label: "Fehler:",
       detailsLabel: "Einzelheiten:",
+      showDetails: "Details anzeigen",
+      hideDetails: "Details ausblenden",
+      skippedListLabel: "Übersprungene Dateien",
+      reasonUnsupported: "Dateityp wird nicht unterstützt",
+      reasonTooLarge: "Größer als {{size}}",
+      moreSkipped: "+{{count}} weitere",
     },
     buttons: {
       convert: "Konvertierung starten",

@@ -323,6 +323,12 @@ export const ptBR: TranslationSchema = {
     error: {
       label: "Erro encontrado:",
       detailsLabel: "Detalhes:",
+      showDetails: "Mostrar detalhes",
+      hideDetails: "Ocultar detalhes",
+      skippedListLabel: "Arquivos ignorados",
+      reasonUnsupported: "Tipo de arquivo não suportado",
+      reasonTooLarge: "Maior que {{size}}",
+      moreSkipped: "+{{count}} outro(s)",
     },
     buttons: {
       convert: "Iniciar conversão",

@@ -323,6 +323,12 @@ export const esMX: TranslationSchema = {
     error: {
       label: "Error detectado:",
       detailsLabel: "Detalles:",
+      showDetails: "Mostrar detalles",
+      hideDetails: "Ocultar detalles",
+      skippedListLabel: "Archivos omitidos",
+      reasonUnsupported: "Tipo de archivo no compatible",
+      reasonTooLarge: "Pesa más de {{size}}",
+      moreSkipped: "+{{count}} más",
     },
     buttons: {
       convert: "Iniciar conversión",
