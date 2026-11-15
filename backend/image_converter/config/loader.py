@@ -15,12 +15,14 @@ from typing import Callable, Optional, Tuple, TypeVar
 
 from backend.image_converter.config.app_config import (
     DEFAULT_MAX_OUTPUT_MEGAPIXELS,
+    DEFAULT_PRESETS_FILE,
     MAX_OUTPUT_MEGAPIXELS_LIMIT,
     AppConfig,
     CropPreviewConfig,
     FeaturesConfig,
     FormatsConfig,
     LoggingConfig,
+    PresetsConfig,
     RembgConfig,
     TemporaryStorageConfig,
     UploadsConfig,
@@ -65,6 +67,11 @@ _OVERRIDES = (
     _FeatureFlagOverride(
         json_path=("features", "is_update_check_enabled"),
         env_var="DISABLE_UPDATE_CHECK",
+        inverted=True,
+    ),
+    _FeatureFlagOverride(
+        json_path=("features", "is_custom_presets_enabled"),
+        env_var="DISABLE_CUSTOM_PRESETS",
         inverted=True,
     ),
 )
@@ -129,6 +136,9 @@ def load_from_file(path: Path) -> AppConfig:
         is_update_check_enabled=reader.optional_feature_flag(
             ("features", "is_update_check_enabled"), default=True
         ),
+        is_custom_presets_enabled=reader.optional_feature_flag(
+            ("features", "is_custom_presets_enabled"), default=True
+        ),
     )
     rembg = RembgConfig(model_name=reader.require_str(("rembg", "model_name")))
     # Optional block so existing config files keep working unchanged.
@@ -140,6 +150,11 @@ def load_from_file(path: Path) -> AppConfig:
             minimum=1,
             maximum=MAX_OUTPUT_MEGAPIXELS_LIMIT,
         ),
+    )
+
+    # Optional block so existing config files keep working unchanged.
+    presets = PresetsConfig(
+        file=reader.optional_str(("presets", "file"), default=DEFAULT_PRESETS_FILE),
     )
 
     if errors:
@@ -155,6 +170,7 @@ def load_from_file(path: Path) -> AppConfig:
         features=features,
         rembg=rembg,
         upscaling=upscaling,
+        presets=presets,
     )
 
 
@@ -189,6 +205,16 @@ class _Reader:
             message="must be a non-empty string",
             fallback="",
         )
+
+    def optional_str(self, path: Tuple[str, ...], *, default: str) -> str:
+        """Like ``require_str`` but returns ``default`` when the key is absent."""
+        raw = self._peek(path)
+        if raw is _SENTINEL:
+            return default
+        if not isinstance(raw, str) or raw.strip() == "":
+            self._errors.append(f"config key '{_render(path)}' must be a non-empty string")
+            return default
+        return raw
 
     def require_int(
         self,

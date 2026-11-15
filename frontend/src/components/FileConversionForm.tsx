@@ -109,6 +109,8 @@ interface FileConversionFormProps {
   extensionsLoading: boolean
   extensionsError: Error | null
   disableLogo?: boolean
+  /** The presets row above the output format; null when presets are turned off. */
+  presetsControl?: React.ReactNode
 
   onReportCropError?: (payload: { message: string; details?: string }) => void
 }
@@ -169,6 +171,7 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
   extensionsLoading,
   extensionsError,
   disableLogo = false,
+  presetsControl = null,
   onReportCropError,
 }) => {
   const [confirmCropRemoveFor, setConfirmCropRemoveFor] = useState<string | null>(null);
@@ -500,6 +503,8 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
           extensionsError={extensionsError}
         />
       </div>
+
+      {presetsControl}
 
       <div className="space-y-1">
         <div className="flex items-center gap-1">

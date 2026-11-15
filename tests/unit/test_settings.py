@@ -53,6 +53,7 @@ _FEATURE_ENV_VARS = (
     "DISABLE_STORAGE_MANAGEMENT",
     "DEV_MODE",
     "DISABLE_UPDATE_CHECK",
+    "DISABLE_CUSTOM_PRESETS",
     "MAX_UPLOAD_SIZE_MB",
     "WEB_WORKERS",
 )
@@ -203,6 +204,27 @@ def test_update_check_defaults_on_when_omitted(config_file):
     assert settings.get().features.is_update_check_enabled is True
 
 
+def test_custom_presets_default_on_and_in_the_data_volume_when_omitted(config_file):
+    config_file(VALID_CONFIG)
+
+    config = settings.get()
+
+    assert config.features.is_custom_presets_enabled is True
+    assert config.presets.file == "/data/presets.json"
+
+
+def test_presets_file_can_be_moved(config_file):
+    cfg = _copy_config()
+    cfg["features"]["is_custom_presets_enabled"] = False
+    cfg["presets"] = {"file": "/srv/imgcompress/presets.json"}
+    config_file(cfg)
+
+    config = settings.get()
+
+    assert config.features.is_custom_presets_enabled is False
+    assert config.presets.file == "/srv/imgcompress/presets.json"
+
+
 def test_logging_size_and_backups_default_when_omitted(config_file):
     cfg = _copy_config()
     del cfg["logging"]["max_size_mebibytes"]
@@ -224,6 +246,8 @@ def test_logging_size_and_backups_default_when_omitted(config_file):
         (("temporary_storage", "max_age_seconds"), True, "integer"),
         (("features", "is_dev_mode_enabled"), "false", "boolean"),
         (("features", "is_update_check_enabled"), "false", "boolean"),
+        (("features", "is_custom_presets_enabled"), "false", "boolean"),
+        (("presets", "file"), "", "non-empty string"),
         (("web", "workers"), True, 'integer or "auto"'),
         (("web", "workers"), "many", 'integer or "auto"'),
         (("crop_preview", "unsupported_input_extensions"), ".pdf", "must be a list"),
@@ -234,7 +258,7 @@ def test_logging_size_and_backups_default_when_omitted(config_file):
 def test_invalid_value_types_are_rejected(config_file, path, bad_value, message):
     cfg = _copy_config()
     parent, child = path
-    cfg[parent][child] = bad_value
+    cfg.setdefault(parent, {})[child] = bad_value
     config_file(cfg)
 
     with pytest.raises(ConfigError, match=message):
@@ -339,6 +363,13 @@ def test_missing_malformed_or_non_object_config_file_raises(tmp_path):
             False,
             True,
             "is_update_check_enabled",
+        ),
+        (
+            "DISABLE_CUSTOM_PRESETS",
+            "is_custom_presets_enabled",
+            False,
+            True,
+            "is_custom_presets_enabled",
         ),
     ],
 )

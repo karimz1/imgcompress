@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,6 +25,7 @@ import FileManager from "@/components/StorageFileManager";
 import CompressedFilesDrawer from "@/components/CompressedFilesDrawer";
 import PageFooter from "@/components/PageFooter";
 import FileConversionForm from "@/components/FileConversionForm";
+import { CompressionPresets } from "@/components/CompressionPresets";
 import { DownloadFileToast, DownloadZipToast } from "@/components/CustomToast";
 import { DownloadErrorProvider } from "@/context/DownloadErrorStore";
 import { useDownload } from "@/hooks/useDownload";
@@ -54,6 +55,7 @@ import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useSupportedExtensions } from "@/hooks/useSupportedExtensions";
 import { useRembgModel } from "@/hooks/useRembgModel";
 import { useUpscaleModel } from "@/hooks/useUpscaleModel";
+import { useCompressionPresets } from "@/hooks/useCompressionPresets";
 import {
   DEFAULT_UPSCALE_SETTINGS, UPSCALE_MODEL_NAMES, isUpscaleCardModel, toUpscaleModel, upscaleModelParam, type UpscaleSettings,
 } from "@/lib/upscale";
@@ -69,6 +71,12 @@ import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/upl
 import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
+import {
+  presetFormState,
+  presetSettingsEqual,
+  presetSettingsFromForm,
+  type CompressionPreset,
+} from "@/lib/presets";
 
 
 function HomePageContent() {
@@ -78,6 +86,7 @@ function HomePageContent() {
   const [storageManagementDisabled, setStorageManagementDisabled] = useState(false);
   const [devMode, setDevMode] = useState(false);
   const [updateCheckDisabled, setUpdateCheckDisabled] = useState(false);
+  const [presetsDisabled, setPresetsDisabled] = useState(false);
   const [notifyAvailable, setNotifyAvailable] = useState(false);
   // The job the splash screen follows, and its "notify me when done" switch.
   const [followedJob, setFollowedJob] = useState<JobRef | null>(null);
@@ -97,6 +106,7 @@ function HomePageContent() {
         setStorageManagementDisabled(disableStorage);
         setDevMode(config.DEV_MODE === "true");
         setUpdateCheckDisabled(config.DISABLE_UPDATE_CHECK === "true");
+        setPresetsDisabled(config.DISABLE_CUSTOM_PRESETS === "true");
         setMaxUploadSizeMb(config.MAX_UPLOAD_SIZE_MB);
         setMaxOutputMegapixels(config.MAX_OUTPUT_MEGAPIXELS);
         setNotifyAvailable(config.NOTIFY_ENABLED === "true");
@@ -106,6 +116,7 @@ function HomePageContent() {
         setStorageManagementDisabled(false);
         setDevMode(false);
         setUpdateCheckDisabled(false);
+        setPresetsDisabled(false);
       } finally {
         setConfigReady(true);
       }
@@ -226,24 +237,28 @@ function HomePageContent() {
     }
   }, [hasQualitySettings]);
 
-  useEffect(() => {
-    if (outputFormat !== "png" && outputFormat !== "avif" && outputFormat !== "webp") {
+  // Resets the options the new format does not have. Done here rather than in
+  // an effect on outputFormat, so applying a preset can switch the format and
+  // set those options in one go without them being reset afterwards.
+  const handleOutputFormatChange = useCallback((format: string) => {
+    setOutputFormat(format);
+    if (format !== "png" && format !== "avif" && format !== "webp") {
       setUseRembg(false);
     }
-    if (outputFormat !== "webp") {
+    if (format !== "webp") {
       setWebpLossless(false);
     }
-    if (outputFormat !== "pdf") {
+    if (format !== "pdf") {
       setPdfPreset("original");
       setPdfScale("fit");
       setPdfMarginMm("10");
       setPdfPaginate(false);
       setPdfQuality(DEFAULT_PDF_QUALITY);
     }
-    if (outputFormat) {
+    if (format) {
       setFormatRequired(false);
     }
-  }, [outputFormat]);
+  }, []);
 
   useEffect(() => {
     if (outputFormat === "pdf" && pdfPreset !== "original") {
@@ -280,6 +295,82 @@ function HomePageContent() {
       setPdfScale("fit");
     }
   }, [outputFormat, pdfPaginate]);
+
+  const presetsEnabled = configReady && !presetsDisabled;
+  const { presets, loadFailed: presetsLoadFailed, refresh: refreshPresets } = useCompressionPresets(presetsEnabled);
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const currentPresetSettings = useMemo(
+    () =>
+      presetSettingsFromForm({
+        outputFormat,
+        compressionMode,
+        quality,
+        targetSizeMB,
+        resizeWidthEnabled,
+        width,
+        useRembg,
+        webpLossless,
+        pdfPreset,
+        pdfQuality,
+        pdfScale,
+        pdfMarginMm,
+        pdfPaginate,
+        upscale,
+        hasFittedImages,
+      }),
+    [
+      outputFormat,
+      compressionMode,
+      quality,
+      targetSizeMB,
+      resizeWidthEnabled,
+      width,
+      useRembg,
+      webpLossless,
+      pdfPreset,
+      pdfQuality,
+      pdfScale,
+      pdfMarginMm,
+      pdfPaginate,
+      upscale,
+      hasFittedImages,
+    ]
+  );
+
+  // A preset stays selected only while the form matches it exactly. Any
+  // change (or the preset being deleted or changed elsewhere) shows "Custom".
+  useEffect(() => {
+    if (activePresetId === null) return;
+    const active = presets.find((preset) => preset.id === activePresetId);
+    if (!active || !presetSettingsEqual(active.settings, currentPresetSettings)) {
+      setActivePresetId(null);
+    }
+  }, [activePresetId, presets, currentPresetSettings]);
+
+  const applyPreset = useCallback(
+    (preset: CompressionPreset) => {
+      const next = presetFormState(preset.settings, { quality, upscale });
+      handleOutputFormatChange(next.outputFormat);
+      setCompressionMode(next.compressionMode);
+      setQuality(next.quality);
+      setTargetSizeMB(next.targetSizeMB);
+      // Fitted images keep their size, so the width stays off for them (the
+      // preset then shows as "Custom", which is what the conversion uses).
+      const widthAllowed = next.outputFormat === "pdf" || !Object.values(crops).some((crop) => crop.fit);
+      setResizeWidthEnabled(next.resizeWidthEnabled && widthAllowed);
+      setWidth(widthAllowed ? next.width : "");
+      setUseRembg(next.useRembg);
+      setWebpLossless(next.webpLossless);
+      setPdfPreset(next.pdfPreset);
+      setPdfQuality(next.pdfQuality);
+      setPdfScale(next.pdfScale);
+      setPdfMarginMm(next.pdfMarginMm);
+      setPdfPaginate(next.pdfPaginate);
+      setUpscale(next.upscale);
+      setActivePresetId(preset.id);
+    },
+    [quality, upscale, crops, handleOutputFormatChange]
+  );
 
 
   const onDrop = useCallback(
@@ -852,7 +943,7 @@ function HomePageContent() {
               upscaleModels={upscaleModels}
               notifyAvailable={notifyAvailable}
               outputFormat={outputFormat}
-              setOutputFormat={setOutputFormat}
+              setOutputFormat={handleOutputFormatChange}
               formatRequired={formatRequired}
               pdfPreset={pdfPreset}
               setPdfPreset={setPdfPreset}
@@ -892,6 +983,21 @@ function HomePageContent() {
               extensionsLoading={extensionsLoading}
               extensionsError={extensionsError}
               disableLogo={configReady ? disableLogo : false}
+              presetsControl={
+                presetsEnabled ? (
+                  <CompressionPresets
+                    presets={presets}
+                    loadFailed={presetsLoadFailed}
+                    refresh={refreshPresets}
+                    activePresetId={activePresetId}
+                    currentSettings={currentPresetSettings}
+                    onApply={applyPreset}
+                    onActivate={setActivePresetId}
+                    disabled={isLoading}
+                    isDarkTheme={isDarkTheme}
+                  />
+                ) : null
+              }
               onReportCropError={(payload) =>
                 setError({
                   message: payload.message,

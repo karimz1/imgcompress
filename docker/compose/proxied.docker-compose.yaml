@@ -58,6 +58,8 @@ networks:
 volumes:
   # Named volume for persisting Let's Encrypt certificates.
   acme-certs: { driver: local }
+  # Named volume for the saved presets (/data in the ImgCompress container).
+  imgcompress-data: { driver: local }
 
 services:
   # Traefik listens on ports 80/443 and routes requests to backend
@@ -174,6 +176,10 @@ services:
       - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-true}
       # Set to true to turn off the update check: the browser then stops asking GitHub (api.github.com) for the latest release, and no update banner is shown
       - DISABLE_UPDATE_CHECK=${IMGCOMPRESS_DISABLE_UPDATE_CHECK:-false}
+      # Presets are saved settings that every visitor shares and can rename,
+      # change or delete (there is no login). Set to true to hide them and
+      # turn off their API; existing presets stay in /data/presets.json.
+      - DISABLE_CUSTOM_PRESETS=${IMGCOMPRESS_DISABLE_CUSTOM_PRESETS:-false}
       # Optional: "Notify me when done" (opt-in per job, never sends file names).
       # Default: not set = off. imgcompress-network is internal (no Internet), so
       # NOTIFY_URL can only reach a service on this network, e.g. an ntfy container
@@ -184,6 +190,9 @@ services:
       # - PUBLIC_BASE_URL=https://${TRAEFIK_DOMAIN_NAME}
       # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
       # - TZ=Europe/Berlin
+    volumes:
+      # Keeps the saved presets when the container is recreated (e.g. on update).
+      - imgcompress-data:/data
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck

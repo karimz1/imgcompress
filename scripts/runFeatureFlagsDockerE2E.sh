@@ -4,9 +4,9 @@ set -euo pipefail
 
 # Build the Docker image once, then run the runtime feature-flags Playwright
 # specs against flag combinations to prove DISABLE_LOGO,
-# DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB and DISABLE_UPDATE_CHECK
-# propagate end-to-end (env -> runtime.json -> UI and server). The upload
-# limit spec skips itself unless the limit is small.
+# DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK and
+# DISABLE_CUSTOM_PRESETS propagate end-to-end (env -> runtime.json -> UI and
+# server). The upload limit spec skips itself unless the limit is small.
 
 IMAGE_NAME="${IMAGE_NAME:-karimz1/imgcompress:local-test-flags}"
 BUILDX_BUILDER="${BUILDX_BUILDER:-imgcompress-builder}"
@@ -14,7 +14,7 @@ CONTAINER_NAME="${CONTAINER_NAME:-imgcompress-flags-tester}"
 PORT_HOST="${PORT_HOST:-8080}"
 PORT_CONTAINER=5000
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
-SPEC_PATHS=("tests/e2e/featureFlagsRuntime_Test.spec.ts" "tests/e2e/uploadLimitRuntime_Test.spec.ts")
+SPEC_PATHS=("tests/e2e/featureFlagsRuntime_Test.spec.ts" "tests/e2e/uploadLimitRuntime_Test.spec.ts" "tests/e2e/compressionPresets_Test.spec.ts")
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -47,14 +47,15 @@ docker buildx build \
     -t "$IMAGE_NAME" \
     "$APP_ROOT"
 
-# (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK; "-" = default) combinations
+# (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK, DISABLE_CUSTOM_PRESETS; "-" = default) combinations
 COMBOS=(
-    "false false - -"
-    "true  false - -"
-    "false true  - -"
-    "true  true  - -"
-    "false false 5 -"
-    "false false - true"
+    "false false - - -"
+    "true  false - - -"
+    "false true  - - -"
+    "true  true  - - -"
+    "false false 5 - -"
+    "false false - true -"
+    "false false - - true"
 )
 
 FAILURES=()
@@ -66,9 +67,11 @@ for combo in "${COMBOS[@]}"; do
     DSM="$2"
     MAX_MB="$3"
     DUC="$4"
+    DCP="$5"
     [ "$MAX_MB" = "-" ] && MAX_MB=""
     [ "$DUC" = "-" ] && DUC=""
-    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default}"
+    [ "$DCP" = "-" ] && DCP=""
+    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default} DISABLE_CUSTOM_PRESETS=${DCP:-default}"
 
     echo
     echo "==========================================================="
@@ -84,6 +87,7 @@ for combo in "${COMBOS[@]}"; do
         -e DISABLE_STORAGE_MANAGEMENT="$DSM" \
         -e MAX_UPLOAD_SIZE_MB="$MAX_MB" \
         -e DISABLE_UPDATE_CHECK="$DUC" \
+        -e DISABLE_CUSTOM_PRESETS="$DCP" \
         "$IMAGE_NAME" >/dev/null
 
     echo "⏳ Waiting for http://localhost:$PORT_HOST/api/health/backend ..."
