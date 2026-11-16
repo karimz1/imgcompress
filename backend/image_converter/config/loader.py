@@ -82,7 +82,7 @@ MAX_UPLOAD_SIZE_ENV = "MAX_UPLOAD_SIZE_MB"
 WEB_WORKERS_ENV = "WEB_WORKERS"
 # Optional key for the public API (/api/v1). Env only, never in app.json, so it
 # is not baked into an image or a config file.
-API_KEY_ENV = "API_KEY"
+PUBLIC_API_KEY_ENV = "PUBLIC_API_KEY"
 
 
 def load_from_file(path: Path) -> AppConfig:
@@ -154,7 +154,7 @@ def load_from_file(path: Path) -> AppConfig:
     # Optional block: the public API is off unless switched on.
     public_api = PublicApiConfig(
         is_enabled=reader.optional_feature_flag(("public_api", "is_enabled"), default=False),
-        api_key=(os.environ.get(API_KEY_ENV) or "").strip() or None,
+        api_key=(os.environ.get(PUBLIC_API_KEY_ENV) or "").strip() or None,
     )
 
     if errors:

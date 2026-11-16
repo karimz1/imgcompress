@@ -12,14 +12,14 @@ ENABLE_PUBLIC_API on
     Swagger UI and the spec are served, and every answer allows any origin
     (``Access-Control-Allow-Origin: *``, never with credentials: the API
     uses no cookies).
-API_KEY set (either mode)
+PUBLIC_API_KEY set (either mode)
     Everything except the web UI (same-origin browser requests) and the
     health checks needs ``Authorization: Bearer <key>`` or ``X-API-Key``.
 
 Limits: Sec-Fetch-Site and Origin only bind browsers. A script can send
 "Sec-Fetch-Site: same-origin" too and then counts as the web UI, which anyone
 who can open the web UI can use anyway. To keep a container private, limit
-who reaches it (network, VPN, reverse proxy with auth); API_KEY guards the
+who reaches it (network, VPN, reverse proxy with auth); PUBLIC_API_KEY guards the
 API for other websites and casual scripts, not the web UI itself.
 """
 
@@ -45,7 +45,7 @@ _SAME_ORIGIN_FETCH_SITES = frozenset({"same-origin", "none"})
 # Docs and spec exist only with the public API on; they never need the key.
 DOC_ENDPOINTS = frozenset({"api_v1.swagger_ui", "api_v1.swagger_asset", "api_v1.openapi_spec"})
 # Container health checks (healthcheck.py, uptime monitors) work without the key.
-OPEN_ENDPOINTS = DOC_ENDPOINTS | {"api_v1.health", "api_v1.health_internet"}
+OPEN_ENDPOINTS = DOC_ENDPOINTS | {"api_v1.health", "api_v1.health_internet", "api_legacy.health_backend"}
 
 CORS_ALLOW_HEADERS = f"Authorization, {API_KEY_HEADER}, X-Job-Token, Content-Type"
 CORS_EXPOSE_HEADERS = (

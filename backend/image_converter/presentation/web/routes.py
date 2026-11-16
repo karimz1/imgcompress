@@ -54,6 +54,12 @@ api_blueprint = Blueprint("api_v1", __name__)
 api_blueprint.before_request(api_access.check_access)
 api_blueprint.after_request(api_access.add_cors_headers)
 
+# Pre-v1 monitors used /api/health/backend. The route is added after health()
+# so it can reuse that handler; registered in server.py at prefix /api.
+legacy_blueprint = Blueprint("api_legacy", __name__)
+legacy_blueprint.before_request(api_access.check_access)
+legacy_blueprint.after_request(api_access.add_cors_headers)
+
 TEMP_DIR = _config.temporary_storage.directory
 EXPIRATION_TIME = _config.temporary_storage.max_age_seconds
 logger = Logger(debug=False, json_output=False)
@@ -162,6 +168,9 @@ def health():
         "api_version": openapi.API_VERSION,
         "utc_time": datetime.now(timezone.utc).isoformat(),
     }), 200
+
+
+legacy_blueprint.add_url_rule("/health/backend", "health_backend", view_func=health, methods=["GET"])
 
 
 @api_blueprint.route("/health/internet", methods=["GET"])

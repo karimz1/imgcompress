@@ -25,7 +25,7 @@ def spec():
 @pytest.fixture
 def client(monkeypatch):
     monkeypatch.setenv("ENABLE_PUBLIC_API", "true")
-    monkeypatch.delenv("API_KEY", raising=False)
+    monkeypatch.delenv("PUBLIC_API_KEY", raising=False)
     settings.reset_cache()
     monkeypatch.setattr(routes, "has_internet", lambda: False)
     yield app.test_client()
@@ -38,12 +38,18 @@ def _png(size=(40, 30), colour=(10, 120, 200)) -> bytes:
     return buffer.getvalue()
 
 
+_LEGACY_HEALTH = "/api/health/backend"
+
+
 def _api_routes():
     found = set()
     for rule in app.url_map.iter_rules():
-        if not rule.rule.startswith("/api/v1/"):
+        if rule.rule.startswith("/api/v1/"):
+            path = re.sub(r"<(?:[a-z]+:)?([a-z_]+)>", r"{\1}", rule.rule[len("/api/v1"):])
+        elif rule.rule == _LEGACY_HEALTH:
+            path = _LEGACY_HEALTH
+        else:
             continue
-        path = re.sub(r"<(?:[a-z]+:)?([a-z_]+)>", r"{\1}", rule.rule[len("/api/v1"):])
         for method in rule.methods - {"HEAD", "OPTIONS"}:
             found.add((path, method.lower()))
     return found
@@ -94,7 +100,7 @@ def test_EveryWriteAndKeyedOperation_Expect_ItsErrorsDocumented(spec):
     for path, method, operation in _operations(spec):
         if operation.get("security") == []:
             continue
-        assert "401" in operation["responses"], f"{method} {path}: 401 (API_KEY) missing"
+        assert "401" in operation["responses"], f"{method} {path}: 401 (PUBLIC_API_KEY) missing"
         assert "403" in operation["responses"], f"{method} {path}: 403 (other websites) missing"
 
 
@@ -114,7 +120,7 @@ def test_ConvertForm_Expect_TheOptionListWithItsDefaultsAndLimits(spec):
 
 def test_Description_Expect_AuthCorsVersioningAndCurl(spec):
     text = spec["info"]["description"]
-    for needle in ("ENABLE_PUBLIC_API", "API_KEY", "Access-Control-Allow-Origin", "/api/v2", "curl ", "Versioning"):
+    for needle in ("ENABLE_PUBLIC_API", "PUBLIC_API_KEY", "Access-Control-Allow-Origin", "/api/v2", "curl ", "Versioning", "DISABLE_STORAGE_MANAGEMENT"):
         assert needle in text, needle
     assert "curl " in spec["paths"]["/convert"]["post"]["description"]
 
@@ -209,3 +215,16 @@ def test_Docs_Expect_SwaggerUiPageWithLocalAssets(client):
     assert init.status_code == 200 and b"SwaggerUIBundle" in init.data
     assert client.get("/api/v1/docs/../server.py").status_code == 404
     assert client.get("/api/v1/docs/index.css").status_code == 404
+
+
+def test_LegacyHealthAlias_Expect_DeprecatedInSpecAndSameAnswerAsHealth(spec, client):
+    operation = spec["paths"][_LEGACY_HEALTH]["get"]
+    assert operation.get("deprecated") is True
+    assert "/api/v1/health" in operation["description"]
+    assert "2.0" in operation["description"]
+    current = client.get("/api/v1/health")
+    alias = client.get(_LEGACY_HEALTH)
+    assert alias.status_code == 200
+    assert alias.get_json()["status"] == current.get_json()["status"]
+    assert alias.get_json()["api_version"] == current.get_json()["api_version"]
+    _check(spec, _LEGACY_HEALTH, "get", alias)

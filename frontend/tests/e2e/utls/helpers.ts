@@ -10,7 +10,7 @@ import type { UpscaleTarget } from '../../../src/lib/upscale';
 import type { FitMode, FitPreset } from '../../../src/lib/fitToSize';
 
 // Playwright's `request` sends no browser headers, so the container treats it like
-// a script: with API_KEY set it needs the key. The browser (the web UI) never does.
+// a script: with PUBLIC_API_KEY set it needs the key. The browser (the web UI) never does.
 export function apiKeyHeaders(): Record<string, string> {
   const key = process.env.E2E_API_KEY;
   return key ? { 'X-API-Key': key } : {};

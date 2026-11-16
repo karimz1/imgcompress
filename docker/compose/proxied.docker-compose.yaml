@@ -187,12 +187,12 @@ services:
       # Optional: the REST API at /api/v1 is what the web UI itself uses, so anyone
       # who can open this host can also call it with a script. Set to true to also
       # allow other websites (CORS) and to show the docs at /api/v1/docs.
-      # This host is on the internet: set IMGCOMPRESS_API_KEY too. Default: false.
+      # This host is on the internet: set IMGCOMPRESS_PUBLIC_API_KEY too. Default: false.
       - ENABLE_PUBLIC_API=${IMGCOMPRESS_ENABLE_PUBLIC_API:-false}
       # Optional: require this key from every API caller except the web UI itself,
       # sent as "Authorization: Bearer <key>" or "X-API-Key: <key>". Use a long random
       # string (e.g. openssl rand -hex 32). Default: not set = no key needed.
-      - API_KEY=${IMGCOMPRESS_API_KEY:-}
+      - PUBLIC_API_KEY=${IMGCOMPRESS_PUBLIC_API_KEY:-}
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck

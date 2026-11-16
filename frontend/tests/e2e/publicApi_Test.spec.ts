@@ -1,10 +1,10 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 
-// One spec for every ENABLE_PUBLIC_API / API_KEY combination: it reads the mode
+// One spec for every ENABLE_PUBLIC_API / PUBLIC_API_KEY combination: it reads the mode
 // from the running container, then checks that mode in a real browser.
 //   - default (off): docs answer 404, other websites are refused, the web UI works
 //   - on: Swagger UI loads offline, other websites may call the API (CORS)
-//   - on + API_KEY: other callers need the key (E2E_API_KEY), the web UI never does
+//   - on + PUBLIC_API_KEY: other callers need the key (E2E_API_KEY), the web UI never does
 
 type Mode = { publicApi: boolean; keyRequired: boolean };
 
@@ -41,7 +41,7 @@ test('the API mode of this container behaves as documented', async ({ page, requ
   const mode = await readModeAsync(request);
   const key = process.env.E2E_API_KEY ?? '';
   test.info().annotations.push({ type: 'api-mode', description: JSON.stringify(mode) });
-  if (mode.keyRequired) expect(key, 'set E2E_API_KEY to the container API_KEY').not.toBe('');
+  if (mode.keyRequired) expect(key, 'set E2E_API_KEY to the container PUBLIC_API_KEY').not.toBe('');
 
   // The web UI itself: same origin, never needs the key.
   await page.goto('/');
@@ -50,8 +50,9 @@ test('the API mode of this container behaves as documented', async ({ page, requ
   // CORS headers only exist once other websites are allowed.
   expect(own.cors).toBe(mode.publicApi ? '*' : null);
 
-  // Health checks never need the key.
+  // Health checks never need the key, including the deprecated /api/health/backend alias.
   expect((await request.get('/api/v1/health')).status()).toBe(200);
+  expect((await request.get('/api/health/backend')).status()).toBe(200);
 
   const other = otherSiteOrigin(baseURL!);
   test.skip(other === null, 'needs a localhost base URL to act as another website');

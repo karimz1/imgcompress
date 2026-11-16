@@ -4,9 +4,11 @@ set -euo pipefail
 
 # Build the Docker image once, then run the runtime feature-flags Playwright
 # specs against flag combinations to prove DISABLE_LOGO,
-# DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB and DISABLE_UPDATE_CHECK
-# propagate end-to-end (env -> runtime.json -> UI and server). The upload
-# limit spec skips itself unless the limit is small.
+# DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK,
+# ENABLE_PUBLIC_API and PUBLIC_API_KEY propagate end-to-end
+# (env -> runtime.json -> UI and server). The upload limit spec skips itself
+# unless the limit is small. publicApi_Test.spec.ts reads the API mode from
+# the running container.
 
 IMAGE_NAME="${IMAGE_NAME:-karimz1/imgcompress:local-test-flags}"
 BUILDX_BUILDER="${BUILDX_BUILDER:-imgcompress-builder}"
@@ -47,14 +49,17 @@ docker buildx build \
     -t "$IMAGE_NAME" \
     "$APP_ROOT"
 
-# (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK; "-" = default) combinations
+# (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK,
+#  ENABLE_PUBLIC_API, PUBLIC_API_KEY; "-" = default / unset)
 COMBOS=(
-    "false false - -"
-    "true  false - -"
-    "false true  - -"
-    "true  true  - -"
-    "false false 5 -"
-    "false false - true"
+    "false false - - - -"
+    "true  false - - - -"
+    "false true  - - - -"
+    "true  true  - - - -"
+    "false false 5 - - -"
+    "false false - true - -"
+    "false false - - true -"
+    "false false - - true e2e-test-key-not-a-secret"
 )
 
 FAILURES=()
@@ -66,9 +71,13 @@ for combo in "${COMBOS[@]}"; do
     DSM="$2"
     MAX_MB="$3"
     DUC="$4"
+    EPA="${5:--}"
+    PAK="${6:--}"
     [ "$MAX_MB" = "-" ] && MAX_MB=""
     [ "$DUC" = "-" ] && DUC=""
-    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default}"
+    [ "$EPA" = "-" ] && EPA=""
+    [ "$PAK" = "-" ] && PAK=""
+    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default} ENABLE_PUBLIC_API=${EPA:-default} PUBLIC_API_KEY=$([ -n "$PAK" ] && echo set || echo unset)"
 
     echo
     echo "==========================================================="
@@ -84,6 +93,8 @@ for combo in "${COMBOS[@]}"; do
         -e DISABLE_STORAGE_MANAGEMENT="$DSM" \
         -e MAX_UPLOAD_SIZE_MB="$MAX_MB" \
         -e DISABLE_UPDATE_CHECK="$DUC" \
+        -e ENABLE_PUBLIC_API="$EPA" \
+        -e PUBLIC_API_KEY="$PAK" \
         "$IMAGE_NAME" >/dev/null
 
     echo "⏳ Waiting for http://localhost:$PORT_HOST/api/v1/health ..."
@@ -110,6 +121,7 @@ for combo in "${COMBOS[@]}"; do
         cd "$FRONTEND_DIR" && \
         CI=true \
         PLAYWRIGHT_BASE_URL="http://localhost:$PORT_HOST" \
+        E2E_API_KEY="$PAK" \
         pnpm exec playwright test "${SPEC_PATHS[@]}"
     ); then
         echo "✅ Spec passed for $COMBO"

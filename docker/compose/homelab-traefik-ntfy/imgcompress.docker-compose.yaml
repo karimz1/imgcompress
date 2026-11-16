@@ -33,7 +33,7 @@ services:
       # docs at http://imgcompress.lan/api/v1/docs. Default: false.
       - ENABLE_PUBLIC_API=${IMGCOMPRESS_ENABLE_PUBLIC_API:-false}
       # Optional: key every API caller except the web UI must send. Default: none.
-      - API_KEY=${IMGCOMPRESS_API_KEY:-}
+      - PUBLIC_API_KEY=${IMGCOMPRESS_PUBLIC_API_KEY:-}
     networks:
       - proxy-no-internet
     labels:

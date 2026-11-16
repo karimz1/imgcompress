@@ -1,4 +1,4 @@
-"""The optional API key (API_KEY) of /api/v1.
+"""The optional API key (PUBLIC_API_KEY) of /api/v1.
 
 Accepted as ``Authorization: Bearer <key>`` or ``X-API-Key: <key>``,
 compared in constant time, and never logged or echoed.

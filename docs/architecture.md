@@ -83,7 +83,7 @@ flowchart TD
     R["Request to /api/v1"] --> K{"Browser says it comes from<br/>another website?<br/>(Sec-Fetch-Site, else Origin)"}
     K -- "yes, ENABLE_PUBLIC_API=false" --> F["403, no CORS headers"]
     K -- "no: the web UI itself" --> OK["allowed, never needs the key"]
-    K -- "yes, ENABLE_PUBLIC_API=true" --> A{"API_KEY set?"}
+    K -- "yes, ENABLE_PUBLIC_API=true" --> A{"PUBLIC_API_KEY set?"}
     K -- "no browser headers (curl, scripts)" --> A
     A -- "no" --> OK2["allowed"]
     A -- "yes" --> H{"Bearer token or X-API-Key<br/>matches? (constant time)"}
@@ -93,9 +93,10 @@ flowchart TD
 
 - **Web UI:** browsers mark every request with `Sec-Fetch-Site` (older ones only with `Origin`), and a page cannot change these headers. `same-origin` (or `none`, a typed URL) means the request comes from the web UI on this container. Without `Sec-Fetch-Site`, the `Origin` is compared with the request host, `X-Forwarded-Host` and the host of `PUBLIC_BASE_URL`, so it also works behind Traefik or another proxy. The web UI therefore never needs the key, and another website cannot pretend to be the web UI.
 - **ENABLE_PUBLIC_API (default false):** controls other websites only. When false, a request a browser marks as cross-site gets 403 (including CORS preflights), no CORS headers are sent and the docs answer 404. When true, every answer carries `Access-Control-Allow-Origin: *` (never with credentials; the API uses no cookies) and the `Authorization`, `X-API-Key` and `X-Job-Token` headers are allowed.
-- **API_KEY (optional):** everything except the web UI must then send `Authorization: Bearer <key>` or `X-API-Key: <key>`; health checks and the docs stay open. The key is compared in constant time and never logged or shown in the settings.
-- **Limits:** these checks only stop browsers. Anything that can reach the container over the network (curl, a script) can call the API like the web UI can, regardless of `ENABLE_PUBLIC_API`. If the container is reachable by people you do not trust, set `API_KEY` or put it behind a proxy with a login. `API_KEY` does not lock the web UI itself.
+- **PUBLIC_API_KEY (optional):** everything except the web UI must then send `Authorization: Bearer <key>` or `X-API-Key: <key>`; health checks and the docs stay open. The key is compared in constant time and never logged or shown in the settings.
+- **Limits:** these checks only stop browsers. Anything that can reach the container over the network (curl, a script) can call the API like the web UI can, regardless of `ENABLE_PUBLIC_API`. If the container is reachable by people you do not trust, set `PUBLIC_API_KEY` or put it behind a proxy with a login. `PUBLIC_API_KEY` does not lock the web UI itself.
 - **Isolation:** jobs stay private to their job token (`X-Job-Token`) exactly as for the web UI, and `DISABLE_STORAGE_MANAGEMENT=true` turns off the storage and log routes for every caller.
+- **Legacy health:** `GET /api/health/backend` is a deprecated alias of `GET /api/v1/health` (same handler, never needs the key). It will be removed in 2.0.
 
 ### Versioning
 

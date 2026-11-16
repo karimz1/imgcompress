@@ -68,7 +68,7 @@ services:
       # Optional: require this key from every API caller except the web UI itself,
       # sent as "Authorization: Bearer <key>" or "X-API-Key: <key>". Use a long random
       # string (e.g. openssl rand -hex 32). Default: not set = no key needed.
-      - API_KEY=${IMGCOMPRESS_API_KEY:-}
+      - PUBLIC_API_KEY=${IMGCOMPRESS_PUBLIC_API_KEY:-}
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck

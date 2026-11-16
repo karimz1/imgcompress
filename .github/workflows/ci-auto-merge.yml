@@ -369,7 +369,7 @@ jobs:
             enable_public_api: "true"
             scenario: "logo SHOWN  | storage SHOWN | public API ON | notify OFF"
             label: "public-api-on"
-          # REST API open with a key (ENABLE_PUBLIC_API=true, API_KEY set). The key is a
+          # REST API open with a key (ENABLE_PUBLIC_API=true, PUBLIC_API_KEY set). The key is a
           # test value, not a secret. Proves callers need it and the web UI does not:
           # the journey spec converts through the UI without ever sending it.
           - disable_logo: "false"
@@ -413,7 +413,7 @@ jobs:
           echo "DISABLE_UPDATE_CHECK:        ${{ matrix.disable_update_check || '(default false)' }}"
           echo "NOTIFY_URL:                  ${{ matrix.notify_url && 'set (capture server) -> notify ON' || '(unset) -> notify OFF' }}"
           echo "ENABLE_PUBLIC_API:           ${{ matrix.enable_public_api || '(default false)' }}"
-          echo "API_KEY:                     ${{ matrix.api_key && 'set (test value)' || '(unset)' }}"
+          echo "PUBLIC_API_KEY:              ${{ matrix.api_key && 'set (test value)' || '(unset)' }}"
           echo "::endgroup::"
           docker run -d \
             --platform linux/amd64 \
@@ -426,7 +426,7 @@ jobs:
             -e NOTIFY_URL=${{ matrix.notify_url }} \
             -e PUBLIC_BASE_URL=${{ matrix.public_base_url }} \
             -e ENABLE_PUBLIC_API=${{ matrix.enable_public_api }} \
-            -e API_KEY=${{ matrix.api_key }} \
+            -e PUBLIC_API_KEY=${{ matrix.api_key }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for the app to be ready

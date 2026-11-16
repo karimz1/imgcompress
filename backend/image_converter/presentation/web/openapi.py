@@ -39,7 +39,7 @@ _ERROR_EXAMPLES = {
 }
 _ERROR_TEXT = {
     400: "Invalid options or form. `message` says which field and what is allowed.",
-    401: "API_KEY is set and the request is neither from the web UI nor carries the key.",
+    401: "PUBLIC_API_KEY is set and the request is neither from the web UI nor carries the key.",
     403: "A browser on another website sent this while ENABLE_PUBLIC_API is off, "
     "or the feature is turned off on this container (storage management).",
     404: "Unknown id, wrong token, or expired. These are not told apart on purpose.",
@@ -180,14 +180,15 @@ def _curl(lines: str) -> str:
 
 
 def _paths() -> dict:
-    auth = '  -H "Authorization: Bearer $API_KEY" \\\n'
+    auth = '  -H "Authorization: Bearer $PUBLIC_API_KEY" \\\n'
     base = "http://localhost:3001/api/v1"
     return {
         "/health": {"get": {
             "tags": ["Health"], "operationId": "health", "security": [],
             "summary": "Is the container up?",
             "description": "Cheap liveness check. Never needs the API key, so health checks and uptime "
-            "monitors work with API_KEY set. `python /container/healthcheck.py` uses it."
+            "monitors work with PUBLIC_API_KEY set. `python /container/healthcheck.py` uses it. "
+            "GET /api/health/backend is a deprecated alias of this route and will be removed in 2.0."
             + _curl(f"curl -fsS {base}/health"),
             "responses": {"200": {"description": "The container answers.", "content": _json(
                 _ref("Health"), {"status": "running", "api_version": "1", "utc_time": "2026-11-16T09:30:00+00:00"})}},
@@ -519,7 +520,7 @@ def _schemas() -> dict:
             "api_version": string,
             "app_version": {"type": ["string", "null"], "description": "Release of the container, null in dev builds."},
             "public_api_enabled": {"type": "boolean", "description": "ENABLE_PUBLIC_API."},
-            "auth_required": {"type": "boolean", "description": "API_KEY is set."},
+            "auth_required": {"type": "boolean", "description": "PUBLIC_API_KEY is set."},
             "storage_management_enabled": {"type": "boolean"},
             "notifications_enabled": {"type": "boolean", "description": "NOTIFY_URL is set."},
             "limits": {"type": "object", "required": ["max_upload_size_mb"], "properties": {
@@ -594,11 +595,11 @@ The web UI uses this same API, so everything it can do, your app can do too.
 
 ```bash
 curl -fsS http://localhost:3001/api/v1/convert \\
-  -H "Authorization: Bearer $API_KEY" \\
+  -H "Authorization: Bearer $PUBLIC_API_KEY" \\
   -F "files[]=@photo.jpg" -F format=webp -F quality=80 -o photo.webp
 ```
 
-Leave out the `Authorization` line when API_KEY is not set.
+Leave out the `Authorization` line when PUBLIC_API_KEY is not set.
 
 ## Access
 
@@ -606,7 +607,7 @@ Leave out the `Authorization` line when API_KEY is not set.
 |---|---|
 | `ENABLE_PUBLIC_API=false` (default) | Only the web UI and scripts on your network. Requests a browser marks as coming from another website get **403**, no CORS headers, these docs answer 404. |
 | `ENABLE_PUBLIC_API=true` | Other websites and apps may call the API: CORS allows any origin (`Access-Control-Allow-Origin: *`, no cookies). These docs are served. |
-| `API_KEY=<secret>` | Every request except the web UI and `/health` needs `Authorization: Bearer <key>` or `{API_KEY_HEADER}: <key>`. API_KEY is {key_state}. |
+| `PUBLIC_API_KEY=<secret>` | Every request except the web UI and `/health` needs `Authorization: Bearer <key>` or `{API_KEY_HEADER}: <key>`. PUBLIC_API_KEY is {key_state}. |
 
 The web UI never needs the key: the browser marks its requests as same-origin
 (`Sec-Fetch-Site`), which other websites cannot fake. Scripts can, so the key
@@ -623,6 +624,7 @@ exposed response headers `{CORS_EXPOSE_HEADERS}`.
 - Results of `/convert` are deleted once sent; job results are kept for the retention time in GET /info
   after the last access, and only answer to their own `X-Job-Token`.
 - Every request gets its own temporary folders, so parallel users never see each other's files.
+- Storage and log routes answer 403 when `DISABLE_STORAGE_MANAGEMENT=true`. They can see every user's files, so leave that switch on unless you trust every visitor.
 
 ## Errors
 
@@ -635,6 +637,23 @@ release. Nothing is renamed, removed or made stricter within v1. A breaking chan
 served next to v1 for at least one release. `info.version` of this document follows semver for the
 contract of v1.
 """
+
+
+def _legacy_health_alias(script_root: str = "") -> dict:
+    """GET /api/health/backend: same handler as /api/v1/health, documented off the v1 prefix."""
+    return {"/api/health/backend": {"get": {
+        "servers": [{"url": script_root or "/", "description": "Container root (legacy path, not under /api/v1)"}],
+        "tags": ["Health"], "operationId": "legacyHealthBackend", "security": [],
+        "deprecated": True,
+        "summary": "Legacy alias of GET /health",
+        "description": "Same answer as GET /api/v1/health. Kept so existing health checks and uptime "
+        "monitors keep working. Never needs the API key. Same access rules as /api/v1/health: "
+        "scripts and monitors always work; other websites follow ENABLE_PUBLIC_API. "
+        "Will be removed in 2.0; use GET /api/v1/health."
+        + _curl("curl -fsS http://localhost:3001/api/health/backend"),
+        "responses": {"200": {"description": "The container answers.", "content": _json(
+            _ref("Health"), {"status": "running", "api_version": "1", "utc_time": "2026-11-16T09:30:00+00:00"})}},
+    }}}
 
 
 def build_spec(script_root: str = "") -> dict:
@@ -659,15 +678,15 @@ def build_spec(script_root: str = "") -> dict:
             {"name": "Storage", "description": "Storage management of the container (DISABLE_STORAGE_MANAGEMENT)."},
             {"name": "Docs", "description": "This document and Swagger UI (ENABLE_PUBLIC_API only)."},
         ],
-        # {} first: without API_KEY nothing is needed.
+        # {} first: without PUBLIC_API_KEY nothing is needed.
         "security": [{}, {"bearerAuth": []}, {"apiKeyHeader": []}],
-        "paths": _with_gate_errors(_paths()),
+        "paths": _with_gate_errors({**_paths(), **_legacy_health_alias(script_root)}),
         "components": {
             "securitySchemes": {
                 "bearerAuth": {"type": "http", "scheme": "bearer",
-                               "description": "API_KEY of the container, as `Authorization: Bearer <key>`."},
+                               "description": "PUBLIC_API_KEY of the container, as `Authorization: Bearer <key>`."},
                 "apiKeyHeader": {"type": "apiKey", "in": "header", "name": API_KEY_HEADER,
-                                 "description": f"API_KEY of the container, as `{API_KEY_HEADER}: <key>`."},
+                                 "description": f"PUBLIC_API_KEY of the container, as `{API_KEY_HEADER}: <key>`."},
             },
             "schemas": _schemas(),
             "responses": {f"E{status}": _error_response(status) for status in _ERROR_TEXT},

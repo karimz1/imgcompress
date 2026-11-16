@@ -1,4 +1,4 @@
-"""Who may call /api/v1: the web UI, scripts, other websites, with and without API_KEY.
+"""Who may call /api/v1: the web UI, scripts, other websites, with and without PUBLIC_API_KEY.
 
 The browser marks where a request comes from (Sec-Fetch-Site, else Origin);
 other websites cannot fake those headers. Each test drives the real app.
@@ -19,7 +19,7 @@ GATED_POST = "/api/v1/jobs/aaaaaaaaaaaaaaaaaaaaaa/cancel"
 @pytest.fixture
 def configure(monkeypatch):
     def apply(public=None, key=None, base_url=None):
-        for name, value in (("ENABLE_PUBLIC_API", public), ("API_KEY", key), ("PUBLIC_BASE_URL", base_url)):
+        for name, value in (("ENABLE_PUBLIC_API", public), ("PUBLIC_API_KEY", key), ("PUBLIC_BASE_URL", base_url)):
             if value is None:
                 monkeypatch.delenv(name, raising=False)
             else:
@@ -127,7 +127,7 @@ def test_When_PublicApiIsOnWithoutKey_Expect_OtherWebsitesMayCall(configure):
     assert client.post(GATED_POST, headers=CROSS_SITE).status_code == 404
 
 
-# --- API_KEY ---------------------------------------------------------------------------
+# --- PUBLIC_API_KEY ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("public", ["true", None])
 def test_When_KeyIsSet_Expect_CallsWithoutItAreRefused(configure, public):
@@ -171,8 +171,21 @@ def test_When_KeyIsSet_Expect_WebUiNeverNeedsIt(configure):
 
 def test_When_KeyIsSet_Expect_HealthChecksAndDocsStayOpen(configure):
     client = configure(public="true", key=KEY)
-    for path in ("/api/v1/health", "/api/v1/health/internet", "/api/v1/docs", "/api/v1/openapi.json"):
+    for path in ("/api/v1/health", "/api/v1/health/internet", "/api/health/backend",
+                 "/api/v1/docs", "/api/v1/openapi.json"):
         assert client.get(path).status_code == 200, path
+
+
+def test_When_PublicApiIsOff_Expect_LegacyHealthAliasStaysOpen(configure):
+    """The alias follows /api/v1/health: no key, works with the public API off."""
+    client = configure(key=KEY)
+    response = client.get("/api/health/backend")
+    current = client.get("/api/v1/health")
+    assert response.status_code == 200
+    body, expected = response.get_json(), current.get_json()
+    assert body["status"] == expected["status"]
+    assert body["api_version"] == expected["api_version"]
+    assert "utc_time" in body
 
 
 def test_When_KeyIsSetButPublicApiIsOff_Expect_OtherWebsitesStillRefusedEvenWithKey(configure):
