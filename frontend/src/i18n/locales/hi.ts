@@ -8,6 +8,7 @@ export const hi: TranslationSchema = {
       unsupportedFormat: "असमर्थित फ़ाइल फ़ॉर्मैट: {{fileName}}",
       filesRejected: "{{count}} फ़ाइल(ें) छोड़ दी गईं। यह फ़ाइल टाइप मैं नहीं खोल सकता।",
       fileTooLarge: "{{fileName}} {{size}} से बड़ी है, इसलिए जोड़ी नहीं गई।",
+      filesTooLarge: "{{size}} से बड़ी {{count}} फ़ाइल(ें) छोड़ दी गईं।",
       batchTooLarge: "सभी फ़ाइलें मिलाकर {{size}} से बड़ी हैं। कृपया इन्हें छोटे समूहों में बदलें।",
       noFilesError: "कृपया पहले कुछ फ़ाइलें डालें या चुनें।",
       noFormatError: "कृपया पहले आउटपुट फ़ॉर्मैट चुनें।",
@@ -323,6 +324,12 @@ export const hi: TranslationSchema = {
     error: {
       label: "त्रुटि मिली:",
       detailsLabel: "विवरण:",
+      showDetails: "विवरण दिखाएँ",
+      hideDetails: "विवरण छिपाएँ",
+      skippedListLabel: "छोड़ी गई फ़ाइलें",
+      reasonUnsupported: "यह फ़ाइल टाइप समर्थित नहीं है",
+      reasonTooLarge: "{{size}} से बड़ी",
+      moreSkipped: "+{{count}} और",
     },
     buttons: {
       convert: "कन्वर्ज़न शुरू करें",

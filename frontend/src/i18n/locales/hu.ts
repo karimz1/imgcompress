@@ -8,6 +8,7 @@ export const hu: TranslationSchema = {
       unsupportedFormat: "Nem támogatott fájlformátum: {{fileName}}",
       filesRejected: "{{count}} fájl kihagyva. Ezt a fájltípust nem tudom megnyitni.",
       fileTooLarge: "A(z) {{fileName}} nagyobb, mint {{size}}, ezért nem került be.",
+      filesTooLarge: "{{count}} fájl kihagyva, mert nagyobb, mint {{size}}.",
       batchTooLarge: "A fájlok együtt nagyobbak, mint {{size}}. Alakítsd át őket kisebb csoportokban.",
       noFilesError: "Kérlek, először adj hozzá fájlokat.",
       noFormatError: "Kérlek, először válassz kimeneti formátumot.",
@@ -323,6 +324,12 @@ export const hu: TranslationSchema = {
     error: {
       label: "Hiba:",
       detailsLabel: "Részletek:",
+      showDetails: "Részletek megjelenítése",
+      hideDetails: "Részletek elrejtése",
+      skippedListLabel: "Kihagyott fájlok",
+      reasonUnsupported: "Nem támogatott fájltípus",
+      reasonTooLarge: "Nagyobb, mint {{size}}",
+      moreSkipped: "+{{count}} további",
     },
     buttons: {
       convert: "Átalakítás indítása",

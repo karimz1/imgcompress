@@ -8,6 +8,7 @@ export const esMX: TranslationSchema = {
       unsupportedFormat: "Formato de archivo no compatible: {{fileName}}",
       filesRejected: "Se omitieron {{count}} archivo(s). No puedo abrir ese tipo de archivo.",
       fileTooLarge: "{{fileName}} pesa más de {{size}} y no se agregó.",
+      filesTooLarge: "Se omitieron {{count}} archivo(s) de más de {{size}}.",
       batchTooLarge: "Juntos, los archivos pesan más de {{size}}. Conviértelos en grupos más pequeños.",
       noFilesError: "Primero arrastra o selecciona algunos archivos.",
       noFormatError: "Primero selecciona un formato de salida.",
@@ -323,6 +324,12 @@ export const esMX: TranslationSchema = {
     error: {
       label: "Error detectado:",
       detailsLabel: "Detalles:",
+      showDetails: "Mostrar detalles",
+      hideDetails: "Ocultar detalles",
+      skippedListLabel: "Archivos omitidos",
+      reasonUnsupported: "Tipo de archivo no compatible",
+      reasonTooLarge: "Pesa más de {{size}}",
+      moreSkipped: "+{{count}} más",
     },
     buttons: {
       convert: "Iniciar conversión",

@@ -43,10 +43,12 @@ import { fileKeyOf, relativeDirOf } from "@/lib/folderPath";
 import { cn } from "@/lib/utils";
 import { APP_CONFIG } from "@/lib/config";
 import { formatUploadLimit, useMaxUploadSizeMb } from "@/lib/uploadLimit";
+import { SkippedFilesDetails } from "@/components/SkippedFilesDetails";
+import type { ErrorMessage } from "@/models/ErrorMessage";
 
 interface FileConversionFormProps {
   isLoading: boolean;
-  error: { message: string; details?: string } | null;
+  error: ErrorMessage | null;
   quality: string;
   setQuality: (val: string) => void;
   width: string;
@@ -250,6 +252,9 @@ const FileConversionForm: React.FC<FileConversionFormProps> = ({
             <p data-testid="error-details-holder">
               <strong>{t("form.error.detailsLabel")}</strong> {error.details}
             </p>
+          )}
+          {error.skippedFiles && error.skippedFiles.length > 0 && (
+            <SkippedFilesDetails files={error.skippedFiles} />
           )}
         </div>
       ),

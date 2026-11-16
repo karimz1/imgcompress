@@ -8,6 +8,7 @@ export const ru: TranslationSchema = {
       unsupportedFormat: "Неподдерживаемый формат файла: {{fileName}}",
       filesRejected: "Пропущено файлов — {{count}}. Этот тип файлов я не открываю.",
       fileTooLarge: "Файл {{fileName}} больше {{size}} и не был добавлен.",
+      filesTooLarge: "Пропущено файлов больше {{size}} — {{count}}.",
       batchTooLarge: "Вместе файлы больше {{size}}. Конвертируйте их небольшими группами.",
       noFilesError: "Сначала перетащите или выберите файлы.",
       noFormatError: "Сначала выберите выходной формат.",
@@ -323,6 +324,12 @@ export const ru: TranslationSchema = {
     error: {
       label: "Обнаружена ошибка:",
       detailsLabel: "Подробности:",
+      showDetails: "Показать подробности",
+      hideDetails: "Скрыть подробности",
+      skippedListLabel: "Пропущенные файлы",
+      reasonUnsupported: "Тип файла не поддерживается",
+      reasonTooLarge: "Больше {{size}}",
+      moreSkipped: "Ещё {{count}}",
     },
     buttons: {
       convert: "Начать конвертацию",
