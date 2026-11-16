@@ -379,6 +379,14 @@ jobs:
             extra_specs: "tests/e2e/journeys_MultiImage_Test.spec.ts"
             scenario: "logo SHOWN  | storage SHOWN | public API ON + key | notify OFF"
             label: "public-api-key"
+          # API only + mandatory key: no web UI, the key is a real boundary.
+          # UI feature-flag specs skip themselves; publicApi_Test covers this mode.
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            api_only: "true"
+            api_key: "e2e-test-key-not-a-secret"
+            scenario: "API only + key | notify OFF"
+            label: "api-only-key"
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -413,6 +421,7 @@ jobs:
           echo "DISABLE_UPDATE_CHECK:        ${{ matrix.disable_update_check || '(default false)' }}"
           echo "NOTIFY_URL:                  ${{ matrix.notify_url && 'set (capture server) -> notify ON' || '(unset) -> notify OFF' }}"
           echo "ENABLE_PUBLIC_API:           ${{ matrix.enable_public_api || '(default false)' }}"
+          echo "API_ONLY:                    ${{ matrix.api_only || '(default false)' }}"
           echo "PUBLIC_API_KEY:              ${{ matrix.api_key && 'set (test value)' || '(unset)' }}"
           echo "::endgroup::"
           docker run -d \
@@ -427,6 +436,7 @@ jobs:
             -e PUBLIC_BASE_URL=${{ matrix.public_base_url }} \
             -e ENABLE_PUBLIC_API=${{ matrix.enable_public_api }} \
             -e PUBLIC_API_KEY=${{ matrix.api_key }} \
+            -e API_ONLY=${{ matrix.api_only }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for the app to be ready

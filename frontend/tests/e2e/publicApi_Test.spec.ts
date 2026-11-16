@@ -1,17 +1,29 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 
-// One spec for every ENABLE_PUBLIC_API / PUBLIC_API_KEY combination: it reads the mode
-// from the running container, then checks that mode in a real browser.
+// One spec for every API mode: it reads the mode from the running container, then
+// checks that mode in a real browser.
 //   - default (off): docs answer 404, other websites are refused, the web UI works
 //   - on: Swagger UI loads offline, other websites may call the API (CORS)
-//   - on + PUBLIC_API_KEY: other callers need the key (E2E_API_KEY), the web UI never does
+//   - on + PUBLIC_API_KEY: other callers need the key (E2E_API_KEY); the web UI still works
+//   - API_ONLY + key: no web UI, spoofed same-origin headers still need the key, health stays open
 
-type Mode = { publicApi: boolean; keyRequired: boolean };
+type Mode = { publicApi: boolean; keyRequired: boolean; apiOnly: boolean };
 
 async function readModeAsync(request: APIRequestContext): Promise<Mode> {
   const docs = await request.get('/api/v1/docs');
   const info = await request.get('/api/v1/info');
-  return { publicApi: docs.status() === 200, keyRequired: info.status() === 401 };
+  const root = await request.get('/');
+  const type = root.headers()['content-type'] ?? '';
+  let apiOnly = false;
+  if (type.includes('application/json')) {
+    try {
+      const body = await root.json();
+      apiOnly = typeof body?.message === 'string' && body.message.includes('API only');
+    } catch {
+      apiOnly = false;
+    }
+  }
+  return { publicApi: docs.status() === 200, keyRequired: info.status() === 401, apiOnly };
 }
 
 // localhost and 127.0.0.1 are different sites to the browser, so a page on one
@@ -43,16 +55,27 @@ test('the API mode of this container behaves as documented', async ({ page, requ
   test.info().annotations.push({ type: 'api-mode', description: JSON.stringify(mode) });
   if (mode.keyRequired) expect(key, 'set E2E_API_KEY to the container PUBLIC_API_KEY').not.toBe('');
 
-  // The web UI itself: same origin, never needs the key.
-  await page.goto('/');
-  const own = await fetchFromPageAsync(page, '/api/v1/info');
-  expect(own.status).toBe(200);
-  // CORS headers only exist once other websites are allowed.
-  expect(own.cors).toBe(mode.publicApi ? '*' : null);
-
   // Health checks never need the key, including the deprecated /api/health/backend alias.
   expect((await request.get('/api/v1/health')).status()).toBe(200);
   expect((await request.get('/api/health/backend')).status()).toBe(200);
+
+  if (mode.apiOnly) {
+    expect(mode.publicApi).toBe(true);
+    expect(mode.keyRequired).toBe(true);
+    const root = await request.get('/');
+    expect(root.status()).toBe(200);
+    expect(root.headers()['content-type'] || '').toContain('application/json');
+    expect((await root.json()).message).toContain('/api/v1/docs');
+    const spoofed = await request.get('/api/v1/info', { headers: { 'Sec-Fetch-Site': 'same-origin' } });
+    expect(spoofed.status()).toBe(401);
+  } else {
+    // The web UI itself: same origin, never needs the key.
+    await page.goto('/');
+    const own = await fetchFromPageAsync(page, '/api/v1/info');
+    expect(own.status).toBe(200);
+    // CORS headers only exist once other websites are allowed.
+    expect(own.cors).toBe(mode.publicApi ? '*' : null);
+  }
 
   const other = otherSiteOrigin(baseURL!);
   test.skip(other === null, 'needs a localhost base URL to act as another website');

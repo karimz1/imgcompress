@@ -2,25 +2,24 @@
 
 The web UI and the API share one origin. A browser marks every request with
 where it comes from (Sec-Fetch-Site, else Origin); pages cannot fake these
-headers, so a request a browser marks as same-origin really comes from the
-web UI (or a URL the user typed). Scripts send neither header.
+headers. That is CSRF / cross-site protection, not authentication: a script
+can send the same headers.
 
-ENABLE_PUBLIC_API off (default)
+Three modes (the common self-hosted pattern, e.g. Stirling-PDF):
+
+Default (ENABLE_PUBLIC_API off)
     No CORS headers, Swagger UI and the spec answer 404, and every request a
-    browser marks as cross-site is refused with 403 (CSRF protection).
-ENABLE_PUBLIC_API on
+    browser marks as cross-site is refused with 403 (CSRF defense).
+ENABLE_PUBLIC_API on, web UI served
     Swagger UI and the spec are served, and every answer allows any origin
     (``Access-Control-Allow-Origin: *``, never with credentials: the API
-    uses no cookies).
-PUBLIC_API_KEY set (either mode)
-    Everything except the web UI (same-origin browser requests) and the
-    health checks needs ``Authorization: Bearer <key>`` or ``X-API-Key``.
-
-Limits: Sec-Fetch-Site and Origin only bind browsers. A script can send
-"Sec-Fetch-Site: same-origin" too and then counts as the web UI, which anyone
-who can open the web UI can use anyway. To keep a container private, limit
-who reaches it (network, VPN, reverse proxy with auth); PUBLIC_API_KEY guards the
-API for other websites and casual scripts, not the web UI itself.
+    uses no cookies). An optional PUBLIC_API_KEY is required of callers that
+    are not the web UI, but it is not a security boundary: anyone who can
+    open the UI can do the same. For public hosting use API_ONLY or proxy auth.
+API_ONLY (implies the public API on; PUBLIC_API_KEY required)
+    The web UI is not served and the CSRF exemption is off. Every /api/v1
+    call except the health checks needs the key. This is a real boundary.
+    Docs stay open so Swagger UI can load; then Try-it-out uses the key.
 """
 
 import os
@@ -128,7 +127,9 @@ def check_access():
     if request.method == "OPTIONS":
         # A CORS preflight: never carries the key, answered with the CORS headers.
         return Response(status=204)
-    if request.endpoint in OPEN_ENDPOINTS or kind == SAME_ORIGIN:
+    # SAME_ORIGIN is CSRF protection for the web UI, not authentication.
+    # In API_ONLY the web UI is not served, so that exemption is off.
+    if request.endpoint in OPEN_ENDPOINTS or (kind == SAME_ORIGIN and not config.api_only):
         return None
     if not is_authorized(request, config.api_key):
         return _refuse(
@@ -148,3 +149,38 @@ def add_cors_headers(response):
         response.headers["Access-Control-Expose-Headers"] = CORS_EXPOSE_HEADERS
         response.headers["Access-Control-Max-Age"] = "600"
     return response
+
+
+def startup_notices(config=None) -> list[tuple[str, str]]:
+    """Log lines for process start: (message, level). Never includes the key itself."""
+    api = (config or settings.get()).public_api
+    notices: list[tuple[str, str]] = []
+    if api.api_only:
+        notices.append((
+            "API only: the web UI is not served. Call /api/v1 with PUBLIC_API_KEY; "
+            "docs at /api/v1/docs. Health checks stay open.",
+            "info",
+        ))
+        return notices
+    if api.is_enabled:
+        if api.requires_key:
+            notices.append((
+                "Public API on: other websites may call /api/v1, docs at /api/v1/docs. "
+                "PUBLIC_API_KEY is set.",
+                "info",
+            ))
+        else:
+            notices.append((
+                "Public API on: other websites may call /api/v1, docs at /api/v1/docs. "
+                "No PUBLIC_API_KEY: anyone who can reach the container can use the API.",
+                "warning",
+            ))
+    if api.requires_key:
+        notices.append((
+            "PUBLIC_API_KEY is not a security boundary while the web UI is served: "
+            "anyone who can open the UI can do the same. For public hosting use "
+            "API_ONLY=true or put proxy auth (Authelia, Authentik, Basic Auth) in front.",
+            "warning",
+        ))
+    return notices
+

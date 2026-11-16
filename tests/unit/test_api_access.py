@@ -7,6 +7,8 @@ other websites cannot fake those headers. Each test drives the real app.
 import pytest
 
 from backend.image_converter.config import settings
+from backend.image_converter.config.loader import ConfigError
+from backend.image_converter.presentation.web.api_access import startup_notices
 from backend.image_converter.presentation.web.server import app
 
 KEY = "correct horse battery staple"
@@ -18,8 +20,9 @@ GATED_POST = "/api/v1/jobs/aaaaaaaaaaaaaaaaaaaaaa/cancel"
 
 @pytest.fixture
 def configure(monkeypatch):
-    def apply(public=None, key=None, base_url=None):
-        for name, value in (("ENABLE_PUBLIC_API", public), ("PUBLIC_API_KEY", key), ("PUBLIC_BASE_URL", base_url)):
+    def apply(public=None, key=None, base_url=None, api_only=None):
+        for name, value in (("ENABLE_PUBLIC_API", public), ("PUBLIC_API_KEY", key),
+                            ("PUBLIC_BASE_URL", base_url), ("API_ONLY", api_only)):
             if value is None:
                 monkeypatch.delenv(name, raising=False)
             else:
@@ -213,3 +216,79 @@ def test_When_RefusedUploadIsSent_Expect_TheAnswerArrivesInsteadOfAReset(configu
         content_type="multipart/form-data",
     )
     assert response.status_code == 401
+
+# --- API_ONLY -------------------------------------------------------------------------
+
+def test_When_ApiOnly_Expect_WebUiIsNotServedAndRootPointsAtDocs(configure):
+    client = configure(api_only="true", key=KEY)
+    root = client.get("/")
+    assert root.status_code == 200
+    assert root.is_json
+    assert "/api/v1/docs" in root.get_json()["message"]
+    assert "API only" in root.get_json()["message"]
+    hidden = client.get("/config/runtime.json")
+    assert hidden.status_code == 404
+    assert hidden.get_json()["error"] == "Not Found"
+    assert "/api/v1/docs" in hidden.get_json()["message"]
+
+
+def test_When_ApiOnly_Expect_KeyRequiredEvenWithSpoofedWebUiHeaders(configure):
+    client = configure(api_only="true", key=KEY)
+    for headers in (SAME_ORIGIN, {"Sec-Fetch-Site": "none"}, {"Origin": "http://localhost"}, CROSS_SITE, {}):
+        response = client.get("/api/v1/info", headers=headers)
+        assert response.status_code == 401, headers
+        assert KEY not in response.get_data(as_text=True)
+        with_key = client.get("/api/v1/info", headers={**headers, "X-API-Key": KEY})
+        assert with_key.status_code == 200, headers
+
+
+def test_When_ApiOnly_Expect_HealthChecksStayOpenAndDocsAreServed(configure):
+    client = configure(api_only="true", key=KEY)
+    for path in ("/api/v1/health", "/api/v1/health/internet", "/api/health/backend",
+                 "/api/v1/docs", "/api/v1/openapi.json"):
+        assert client.get(path).status_code == 200, path
+    assert client.get("/api/v1/formats", headers=CROSS_SITE).status_code == 401
+    assert "Access-Control-Allow-Origin" in client.get("/api/v1/health").headers
+
+
+def test_When_ApiOnlyWithoutKey_Expect_ConfigError(monkeypatch):
+    monkeypatch.setenv("API_ONLY", "true")
+    monkeypatch.delenv("PUBLIC_API_KEY", raising=False)
+    settings.reset_cache()
+    with pytest.raises(ConfigError, match="API_ONLY"):
+        settings.get()
+    settings.reset_cache()
+
+
+def test_When_ApiOnly_Expect_ItImpliesPublicApiEvenIfEnableFlagIsOff(configure):
+    client = configure(public="false", api_only="true", key=KEY)
+    assert settings.get().public_api.api_only
+    assert settings.get().public_api.is_enabled
+    assert client.get("/api/v1/docs").status_code == 200
+
+
+# --- startup notices -----------------------------------------------------------------
+
+def test_When_WebUiAndKeyAreActive_Expect_StartupWarningThatTheKeyIsNotABoundary(configure):
+    configure(public="true", key=KEY)
+    messages = startup_notices()
+    warning = [message for message, level in messages if level == "warning"]
+    assert warning
+    text = " ".join(warning)
+    assert "not a security boundary" in text
+    assert "API_ONLY" in text
+    assert "Authelia" in text
+    assert KEY not in text
+
+
+def test_When_ApiOnly_Expect_StartupNoticeHasNoWebUiWarning(configure):
+    configure(api_only="true", key=KEY)
+    messages = startup_notices()
+    assert any("API only" in message for message, _ in messages)
+    assert all("not a security boundary" not in message for message, _ in messages)
+    assert all(KEY not in message for message, _ in messages)
+
+
+def test_When_DefaultMode_Expect_NoPublicApiStartupNotice(configure):
+    configure()
+    assert startup_notices() == []

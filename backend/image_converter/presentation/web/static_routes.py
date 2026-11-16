@@ -1,11 +1,25 @@
 import os
-from flask import Blueprint, jsonify, send_from_directory, abort, current_app
+from flask import Blueprint, jsonify, request, send_from_directory, abort, current_app
 from werkzeug.security import safe_join
 
 from backend.image_converter.config import settings
 from backend.image_converter.infrastructure.notifier import NOTIFY_URL_ENV
 
 static_blueprint = Blueprint("static_blueprint", __name__)
+
+_API_ONLY_MESSAGE = (
+    "This container is API only. The web UI is not served. "
+    "The API is at /api/v1, docs at /api/v1/docs."
+)
+
+
+@static_blueprint.before_request
+def hide_web_ui_when_api_only():
+    if not settings.get().public_api.api_only:
+        return None
+    if request.path in ("/", ""):
+        return jsonify({"message": _API_ONLY_MESSAGE}), 200
+    return jsonify({"error": "Not Found", "message": _API_ONLY_MESSAGE}), 404
 
 
 def _flag(value: bool) -> str:

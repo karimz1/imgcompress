@@ -5,6 +5,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 import { downloadFilesAsync } from "./utls/downloadHelper";
 import {
   clearStorageManagerAsync,
+  isApiOnlyModeAsync,
   clickConversionButtonAsync,
   getStorageManagerFileCountAsync,
   setOutputFormatAsync,
@@ -33,10 +34,15 @@ async function readLimitMb(request: APIRequestContext): Promise<number> {
 }
 
 test.beforeAll(async ({ request }) => {
+  if (await isApiOnlyModeAsync(request)) {
+    limitMb = 0;
+    return;
+  }
   limitMb = await readLimitMb(request);
 });
 
 test.beforeEach(async ({ page, request }) => {
+  test.skip(await isApiOnlyModeAsync(request), 'no web UI in API_ONLY');
   const underSize = fs.statSync(underLimit).size;
   const overSize = fs.statSync(overLimit).size;
   test.skip(

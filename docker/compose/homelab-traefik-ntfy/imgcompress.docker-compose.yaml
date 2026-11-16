@@ -29,11 +29,12 @@ services:
       - NOTIFY_URL=ntfy://ntfy/${NTFY_TOPIC:-imgcompress-7185477bfe6ab346f6c51b08}?priority=high
       - PUBLIC_BASE_URL=http://imgcompress.lan
       - TZ=${TZ:-Europe/Berlin}
-      # Optional: allow other websites to call the REST API (/api/v1) and show its
-      # docs at http://imgcompress.lan/api/v1/docs. Default: false.
+      # Three modes (same pattern as Stirling-PDF): default (web UI, CSRF defense),
+      # ENABLE_PUBLIC_API (docs + CORS; a key is not a boundary while the UI is served),
+      # or API_ONLY plus a key (no web UI; the key is a real boundary).
       - ENABLE_PUBLIC_API=${IMGCOMPRESS_ENABLE_PUBLIC_API:-false}
-      # Optional: key every API caller except the web UI must send. Default: none.
       - PUBLIC_API_KEY=${IMGCOMPRESS_PUBLIC_API_KEY:-}
+      - API_ONLY=${IMGCOMPRESS_API_ONLY:-false}
     networks:
       - proxy-no-internet
     labels:

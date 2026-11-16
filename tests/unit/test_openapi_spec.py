@@ -104,25 +104,73 @@ def test_EveryWriteAndKeyedOperation_Expect_ItsErrorsDocumented(spec):
         assert "403" in operation["responses"], f"{method} {path}: 403 (other websites) missing"
 
 
-def test_ConvertForm_Expect_TheOptionListWithItsDefaultsAndLimits(spec):
-    form = spec["paths"]["/convert"]["post"]["requestBody"]["content"]["multipart/form-data"]["schema"]
+def _form_schema(spec, path):
+    return spec["paths"][path]["post"]["requestBody"]["content"]["multipart/form-data"]["schema"]
+
+
+def _assert_field_documents_range_and_recommendation(option, field):
+    text = field["description"]
+    span = openapi._range_text(option)
+    if span:
+        assert span in text, option.name
+    assert "Recommended:" in text or "Required" in text, option.name
+    assert "If omitted" in text or "If a script omits" in text or "Required." in text, option.name
+    if option.minimum is not None:
+        assert field["minimum"] == option.minimum, option.name
+    if option.maximum is not None:
+        assert field["maximum"] == option.maximum, option.name
+    if option.choices:
+        assert field["enum"] == list(option.choices), option.name
+    for key in ("default", "example", "examples"):
+        assert key not in field, f"{option.name} has prefill key {key}"
+
+
+def test_ConvertForm_Expect_TheOptionListWithLimitsAndNoPrefill(spec):
+    form = _form_schema(spec, "/convert")
+    assert form["required"] == ["files[]", "format"]
     for option in options.CONVERSION_OPTIONS + (options.OUTPUT,):
-        field = form["properties"][option.name]
-        if option.default is not None:
-            assert field["default"] == option.default, option.name
-        if option.minimum is not None:
-            assert field["minimum"] == option.minimum, option.name
-        if option.choices:
-            assert field["enum"] == list(option.choices), option.name
-    edit = spec["paths"]["/edit"]["post"]["requestBody"]["content"]["multipart/form-data"]["schema"]
+        _assert_field_documents_range_and_recommendation(option, form["properties"][option.name])
+    jobs = _form_schema(spec, "/jobs")
+    assert jobs["required"] == ["files[]", "format"]
+    assert "output" not in jobs["properties"]
+    edit = _form_schema(spec, "/edit")
     assert {o.name for o in options.EDITOR_OPTIONS} <= set(edit["properties"])
+    for option in options.EDITOR_OPTIONS:
+        _assert_field_documents_range_and_recommendation(option, edit["properties"][option.name])
 
 
-def test_Description_Expect_AuthCorsVersioningAndCurl(spec):
+def test_TryItOutForms_Expect_NoDefaultOrExampleThatWouldPrefill(spec):
+    for path in ("/convert", "/jobs", "/preview", "/edit"):
+        form = _form_schema(spec, path)
+        for name, field in form["properties"].items():
+            for key in ("default", "example", "examples"):
+                assert key not in field, f"{path} {name} has prefill key {key}"
+            if "items" in field:
+                for key in ("default", "example", "examples"):
+                    assert key not in field["items"], f"{path} {name}.items has prefill key {key}"
+        media = spec["paths"][path]["post"]["requestBody"]["content"]["multipart/form-data"]
+        assert "example" not in media and "examples" not in media, path
+
+
+def test_Description_Expect_DevSectionsAuthCorsVersioningAndCurl(spec):
     text = spec["info"]["description"]
-    for needle in ("ENABLE_PUBLIC_API", "PUBLIC_API_KEY", "Access-Control-Allow-Origin", "/api/v2", "curl ", "Versioning", "DISABLE_STORAGE_MANAGEMENT"):
+    for needle in (
+        "ImgCompress, your self-hosted image toolbox", "Getting started", "Authentication",
+        "Deployment and security", "Convert vs jobs", "Errors", "Limits", "Versioning",
+        "ENABLE_PUBLIC_API", "PUBLIC_API_KEY", "API_ONLY", "Access-Control-Allow-Origin",
+        "/api/v2", "curl ", "DISABLE_STORAGE_MANAGEMENT", "PUBLIC_BASE_URL",
+        "Created by [Karim Zouine]", openapi.SITE_URL, openapi.GITHUB_URL,
+        "deprecated", "CSRF", "Stirling-PDF", "Authelia",
+    ):
         assert needle in text, needle
     assert "curl " in spec["paths"]["/convert"]["post"]["description"]
+    assert spec["info"]["contact"] == {"name": "Karim Zouine", "url": openapi.SITE_URL}
+    assert spec["info"]["license"] == {"name": openapi.LICENSE_NAME, "url": openapi.LICENSE_URL}
+    assert "identifier" not in spec["info"]["license"]
+    assert spec["externalDocs"] == {"description": "imgcompress docs", "url": openapi.DOCS_URL}
+    tag_names = [tag["name"] for tag in spec["tags"]]
+    assert tag_names == ["Convert", "Jobs", "Editor", "Info", "Health", "Storage", "Docs"]
+    assert all(tag.get("description") for tag in spec["tags"])
 
 
 # --- the answers match the documented schemas -----------------------------------
@@ -207,12 +255,22 @@ def test_ConvertErrors_Expect_TheDocumentedErrorShape(spec, client, data, status
     _check(spec, "/convert", "post", response)
 
 
-def test_Docs_Expect_SwaggerUiPageWithLocalAssets(client):
+def test_Docs_Expect_SwaggerUiPageWithLocalAssetsAndSeoTags(client):
     page = client.get("/api/v1/docs").get_data(as_text=True)
+    assert f"<title>{openapi.DOCS_TITLE}</title>" in page
+    assert f'<meta name="description" content="{openapi.DOCS_META_DESCRIPTION}">' in page
+    assert '<meta name="robots" content="index, follow">' in page
+    assert 'property="og:title"' in page and 'name="twitter:card"' in page
+    assert 'rel="canonical"' not in page
     assert "/api/v1/docs/swagger-ui-bundle.js" in page and "/api/v1/docs/swagger-ui.css" in page
+    assert "/api/v1/docs/og-image.webp" in page and "/api/v1/docs/favicon.webp" in page
     assert "http" not in page.split("<body>")[1], "no CDN: the container works offline"
+    assert "localhost" not in page
     init = client.get("/api/v1/docs/swagger-ui-init.js")
     assert init.status_code == 200 and b"SwaggerUIBundle" in init.data
+    assert b"getSampleSchema" in init.data and b"noPrefill" in init.data
+    assert client.get("/api/v1/docs/og-image.webp").status_code == 200
+    assert client.get("/api/v1/docs/favicon.webp").status_code == 200
     assert client.get("/api/v1/docs/../server.py").status_code == 404
     assert client.get("/api/v1/docs/index.css").status_code == 404
 
@@ -228,3 +286,95 @@ def test_LegacyHealthAlias_Expect_DeprecatedInSpecAndSameAnswerAsHealth(spec, cl
     assert alias.get_json()["status"] == current.get_json()["status"]
     assert alias.get_json()["api_version"] == current.get_json()["api_version"]
     _check(spec, _LEGACY_HEALTH, "get", alias)
+
+_EXAMPLE_ORIGIN = "https://imgcompress.example.com"
+
+
+def _curl_text(spec) -> str:
+    parts = [spec["info"]["description"]]
+    for _, _, operation in _operations(spec):
+        parts.append(operation.get("description", ""))
+    return "\n".join(parts)
+
+
+def test_ServersAndCurl_Expect_RelativeServerAndPlaceholderWhenPublicBaseUrlIsUnset(monkeypatch):
+    monkeypatch.delenv("PUBLIC_BASE_URL", raising=False)
+    spec = openapi.build_spec()
+    validate(spec)
+    assert spec["servers"] == [{"url": "/api/v1", "description": "This container"}]
+    examples = _curl_text(spec)
+    assert "localhost" not in examples
+    assert f"{_EXAMPLE_ORIGIN}/api/v1/convert" in examples
+    assert f"{_EXAMPLE_ORIGIN}/api/health/backend" in examples
+    assert spec["paths"][_LEGACY_HEALTH]["get"]["servers"][0]["url"] == "/"
+
+
+def test_ServersAndCurl_Expect_ScriptRootStaysRelativeWhenPublicBaseUrlIsUnset(monkeypatch):
+    monkeypatch.delenv("PUBLIC_BASE_URL", raising=False)
+    spec = openapi.build_spec(script_root="/imgcompress")
+    validate(spec)
+    assert spec["servers"][0]["url"] == "/imgcompress/api/v1"
+    assert not spec["servers"][0]["url"].startswith("http")
+    assert spec["paths"][_LEGACY_HEALTH]["get"]["servers"][0]["url"] == "/imgcompress"
+
+
+@pytest.mark.parametrize("raw, origin", [
+    ("https://photos.example.com", "https://photos.example.com"),
+    ("https://photos.example.com/", "https://photos.example.com"),
+    ("  https://photos.example.com/imgcompress/  ", "https://photos.example.com/imgcompress"),
+])
+def test_ServersAndCurl_Expect_PublicBaseUrlWithTrailingSlashStripped(monkeypatch, raw, origin):
+    monkeypatch.setenv("PUBLIC_BASE_URL", raw)
+    spec = openapi.build_spec(script_root="/ignored")
+    validate(spec)
+    assert spec["servers"] == [{"url": f"{origin}/api/v1", "description": "This container"}]
+    examples = _curl_text(spec)
+    assert "localhost" not in examples
+    assert f"{origin}/api/v1/convert" in examples
+    assert f"{origin}/api/v1/health" in examples
+    assert f"{origin}/api/health/backend" in examples
+    assert f"{origin}//" not in examples
+    assert spec["paths"][_LEGACY_HEALTH]["get"]["servers"][0]["url"] == origin
+
+
+def test_ServersAndCurl_Expect_InvalidPublicBaseUrlFallsBackToRelative(monkeypatch):
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://user:secret@evil.example")
+    spec = openapi.build_spec()
+    validate(spec)
+    assert spec["servers"][0]["url"] == "/api/v1"
+    examples = _curl_text(spec)
+    assert "localhost" not in examples
+    assert "evil.example" not in examples
+    assert "secret" not in examples
+    assert f"{_EXAMPLE_ORIGIN}/api/v1/convert" in examples
+
+
+def test_ServedOpenapiJson_Expect_ServersFollowPublicBaseUrl(client, monkeypatch):
+    unset = client.get("/api/v1/openapi.json")
+    assert unset.status_code == 200
+    body = unset.get_json()
+    validate(body)
+    assert body["servers"][0]["url"] == "/api/v1"
+    assert "localhost" not in body["info"]["description"]
+
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://imgcompress.example.com/")
+    set_spec = client.get("/api/v1/openapi.json").get_json()
+    validate(set_spec)
+    assert set_spec["servers"][0]["url"] == "https://imgcompress.example.com/api/v1"
+    assert "https://imgcompress.example.com/api/v1/convert" in set_spec["info"]["description"]
+    assert "localhost" not in set_spec["info"]["description"]
+
+
+def test_DocsHtml_Expect_CanonicalAndOgUrlOnlyWhenPublicBaseUrlIsSet(client, monkeypatch):
+    unset = client.get("/api/v1/docs").get_data(as_text=True)
+    assert 'rel="canonical"' not in unset
+    assert 'property="og:url"' not in unset
+
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://photos.example.com/")
+    page = client.get("/api/v1/docs").get_data(as_text=True)
+    assert f"<title>{openapi.DOCS_TITLE}</title>" in page
+    assert f'<meta name="description" content="{openapi.DOCS_META_DESCRIPTION}">' in page
+    assert 'href="https://photos.example.com/api/v1/docs"' in page
+    assert 'content="https://photos.example.com/api/v1/docs"' in page
+    assert "https://photos.example.com/api/v1/docs/og-image.webp" in page
+    assert "localhost" not in page

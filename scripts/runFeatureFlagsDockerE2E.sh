@@ -5,7 +5,7 @@ set -euo pipefail
 # Build the Docker image once, then run the runtime feature-flags Playwright
 # specs against flag combinations to prove DISABLE_LOGO,
 # DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK,
-# ENABLE_PUBLIC_API and PUBLIC_API_KEY propagate end-to-end
+# ENABLE_PUBLIC_API, PUBLIC_API_KEY and API_ONLY propagate end-to-end
 # (env -> runtime.json -> UI and server). The upload limit spec skips itself
 # unless the limit is small. publicApi_Test.spec.ts reads the API mode from
 # the running container.
@@ -50,16 +50,17 @@ docker buildx build \
     "$APP_ROOT"
 
 # (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK,
-#  ENABLE_PUBLIC_API, PUBLIC_API_KEY; "-" = default / unset)
+#  ENABLE_PUBLIC_API, PUBLIC_API_KEY, API_ONLY; "-" = default / unset)
 COMBOS=(
-    "false false - - - -"
-    "true  false - - - -"
-    "false true  - - - -"
-    "true  true  - - - -"
-    "false false 5 - - -"
-    "false false - true - -"
-    "false false - - true -"
-    "false false - - true e2e-test-key-not-a-secret"
+    "false false - - - - -"
+    "true  false - - - - -"
+    "false true  - - - - -"
+    "true  true  - - - - -"
+    "false false 5 - - - -"
+    "false false - true - - -"
+    "false false - - true - -"
+    "false false - - true e2e-test-key-not-a-secret -"
+    "false false - - - e2e-test-key-not-a-secret true"
 )
 
 FAILURES=()
@@ -73,11 +74,13 @@ for combo in "${COMBOS[@]}"; do
     DUC="$4"
     EPA="${5:--}"
     PAK="${6:--}"
+    AO="${7:--}"
     [ "$MAX_MB" = "-" ] && MAX_MB=""
     [ "$DUC" = "-" ] && DUC=""
     [ "$EPA" = "-" ] && EPA=""
     [ "$PAK" = "-" ] && PAK=""
-    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default} ENABLE_PUBLIC_API=${EPA:-default} PUBLIC_API_KEY=$([ -n "$PAK" ] && echo set || echo unset)"
+    [ "$AO" = "-" ] && AO=""
+    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default} ENABLE_PUBLIC_API=${EPA:-default} PUBLIC_API_KEY=$([ -n "$PAK" ] && echo set || echo unset) API_ONLY=${AO:-default}"
 
     echo
     echo "==========================================================="
@@ -95,6 +98,7 @@ for combo in "${COMBOS[@]}"; do
         -e DISABLE_UPDATE_CHECK="$DUC" \
         -e ENABLE_PUBLIC_API="$EPA" \
         -e PUBLIC_API_KEY="$PAK" \
+        -e API_ONLY="$AO" \
         "$IMAGE_NAME" >/dev/null
 
     echo "⏳ Waiting for http://localhost:$PORT_HOST/api/v1/health ..."

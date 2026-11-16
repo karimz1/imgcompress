@@ -74,7 +74,7 @@ There is one API, `/api/v1`, and the web UI is just one of its clients: every bu
 
 - **One list of options:** names, defaults, limits and allowed values of the conversion form (format, quality, width, target size, background removal, upscaling, PDF and editor fields) are defined once in `application/conversion_options.py`. The form parser and the OpenAPI document are both built from it, and `/api/v1/convert` and `/api/v1/jobs` reject out-of-range values with a 400 naming the field.
 - **Contract:** `presentation/web/openapi.py` builds the OpenAPI 3.1 document. Tests fail if a route is missing from it (or it lists a route that does not exist), if an operation lacks a summary, description, tags or parameter examples, if the document is not valid OpenAPI, or if a real answer does not match its documented schema.
-- **Docs:** with `ENABLE_PUBLIC_API=true`, Swagger UI is at `/api/v1/docs` and the document at `/api/v1/openapi.json`. The Swagger files come from the `swagger-ui-dist` npm package and are copied into the image at build time, so the page works offline (no CDN).
+- **Docs:** with `ENABLE_PUBLIC_API=true`, Swagger UI is at `/api/v1/docs` and the document at `/api/v1/openapi.json`. The Swagger files come from the `swagger-ui-dist` npm package and are copied into the image at build time, so the page works offline (no CDN). The document's server URL is `PUBLIC_BASE_URL` plus `/api/v1` when that is set (same env as the ntfy share links, trailing slash stripped); otherwise it is the relative path `/api/v1`, so Swagger uses the current origin and never shows localhost. Curl examples in the document follow the same rule, with `https://imgcompress.example.com` as a placeholder when the env is unset. `API_ONLY=true` also serves these docs (the public API is on) but does not serve the web UI.
 - **Two ways to convert:** `POST /api/v1/convert` waits and answers with the file itself (or a ZIP for several files), which suits a plugin that posts one image. `POST /api/v1/jobs` is the background job described below; the web UI uses it so long AI work survives a closed tab.
 
 ### Who may call it
@@ -92,10 +92,16 @@ flowchart TD
     H -- "no" --> U["401"]
 ```
 
-- **Web UI:** browsers mark every request with `Sec-Fetch-Site` (older ones only with `Origin`), and a page cannot change these headers. `same-origin` (or `none`, a typed URL) means the request comes from the web UI on this container. Without `Sec-Fetch-Site`, the `Origin` is compared with the request host, `X-Forwarded-Host` and the host of `PUBLIC_BASE_URL`, so it also works behind Traefik or another proxy. The web UI therefore never needs the key, and another website cannot pretend to be the web UI.
-- **ENABLE_PUBLIC_API (default false):** controls other websites only. When false, a request a browser marks as cross-site gets 403 (including CORS preflights), no CORS headers are sent and the docs answer 404. When true, every answer carries `Access-Control-Allow-Origin: *` (never with credentials; the API uses no cookies) and the `Authorization`, `X-API-Key` and `X-Job-Token` headers are allowed.
-- **PUBLIC_API_KEY (optional):** everything except the web UI must then send `Authorization: Bearer <key>` or `X-API-Key: <key>`; health checks and the docs stay open. The key is compared in constant time and never logged or shown in the settings.
-- **Limits:** these checks only stop browsers. Anything that can reach the container over the network (curl, a script) can call the API like the web UI can, regardless of `ENABLE_PUBLIC_API`. If the container is reachable by people you do not trust, set `PUBLIC_API_KEY` or put it behind a proxy with a login. `PUBLIC_API_KEY` does not lock the web UI itself.
+Three honest modes, the common self-hosted pattern (for example Stirling-PDF):
+
+| Mode | Settings | Effect |
+|---|---|---|
+| Default | Web UI on, `ENABLE_PUBLIC_API` off | Scripts on your network work. A browser request from another website gets 403 (CSRF defense via `Origin` / `Sec-Fetch-Site`). Docs answer 404. No CORS. |
+| Web UI + public API | `ENABLE_PUBLIC_API=true`, optional `PUBLIC_API_KEY` | Other websites may call the API (CORS `Access-Control-Allow-Origin: *`, no cookies). Docs are served. If a key is set, callers that are not the web UI must send it. The key is not a security boundary while the web UI is served: anyone who can open the UI can do the same. For public hosting use `API_ONLY` or put proxy auth (Authelia, Authentik, Basic Auth) in front. |
+| API only | `API_ONLY=true` and a `PUBLIC_API_KEY` | The web UI is not served. The public API is on (CORS and docs). Every `/api/v1` call except health checks needs the key. This is a real boundary. The container will not start without a key. |
+
+- **CSRF / cross-site protection:** browsers mark every request with `Sec-Fetch-Site` (older ones only with `Origin`); a page cannot change these headers. `same-origin` (or `none`, a typed URL) is treated as the web UI on this container. Without `Sec-Fetch-Site`, the `Origin` is compared with the request host, `X-Forwarded-Host` and the host of `PUBLIC_BASE_URL`, so it also works behind Traefik or another proxy. This is CSRF defense, not authentication. A script can send the same headers.
+- **PUBLIC_API_KEY:** compared in constant time and never logged or shown in the settings. Health checks and the docs stay open. Next to the web UI it only keeps casual callers and other websites honest; in `API_ONLY` it is the access boundary.
 - **Isolation:** jobs stay private to their job token (`X-Job-Token`) exactly as for the web UI, and `DISABLE_STORAGE_MANAGEMENT=true` turns off the storage and log routes for every caller.
 - **Legacy health:** `GET /api/health/backend` is a deprecated alias of `GET /api/v1/health` (same handler, never needs the key). It will be removed in 2.0.
 

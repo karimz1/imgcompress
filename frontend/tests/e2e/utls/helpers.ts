@@ -16,6 +16,18 @@ export function apiKeyHeaders(): Record<string, string> {
   return key ? { 'X-API-Key': key } : {};
 }
 
+export async function isApiOnlyModeAsync(request: APIRequestContext): Promise<boolean> {
+  const root = await request.get('/');
+  const type = root.headers()['content-type'] ?? '';
+  if (!type.includes('application/json')) return false;
+  try {
+    const body = await root.json();
+    return typeof body?.message === 'string' && body.message.includes('API only');
+  } catch {
+    return false;
+  }
+}
+
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
   resizeWidthSwitch: '[data-testid="resize-width-switch"]',

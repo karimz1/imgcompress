@@ -10,11 +10,16 @@ response fields can come in any release; nothing is renamed, removed or made
 stricter. A breaking change gets /api/v2, served next to v1 for a while.
 """
 
+import os
 from html import escape
 
 from backend.image_converter.application import conversion_options as options
 from backend.image_converter.config import settings
 from backend.image_converter.domain.fit_layers import MAX_IMAGE_LAYERS
+from backend.image_converter.infrastructure.notifier import (
+    PUBLIC_BASE_URL_ENV,
+    clean_public_base_url,
+)
 from backend.image_converter.presentation.web.api_access import (
     API_PREFIX,
     CORS_ALLOW_HEADERS,
@@ -24,6 +29,18 @@ from backend.image_converter.presentation.web.api_auth import API_KEY_HEADER
 
 API_VERSION = "1"
 SPEC_VERSION = "1.0.0"
+SITE_URL = "https://imgcompress.karimzouine.com"
+DOCS_URL = f"{SITE_URL}/docs"
+GITHUB_URL = "https://github.com/karimz1/imgcompress"
+LICENSE_NAME = "GPL-3.0-or-later"
+LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
+DOCS_TITLE = "imgcompress API docs, self-hosted image compression REST API"
+DOCS_META_DESCRIPTION = (
+    "Self-hosted REST API for image compression, conversion, editing and AI tools. "
+    "Offline, private, free and open source. Compress 70+ formats, no cloud."
+)
+# Typical values for Try-it-out guidance only; omitting a field still follows the web UI.
+_RECOMMENDED = {"format": "webp", "quality": "80", "fit_width": "1080", "fit_height": "1080"}
 
 _ERROR_EXAMPLES = {
     400: "'quality' must be a whole number between 1 and 100.",
@@ -108,33 +125,94 @@ def _binary(description: str, media_types=("application/octet-stream",), headers
     return response
 
 
-def option_schema(option: options.Option) -> dict:
-    """JSON Schema of one form field, from the option list."""
+def _fmt_number(value) -> str:
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return f"{value:g}" if isinstance(value, float) else str(value)
+
+
+def _fmt_omitted(value) -> str:
+    if value is False:
+        return "off"
+    if value is True:
+        return "true"
+    return _fmt_number(value) if isinstance(value, (int, float)) else str(value)
+
+
+def _range_text(option: options.Option) -> str:
+    """Allowed range or choices, for the field description (not a prefilled value)."""
+    if option.kind == options.BOOLEAN:
+        return "true or false"
+    if option.choices:
+        return "One of: " + ", ".join(option.choices)
+    if option.minimum is not None and option.maximum is not None:
+        return f"{_fmt_number(option.minimum)}-{_fmt_number(option.maximum)}"
+    if option.minimum is not None:
+        return f">= {_fmt_number(option.minimum)}"
+    if option.maximum is not None:
+        return f"<= {_fmt_number(option.maximum)}"
+    return ""
+
+
+def _option_description(option: options.Option, required: bool = False) -> str:
+    """Meaning, allowed range, a recommended value, and what happens if the field is left out.
+
+    `default` and `example` are kept off the schema so Swagger UI does not prefill Try-it-out.
+    Omitting the field still follows the web UI's start state (server-side defaults stay as they are).
+    """
+    text = option.description.rstrip(".") + "."
+    span = _range_text(option)
+    if span:
+        text += f" {span}."
+    recommended = _RECOMMENDED.get(option.name)
+    if recommended is None and option.default is not None and option.kind != options.BOOLEAN:
+        recommended = _fmt_omitted(option.default)
+    if recommended is not None:
+        text += f" Recommended: {recommended}."
+    elif option.kind == options.BOOLEAN:
+        text += " Recommended: leave empty unless you want this on."
+    else:
+        text += " Recommended: leave empty unless you want this applied."
+    if option.name == "format":
+        text += " Required. If a script omits it: jpeg, as in the web UI."
+    elif required:
+        text += " Required."
+    elif option.kind == options.BOOLEAN or option.default is False:
+        text += " If omitted: off, as in the web UI."
+    elif option.default is not None:
+        text += f" If omitted: {_fmt_omitted(option.default)}, as in the web UI."
+    else:
+        text += " If omitted: not applied, as in the web UI."
+    if option.aliases:
+        text += f" Also accepted as: {', '.join(option.aliases)}."
+    return text
+
+
+def option_schema(option: options.Option, required: bool = False) -> dict:
+    """JSON Schema of one form field, from the option list.
+
+    Min, max and enum stay on the schema (they constrain, they do not prefill).
+    Default and example stay off, so Swagger's Try-it-out starts empty.
+    """
     kind = {options.BOOLEAN: "boolean", options.INTEGER: "integer", options.NUMBER: "number"}.get(
         option.kind, "string"
     )
-    schema: dict = {"type": kind, "description": option.description}
-    if option.default is not None:
-        schema["default"] = option.default
+    schema: dict = {"type": kind, "description": _option_description(option, required=required)}
     if option.minimum is not None:
         schema["minimum"] = option.minimum
     if option.maximum is not None:
         schema["maximum"] = option.maximum
     if option.choices:
         schema["enum"] = list(option.choices)
-    if option.example is not None:
-        schema["examples"] = [option.example]
-    if option.aliases:
-        schema["description"] += f" Also accepted as: {', '.join(option.aliases)}."
     if option.repeated:
         return {"type": "array", "items": {"type": "string"}, "description": schema["description"]}
     return schema
 
-
 def _form(options_list, required=(), extra=None, example=None) -> dict:
+    required_names = set(required)
     properties = dict(extra or {})
     for option in options_list:
-        properties[option.name] = option_schema(option)
+        properties[option.name] = option_schema(option, required=option.name in required_names)
     schema = {"type": "object", "properties": properties}
     if required:
         schema["required"] = list(required)
@@ -153,7 +231,7 @@ def _conversion_form(with_output: bool) -> dict:
         },
     }
     option_list = options.CONVERSION_OPTIONS + ((options.OUTPUT,) if with_output else ())
-    return _form(option_list, required=("files[]",), extra=files)
+    return _form(option_list, required=("files[]", "format"), extra=files)
 
 
 _JOB_ID = {
@@ -179,9 +257,33 @@ def _curl(lines: str) -> str:
     return f"\n\n```bash\n{lines}\n```"
 
 
-def _paths() -> dict:
+# Shown in curl examples when PUBLIC_BASE_URL is not set, so the document never
+# hardcodes localhost. Swagger itself then uses the relative server URL.
+_EXAMPLE_ORIGIN = "https://imgcompress.example.com"
+
+
+def _spec_urls(script_root: str = "") -> tuple[str, str, str, str]:
+    """Server URL and curl base for /api/v1, then the same for the legacy health path.
+
+    With PUBLIC_BASE_URL (the same env as the ntfy share links), both use that
+    origin with a trailing slash stripped. Without it, the server is a relative
+    path so Swagger talks to the current origin, and curl examples use a
+    placeholder host instead of localhost.
+    """
+    origin = clean_public_base_url(os.environ.get(PUBLIC_BASE_URL_ENV))
+    if origin:
+        origin = origin.rstrip("/")
+        return f"{origin}{API_PREFIX}", f"{origin}{API_PREFIX}", origin, origin
+    return (
+        f"{script_root}{API_PREFIX}",
+        f"{_EXAMPLE_ORIGIN}{API_PREFIX}",
+        script_root or "/",
+        _EXAMPLE_ORIGIN,
+    )
+
+
+def _paths(base: str) -> dict:
     auth = '  -H "Authorization: Bearer $PUBLIC_API_KEY" \\\n'
-    base = "http://localhost:3001/api/v1"
     return {
         "/health": {"get": {
             "tags": ["Health"], "operationId": "health", "security": [],
@@ -397,10 +499,12 @@ def _paths() -> dict:
                 "file": {"type": "string", "format": "binary", "description": "The image to edit."},
                 "fit_background": {"type": "string", "format": "binary",
                                    "description": "Background picture for fit_mode=image, without a session."},
-                "render": {"type": "boolean", "default": False,
-                           "description": "true: answer with the full-size PNG instead of JSON."},
-                "preview": {"type": "boolean", "default": True,
-                            "description": "JSON answer only: include the preview image."},
+                "render": {"type": "boolean",
+                           "description": "true or false. true: answer with the full-size PNG instead of JSON. "
+                           "Recommended: leave empty unless you want the PNG. If omitted: off (JSON), as in the web UI."},
+                "preview": {"type": "boolean",
+                            "description": "true or false. JSON answer only: include the preview image. "
+                            "Recommended: leave empty to keep the preview. If omitted: true, as in the web UI."},
             }),
             "responses": {
                 "200": {"description": "PNG with `render=true`, else the selection and a preview.", "content": {
@@ -586,37 +690,80 @@ def _schemas() -> dict:
     }
 
 
-def _description(max_upload_mb: int, requires_key: bool) -> str:
+def _description(max_upload_mb: int, requires_key: bool, curl_base: str) -> str:
     key_state = "**set on this container**" if requires_key else "**not set on this container**"
-    return f"""Offline image compression, conversion, editing and AI tools of your imgcompress container.
-The web UI uses this same API, so everything it can do, your app can do too.
+    return f"""# ImgCompress, your self-hosted image toolbox. Compress every image format. Zero cloud.
 
-## Quick start
+An easy web app for everyone, no IT skills needed. Make images smaller, convert 70+ formats, edit them, enlarge them with AI and remove backgrounds. The AI is already built in. Private, offline, free and open source.
+
+Prefer a web UI? imgcompress ships one too — see the [website]({SITE_URL}) and the [GitHub repository]({GITHUB_URL}). Own your data.
+
+This document is the REST API of your container. The web UI uses the same routes, so everything it can do, your app can do too.
+
+Created by [Karim Zouine]({SITE_URL}).
+
+## Getting started
+
+The base URL is `PUBLIC_BASE_URL` plus `/api/v1` (trailing slash stripped; same env as the ntfy share links).
+Without `PUBLIC_BASE_URL`, this document's server is the relative path `/api/v1`, so Swagger uses the origin
+you opened these docs from.
 
 ```bash
-curl -fsS http://localhost:3001/api/v1/convert \\
+curl -fsS {curl_base}/convert \\
   -H "Authorization: Bearer $PUBLIC_API_KEY" \\
   -F "files[]=@photo.jpg" -F format=webp -F quality=80 -o photo.webp
 ```
 
-Leave out the `Authorization` line when PUBLIC_API_KEY is not set.
+Leave out the `Authorization` line when PUBLIC_API_KEY is not set. `format` is required; every other
+option may be omitted and then follows the web UI's start state (features off, quality 85).
 
-## Access
+## Authentication
 
-| Setting | Effect |
-|---|---|
-| `ENABLE_PUBLIC_API=false` (default) | Only the web UI and scripts on your network. Requests a browser marks as coming from another website get **403**, no CORS headers, these docs answer 404. |
-| `ENABLE_PUBLIC_API=true` | Other websites and apps may call the API: CORS allows any origin (`Access-Control-Allow-Origin: *`, no cookies). These docs are served. |
-| `PUBLIC_API_KEY=<secret>` | Every request except the web UI and `/health` needs `Authorization: Bearer <key>` or `{API_KEY_HEADER}: <key>`. PUBLIC_API_KEY is {key_state}. |
+`PUBLIC_API_KEY` is {key_state}. When set, callers other than the web UI (and health checks and these docs)
+must send `Authorization: Bearer <key>` or `{API_KEY_HEADER}: <key>`.
 
-The web UI never needs the key: the browser marks its requests as same-origin
-(`Sec-Fetch-Site`), which other websites cannot fake. Scripts can, so the key
-guards the API against other websites and casual scripts, not the container:
-anyone who can open the web UI can use what it does. Keep a private container
-private on the network level (LAN, VPN, reverse proxy with login).
+The web UI never sends the key. Same-origin browser requests are let through by a CSRF check
+(`Sec-Fetch-Site`, or `Origin` on older browsers): that is cross-site protection, not authentication.
+A script can send the same headers, so a key next to the web UI is not a security boundary.
+Anyone who can open the UI can do what it does.
 
 CORS (with the public API on): allowed request headers `{CORS_ALLOW_HEADERS}`,
 exposed response headers `{CORS_EXPOSE_HEADERS}`.
+
+## Deployment and security
+
+Three honest modes, the common self-hosted pattern (for example Stirling-PDF):
+
+| Mode | Settings | Effect |
+|---|---|---|
+| Default | Web UI on, `ENABLE_PUBLIC_API` off | Scripts on your network work. A browser request from another website gets **403** (CSRF defense via `Origin` / `Sec-Fetch-Site`). These docs answer 404. No CORS. |
+| Web UI + public API | `ENABLE_PUBLIC_API=true`, optional `PUBLIC_API_KEY` | Other websites may call the API (CORS `Access-Control-Allow-Origin: *`, no cookies). These docs are served. If a key is set, callers that are not the web UI must send it. The key is **not** a security boundary while the web UI is served. For public hosting use API_ONLY or put proxy auth (Authelia, Authentik, Basic Auth) in front. |
+| API only | `API_ONLY=true` and a `PUBLIC_API_KEY` | The web UI is not served. The public API is on (CORS and these docs). Every `/api/v1` call except health checks needs the key. This is a real boundary. The container will not start without a key. |
+
+## Convert vs jobs
+
+- `POST /convert` is synchronous: it waits and answers with the file itself, or a ZIP for several files.
+  Use it for one image or a short batch.
+- `POST /jobs` is asynchronous: it answers **202** with `id` and `token`, then a worker runs in the
+  background. Poll `GET /jobs/{{id}}` with `X-Job-Token`, then download a file or the ZIP. Use it for
+  AI upscaling, large batches, or work that should survive a closed tab.
+
+## Errors
+
+Every error is JSON: `{{"error": "Bad Request", "message": "'quality' must be a whole number between 1 and 100."}}`.
+
+| Code | Meaning |
+|---|---|
+| 400 | Invalid options or form. `message` says which field and what is allowed. |
+| 401 | PUBLIC_API_KEY is set and the request is neither from the web UI nor carries the key. |
+| 403 | A request from another website while ENABLE_PUBLIC_API is off, or a storage route with DISABLE_STORAGE_MANAGEMENT. |
+| 404 | Unknown id, wrong token, or expired. These are not told apart on purpose. |
+| 409 | Conflicts with the current state (see `message`). |
+| 410 | The editor session expired; upload the pictures again. |
+| 413 | The request is larger than MAX_UPLOAD_SIZE_MB. Nothing was stored. |
+| 415 | A file type the container cannot read. |
+| 422 | The files were readable as a form but none could be converted. |
+| 500 | Unexpected failure inside the container; see the container log. |
 
 ## Limits
 
@@ -626,23 +773,20 @@ exposed response headers `{CORS_EXPOSE_HEADERS}`.
 - Every request gets its own temporary folders, so parallel users never see each other's files.
 - Storage and log routes answer 403 when `DISABLE_STORAGE_MANAGEMENT=true`. They can see every user's files, so leave that switch on unless you trust every visitor.
 
-## Errors
-
-Every error is JSON: `{{"error": "Bad Request", "message": "'quality' must be a whole number between 1 and 100."}}`.
-
 ## Versioning
 
 `{API_PREFIX}` only grows: new endpoints, new optional fields and new response fields may come in any
 release. Nothing is renamed, removed or made stricter within v1. A breaking change gets `/api/v2`,
-served next to v1 for at least one release. `info.version` of this document follows semver for the
+served next to v1 for at least one release. Deprecated routes (such as `GET /api/health/backend`) are
+marked `deprecated` in this document and will be removed in 2.0. `info.version` follows semver for the
 contract of v1.
 """
 
 
-def _legacy_health_alias(script_root: str = "") -> dict:
+def _legacy_health_alias(server_root: str, curl_origin: str) -> dict:
     """GET /api/health/backend: same handler as /api/v1/health, documented off the v1 prefix."""
     return {"/api/health/backend": {"get": {
-        "servers": [{"url": script_root or "/", "description": "Container root (legacy path, not under /api/v1)"}],
+        "servers": [{"url": server_root, "description": "Container root (legacy path, not under /api/v1)"}],
         "tags": ["Health"], "operationId": "legacyHealthBackend", "security": [],
         "deprecated": True,
         "summary": "Legacy alias of GET /health",
@@ -650,7 +794,7 @@ def _legacy_health_alias(script_root: str = "") -> dict:
         "monitors keep working. Never needs the API key. Same access rules as /api/v1/health: "
         "scripts and monitors always work; other websites follow ENABLE_PUBLIC_API. "
         "Will be removed in 2.0; use GET /api/v1/health."
-        + _curl("curl -fsS http://localhost:3001/api/health/backend"),
+        + _curl(f"curl -fsS {curl_origin}/api/health/backend"),
         "responses": {"200": {"description": "The container answers.", "content": _json(
             _ref("Health"), {"status": "running", "api_version": "1", "utc_time": "2026-11-16T09:30:00+00:00"})}},
     }}}
@@ -658,29 +802,33 @@ def _legacy_health_alias(script_root: str = "") -> dict:
 
 def build_spec(script_root: str = "") -> dict:
     config = settings.get()
+    server, curl_base, legacy_server, curl_origin = _spec_urls(script_root)
     return {
         "openapi": "3.1.0",
         "info": {
             "title": "imgcompress API",
             "version": SPEC_VERSION,
             "summary": "Offline image compression, conversion, editing and AI background removal / upscaling.",
-            "description": _description(config.uploads.max_file_size_mebibytes, config.public_api.requires_key),
-            "license": {"name": "GPL-3.0-or-later", "identifier": "GPL-3.0-or-later"},
-            "contact": {"name": "imgcompress", "url": "https://imgcompress.karimzouine.com"},
+            "description": _description(
+                config.uploads.max_file_size_mebibytes, config.public_api.requires_key, curl_base,
+            ),
+            "license": {"name": LICENSE_NAME, "url": LICENSE_URL},
+            "contact": {"name": "Karim Zouine", "url": SITE_URL},
         },
-        "servers": [{"url": f"{script_root}{API_PREFIX}", "description": "This container"}],
+        "externalDocs": {"description": "imgcompress docs", "url": DOCS_URL},
+        "servers": [{"url": server, "description": "This container"}],
         "tags": [
-            {"name": "Convert", "description": "Compress, convert, resize, remove backgrounds, upscale, fit to size."},
-            {"name": "Jobs", "description": "Background conversions for long work (AI upscaling, big batches)."},
-            {"name": "Editor", "description": "Crop, fit, backgrounds, text and picture layers; previews of any format."},
-            {"name": "Info", "description": "Formats, models, limits and versions."},
-            {"name": "Health", "description": "Liveness checks; never need the key."},
-            {"name": "Storage", "description": "Storage management of the container (DISABLE_STORAGE_MANAGEMENT)."},
-            {"name": "Docs", "description": "This document and Swagger UI (ENABLE_PUBLIC_API only)."},
+            {"name": "Convert", "description": "Synchronous conversion: POST /convert waits and returns the file or a ZIP."},
+            {"name": "Jobs", "description": "Asynchronous conversion: POST /jobs returns 202; poll and download with X-Job-Token."},
+            {"name": "Editor", "description": "Crop, fit, backgrounds, text and picture layers; render a preview of any format."},
+            {"name": "Info", "description": "Supported formats, AI models, limits and versions of this container."},
+            {"name": "Health", "description": "Liveness checks. Never need the API key."},
+            {"name": "Storage", "description": "Temporary files of the container. Answer 403 when DISABLE_STORAGE_MANAGEMENT=true."},
+            {"name": "Docs", "description": "This document and Swagger UI. Served only with ENABLE_PUBLIC_API or API_ONLY."},
         ],
         # {} first: without PUBLIC_API_KEY nothing is needed.
         "security": [{}, {"bearerAuth": []}, {"apiKeyHeader": []}],
-        "paths": _with_gate_errors({**_paths(), **_legacy_health_alias(script_root)}),
+        "paths": _with_gate_errors({**_paths(curl_base), **_legacy_health_alias(legacy_server, curl_origin)}),
         "components": {
             "securitySchemes": {
                 "bearerAuth": {"type": "http", "scheme": "bearer",
@@ -696,20 +844,46 @@ def build_spec(script_root: str = "") -> dict:
 
 def swagger_page(script_root: str) -> str:
     root = escape(script_root, quote=True)
+    docs_path = f"{root}{API_PREFIX}/docs"
+    title = escape(DOCS_TITLE, quote=True)
+    description = escape(DOCS_META_DESCRIPTION, quote=True)
+    origin = clean_public_base_url(os.environ.get(PUBLIC_BASE_URL_ENV))
+    if origin:
+        canonical = escape(f"{origin.rstrip('/')}{API_PREFIX}/docs", quote=True)
+        image = f"{canonical}/og-image.webp"
+        canonical_tags = (
+            f'  <link rel="canonical" href="{canonical}">\n'
+            f'  <meta property="og:url" content="{canonical}">\n'
+        )
+    else:
+        image = f"{docs_path}/og-image.webp"
+        canonical_tags = ""
     return f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>imgcompress API</title>
-  <link rel="stylesheet" href="{root}{API_PREFIX}/docs/swagger-ui.css">
+  <title>{title}</title>
+  <meta name="description" content="{description}">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="{docs_path}/favicon.webp">
+{canonical_tags}  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="imgcompress">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{description}">
+  <meta property="og:image" content="{image}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{title}">
+  <meta name="twitter:description" content="{description}">
+  <meta name="twitter:image" content="{image}">
+  <link rel="stylesheet" href="{docs_path}/swagger-ui.css">
 </head>
 <body>
   <div id="swagger-ui" data-spec-url="{root}{API_PREFIX}/openapi.json">
     <noscript>Swagger UI needs JavaScript. The spec is at {root}{API_PREFIX}/openapi.json.</noscript>
   </div>
-  <script src="{root}{API_PREFIX}/docs/swagger-ui-bundle.js"></script>
-  <script src="{root}{API_PREFIX}/docs/swagger-ui-init.js"></script>
+  <script src="{docs_path}/swagger-ui-bundle.js"></script>
+  <script src="{docs_path}/swagger-ui-init.js"></script>
 </body>
 </html>
 """

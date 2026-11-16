@@ -4,6 +4,7 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 import sharp from 'sharp';
 import {
   clickConversionButtonAsync,
+  isApiOnlyModeAsync,
   setOutputFormatAsync,
   setUpscaleAsync,
   waitForSupportedFormatsCountAsync,
@@ -34,6 +35,7 @@ function devicesLikePhone() {
 }
 
 async function notifyEnabledAsync(request: APIRequestContext): Promise<boolean> {
+  if (await isApiOnlyModeAsync(request)) return false;
   const response = await request.get('/config/runtime.json');
   expect(response.ok()).toBeTruthy();
   return (await response.json()).NOTIFY_ENABLED === 'true';
@@ -63,6 +65,10 @@ async function waitDoneAsync(request: APIRequestContext, job: { id: string; toke
 }
 
 test.describe('Notify me when done', () => {
+  test.beforeEach(async ({ request }) => {
+    test.skip(await isApiOnlyModeAsync(request), 'no web UI in API_ONLY');
+  });
+
   test('the switch is hidden when the server has no NOTIFY_URL', async ({ page, request }) => {
     test.skip(await notifyEnabledAsync(request), 'NOTIFY_URL is set in this run');
     // Hold the polls so the splash stays up long enough to look at it.

@@ -109,7 +109,7 @@ backend_diagnostics_service = BackendDiagnosticsService(
 _JOB_TOKEN_HEADER = "X-Job-Token"
 _SWAGGER_DIR = os.path.join(os.path.dirname(__file__), "swagger_ui")
 # swagger-ui-dist files copied into the image at build (no CDN); the init script is ours.
-_SWAGGER_FILES = frozenset({"swagger-ui.css", "swagger-ui-bundle.js", "swagger-ui-init.js"})
+_SWAGGER_FILES = frozenset({"swagger-ui.css", "swagger-ui-bundle.js", "swagger-ui-init.js", "og-image.webp", "favicon.webp"})
 
 
 def _no_store(response):
