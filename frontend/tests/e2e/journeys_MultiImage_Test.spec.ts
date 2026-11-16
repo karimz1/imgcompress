@@ -75,7 +75,7 @@ test.describe('Real-world journeys with several images', () => {
     await expect(page.getByTestId('upscale-slow-hint')).toContainText('AI upscaling can take a moment, depending on the image.');
     await expect(page.getByTestId('upscale-notify-tip')).toHaveCount(notifyEnabled ? 0 : 1);
 
-    const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/jobs'));
+    const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/v1/jobs'));
     await clickConversionButtonAsync(page);
     expect((await started).status()).toBe(202);
     // The 202 can arrive before the page writes the job to localStorage.

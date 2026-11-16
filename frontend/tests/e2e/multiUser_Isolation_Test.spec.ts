@@ -130,7 +130,7 @@ test('users clicking "Download all" at the same time only get their own ZIP', as
     }
 });
 
-// Regression: /api/download used to accept the temp root as "folder", so anyone
+// Regression: /api/v1/storage/files/download used to accept the temp root as "folder", so anyone
 // could fetch another user's ZIP by trying converted_<unix-seconds>.zip.
 test('a second user cannot download the first user\'s ZIP by guessing its name', async ({ browser, request }) => {
     const owner = await convertAsUser(browser, 0, true);
@@ -146,7 +146,7 @@ test('a second user cannot download the first user\'s ZIP by guessing its name',
         const hits: string[] = [];
         for (let ts = before - 2; ts <= Math.floor(Date.now() / 1000) + 1; ts++) {
             const name = `converted_${ts}.zip`;
-            const res = await request.get(`/api/download?folder=${encodeURIComponent(tempDir)}&file=${name}`);
+            const res = await request.get(`/api/v1/storage/files/download?folder=${encodeURIComponent(tempDir)}&file=${name}`);
             if (res.ok()) hits.push(name);
         }
         expect(hits, 'another user\'s ZIP was downloadable by guessing').toEqual([]);
@@ -188,7 +188,7 @@ test('users placing images on their own background picture at the same time only
         })
     );
     try {
-        // Exports are rendered by /api/crop/fit right before /api/jobs.
+        // Exports are rendered by /api/v1/edit right before /api/v1/jobs.
         await clickConvertTogether(sessions);
         await Promise.all(
             sessions.map(async ({ page }, index) => {
@@ -227,7 +227,7 @@ test('users adding picture layers at the same time only get their own', async ({
             const sticker = await sharp({
                 create: { width: 50, height: 50, channels: 3, background: stickerOf(index) },
             }).png().toBuffer();
-            const uploaded = page.waitForResponse((r) => r.url().endsWith('/api/editor/assets'));
+            const uploaded = page.waitForResponse((r) => r.url().endsWith('/api/v1/editor/assets'));
             await page.getByTestId('fit-picture-input').setInputFiles({ name: 'sticker.png', mimeType: 'image/png', buffer: sticker });
             expect((await uploaded).ok(), `user ${index}: upload failed`).toBeTruthy();
             await expect(page.getByTestId('fit-layer-row')).toHaveCount(1);
@@ -262,7 +262,7 @@ test("a picture id from someone else's session cannot be used", async ({ browser
         const picture = (colour: Rgb) =>
             sharp({ create: { width: 20, height: 20, channels: 3, background: colour } }).png().toBuffer();
         const upload = async (context: BrowserContext, colour: Rgb) => {
-            const response = await context.request.post('/api/editor/assets', {
+            const response = await context.request.post('/api/v1/editor/assets', {
                 multipart: { file: { name: 'secret.png', mimeType: 'image/png', buffer: await picture(colour) } },
             });
             expect(response.status()).toBe(200);
@@ -275,7 +275,7 @@ test("a picture id from someone else's session cannot be used", async ({ browser
 
         const photo = await picture(USERS[2].colour);
         const fitWith = (session: string, asset: string) =>
-            stranger.request.post('/api/crop/fit', {
+            stranger.request.post('/api/v1/edit', {
                 multipart: {
                     file: { name: 'photo.png', mimeType: 'image/png', buffer: photo },
                     fit_width: '40',
@@ -296,7 +296,7 @@ test("a picture id from someone else's session cannot be used", async ({ browser
         const guessed = await fitWith('A'.repeat(32), mine.asset);
         expect(guessed.ok()).toBeFalsy();
         // Pictures are never listed or served: these paths only get the app page back.
-        for (const url of ['/api/editor/assets', `/api/editor/assets/${mine.asset}`, `/api/editor/assets/${mine.session}`]) {
+        for (const url of ['/api/v1/editor/assets', `/api/v1/editor/assets/${mine.asset}`, `/api/v1/editor/assets/${mine.session}`]) {
             const response = await stranger.request.get(url);
             expect(response.headers()['content-type'] ?? '').not.toMatch(/^image\//);
             const body = await response.body();

@@ -26,7 +26,7 @@ async function startSlowUpscaleAsync(page: Page): Promise<{ id: string; token: s
   await waitForSupportedFormatsCountAsync(page);
   await page.getByTestId('dropzone-input').setInputFiles([{ name: NAME, mimeType: 'image/jpeg', buffer: photo }]);
   await setUpscaleAsync(page, '4k');
-  const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/jobs'));
+  const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/v1/jobs'));
   await clickConversionButtonAsync(page);
   const response = await started;
   expect(response.status()).toBe(202);
@@ -34,7 +34,7 @@ async function startSlowUpscaleAsync(page: Page): Promise<{ id: string; token: s
 }
 
 async function statusAsync(request: APIRequestContext, job: { id: string; token: string }) {
-  const response = await request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
+  const response = await request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
   return response.json();
 }
 
@@ -176,15 +176,15 @@ test.describe('Background conversion jobs', () => {
       const job = await startSlowUpscaleAsync(alicePage);
       await assertDownloadLinksAsync(alicePage, [UPSCALED], '_ai-upscaled');
 
-      const own = await alice.request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
+      const own = await alice.request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
       expect(own.status()).toBe(200);
 
-      const unknown = await bob.request.get(`/api/jobs/${'Z'.repeat(22)}`, { headers: { 'X-Job-Token': 'guess' } });
+      const unknown = await bob.request.get(`/api/v1/jobs/${'Z'.repeat(22)}`, { headers: { 'X-Job-Token': 'guess' } });
       for (const response of [
-        await bob.request.get(`/api/jobs/${job.id}`),
-        await bob.request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': 'guess' } }),
-        await bob.request.get(`/api/jobs/${job.id}/zip`),
-        await bob.request.get(`/api/jobs/${job.id}/files/skyline-720p_ai-upscaled.jpg`),
+        await bob.request.get(`/api/v1/jobs/${job.id}`),
+        await bob.request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': 'guess' } }),
+        await bob.request.get(`/api/v1/jobs/${job.id}/zip`),
+        await bob.request.get(`/api/v1/jobs/${job.id}/files/skyline-720p_ai-upscaled.jpg`),
       ]) {
         expect(response.status()).toBe(404);
         expect(await response.json()).toEqual(await unknown.json());

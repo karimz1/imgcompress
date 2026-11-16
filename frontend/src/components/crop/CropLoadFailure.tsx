@@ -26,7 +26,7 @@ export const CropLoadFailure: React.FC<CropLoadFailureProps> = ({
   const lower = message.toLowerCase();
 
   const causes: string[] = [];
-  if (lower.includes("/api/crop/bitmap is not available") || lower.includes("404")) {
+  if (lower.includes("/api/v1/preview is not available") || lower.includes("404")) {
     causes.push(t("crop.failure.causes.backendNotReachable"));
   }
   if (lower.includes("network") || lower.includes("failed to fetch")) {

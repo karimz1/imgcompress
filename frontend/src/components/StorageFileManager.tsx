@@ -57,7 +57,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
   const fetchContainerFiles = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/container_files");
+      const res = await fetch("/api/v1/storage/files");
       const json = await res.json();
       setData(json);
     } catch (error) {
@@ -71,7 +71,7 @@ export default function FileManager({ onForceClean }: FileManagerProps) {
   
   const fetchStorageInfo = useCallback(async () => {
     try {
-      const res = await fetch("/api/storage_info");
+      const res = await fetch("/api/v1/storage");
       const json = await res.json();
       setStorage(json);
     } catch (error) {

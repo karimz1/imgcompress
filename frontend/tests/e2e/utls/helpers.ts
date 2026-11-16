@@ -43,7 +43,7 @@ const selectors = {
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
-  const response = await request.post('/api/force_cleanup');
+  const response = await request.post('/api/v1/storage/cleanup');
   expect(response.ok()).toBeTruthy();
 
   const payload = await response.json();
@@ -72,7 +72,7 @@ export async function assertStorageManagerFileCountAsync(
 }
 
 export async function getStorageManagerFileCountAsync(request: APIRequestContext): Promise<number> {
-  const storageState = await request.get('/api/container_files');
+  const storageState = await request.get('/api/v1/storage/files');
   expect(storageState.ok()).toBeTruthy();
   const storagePayload = await storageState.json();
   return storagePayload.total_count;
@@ -487,8 +487,8 @@ export interface FinishedJob {
 }
 
 /**
- * Conversions run as background jobs: POST /api/jobs, then the page polls
- * GET /api/jobs/<id>. Resolves with the poll answer that reports "done".
+ * Conversions run as background jobs: POST /api/v1/jobs, then the page polls
+ * GET /api/v1/jobs/<id>. Resolves with the poll answer that reports "done".
  */
 export function waitForFinishedJobAsync(page: Page): Promise<FinishedJob> {
   return page

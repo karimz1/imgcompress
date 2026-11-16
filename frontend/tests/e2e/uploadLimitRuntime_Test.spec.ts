@@ -68,7 +68,7 @@ test("the drawer names the limit and a picture below it converts", async ({ page
 test("a picture above the limit is refused in the UI and never sent", async ({ page }) => {
   let compressRequests = 0;
   page.on("request", (req) => {
-    if (req.url().endsWith("/api/jobs")) compressRequests += 1;
+    if (req.url().endsWith("/api/v1/jobs")) compressRequests += 1;
   });
 
   await page.getByTestId("dropzone-input").setInputFiles([overLimit, underLimit]);
@@ -82,7 +82,7 @@ test("a picture above the limit is refused in the UI and never sent", async ({ p
 test("pictures below the limit that are too big together are not sent in one request", async ({ page }) => {
   let compressRequests = 0;
   page.on("request", (req) => {
-    if (req.url().endsWith("/api/jobs")) compressRequests += 1;
+    if (req.url().endsWith("/api/v1/jobs")) compressRequests += 1;
   });
   // Two BMPs, each a bit more than half of the limit.
   const side = Math.ceil(Math.sqrt((limitMb * MB * 0.6) / 3));
@@ -119,11 +119,11 @@ test("the server refuses an upload above the limit by itself and stores nothing"
   const psd = fs.readFileSync(overLimit);
   const before = await getStorageManagerFileCountAsync(request);
 
-  const compress = await request.post("/api/compress", {
+  const compress = await request.post("/api/v1/convert", {
     multipart: { "files[]": { name: "big.psd", mimeType: "image/vnd.adobe.photoshop", buffer: psd }, format: "png" },
   });
   expect(compress.status()).toBe(413);
-  const job = await request.post("/api/jobs", {
+  const job = await request.post("/api/v1/jobs", {
     multipart: { "files[]": { name: "big.psd", mimeType: "image/vnd.adobe.photoshop", buffer: psd }, format: "png" },
   });
   expect(job.status()).toBe(413);
@@ -131,7 +131,7 @@ test("the server refuses an upload above the limit by itself and stores nothing"
   expect(body.max_upload_size_mb).toBe(limitMb);
   expect(body.message).toContain(`${limitMb} MB`);
 
-  const asset = await request.post("/api/editor/assets", {
+  const asset = await request.post("/api/v1/editor/assets", {
     multipart: { file: { name: "big.psd", mimeType: "image/vnd.adobe.photoshop", buffer: psd } },
   });
   expect(asset.status()).toBe(413);
@@ -139,7 +139,7 @@ test("the server refuses an upload above the limit by itself and stores nothing"
   expect(await getStorageManagerFileCountAsync(request)).toBe(before);
 
   // A picture below the limit is still taken by the editor.
-  const small = await request.post("/api/editor/assets", {
+  const small = await request.post("/api/v1/editor/assets", {
     multipart: { file: { name: "small.jpg", mimeType: "image/jpeg", buffer: fs.readFileSync(underLimit) } },
   });
   expect(small.status()).toBe(200);

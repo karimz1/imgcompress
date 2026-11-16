@@ -578,11 +578,11 @@ function HomePageContent() {
         formData.append("webp_lossless", "true");
       }
       if ((outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp") && useRembg) {
-        formData.append("use_rembg", "true");
+        formData.append("remove_background", "true");
       }
 
       try {
-        const res = await fetch("/api/jobs", {
+        const res = await fetch("/api/v1/jobs", {
           method: "POST",
           body: formData,
           signal: controller.signal,
@@ -737,7 +737,7 @@ function HomePageContent() {
 
   const onForceCleanCallback = useCallback(async () => {
     try {
-      const res = await fetch("/api/force_cleanup", { method: "POST" });
+      const res = await fetch("/api/v1/storage/cleanup", { method: "POST" });
       const json = await res.json();
       if (json.status === "ok") {
         toast.success(t("page.toast.cleanupSuccess"));
