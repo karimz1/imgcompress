@@ -31,6 +31,12 @@ ARG BUILD_PRERELEASE="false"
 RUN BUILD_COMMIT="$BUILD_COMMIT" BUILD_DATE="$BUILD_DATE" BUILD_REF="$BUILD_REF" \
     BUILD_VERSION="$BUILD_VERSION" BUILD_PRERELEASE="$BUILD_PRERELEASE" \
     node scripts/write-build-info.mjs && pnpm run build
+# Swagger UI for /api/v1/docs, served by the container itself so it works offline.
+# Only the two files the page loads are copied (plus the licence), not the package.
+RUN mkdir -p /app/swagger-ui && \
+    cp -L node_modules/swagger-ui-dist/swagger-ui-bundle.js \
+          node_modules/swagger-ui-dist/swagger-ui.css \
+          node_modules/swagger-ui-dist/LICENSE /app/swagger-ui/
 
 # The built static files are in /app/frontend/out/
 
@@ -283,6 +289,8 @@ COPY --from=upscale-model-stage --chown=65532:65532 /build/models /container/.mo
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py
+COPY --from=frontend-build-stage --chown=65532:65532 /app/swagger-ui/. \
+    /container/backend/image_converter/presentation/web/swagger_ui/
 
 COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/out/. \
     /container/backend/image_converter/presentation/web/static_site
