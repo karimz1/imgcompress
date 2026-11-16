@@ -71,7 +71,10 @@ async function expectJobIsHiddenAsync(request: APIRequestContext, job: Job, toke
   for (const url of [`/api/v1/jobs/${job.id}`, `/api/v1/jobs/${job.id}/files/${file}`, `/api/v1/jobs/${job.id}/zip`]) {
     const response = await request.get(url, { headers });
     expect(response.status(), url).toBe(404);
-    expect(await response.json()).toEqual({ error: 'Job not found. It may have expired.' });
+    expect(await response.json()).toEqual({
+      error: 'Not Found',
+      message: 'Job not found. It may have expired, or the X-Job-Token is wrong.',
+    });
   }
 }
 
