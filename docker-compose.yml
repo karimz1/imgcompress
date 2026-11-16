@@ -35,6 +35,15 @@ services:
       # - PUBLIC_BASE_URL=http://192.168.1.10:3001
       # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
       # - TZ=Europe/Berlin
+      # Optional: the REST API at /api/v1 is what the web UI itself uses. Scripts and
+      # apps on your network can always call it. Set to true to also allow other
+      # websites (CORS, e.g. a blog plugin in the browser) and to show the API docs
+      # at http://localhost:3001/api/v1/docs. Default: false.
+      # - ENABLE_PUBLIC_API=true
+      # Optional: require this key from every API caller except the web UI itself,
+      # sent as "Authorization: Bearer <key>" or "X-API-Key: <key>". Use a long random
+      # string (e.g. openssl rand -hex 32). Default: not set = no key needed.
+      # - API_KEY=paste-a-long-random-string-here
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       interval: 30s
