@@ -61,7 +61,8 @@ class FeaturesConfig:
 
 @dataclass(frozen=True)
 class PublicApiConfig:
-    # Off by default: /api/v1 and /api/docs answer 404 until ENABLE_PUBLIC_API=true.
+    # Off by default: other websites get 403 from /api/v1 and the docs answer 404.
+    # The web UI and scripts on the network use /api/v1 either way.
     is_enabled: bool = False
     # None means open (no key). Kept out of repr so it never lands in a log.
     api_key: Optional[str] = field(default=None, repr=False)

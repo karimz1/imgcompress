@@ -17,7 +17,7 @@ import { ImageFileDto } from './utls/ImageFileDto';
 const PHOTO = path.resolve(__dirname, 'fixtures/sample-images', 'pexels-willianjusten-29944187.jpg');
 const NAME = 'skyline-720p.jpg';
 const UPSCALED = new ImageFileDto(NAME);
-const JOB_STATUS = /\/api\/jobs\/[^/]+$/;
+const JOB_STATUS = /\/api\/v1\/jobs\/[^/]+$/;
 
 async function startSlowUpscaleAsync(page: Page): Promise<{ id: string; token: string }> {
   const photo = await sharp(PHOTO).resize(1280, 720, { fit: 'cover' }).jpeg({ quality: 85 }).toBuffer();

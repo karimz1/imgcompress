@@ -500,7 +500,7 @@ export interface FinishedJob {
 export function waitForFinishedJobAsync(page: Page): Promise<FinishedJob> {
   return page
     .waitForResponse(async (response) => {
-      if (response.request().method() !== 'GET' || !/\/api\/jobs\/[^/]+$/.test(new URL(response.url()).pathname)) {
+      if (response.request().method() !== 'GET' || !/\/api\/v1\/jobs\/[^/]+$/.test(new URL(response.url()).pathname)) {
         return false;
       }
       if (!response.ok()) return false;

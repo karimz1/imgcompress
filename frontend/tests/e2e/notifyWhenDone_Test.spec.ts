@@ -20,7 +20,7 @@ import {
 const PHOTO = path.resolve(__dirname, 'fixtures/sample-images', 'pexels-willianjusten-29944187.jpg');
 const CAPTURE_PORT = Number(process.env.NOTIFY_CAPTURE_PORT || 5199);
 const SWITCH = '[data-testid="notify-switch"]';
-const JOB_STATUS = /\/api\/jobs\/[^/]+$/;
+const JOB_STATUS = /\/api\/v1\/jobs\/[^/]+$/;
 
 type Message = { title?: string; message?: string };
 
@@ -162,7 +162,7 @@ test.describe('Notify me when done', () => {
 
     test('failed notify POST shows toast and inline alert; both clear after retry', async ({ page }) => {
       test.setTimeout(180_000);
-      await page.route(/\/api\/jobs\/[^/]+\/notify$/, async (route) => {
+      await page.route(/\/api\/v1\/jobs\/[^/]+\/notify$/, async (route) => {
         await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
       });
       await startJobAsync(page, 'notify-fail.jpg', true);
@@ -181,7 +181,7 @@ test.describe('Notify me when done', () => {
       await expect.poll(() => page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBeNull();
 
       // Retry succeeds: inline alert and sticky toast both go away; switch stays on.
-      await page.unroute(/\/api\/jobs\/[^/]+\/notify$/);
+      await page.unroute(/\/api\/v1\/jobs\/[^/]+\/notify$/);
       const saved = page.waitForResponse((r) => r.url().includes('/notify') && r.request().method() === 'POST');
       await toggle.click();
       expect((await saved).status()).toBe(204);

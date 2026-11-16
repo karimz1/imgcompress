@@ -137,7 +137,7 @@ test('a second user cannot download the first user\'s ZIP by guessing its name',
     try {
         await clickConvertTogether([owner]);
         const before = Math.floor(Date.now() / 1000);
-        const zipResponse = owner.page.waitForResponse((r) => /\/api\/jobs\/[^/]+\/zip$/.test(r.url()));
+        const zipResponse = owner.page.waitForResponse((r) => /\/api\/v1\/jobs\/[^/]+\/zip$/.test(r.url()));
         await clickDownloadZipButtonAndGetUrlAsync(owner.page);
         expect((await zipResponse).ok()).toBeTruthy();
 
