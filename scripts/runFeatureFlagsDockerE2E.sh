@@ -14,7 +14,7 @@ CONTAINER_NAME="${CONTAINER_NAME:-imgcompress-flags-tester}"
 PORT_HOST="${PORT_HOST:-8080}"
 PORT_CONTAINER=5000
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
-SPEC_PATHS=("tests/e2e/featureFlagsRuntime_Test.spec.ts" "tests/e2e/uploadLimitRuntime_Test.spec.ts")
+SPEC_PATHS=("tests/e2e/featureFlagsRuntime_Test.spec.ts" "tests/e2e/uploadLimitRuntime_Test.spec.ts" "tests/e2e/publicApi_Test.spec.ts")
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -86,11 +86,11 @@ for combo in "${COMBOS[@]}"; do
         -e DISABLE_UPDATE_CHECK="$DUC" \
         "$IMAGE_NAME" >/dev/null
 
-    echo "⏳ Waiting for http://localhost:$PORT_HOST/api/health/backend ..."
+    echo "⏳ Waiting for http://localhost:$PORT_HOST/api/v1/health ..."
     HEALTHY=0
     SECONDS=0
     while (( SECONDS < HEALTH_TIMEOUT )); do
-        if curl -fsS "http://localhost:$PORT_HOST/api/health/backend" >/dev/null 2>&1; then
+        if curl -fsS "http://localhost:$PORT_HOST/api/v1/health" >/dev/null 2>&1; then
             HEALTHY=1
             break
         fi
