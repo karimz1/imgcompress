@@ -16,6 +16,7 @@ from backend.image_converter.presentation.web.error_handlers import (
     handle_request_entity_too_large,
     not_found,
 )
+from backend.image_converter.presentation.web.api_access import API_PREFIX
 from backend.image_converter.presentation.web.routes import api_blueprint
 from backend.image_converter.presentation.web.static_routes import static_blueprint
 
@@ -37,7 +38,17 @@ app.config["MAX_CONTENT_LENGTH"] = _config.uploads.max_file_size_bytes
 
 app_logger = Logger(debug=False, json_output=False)
 
-app.register_blueprint(api_blueprint, url_prefix="/api")
+if _config.public_api.is_enabled:
+    # Never the key itself, only whether one is set.
+    app_logger.log(
+        "Public API on: other websites may call /api/v1, docs at /api/v1/docs. "
+        + ("API_KEY is set." if _config.public_api.requires_key
+           else "No API_KEY: anyone who can reach the container can use the API."),
+        "info" if _config.public_api.requires_key else "warning",
+    )
+
+# One API for the web UI and other apps; see api_access for who may call it.
+app.register_blueprint(api_blueprint, url_prefix=API_PREFIX)
 app.register_blueprint(static_blueprint, url_prefix="/")
 
 app.register_error_handler(413, handle_request_entity_too_large)
@@ -57,7 +68,7 @@ def global_handle_exception(e):
     app_logger.log(f"Exception occurred: {traceback.format_exc()}", "error")
     response = {
         "error": type(e).__name__,
-        "message": "An unexpected error occurred. See server logs for details.",
+        "message": "An unexpected error occurred. See the container logs for details.",
     }
     return jsonify(response), 500
 

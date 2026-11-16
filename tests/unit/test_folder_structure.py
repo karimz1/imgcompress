@@ -385,7 +385,7 @@ def test_the_request_is_refused_with_a_400(tmp_path):
 
     files = {"files[]": (BytesIO(_png()), "p.png")}
     data = {"format": "jpeg", "relative_dirs[]": "/".join("w" * 190 for _ in range(30)), **files}
-    response = server.app.test_client().post("/api/jobs", data=data, content_type="multipart/form-data")
+    response = server.app.test_client().post("/api/v1/jobs", data=data, content_type="multipart/form-data")
 
     assert response.status_code == 400
     body = response.get_data(as_text=True)

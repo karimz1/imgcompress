@@ -1,0 +1,4 @@
+# Copied from frontend/node_modules/swagger-ui-dist at image build (see Dockerfile).
+swagger-ui.css
+swagger-ui-bundle.js
+LICENSE

@@ -501,7 +501,7 @@ def test_svg_crop_bitmap_api_keeps_original_coordinates_with_a_sharp_preview():
     from backend.image_converter.presentation.web.server import app
 
     response = app.test_client().post(
-        "/api/crop/bitmap",
+        "/api/v1/preview",
         data={"file": (BytesIO(FINE_DETAIL_SVG), "detail.svg")},
     )
     assert response.status_code == 200
@@ -556,7 +556,7 @@ def test_svg_fit_api_draws_vectors_and_replays_saved_selection(mode):
     client = app.test_client()
     fields = {"fit_width": "100", "fit_height": "100", "fit_mode": mode}
     response = client.post(
-        "/api/crop/fit",
+        "/api/v1/edit",
         data={**fields, "file": (BytesIO(FINE_DETAIL_SVG), "detail.svg")},
     )
     assert response.status_code == 200, response.json
@@ -573,7 +573,7 @@ def test_svg_fit_api_draws_vectors_and_replays_saved_selection(mode):
         tuple(crop[key] for key in ("x", "y", "width", "height")),
     )
     replay = client.post(
-        "/api/crop/fit",
+        "/api/v1/edit",
         data={
             **fields,
             "render": "true",
