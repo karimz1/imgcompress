@@ -20,6 +20,7 @@ from backend.image_converter.infrastructure.editor_asset_store import (
 from backend.image_converter.infrastructure.local_storage import LocalStorage
 from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.notifier import Notifier
+from backend.image_converter.infrastructure.preset_store import PresetStore
 from backend.image_converter.presentation.web.parse_services import extract_form_data
 from backend.image_converter.presentation.web.services.backend_diagnostics_service import BackendDiagnosticsService
 from backend.image_converter.presentation.web.services.compression_service import CompressionService
@@ -28,6 +29,7 @@ from backend.image_converter.presentation.web.services.conversion_job_service im
 from backend.image_converter.presentation.web.services.crop_bitmap_request_service import CropBitmapRequestService
 from backend.image_converter.presentation.web.services.crop_preview_service import CropPreviewService
 from backend.image_converter.presentation.web.services.fit_preview_service import FitPreviewService
+from backend.image_converter.presentation.web.services.preset_service import PresetResponse, PresetService
 from backend.image_converter.presentation.web.services.storage_management_service import StorageManagementService
 from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
 
@@ -73,6 +75,10 @@ crop_preview_service = CropPreviewService(
 crop_bitmap_request_service = CropBitmapRequestService(crop_preview_service, TEMP_DIR)
 fit_preview_service = FitPreviewService()
 editor_assets = EditorAssetStore(TEMP_DIR)
+preset_service = PresetService(
+    PresetStore(_config.presets.file, logger),
+    is_enabled=_config.features.is_custom_presets_enabled,
+)
 backend_diagnostics_service = BackendDiagnosticsService(
     logger,
     TEMP_DIR,
@@ -279,6 +285,35 @@ def container_files():
 
     inventory = temp_folder_service.get_container_files()
     return jsonify(inventory.to_json_dict()), 200
+
+
+def _preset_response(result: PresetResponse):
+    response = Response(status=204) if result.status_code == 204 else jsonify(result.body)
+    response.status_code = result.status_code
+    # Presets change from any browser; never answer from a cache.
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@api_blueprint.route("/presets", methods=["GET"])
+def list_presets():
+    return _preset_response(preset_service.list_presets())
+
+
+@api_blueprint.route("/presets", methods=["POST"])
+def create_preset():
+    return _preset_response(preset_service.create(request.get_json(silent=True)))
+
+
+@api_blueprint.route("/presets/<preset_id>", methods=["PUT"])
+def update_preset(preset_id: str):
+    return _preset_response(preset_service.update(preset_id, request.get_json(silent=True)))
+
+
+@api_blueprint.route("/presets/<preset_id>", methods=["DELETE"])
+def delete_preset(preset_id: str):
+    return _preset_response(preset_service.delete(preset_id))
+
 
 @api_blueprint.route("/health/internet", methods=["GET"])
 def health_internet():

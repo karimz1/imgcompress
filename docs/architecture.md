@@ -36,6 +36,16 @@ flowchart LR
 - **Notifier:** off by default. When enabled, only a short text such as "3 images ready" goes out, never file names or images. The switch on the wait screen calls `POST /api/jobs/<id>/notify` with the job token. The choice is a small `notify` file in the job folder, so any worker can save it while another one runs the job. After the job ends, that worker sends one message through Apprise (`NOTIFY_URL`). A failed send is only logged, without the URL.
 - **Share link:** with `PUBLIC_BASE_URL` set, the message links to `<PUBLIC_BASE_URL>/r/<job id>/<share token>`. The share token is a fresh `secrets.token_urlsafe(32)` made when the message is sent; only its SHA-256 is kept (a `share` file in the job folder), and it is never the job token. Opening the link loads the page, which removes the secret from the address bar and calls `POST /api/jobs/<id>/claim` with the share token in the body. That gives the browser a job token of its own (its hash is appended to a `devices` file, with no cap), and from there it polls and downloads with `X-Job-Token` like the browser that started the job. A wrong or expired link gets the same 404 as any unknown job. The link lives as long as the job (48 hours after the last look by default). The message also stamps an expiry in the container's local timezone (set with `TZ`, e.g. `Europe/Berlin`) from send time plus `temporary_storage.max_age_seconds` (48 hours by default); later activity can keep the job longer on the server. Whoever can read the notification can open the result, so the ntfy topic should stay private.
 
+## Presets
+
+Presets are named sets of conversion settings (format, quality or target size, width, background removal, WebP, PDF and upscaling options). There are no user accounts, so every preset is shared by everyone using the server.
+
+- **Storage:** one file, `/data/presets.json` (`presets.file` in `app.json`), with a schema `version`. `/data` is a volume, so presets survive a container update.
+- **Many workers:** nothing is cached in memory; every request reads the file. A change takes an exclusive `flock` on `presets.json.lock`, reads the latest file, writes `presets.json.tmp`, fsyncs it and swaps it in with `os.replace`. Two workers saving at once cannot lose a change, and a reader never sees half a file.
+- **Broken file:** a file that is not valid JSON, has an unknown version or holds an invalid preset is never overwritten. The error is logged, the preset API answers 503, and conversions keep working.
+- **Same shape as a conversion:** a preset stores the form fields of `POST /api/jobs`, and the server sets every field that does not apply to the format to `null`. The browser turns its form into the same shape and shows a preset as selected only while the two match; any change shows "Custom".
+- **Turned off:** `DISABLE_CUSTOM_PRESETS=true` hides the presets and makes `/api/presets` answer 403. The file is left as it is.
+
 ## A background job
 
 ```mermaid
@@ -87,3 +97,4 @@ The browser starts a job, gets `202 Accepted` with an id, and asks for the statu
 | Cleanup | `backend/image_converter/infrastructure/cleanup_service.py` |
 | Polling in the browser | `frontend/src/lib/conversionJob.ts` |
 | Settings | `backend/image_converter/config/app.json` |
+| Presets | `backend/image_converter/domain/compression_presets.py`, `backend/image_converter/infrastructure/preset_store.py`, `frontend/src/lib/presets.ts` |
