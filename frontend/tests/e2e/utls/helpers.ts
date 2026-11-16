@@ -9,6 +9,13 @@ import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
 import type { UpscaleTarget } from '../../../src/lib/upscale';
 import type { FitMode, FitPreset } from '../../../src/lib/fitToSize';
 
+// Playwright's `request` sends no browser headers, so the container treats it like
+// a script: with API_KEY set it needs the key. The browser (the web UI) never does.
+export function apiKeyHeaders(): Record<string, string> {
+  const key = process.env.E2E_API_KEY;
+  return key ? { 'X-API-Key': key } : {};
+}
+
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
   resizeWidthSwitch: '[data-testid="resize-width-switch"]',
@@ -43,7 +50,7 @@ const selectors = {
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
-  const response = await request.post('/api/v1/storage/cleanup');
+  const response = await request.post('/api/v1/storage/cleanup', { headers: apiKeyHeaders() });
   expect(response.ok()).toBeTruthy();
 
   const payload = await response.json();
@@ -72,7 +79,7 @@ export async function assertStorageManagerFileCountAsync(
 }
 
 export async function getStorageManagerFileCountAsync(request: APIRequestContext): Promise<number> {
-  const storageState = await request.get('/api/v1/storage/files');
+  const storageState = await request.get('/api/v1/storage/files', { headers: apiKeyHeaders() });
   expect(storageState.ok()).toBeTruthy();
   const storagePayload = await storageState.json();
   return storagePayload.total_count;
