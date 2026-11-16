@@ -21,6 +21,7 @@ from backend.image_converter.config.app_config import (
     FeaturesConfig,
     FormatsConfig,
     LoggingConfig,
+    PublicApiConfig,
     RembgConfig,
     TemporaryStorageConfig,
     UploadsConfig,
@@ -67,6 +68,11 @@ _OVERRIDES = (
         env_var="DISABLE_UPDATE_CHECK",
         inverted=True,
     ),
+    _FeatureFlagOverride(
+        json_path=("public_api", "is_enabled"),
+        env_var="ENABLE_PUBLIC_API",
+        inverted=False,
+    ),
 )
 
 
@@ -74,6 +80,9 @@ _OVERRIDES = (
 MAX_UPLOAD_SIZE_ENV = "MAX_UPLOAD_SIZE_MB"
 # Same for the Granian worker count ("auto" or a whole number).
 WEB_WORKERS_ENV = "WEB_WORKERS"
+# Optional key for the public API (/api/v1). Env only, never in app.json, so it
+# is not baked into an image or a config file.
+API_KEY_ENV = "API_KEY"
 
 
 def load_from_file(path: Path) -> AppConfig:
@@ -142,6 +151,12 @@ def load_from_file(path: Path) -> AppConfig:
         ),
     )
 
+    # Optional block: the public API is off unless switched on.
+    public_api = PublicApiConfig(
+        is_enabled=reader.optional_feature_flag(("public_api", "is_enabled"), default=False),
+        api_key=(os.environ.get(API_KEY_ENV) or "").strip() or None,
+    )
+
     if errors:
         raise ConfigError("invalid backend config:\n  - " + "\n  - ".join(errors))
 
@@ -155,6 +170,7 @@ def load_from_file(path: Path) -> AppConfig:
         features=features,
         rembg=rembg,
         upscaling=upscaling,
+        public_api=public_api,
     )
 
 
