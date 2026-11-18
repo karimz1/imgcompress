@@ -75,6 +75,11 @@ class BaseImageConverter(IImageConverter):
         Ensures the image is in a compatible mode (RGB or RGBA).
         """
         with Image.open(BytesIO(image_data)) as img:
+            try:
+                img = ImageOps.exif_transpose(img)
+            except Exception:
+                pass
+
             if img.mode not in ("RGB", "RGBA"):
                 img = img.convert("RGBA")
 
