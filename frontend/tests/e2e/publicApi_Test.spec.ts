@@ -66,6 +66,13 @@ test('the API mode of this container behaves as documented', async ({ page, requ
     expect(root.status()).toBe(200);
     expect(root.headers()['content-type'] || '').toContain('application/json');
     expect((await root.json()).message).toContain('/api/v1/docs');
+    // Flask also serves the UI at /static; that path must stay hidden too.
+    for (const path of ['/static/index.html', '/index.html', '/config/runtime.json']) {
+      const hidden = await request.get(path);
+      expect(hidden.status(), path).toBe(404);
+      expect(hidden.headers()['content-type'] || '').toContain('application/json');
+      expect((await hidden.json()).message).toContain('/api/v1/docs');
+    }
     const spoofed = await request.get('/api/v1/info', { headers: { 'Sec-Fetch-Site': 'same-origin' } });
     expect(spoofed.status()).toBe(401);
   } else {

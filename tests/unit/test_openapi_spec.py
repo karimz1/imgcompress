@@ -271,7 +271,9 @@ def test_Docs_Expect_SwaggerUiPageWithLocalAssetsAndSeoTags(client):
     assert b"getSampleSchema" in init.data and b"noPrefill" in init.data
     assert client.get("/api/v1/docs/og-image.webp").status_code == 200
     assert client.get("/api/v1/docs/favicon.webp").status_code == 200
-    assert client.get("/api/v1/docs/../server.py").status_code == 404
+    hidden = client.get("/api/v1/docs/../server.py")
+    assert hidden.status_code == 404
+    assert hidden.is_json and hidden.get_json()["error"] == "Not Found"
     assert client.get("/api/v1/docs/index.css").status_code == 404
 
 

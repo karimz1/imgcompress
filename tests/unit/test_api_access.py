@@ -230,6 +230,12 @@ def test_When_ApiOnly_Expect_WebUiIsNotServedAndRootPointsAtDocs(configure):
     assert hidden.status_code == 404
     assert hidden.get_json()["error"] == "Not Found"
     assert "/api/v1/docs" in hidden.get_json()["message"]
+    # Flask serves the UI files at /static as well; that path must also stay hidden.
+    for path in ("/static/index.html", "/static/_next/static/media/x.svg", "/index.html"):
+        response = client.get(path)
+        assert response.status_code == 404, path
+        assert response.is_json, path
+        assert "/api/v1/docs" in response.get_json()["message"], path
 
 
 def test_When_ApiOnly_Expect_KeyRequiredEvenWithSpoofedWebUiHeaders(configure):

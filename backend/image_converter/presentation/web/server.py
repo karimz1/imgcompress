@@ -18,7 +18,10 @@ from backend.image_converter.presentation.web.error_handlers import (
 )
 from backend.image_converter.presentation.web.api_access import API_PREFIX, startup_notices
 from backend.image_converter.presentation.web.routes import api_blueprint, legacy_blueprint
-from backend.image_converter.presentation.web.static_routes import static_blueprint
+from backend.image_converter.presentation.web.static_routes import (
+    install_api_only_web_ui_gate,
+    static_blueprint,
+)
 
 
 pillow_heif.register_heif_opener()
@@ -47,6 +50,7 @@ app.register_blueprint(api_blueprint, url_prefix=API_PREFIX)
 # Deprecated alias of /api/v1/health (removed in 2.0).
 app.register_blueprint(legacy_blueprint, url_prefix="/api")
 app.register_blueprint(static_blueprint, url_prefix="/")
+install_api_only_web_ui_gate(app)
 
 app.register_error_handler(413, handle_request_entity_too_large)
 app.register_error_handler(404, not_found)

@@ -4,6 +4,7 @@ from werkzeug.security import safe_join
 
 from backend.image_converter.config import settings
 from backend.image_converter.infrastructure.notifier import NOTIFY_URL_ENV
+from backend.image_converter.presentation.web.error_handlers import not_found as json_not_found
 
 static_blueprint = Blueprint("static_blueprint", __name__)
 
@@ -13,13 +14,22 @@ _API_ONLY_MESSAGE = (
 )
 
 
-@static_blueprint.before_request
-def hide_web_ui_when_api_only():
-    if not settings.get().public_api.api_only:
-        return None
-    if request.path in ("/", ""):
-        return jsonify({"message": _API_ONLY_MESSAGE}), 200
-    return jsonify({"error": "Not Found", "message": _API_ONLY_MESSAGE}), 404
+def install_api_only_web_ui_gate(app):
+    """Hide every non-API path when API_ONLY is on, including Flask's /static.
+
+    Flask serves `static_folder` at `/static` on the app itself, not on this
+    blueprint, so a blueprint hook would still leak the web UI there.
+    """
+
+    @app.before_request
+    def hide_web_ui_when_api_only():
+        if not settings.get().public_api.api_only:
+            return None
+        if request.path.startswith("/api/"):
+            return None
+        if request.path in ("/", ""):
+            return jsonify({"message": _API_ONLY_MESSAGE}), 200
+        return jsonify({"error": "Not Found", "message": _API_ONLY_MESSAGE}), 404
 
 
 def _flag(value: bool) -> str:
@@ -62,7 +72,11 @@ def not_found_handler(error):
     """
     If a route is not found (while in this blueprint), serve index.html.
     This is typical for client-side routing in SPAs (React, Next.js, etc.).
+    /api/ paths must not get the web UI: unknown API routes abort 404 here
+    after the catch-all matches them, and that answer should stay JSON.
     """
+    if request.path.startswith("/api/"):
+        return json_not_found(error)
     return serve_static_file("index.html")
 
 
@@ -89,7 +103,7 @@ def serve_next_static(path):
 def serve_out_files(path):
     """
     Catch-all route for non-API paths:
-      1) If it starts with 'api/', abort(404) so it can bubble up to your API blueprint.
+      1) If it starts with 'api/', abort(404); the blueprint 404 handler returns JSON for /api/ paths.
       2) Else, serve the file if it exists.
       3) If no file, serve index.html for SPA routing.
     """

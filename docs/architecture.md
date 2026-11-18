@@ -82,10 +82,10 @@ There is one API, `/api/v1`, and the web UI is just one of its clients: every bu
 ```mermaid
 flowchart TD
     R["Request to /api/v1"] --> K{"Browser says it comes from<br/>another website?<br/>(Sec-Fetch-Site, else Origin)"}
-    K -- "yes, ENABLE_PUBLIC_API=false" --> F["403, no CORS headers"]
-    K -- "no: the web UI itself" --> OK["allowed, never needs the key"]
-    K -- "yes, ENABLE_PUBLIC_API=true" --> A{"PUBLIC_API_KEY set?"}
-    K -- "no browser headers (curl, scripts)" --> A
+    K -- "yes, public API off" --> F["403, no CORS headers"]
+    K -- "no, and the web UI is served" --> OK["allowed, never needs the key"]
+    K -- "yes, public API on" --> A{"PUBLIC_API_KEY set?"}
+    K -- "no browser headers, or API_ONLY" --> A
     A -- "no" --> OK2["allowed"]
     A -- "yes" --> H{"Bearer token or X-API-Key<br/>matches? (constant time)"}
     H -- "yes" --> OK2

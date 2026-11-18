@@ -163,7 +163,7 @@ Set `-e DISABLE_UPDATE_CHECK=true` to stop the browser checking GitHub for new r
 
 **Notify me when done (optional):** set `NOTIFY_URL` (e.g. `NOTIFY_URL=ntfy://notify.lan/<topic>`) plus optional `PUBLIC_BASE_URL` and `TZ`. A switch appears while a job runs; you get one message when it finishes, with a private result link if `PUBLIC_BASE_URL` is set. Full setup: [Notify me when done](https://imgcompress.karimzouine.com/docs/notifications). Ready-made compose: **[homelab-traefik-ntfy](docker/compose/homelab-traefik-ntfy/)**.
 
-**REST API (optional):** the web UI runs on the API at `/api/v1`; scripts can POST an image to `/api/v1/convert` and get the result back. Set `-e ENABLE_PUBLIC_API=true` to let other websites call it and open the interactive docs at `/api/v1/docs`, and `-e PUBLIC_API_KEY=<long random string>` to require a key from every caller except the web UI. How it works: [Architecture](docs/architecture.md#the-rest-api-apiv1).
+**REST API (optional):** the web UI runs on the API at `/api/v1`; scripts can POST an image to `/api/v1/convert` and get the result back. Set `-e ENABLE_PUBLIC_API=true` to let other websites call it and open the interactive docs at `/api/v1/docs`, and `-e PUBLIC_API_KEY=<long random string>` to require a key from every caller except the web UI. For a public host with no web UI, set `-e API_ONLY=true` and a key (the container will not start without one; the key is then a real boundary). How it works: [Architecture](docs/architecture.md#the-rest-api-apiv1).
 
 For more settings, such as hiding the mascot, see the **[full installation guide](https://imgcompress.karimzouine.com/docs/installation)**.
 
