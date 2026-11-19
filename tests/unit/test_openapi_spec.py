@@ -242,7 +242,7 @@ def test_Description_Expect_ShortIntroAuthModesErrorsAndCurl(spec):
         "/api/v2", "curl ", "DISABLE_STORAGE_MANAGEMENT", "PUBLIC_BASE_URL", "Authelia", "info.version",
     ):
         assert needle in text, needle
-    assert len(text) < 2600, "keep the intro short: people know Swagger UI"
+    assert len(text) < 4000, "keep the intro short: people know Swagger UI"
     assert "curl " in spec["paths"]["/convert"]["post"]["description"]
     assert openapi.AUTHOR_URL == "https://www.karimzouine.com"
     assert spec["info"]["contact"] == {"name": "Karim Zouine", "url": openapi.AUTHOR_URL}
@@ -555,6 +555,7 @@ def test_ExampleIdsAndTokens_Expect_TheirSchemaPatternsAndTheRealGenerators():
     for value, pattern in ((openapi.EXAMPLE_JOB_ID, openapi._JOB_ID_PATTERN),
                            (openapi.EXAMPLE_JOB_TOKEN, openapi._TOKEN_PATTERN),
                            (openapi.EXAMPLE_CLAIMED_TOKEN, openapi._TOKEN_PATTERN),
+                           (openapi.EXAMPLE_SHARE_TOKEN, openapi._TOKEN_PATTERN),
                            (openapi.EXAMPLE_SESSION, openapi._SESSION_PATTERN),
                            (openapi.EXAMPLE_ASSET, openapi._ASSET_PATTERN)):
         assert re.fullmatch(pattern, value), value
@@ -591,3 +592,26 @@ def test_Claim_Expect_ShareTokenExplainedAndItsOwn404(spec):
     example = operation["responses"]["404"]["content"]["application/json"]["example"]
     assert example["message"] == routes.CLAIM_NOT_FOUND
     assert "X-Job-Token" not in example["message"]
+
+
+def test_Workflows_Expect_OrderedStepsForEveryFlow(spec):
+    text = spec["info"]["description"]
+    workflows = text[text.index("## Workflows"):text.index("## Errors and limits")]
+    for needle in ("POST /convert", "1. POST /jobs", "token is shown only once",
+                   "2. Poll GET /jobs/{job_id}", "X-Job-Token", "every 1 to 2 seconds", "`canceled`",
+                   "3. Download GET /jobs/{job_id}/files/{file_name}", "result.converted_files",
+                   "GET /jobs/{job_id}/zip", "POST /jobs/{job_id}/cancel", "POST /jobs/{job_id}/notify",
+                   "NOTIFY_URL", "/r/{job_id}/{share_token}", "POST /jobs/{job_id}/claim",
+                   f'"share_token": "{openapi.EXAMPLE_SHARE_TOKEN}"', "POST /editor/assets", "POST /edit",
+                   "POST /preview", "GET /storage/files", "POST /storage/cleanup"):
+        assert needle in workflows, needle
+    assert '{{' not in workflows
+
+
+def test_EveryOperation_Expect_AWhenLineFirst(spec, open_spec):
+    for served in (spec, open_spec):
+        for path, method, operation in _operations(served):
+            first = operation["description"].split("\n", 1)[0]
+            assert first.startswith("**When:** "), f"{method} {path}"
+            assert 20 <= len(first) <= 200, f"{method} {path}: keep the When line to one short sentence"
+    assert set(openapi._WHEN) == {op["operationId"] for _, _, op in _operations(spec)}

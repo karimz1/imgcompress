@@ -52,6 +52,7 @@ _SESSION_PATTERN = "^[A-Za-z0-9_-]{32}$"  # token_urlsafe(24), editor_asset_stor
 _ASSET_PATTERN = "^[A-Za-z0-9_-]{22}$"  # token_urlsafe(16), editor_asset_store
 EXAMPLE_JOB_ID = "g30-VsIgWqrDkMS4a-bFJg"
 EXAMPLE_JOB_TOKEN = "qs753DugZX5xOse40hTZUxJ0i58e-F5Zt7T6LzQnj9M"
+EXAMPLE_SHARE_TOKEN = "8Wbr20zoy2_qWYc8fHCUfGWQ1sKAQxX0botu3Y0NwUM"
 EXAMPLE_CLAIMED_TOKEN = "J3bPZLbX79-JUO917GDk8j4wemJ_bJTRQ7B2Hu-OXtU"
 EXAMPLE_SESSION = "r_z3VM0QmTufB9pGvuFJfOMr83mu8rv2"
 EXAMPLE_ASSET = "ZZn7mT-kj8Iozp-imxUl8A"
@@ -86,6 +87,53 @@ _ERROR_TEXT = {
     422: "The files were readable as a form but none could be converted.",
     500: "Unexpected failure inside the container; details are in the container log.",
 }
+
+
+# First line of each operation: when to use it, what comes before, where inputs come from.
+_WHEN = {
+    "health": "Use for health checks and uptime monitors. Nothing to call before.",
+    "healthInternet": "Use to show an online badge. Nothing to call before; the API works offline either way.",
+    "legacyHealthBackend": "Only for old health checks. New setups call GET /api/v1/health.",
+    "info": "Call once at start to read the limits and switched-on features (e.g. `notifications_enabled` "
+    "before offering notify).",
+    "formats": "Call before uploading to check a file type, and for the values of `format`.",
+    "removeBackgroundModel": "Optional. Shows which model `remove_background=true` uses.",
+    "upscaleModels": "Call before upscaling: values for `upscale_model` and whether each is installed.",
+    "convert": "Use for one image or a small batch when you can wait for the answer. Nothing to call before.",
+    "startJob": "Use for AI upscaling, big batches or anything that may take long. Step 1 of the job flow: "
+    "keep `id` and `token` from the answer.",
+    "jobStatus": "Step 2 of the job flow: poll with `id` and `token` from POST /jobs until `status` is done, "
+    "failed or canceled.",
+    "jobFile": "Step 3 of the job flow: download one file; names come from `result.converted_files` of "
+    "GET /jobs/{job_id}.",
+    "jobZip": "Step 3 of the job flow: download all results at once, after GET /jobs/{job_id} says done.",
+    "cancelJob": "Optional, while a job runs: stop it with `id` and `token` from POST /jobs.",
+    "notifyJob": "Optional, while a job runs: ask for a push message when it ends. Needs NOTIFY_URL "
+    "(see `notifications_enabled` in GET /info).",
+    "claimJob": "Use on another device that opened a notification link `/r/{job_id}/{share_token}`: "
+    "both values come from that link.",
+    "preview": "Use to show or crop any input (PSD, HEIC, RAW and more) as PNG before editing. Nothing to call before.",
+    "edit": "Use to crop or fit one image, with backgrounds, text and picture layers. Pictures for layers "
+    "come from POST /editor/assets first.",
+    "uploadEditorAsset": "Call before POST /edit when you use picture layers or a stored background: keep "
+    "`session` and `asset`.",
+    "storageInfo": "Admin: disk space of the temporary files. Nothing to call before.",
+    "storageFiles": "Admin: list result files. Step 1 before downloading or cleaning up.",
+    "storageDownloadFile": "Admin: download one file; `folder` and `file` come from GET /storage/files.",
+    "storageDownloadFolder": "Admin: download one result folder; `folder` comes from GET /storage/files.",
+    "storageCleanup": "Admin: delete all finished results now. Running jobs are kept.",
+    "logs": "Admin: download the container log for a bug report.",
+    "openapi": "Use to generate a client or import the API into a tool.",
+    "docs": "This page.",
+    "docsAsset": "Files this page loads; you do not call this yourself.",
+}
+
+
+def _with_when(paths: dict) -> dict:
+    for item in paths.values():
+        for operation in item.values():
+            operation["description"] = f"**When:** {_WHEN[operation['operationId']]}\n\n{operation['description']}"
+    return paths
 
 
 def _ref(name: str) -> dict:
@@ -757,6 +805,32 @@ or `{API_KEY_HEADER}: <key>`. Health checks and these docs never need it.
 | Web UI + API | `ENABLE_PUBLIC_API=true`, optional `PUBLIC_API_KEY` | Docs and CORS on. The key does not protect the web UI; on the internet use API only or proxy auth (Authelia, Authentik, Basic Auth). |
 | API only | `API_ONLY=true` and `PUBLIC_API_KEY` | No web UI. Every call except health and docs needs the key. The container does not start without one. |
 
+## Workflows
+
+**One image or a small batch:** POST /convert with `files[]` and `format`. The answer is the file itself
+(a ZIP for several files).
+
+**Long work (AI upscaling, big batches):**
+1. POST /jobs with the same form. Answer 202: keep `id` and `token`; the token is shown only once.
+2. Poll GET /jobs/{{job_id}} with header `X-Job-Token: <token>` every 1 to 2 seconds until `status` is
+   `done`, `failed` or `canceled`.
+3. Download GET /jobs/{{job_id}}/files/{{file_name}} (names in `result.converted_files`) or
+   GET /jobs/{{job_id}}/zip.
+4. Optional while it runs: POST /jobs/{{job_id}}/cancel, or POST /jobs/{{job_id}}/notify for a push message
+   (needs NOTIFY_URL).
+
+**Open a result on another device:** the notification links to `/r/{{job_id}}/{{share_token}}`.
+POST /jobs/{{job_id}}/claim with the share token from that link, e.g.
+`{{"share_token": "{EXAMPLE_SHARE_TOKEN}"}}`, gives a new job token for this
+device; then continue with step 2.
+
+**Editor:** POST /preview to show any input as PNG. For picture layers or a stored background,
+POST /editor/assets first (keep `session` and `asset`). Then POST /edit with `fit_width` and `fit_height`
+(`render=true` for the full PNG). For another format, send that PNG to POST /convert.
+
+**Storage (admin):** GET /storage/files lists results; download one with GET /storage/files/download
+or a folder with GET /storage/folders/download; POST /storage/cleanup deletes all finished results.
+
 ## Errors and limits
 
 - Errors are JSON: `{{"error": "Bad Request", "message": "'quality' must be a whole number between 1 and 100."}}`.
@@ -809,9 +883,9 @@ def build_spec(script_root: str = "") -> dict:
             {"name": "Storage", "description": "Temporary files of the container. Answer 403 when DISABLE_STORAGE_MANAGEMENT=true."},
             {"name": "Docs", "description": "This document and Swagger UI. Served only with ENABLE_PUBLIC_API or API_ONLY."},
         ],
-        "paths": _with_gate_errors(
+        "paths": _with_when(_with_gate_errors(
             {**_paths(curl_base, keyed), **_legacy_health_alias(legacy_server, curl_origin)}, keyed,
-        ),
+        )),
         "components": {
             "schemas": _schemas(),
             "responses": {f"E{status}": _error_response(status) for status in _ERROR_TEXT if keyed or status != 401},
