@@ -8,6 +8,7 @@ added to the spec without tests.
 
 import inspect
 import io
+import time
 import zipfile
 
 import pytest
@@ -99,10 +100,13 @@ def _finished_job(client):
     assert started.status_code == 202, started.get_json()
     job = started.get_json()
     headers = {**KEYED, "X-Job-Token": job["token"]}
-    for _ in range(600):
+    # By the clock, not a fixed count: a busy CI runner needs longer.
+    deadline = time.monotonic() + 60
+    while True:
         state = client.get(f"/api/v1/jobs/{job['id']}", headers=headers)
-        if state.get_json()["status"] in ("done", "failed"):
+        if state.get_json()["status"] in ("done", "failed") or time.monotonic() > deadline:
             break
+        time.sleep(0.02)
     assert state.get_json()["status"] == "done", state.get_json()
     return job["id"], headers, state
 

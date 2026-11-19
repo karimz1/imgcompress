@@ -2,6 +2,7 @@
 
 import io
 import re
+import time
 import zipfile
 
 import pytest
@@ -299,10 +300,13 @@ def test_JobFlow_Expect_AnswersMatchTheSpec(spec, client):
     _check(spec, "/jobs", "post", started)
     job = started.get_json()
     headers = {"X-Job-Token": job["token"]}
-    for _ in range(500):
+    # By the clock, not a fixed count: a busy CI runner needs longer.
+    deadline = time.monotonic() + 60
+    while True:
         state = client.get(f"/api/v1/jobs/{job['id']}", headers=headers)
-        if state.get_json()["status"] in ("done", "failed"):
+        if state.get_json()["status"] in ("done", "failed") or time.monotonic() > deadline:
             break
+        time.sleep(0.02)
     _check(spec, "/jobs/{job_id}", "get", state)
     assert state.get_json()["status"] == "done"
     zipped = client.get(f"/api/v1/jobs/{job['id']}/zip", headers=headers)
