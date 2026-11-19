@@ -615,3 +615,27 @@ def test_EveryOperation_Expect_AWhenLineFirst(spec, open_spec):
             assert first.startswith("**When:** "), f"{method} {path}"
             assert 20 <= len(first) <= 200, f"{method} {path}: keep the When line to one short sentence"
     assert set(openapi._WHEN) == {op["operationId"] for _, _, op in _operations(spec)}
+
+
+@pytest.mark.parametrize("release", ["1.1.0-rc.5", "1.1.0"])
+def test_When_ContainerHasARelease_Expect_InfoVersionEqualsAppVersion(client, monkeypatch, tmp_path, release):
+    (tmp_path / "build-info.json").write_text('{"schemaVersion": 1, "version": "%s"}' % release)
+    monkeypatch.setattr(app, "static_folder", str(tmp_path))
+
+    document = client.get("/api/v1/openapi.json").get_json()
+    info = client.get("/api/v1/info").get_json()
+
+    assert info["app_version"] == release
+    assert document["info"]["version"] == info["app_version"]
+    assert info["api_version"] == "1"
+
+
+def test_When_DevBuildHasNoBuildInfo_Expect_InfoVersionDevAndAppVersionNull(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(app, "static_folder", str(tmp_path))
+
+    document = client.get("/api/v1/openapi.json").get_json()
+    info = client.get("/api/v1/info").get_json()
+
+    assert info["app_version"] is None
+    assert document["info"]["version"] == "dev"
+    assert document["info"]["version"] != "1.0.0"

@@ -22,9 +22,9 @@ from backend.image_converter.infrastructure.notifier import (
 )
 from backend.image_converter.presentation.web.api_access import API_PREFIX, PAGE_ASSETS
 from backend.image_converter.presentation.web.api_auth import API_KEY_HEADER
+from backend.image_converter.presentation.web.app_version import DEV_VERSION, app_version
 
 API_VERSION = "1"
-SPEC_VERSION = "1.0.0"
 SITE_URL = "https://imgcompress.karimzouine.com"
 AUTHOR_URL = "https://www.karimzouine.com"
 DOCS_URL = f"{SITE_URL}/docs"
@@ -839,7 +839,7 @@ or a folder with GET /storage/folders/download; POST /storage/cleanup deletes al
 - Uploads up to **{max_upload_mb} MB** (`MAX_UPLOAD_SIZE_MB`), else 413.
 - `POST /convert` waits for the result. Use `POST /jobs` for AI upscaling and big batches.
 - Job results answer only to their `X-Job-Token`. Storage routes see every user's files; turn them off with `DISABLE_STORAGE_MANAGEMENT=true`.
-- `{API_PREFIX}` only grows. Breaking changes get `/api/v2`; deprecated routes go in 2.0. `info.version` is the version of the v1 contract.
+- `{API_PREFIX}` only grows. Breaking changes get `/api/v2`; deprecated routes go in 2.0. `info.version` is the release of this container, the same as `app_version` in `GET /info`.
 """
 
 
@@ -866,7 +866,7 @@ def build_spec(script_root: str = "") -> dict:
         "openapi": "3.1.0",
         "info": {
             "title": "imgcompress API",
-            "version": SPEC_VERSION,
+            "version": app_version() or DEV_VERSION,
             "summary": "Offline image compression, conversion, editing and AI background removal / upscaling.",
             "description": _description(
                 config.uploads.max_file_size_mebibytes, keyed, curl_base,

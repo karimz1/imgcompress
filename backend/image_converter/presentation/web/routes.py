@@ -1,11 +1,9 @@
 from datetime import datetime, timezone
 import base64
-import json
 import os
 from io import BytesIO
-from typing import Optional
 
-from flask import Blueprint, Response, abort, current_app, jsonify, request, send_file, send_from_directory
+from flask import Blueprint, Response, abort, jsonify, request, send_file, send_from_directory
 
 from backend.image_converter.application.compress_images_usecase import CompressImagesUseCase
 from backend.image_converter.application.payload_expander_factory import create_payload_expander
@@ -26,6 +24,7 @@ from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.infrastructure.notifier import Notifier
 from backend.image_converter.presentation.web import api_access, openapi
 from backend.image_converter.presentation.web.api_errors import error
+from backend.image_converter.presentation.web.app_version import app_version
 from backend.image_converter.presentation.web.parse_services import (
     parse_compression_form,
     unsupported_file_names,
@@ -181,21 +180,12 @@ def health_internet():
     }), 200
 
 
-def _app_version() -> Optional[str]:
-    try:
-        with open(os.path.join(current_app.static_folder, "build-info.json"), encoding="utf-8") as f:
-            version = json.load(f).get("version")
-        return version if isinstance(version, str) else None
-    except (OSError, ValueError, TypeError, AttributeError):
-        return None
-
-
 @api_blueprint.route("/info", methods=["GET"])
 def info():
     config = settings.get()
     return jsonify({
         "api_version": openapi.API_VERSION,
-        "app_version": _app_version(),
+        "app_version": app_version(),
         "public_api_enabled": config.public_api.is_enabled,
         "auth_required": config.public_api.requires_key,
         "storage_management_enabled": storage_management_service.is_storage_management_enabled(),
