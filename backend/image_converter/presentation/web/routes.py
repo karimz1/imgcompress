@@ -260,8 +260,13 @@ def _job_token():
     return request.headers.get(_JOB_TOKEN_HEADER)
 
 
-def _job_not_found():
-    return error(404, "Job not found. It may have expired, or the X-Job-Token is wrong.")
+JOB_NOT_FOUND = "Job not found. It may have expired, or the X-Job-Token is wrong."
+# Same answer for an unknown id and a wrong share token, so neither can be probed.
+CLAIM_NOT_FOUND = "Job not found. It may have expired, or the share token is wrong."
+
+
+def _job_not_found(message: str = JOB_NOT_FOUND):
+    return error(404, message)
 
 
 @api_blueprint.route("/jobs", methods=["POST"])
@@ -325,7 +330,7 @@ def conversion_job_claim(job_id: str):
     body = request.get_json(silent=True) or {}
     claimed = conversion_jobs.claim(job_id, body.get("share_token"))
     if claimed is None:
-        return _job_not_found()
+        return _job_not_found(CLAIM_NOT_FOUND)
     return _no_store(jsonify(claimed))
 
 

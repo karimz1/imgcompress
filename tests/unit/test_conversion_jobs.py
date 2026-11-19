@@ -562,7 +562,7 @@ def test_When_PhoneOpensTheShareLink_Expect_ItsOwnTokenThatDownloadsTheResult(se
 def test_When_ShareTokenIsWrongOrFromAnotherJob_Expect_TheSame404(setup):
     job_a, _, share_a = _notified_link(setup)
     job_b, token_b, share_b = _notified_link(setup)
-    expected = setup.client.get("/api/v1/jobs/" + "x" * 22).get_json()
+    expected = {"error": "Not Found", "message": "Job not found. It may have expired, or the share token is wrong."}
     for job_id, share in [(job_a, share_b), (job_b, share_a), (job_a, "guess"), (job_a, ""), (job_a, None),
                           (job_a, token_b), ("x" * 22, share_a), ("bad id!", share_a)]:
         response = setup.client.post(f"/api/v1/jobs/{job_id}/claim", json={"share_token": share})
@@ -570,6 +570,14 @@ def test_When_ShareTokenIsWrongOrFromAnotherJob_Expect_TheSame404(setup):
         assert response.get_json() == expected
     # The share token itself is not a job token.
     assert setup.status(job_a, share_a).status_code == 404
+
+
+def test_When_JobTokenIsSentAsShareToken_Expect_404ThatNamesTheShareToken(setup):
+    job_id, token, _ = _notified_link(setup)
+    response = setup.client.post(f"/api/v1/jobs/{job_id}/claim", json={"share_token": token})
+    assert response.status_code == 404
+    message = response.get_json()["message"]
+    assert "share token" in message and "X-Job-Token" not in message
 
 
 def test_When_JobNeverOptedIn_Expect_NoShareLinkCanOpenIt(setup):

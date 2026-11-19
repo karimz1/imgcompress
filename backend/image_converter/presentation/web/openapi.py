@@ -457,12 +457,21 @@ def _paths(base: str, keyed: bool = True) -> dict:
         "/jobs/{job_id}/claim": {"post": {
             "tags": ["Jobs"], "operationId": "claimJob",
             "summary": "Open a job from a notification link",
-            "description": "Trades the share token of a notification link (`/r/{job_id}/{share_token}`) for a job "
-            "token of the calling device. The share token goes in the body, never in a URL.",
+            "description": "Trades the share token of a notification link for a job token of the calling "
+            "device, which then works with `X-Job-Token` like the one from POST /jobs.\n\n"
+            "The share token exists only in the link `/r/{job_id}/{share_token}` of a notification. The container "
+            "creates it when a job finishes with notify on (POST /jobs/{job_id}/notify) and NOTIFY_URL set. "
+            "It is **not** the job token from POST /jobs. Send it in the body, never in a URL.",
             "parameters": [_JOB_ID],
             "requestBody": {"required": True, "content": _json(_ref("ClaimRequest"))},
-            "responses": {"200": {"description": "A job token for this device.", "content": _json(
-                _ref("JobClaim"), {"id": EXAMPLE_JOB_ID, "token": EXAMPLE_CLAIMED_TOKEN})}, **_errors(404)},
+            "responses": {
+                "200": {"description": "A job token for this device.", "content": _json(
+                    _ref("JobClaim"), {"id": EXAMPLE_JOB_ID, "token": EXAMPLE_CLAIMED_TOKEN})},
+                "404": {"description": "Unknown or expired job, or a wrong share token. These are not told apart "
+                        "on purpose.", "content": _json(_ref("Error"), {
+                            "error": "Not Found",
+                            "message": "Job not found. It may have expired, or the share token is wrong."})},
+            },
         }},
         "/jobs/{job_id}/files/{file_name}": {"get": {
             "tags": ["Jobs"], "operationId": "jobFile",
@@ -686,7 +695,9 @@ def _schemas() -> dict:
             "enabled": {"type": "boolean", "description": "true turns the notification on, false off."},
             "language": {"type": "string", "description": "Message language, e.g. en or de; unknown = English."}}},
         "ClaimRequest": {"type": "object", "required": ["share_token"], "properties": {"share_token": {
-            "type": "string", "description": "The last part of the notification link."}}},
+            "type": "string", "pattern": _TOKEN_PATTERN,
+            "description": "The last part of a notification link `/r/{job_id}/{share_token}`. Only there: it is "
+            "created when the job finishes with notify on and NOTIFY_URL set. Not the job token from POST /jobs."}}},
         "EditorAsset": {"type": "object", "required": ["session", "asset", "width", "height"], "properties": {
             "session": {"type": "string", "pattern": _SESSION_PATTERN,
                         "description": "Pass as fit_session (and session for more uploads)."},

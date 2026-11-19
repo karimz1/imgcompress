@@ -258,7 +258,10 @@ VALIDATION = {
     ("get", "/jobs/{job_id}/zip"): [(_job_call("GET", "/zip"), 404, "not found")],
     ("post", "/jobs/{job_id}/cancel"): [(_job_call("POST", "/cancel"), 404, "not found")],
     ("post", "/jobs/{job_id}/notify"): [(_job_call("POST", "/notify", json={"enabled": True}), 409, "NOTIFY_URL")],
-    ("post", "/jobs/{job_id}/claim"): [(_job_call("POST", "/claim", json={"share_token": "guess"}), 404, "not found")],
+    ("post", "/jobs/{job_id}/claim"): [
+        (_job_call("POST", "/claim", json={"share_token": "guess"}), 404, "share token is wrong"),
+        (_job_call("POST", "/claim", json={}), 404, "share token is wrong"),
+    ],
     ("post", "/preview"): [
         (lambda c: _post(c, "/api/v1/preview", {}), 400, "file"),
     ],

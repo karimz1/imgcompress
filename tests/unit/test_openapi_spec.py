@@ -579,3 +579,15 @@ def test_RealAnswers_Expect_TheDocumentedPatterns(spec, client):
     asset = client.post("/api/v1/editor/assets", data={"file": (io.BytesIO(_png()), "bg.png")},
                         content_type="multipart/form-data")
     _check(spec, "/editor/assets", "post", asset)
+
+
+def test_Claim_Expect_ShareTokenExplainedAndItsOwn404(spec):
+    operation = spec["paths"]["/jobs/{job_id}/claim"]["post"]
+    text = operation["description"]
+    for needle in ("/r/{job_id}/{share_token}", "NOTIFY_URL", "notify on", "**not** the job token from POST /jobs"):
+        assert needle in text, needle
+    field = spec["components"]["schemas"]["ClaimRequest"]["properties"]["share_token"]
+    assert "Not the job token from POST /jobs" in field["description"] and "NOTIFY_URL" in field["description"]
+    example = operation["responses"]["404"]["content"]["application/json"]["example"]
+    assert example["message"] == routes.CLAIM_NOT_FOUND
+    assert "X-Job-Token" not in example["message"]
