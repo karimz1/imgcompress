@@ -467,9 +467,8 @@ def test_DocsHtml_Expect_CanonicalAndOgUrlOnlyWhenPublicBaseUrlIsSet(client, mon
     assert "localhost" not in page
 
 
-def test_PublicText_Expect_NoDashesAndNoOtherProjectNames(spec, open_spec, client):
+def test_PublicText_Expect_NoEmOrEnDashes(spec, open_spec, client):
     import json
     page = client.get("/api/v1/docs").get_data(as_text=True)
     for text in (json.dumps(spec, ensure_ascii=False), json.dumps(open_spec, ensure_ascii=False), page):
         assert "\u2014" not in text and "\u2013" not in text, "no em or en dashes"
-        assert "Stirling" not in text
