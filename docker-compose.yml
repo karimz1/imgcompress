@@ -35,12 +35,12 @@ services:
       # - PUBLIC_BASE_URL=http://192.168.1.10:3001
       # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
       # - TZ=Europe/Berlin
-      # Three modes (same pattern as Stirling-PDF and similar self-hosted apps):
+      # Three modes:
       #   1) Default: web UI on, public API off. Cross-site browser calls get 403
       #      (CSRF defense). Docs are hidden.
       #   2) ENABLE_PUBLIC_API=true, optional PUBLIC_API_KEY: other websites may
       #      call /api/v1 (CORS) and docs are at /api/v1/docs. A key is not a
-      #      security boundary while the web UI is served — anyone who can open
+      #      security boundary while the web UI is served: anyone who can open
       #      the UI can do the same. For public hosting use API_ONLY or put
       #      proxy auth (Authelia, Authentik, Basic Auth) in front.
       #   3) API_ONLY=true plus PUBLIC_API_KEY: no web UI; the key is a real

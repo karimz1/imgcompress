@@ -92,7 +92,7 @@ flowchart TD
     H -- "no" --> U["401"]
 ```
 
-Three honest modes, the common self-hosted pattern (for example Stirling-PDF):
+Three modes:
 
 | Mode | Settings | Effect |
 |---|---|---|

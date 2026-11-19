@@ -1,0 +1,27 @@
+/* imgcompress header above Swagger UI. A file, not inline, for strict CSPs. */
+body { margin: 0; background: #fafafa; }
+.imgc-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 1460px;
+  margin: 0 auto;
+  padding: 18px 20px 6px;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+.imgc-logo { width: 64px; height: auto; flex: none; }
+.imgc-brand { display: flex; flex-direction: column; line-height: 1.2; }
+.imgc-name { font-size: 22px; font-weight: 700; color: #3b4151; }
+.imgc-api {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1565c0;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.imgc-tagline { font-size: 14px; color: #6b7280; }
+.swagger-ui .information-container .info { margin-top: 20px; }

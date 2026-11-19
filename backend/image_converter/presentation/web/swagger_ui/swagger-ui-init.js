@@ -7,31 +7,58 @@ window.addEventListener("load", function () {
     root.textContent = "Swagger UI files are missing in this build. The spec is at " + specUrl;
     return;
   }
-  // Swagger UI fills Try-it-out with getSampleSchema (first enum, boolean true, minimum).
-  // Optional fields must start empty, so this plugin returns "" when a field has no default or example.
-  // Required enums still have no prefill; Swagger's Select adds "--" only when the field is optional.
-  var noPrefill = function () {
+
+  // Every Try-it-out field starts empty and is only sent when the user fills it.
+  // Swagger UI 5 would prefill request fields from the schema (first enum value,
+  // minimum, true, "string") and mark empty fields as "Send empty value".
+  var emptyForms = function () {
     return {
-      wrapFn: {
-        getSampleSchema: function (ori) {
-          return function (schema, contentType, config, exampleOverride) {
-            if (exampleOverride !== undefined && exampleOverride !== null) {
-              return ori(schema, contentType, config, exampleOverride);
-            }
-            var raw = schema && typeof schema.toJS === "function" ? schema.toJS() : schema;
-            if (raw && (raw.example !== undefined || raw.examples !== undefined || raw.default !== undefined)) {
-              return ori(schema, contentType, config, exampleOverride);
-            }
-            var type = raw && raw.type;
-            if (type === "object" || type === "array") {
-              return ori(schema, contentType, config, exampleOverride);
-            }
-            return "";
+      // Runs after the OpenAPI 3.1 plugin has set fn.getSampleSchema.
+      afterLoad: function (system) {
+        var fn = system.fn;
+        var original = fn.getSampleSchema;
+        if (typeof original !== "function") return;
+        fn.getSampleSchema = function (schema, contentType, config, exampleOverride) {
+          // Request side only (Swagger asks with includeWriteOnly); response examples stay.
+          if (!config || !config.includeWriteOnly || (exampleOverride !== undefined && exampleOverride !== null)) {
+            return original.apply(this, arguments);
+          }
+          var raw = schema && typeof schema.toJS === "function" ? schema.toJS() : schema || {};
+          var type = Array.isArray(raw.type) ? raw.type[0] : raw.type;
+          if (type === "array") {
+            // A file list keeps its first file picker; other lists start with no item.
+            var binary = raw.items && (raw.items.format === "binary" || raw.items.contentMediaType);
+            return binary ? original.apply(this, arguments) : [];
+          }
+          if (type === "object" || raw.properties) {
+            // JSON body: only the required keys, each one still to be filled in.
+            var body = {};
+            (raw.required || []).forEach(function (key) {
+              var prop = (raw.properties || {})[key] || {};
+              body[key] = prop.type === "string" ? "" : null;
+            });
+            return contentType && /json/.test(contentType) ? JSON.stringify(body, null, 2) : body;
+          }
+          return "";
+        };
+      },
+      wrapComponents: {
+        // Always offer "--" so no choice is preselected, required ones included.
+        Select: function (Original, system) {
+          return function (props) {
+            return system.React.createElement(Original, Object.assign({}, props, { allowEmptyValue: true }));
+          };
+        },
+        // Empty fields are left out of the request instead of sent as "".
+        ParameterIncludeEmpty: function () {
+          return function () {
+            return null;
           };
         },
       },
     };
   };
+
   window.ui = window.SwaggerUIBundle({
     url: specUrl,
     dom_id: "#swagger-ui",
@@ -40,6 +67,6 @@ window.addEventListener("load", function () {
     displayRequestDuration: true,
     // Never ask validator.swagger.io: the container works offline.
     validatorUrl: null,
-    plugins: [noPrefill],
+    plugins: [emptyForms],
   });
 });

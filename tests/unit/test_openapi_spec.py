@@ -17,9 +17,33 @@ from backend.image_converter.presentation.web.server import app
 _METHODS = {"get", "post", "put", "patch", "delete"}
 
 
+KEY = "correct horse battery staple"
+
+
+def _build(monkeypatch, **env):
+    for name in ("ENABLE_PUBLIC_API", "PUBLIC_API_KEY", "API_ONLY", "PUBLIC_BASE_URL"):
+        monkeypatch.delenv(name, raising=False)
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+    settings.reset_cache()
+    try:
+        return openapi.build_spec()
+    finally:
+        settings.reset_cache()
+
+
 @pytest.fixture(scope="module")
 def spec():
-    return openapi.build_spec()
+    """The document as served with a key: every lock and 401 is in it."""
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        return _build(monkeypatch, ENABLE_PUBLIC_API="true", PUBLIC_API_KEY=KEY)
+
+
+@pytest.fixture(scope="module")
+def open_spec():
+    """The document as served without PUBLIC_API_KEY."""
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        return _build(monkeypatch, ENABLE_PUBLIC_API="true")
 
 
 @pytest.fixture
@@ -89,7 +113,8 @@ def test_Operations_Expect_SummaryDescriptionTagsAndResponses(spec):
                 assert response.get("description"), f"{where} {code}"
         for parameter in operation.get("parameters", []):
             assert parameter.get("description") and parameter.get("schema"), f"{where} {parameter['name']}"
-            assert "example" in parameter, f"{where} {parameter['name']} has no example"
+            for key in ("example", "examples"):
+                assert key not in parameter and key not in parameter["schema"], f"{where} {parameter['name']} prefills {key}"
         body = operation.get("requestBody", {}).get("content", {})
         for media in body.values():
             for name, prop in media["schema"].get("properties", {}).items():
@@ -104,6 +129,57 @@ def test_EveryWriteAndKeyedOperation_Expect_ItsErrorsDocumented(spec):
         assert "403" in operation["responses"], f"{method} {path}: 403 (other websites) missing"
 
 
+_OPEN = {("/health", "get"), ("/health/internet", "get"), ("/api/health/backend", "get"),
+         ("/openapi.json", "get"), ("/docs", "get"), ("/docs/{name}", "get")}
+
+
+def test_WithKey_Expect_LocksOnKeyedRoutesAndNoneOnHealthAndDocs(spec):
+    assert spec["security"] == [{"bearerAuth": []}, {"apiKeyHeader": []}]
+    assert set(spec["components"]["securitySchemes"]) == {"bearerAuth", "apiKeyHeader"}
+    for path, method, operation in _operations(spec):
+        if (path, method) in _OPEN:
+            assert operation.get("security") == [], f"{method} {path} must stay open"
+            assert "401" not in operation["responses"], f"{method} {path}"
+        else:
+            assert "security" not in operation, f"{method} {path} inherits the global lock"
+    assert "Authorization: Bearer $PUBLIC_API_KEY" in spec["paths"]["/convert"]["post"]["description"]
+    assert "**set**" in spec["info"]["description"]
+
+
+def test_WithoutKey_Expect_NoSecurityLocksOr401Anywhere(open_spec):
+    assert "security" not in open_spec
+    assert "securitySchemes" not in open_spec["components"]
+    assert "E401" not in open_spec["components"]["responses"]
+    for path, method, operation in _operations(open_spec):
+        assert "security" not in operation, f"{method} {path}"
+        assert "401" not in operation["responses"], f"{method} {path}"
+    assert "PUBLIC_API_KEY\"" not in _curl_text(open_spec)
+    assert "Authorization: Bearer $PUBLIC_API_KEY" not in _curl_text(open_spec)
+    assert "**not set**" in open_spec["info"]["description"]
+    validate(open_spec)
+
+
+def test_ApiOnly_Expect_TheKeyedDocument(monkeypatch):
+    api_only = _build(monkeypatch, API_ONLY="true", PUBLIC_API_KEY=KEY)
+    assert api_only["security"] == [{"bearerAuth": []}, {"apiKeyHeader": []}]
+    assert api_only["paths"]["/health"]["get"]["security"] == []
+    assert "401" in api_only["paths"]["/convert"]["post"]["responses"]
+
+
+def test_RequiredParameters_Expect_NoEnumThatSwaggerWouldPreselect(spec):
+    for path, method, operation in _operations(spec):
+        for parameter in operation.get("parameters", []):
+            if parameter.get("required"):
+                assert "enum" not in parameter["schema"], f"{method} {path} {parameter['name']}"
+
+
+def test_JsonRequestBodies_Expect_NoExampleThatWouldPrefill(spec):
+    for path, method, operation in _operations(spec):
+        media = operation.get("requestBody", {}).get("content", {}).get("application/json")
+        if media:
+            assert "example" not in media and "examples" not in media, f"{method} {path}"
+
+
 def _form_schema(spec, path):
     return spec["paths"][path]["post"]["requestBody"]["content"]["multipart/form-data"]["schema"]
 
@@ -111,10 +187,12 @@ def _form_schema(spec, path):
 def _assert_field_documents_range_and_recommendation(option, field):
     text = field["description"]
     span = openapi._range_text(option)
-    if span:
+    if span and option.kind != options.BOOLEAN:
         assert span in text, option.name
-    assert "Recommended:" in text or "Required" in text, option.name
-    assert "If omitted" in text or "If a script omits" in text or "Required." in text, option.name
+    assert "If omitted" in text or "Required." in text, option.name
+    if option.name in openapi._RECOMMENDED:
+        assert f"Recommended: {openapi._RECOMMENDED[option.name]}." in text, option.name
+    assert len(text) <= 330, f"{option.name}: keep field descriptions short"
     if option.minimum is not None:
         assert field["minimum"] == option.minimum, option.name
     if option.maximum is not None:
@@ -152,19 +230,21 @@ def test_TryItOutForms_Expect_NoDefaultOrExampleThatWouldPrefill(spec):
         assert "example" not in media and "examples" not in media, path
 
 
-def test_Description_Expect_DevSectionsAuthCorsVersioningAndCurl(spec):
+def test_Description_Expect_ShortIntroAuthModesErrorsAndCurl(spec):
     text = spec["info"]["description"]
     for needle in (
-        "ImgCompress, your self-hosted image toolbox", "Getting started", "Authentication",
-        "Deployment and security", "Convert vs jobs", "Errors", "Limits", "Versioning",
-        "ENABLE_PUBLIC_API", "PUBLIC_API_KEY", "API_ONLY", "Access-Control-Allow-Origin",
-        "/api/v2", "curl ", "DISABLE_STORAGE_MANAGEMENT", "PUBLIC_BASE_URL",
-        "Created by [Karim Zouine]", openapi.SITE_URL, openapi.GITHUB_URL,
-        "deprecated", "CSRF", "Stirling-PDF", "Authelia",
+        "# ImgCompress, your self-hosted image toolbox. Compress every image format. Zero cloud.",
+        "Own your data", "web UI", f"[Website]({openapi.SITE_URL})", f"[GitHub]({openapi.GITHUB_URL})",
+        f"Created by [Karim Zouine]({openapi.AUTHOR_URL})", f"[{openapi.LICENSE_NAME}]({openapi.LICENSE_URL})",
+        "Quick start", "Authentication", "Modes", "Errors and limits",
+        "ENABLE_PUBLIC_API", "PUBLIC_API_KEY", "API_ONLY", "X-API-Key", "Authorization: Bearer",
+        "/api/v2", "curl ", "DISABLE_STORAGE_MANAGEMENT", "PUBLIC_BASE_URL", "Authelia", "info.version",
     ):
         assert needle in text, needle
+    assert len(text) < 2600, "keep the intro short: people know Swagger UI"
     assert "curl " in spec["paths"]["/convert"]["post"]["description"]
-    assert spec["info"]["contact"] == {"name": "Karim Zouine", "url": openapi.SITE_URL}
+    assert openapi.AUTHOR_URL == "https://www.karimzouine.com"
+    assert spec["info"]["contact"] == {"name": "Karim Zouine", "url": openapi.AUTHOR_URL}
     assert spec["info"]["license"] == {"name": openapi.LICENSE_NAME, "url": openapi.LICENSE_URL}
     assert "identifier" not in spec["info"]["license"]
     assert spec["externalDocs"] == {"description": "imgcompress docs", "url": openapi.DOCS_URL}
@@ -268,9 +348,14 @@ def test_Docs_Expect_SwaggerUiPageWithLocalAssetsAndSeoTags(client):
     assert "localhost" not in page
     init = client.get("/api/v1/docs/swagger-ui-init.js")
     assert init.status_code == 200 and b"SwaggerUIBundle" in init.data
-    assert b"getSampleSchema" in init.data and b"noPrefill" in init.data
-    assert client.get("/api/v1/docs/og-image.webp").status_code == 200
-    assert client.get("/api/v1/docs/favicon.webp").status_code == 200
+    assert b"getSampleSchema" in init.data and b"afterLoad" in init.data
+    assert b"ParameterIncludeEmpty" in init.data and b"allowEmptyValue: true" in init.data
+    assert 'class="imgc-header"' in page and "/api/v1/docs/logo.webp" in page
+    assert "/api/v1/docs/imgcompress-docs.css" in page
+    for name in openapi.DOCS_ASSETS:
+        if name in ("swagger-ui.css", "swagger-ui-bundle.js"):
+            continue  # copied from swagger-ui-dist at image build
+        assert client.get(f"/api/v1/docs/{name}").status_code == 200, name
     hidden = client.get("/api/v1/docs/../server.py")
     assert hidden.status_code == 404
     assert hidden.is_json and hidden.get_json()["error"] == "Not Found"
@@ -380,3 +465,11 @@ def test_DocsHtml_Expect_CanonicalAndOgUrlOnlyWhenPublicBaseUrlIsSet(client, mon
     assert 'content="https://photos.example.com/api/v1/docs"' in page
     assert "https://photos.example.com/api/v1/docs/og-image.webp" in page
     assert "localhost" not in page
+
+
+def test_PublicText_Expect_NoDashesAndNoOtherProjectNames(spec, open_spec, client):
+    import json
+    page = client.get("/api/v1/docs").get_data(as_text=True)
+    for text in (json.dumps(spec, ensure_ascii=False), json.dumps(open_spec, ensure_ascii=False), page):
+        assert "\u2014" not in text and "\u2013" not in text, "no em or en dashes"
+        assert "Stirling" not in text

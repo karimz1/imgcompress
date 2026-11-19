@@ -20,26 +20,28 @@ from backend.image_converter.infrastructure.notifier import (
     PUBLIC_BASE_URL_ENV,
     clean_public_base_url,
 )
-from backend.image_converter.presentation.web.api_access import (
-    API_PREFIX,
-    CORS_ALLOW_HEADERS,
-    CORS_EXPOSE_HEADERS,
-)
+from backend.image_converter.presentation.web.api_access import API_PREFIX
 from backend.image_converter.presentation.web.api_auth import API_KEY_HEADER
 
 API_VERSION = "1"
 SPEC_VERSION = "1.0.0"
 SITE_URL = "https://imgcompress.karimzouine.com"
+AUTHOR_URL = "https://www.karimzouine.com"
 DOCS_URL = f"{SITE_URL}/docs"
 GITHUB_URL = "https://github.com/karimz1/imgcompress"
 LICENSE_NAME = "GPL-3.0-or-later"
 LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
+# Files served under /api/v1/docs/<name>: swagger-ui-dist (copied at build) plus ours.
+DOCS_ASSETS = (
+    "swagger-ui.css", "swagger-ui-bundle.js", "swagger-ui-init.js", "imgcompress-docs.css",
+    "logo.webp", "favicon.webp", "og-image.webp",
+)
 DOCS_TITLE = "imgcompress API docs, self-hosted image compression REST API"
 DOCS_META_DESCRIPTION = (
     "Self-hosted REST API for image compression, conversion, editing and AI tools. "
     "Offline, private, free and open source. Compress 70+ formats, no cloud."
 )
-# Typical values for Try-it-out guidance only; omitting a field still follows the web UI.
+# Typical values, named in the field description only (never prefilled).
 _RECOMMENDED = {"format": "webp", "quality": "80", "fit_width": "1080", "fit_height": "1080"}
 
 _ERROR_EXAMPLES = {
@@ -97,19 +99,26 @@ def _errors(*statuses: int) -> dict:
     return {str(status): {"$ref": f"#/components/responses/E{status}"} for status in statuses}
 
 
-def _with_gate_errors(paths: dict) -> dict:
+def _with_gate_errors(paths: dict, keyed: bool) -> dict:
     """
     Adds the answers the access gate can give before any route runs, so no
     operation can forget them: 403 for other websites (every route but the docs,
     which answer 404 instead) and 401 for a missing key (every keyed route).
+
+    Without PUBLIC_API_KEY nothing needs a key, so the document carries no
+    `security` at all: Swagger UI then shows no locks and no Authorize button.
+    Open routes (health, docs) are marked `security: []` in _paths.
     """
     for item in paths.values():
         for operation in item.values():
+            is_open = operation.get("security") == []
             gate = []
             if operation["tags"] != ["Docs"]:
                 gate.append(403)
-            if operation.get("security") != []:
+            if keyed and not is_open:
                 gate.append(401)
+            if not keyed:
+                operation.pop("security", None)
             responses = {**operation["responses"], **_errors(*gate)}
             operation["responses"] = dict(sorted(responses.items()))
     return paths
@@ -144,47 +153,39 @@ def _range_text(option: options.Option) -> str:
     if option.kind == options.BOOLEAN:
         return "true or false"
     if option.choices:
-        return "One of: " + ", ".join(option.choices)
+        return "Values: " + ", ".join(option.choices)
     if option.minimum is not None and option.maximum is not None:
-        return f"{_fmt_number(option.minimum)}-{_fmt_number(option.maximum)}"
+        return f"Range: {_fmt_number(option.minimum)} to {_fmt_number(option.maximum)}"
     if option.minimum is not None:
-        return f">= {_fmt_number(option.minimum)}"
+        return f"Min: {_fmt_number(option.minimum)}"
     if option.maximum is not None:
-        return f"<= {_fmt_number(option.maximum)}"
+        return f"Max: {_fmt_number(option.maximum)}"
     return ""
 
 
 def _option_description(option: options.Option, required: bool = False) -> str:
-    """Meaning, allowed range, a recommended value, and what happens if the field is left out.
+    """What the field does, allowed values, a recommended value, and what omitting it means.
 
-    `default` and `example` are kept off the schema so Swagger UI does not prefill Try-it-out.
-    Omitting the field still follows the web UI's start state (server-side defaults stay as they are).
+    `default` and `example` stay off the schema so Swagger UI never prefills a field.
+    Omitting a field keeps the web UI's start state (features off).
     """
     text = option.description.rstrip(".") + "."
     span = _range_text(option)
-    if span:
+    if span and option.kind != options.BOOLEAN:
         text += f" {span}."
     recommended = _RECOMMENDED.get(option.name)
-    if recommended is None and option.default is not None and option.kind != options.BOOLEAN:
-        recommended = _fmt_omitted(option.default)
     if recommended is not None:
         text += f" Recommended: {recommended}."
-    elif option.kind == options.BOOLEAN:
-        text += " Recommended: leave empty unless you want this on."
-    else:
-        text += " Recommended: leave empty unless you want this applied."
-    if option.name == "format":
-        text += " Required. If a script omits it: jpeg, as in the web UI."
-    elif required:
+    if required:
         text += " Required."
     elif option.kind == options.BOOLEAN or option.default is False:
-        text += " If omitted: off, as in the web UI."
+        text += " If omitted: off."
     elif option.default is not None:
-        text += f" If omitted: {_fmt_omitted(option.default)}, as in the web UI."
+        text += f" If omitted: {_fmt_omitted(option.default)}."
     else:
-        text += " If omitted: not applied, as in the web UI."
+        text += " If omitted: not applied."
     if option.aliases:
-        text += f" Also accepted as: {', '.join(option.aliases)}."
+        text += f" Alias: {', '.join(option.aliases)}."
     return text
 
 
@@ -234,18 +235,16 @@ def _conversion_form(with_output: bool) -> dict:
     return _form(option_list, required=("files[]", "format"), extra=files)
 
 
+# No `example` on parameters: Swagger UI would prefill Try-it-out with it.
 _JOB_ID = {
     "name": "job_id", "in": "path", "required": True,
     "description": "The `id` from POST /jobs.",
     "schema": {"type": "string", "pattern": "^[A-Za-z0-9_-]{16,64}$"},
-    "example": "q3J5Qm9yZ2VyX2lkXzE",
 }
 _JOB_TOKEN = {
     "name": "X-Job-Token", "in": "header", "required": True,
-    "description": "The `token` from POST /jobs (or POST /jobs/{job_id}/claim). Only its owner can see the job. "
-    "Sent as a header so it never shows up in URLs or access logs.",
+    "description": "The `token` from POST /jobs or POST /jobs/{job_id}/claim. A header, so it stays out of URLs and logs.",
     "schema": {"type": "string"},
-    "example": "4mWl9sQyZb2c...",
 }
 _STORAGE_NOTE = (
     "\n\nStorage management can see the files of **every** user of the container. "
@@ -282,8 +281,8 @@ def _spec_urls(script_root: str = "") -> tuple[str, str, str, str]:
     )
 
 
-def _paths(base: str) -> dict:
-    auth = '  -H "Authorization: Bearer $PUBLIC_API_KEY" \\\n'
+def _paths(base: str, keyed: bool = True) -> dict:
+    auth = ' \\\n  -H "Authorization: Bearer $PUBLIC_API_KEY"' if keyed else ""
     return {
         "/health": {"get": {
             "tags": ["Health"], "operationId": "health", "security": [],
@@ -308,7 +307,7 @@ def _paths(base: str) -> dict:
             "summary": "Versions, limits and switched-on features",
             "description": "What this container allows: upload limit (MAX_UPLOAD_SIZE_MB), output size limit for "
             "AI upscaling, how long results are kept, and whether the API key, storage management and "
-            "notifications are on." + _curl(f"curl -fsS {base}/info \\\n{auth}"),
+            "notifications are on." + _curl(f"curl -fsS {base}/info{auth}"),
             "responses": {"200": {"description": "Container settings.", "content": _json(_ref("Info"), {
                 "api_version": "1", "app_version": "1.1.0", "public_api_enabled": True, "auth_required": True,
                 "storage_management_enabled": True, "notifications_enabled": False,
@@ -321,7 +320,7 @@ def _paths(base: str) -> dict:
             "description": "`supported_formats`: file extensions the container reads (70+, from Pillow plus the "
             "PDF, PSD, SVG and HEIC pipelines). `verified_formats`: the ones tested in CI. "
             "`preview_unsupported_formats`: inputs POST /preview cannot render (they still convert). "
-            "`output_formats`: values for the `format` field." + _curl(f"curl -fsS {base}/formats \\\n{auth}"),
+            "`output_formats`: values for the `format` field." + _curl(f"curl -fsS {base}/formats{auth}"),
             "responses": {"200": {"description": "Format lists.", "content": _json(_ref("Formats"), {
                 "supported_formats": [".avif", ".heic", ".jpg", ".png", ".psd", ".webp"],
                 "verified_formats": [".heic", ".png", ".jpg"],
@@ -354,11 +353,11 @@ def _paths(base: str) -> dict:
             "Response headers: `X-Converted-Count` and `X-Failed-Count`. Files that fail in a batch are "
             "left out of the ZIP; when all fail, the answer is 422."
             + _curl(
-                f"# Compress a photo to WebP, 1600 px wide\ncurl -fsS {base}/convert \\\n{auth}"
+                f"# Compress a photo to WebP, 1600 px wide\ncurl -fsS {base}/convert{auth} \\\n"
                 '  -F "files[]=@photo.jpg" -F format=webp -F quality=80 -F width=1600 \\\n  -o photo.webp'
             )
             + _curl(
-                f"# Remove the background, keep transparency\ncurl -fsS {base}/convert \\\n{auth}"
+                f"# Remove the background, keep transparency\ncurl -fsS {base}/convert{auth} \\\n"
                 '  -F "files[]=@product.jpg" -F format=png -F remove_background=true -o product.png'
             ),
             "requestBody": _conversion_form(with_output=True),
@@ -384,7 +383,7 @@ def _paths(base: str) -> dict:
             "or the ZIP. Results are kept for `result_retention_seconds` (GET /info) after the last access."
             "\n\nThe web UI converts through this endpoint."
             + _curl(
-                f"curl -fsS {base}/jobs \\\n{auth}"
+                f"curl -fsS {base}/jobs{auth} \\\n"
                 '  -F "files[]=@small.png" -F format=png -F upscale=4x -F upscale_model=general\n'
                 '# -> {"id": "...", "token": "...", "status": "queued", ...}'
             ),
@@ -407,7 +406,7 @@ def _paths(base: str) -> dict:
             "description": "Poll every 1-2 seconds. `progress` has `files_done`/`files_total`, and for AI upscaling "
             "`tiles_done`/`tiles_total` (and `waiting` while another upscale holds the CPU). When `status` is "
             "`done`, `result.converted_files` lists the files to download. Every poll restarts the "
-            "retention clock." + _curl(f'curl -fsS {base}/jobs/$JOB_ID \\\n{auth}  -H "X-Job-Token: $JOB_TOKEN"'),
+            "retention clock." + _curl(f'curl -fsS {base}/jobs/$JOB_ID{auth} \\\n  -H "X-Job-Token: $JOB_TOKEN"'),
             "parameters": [_JOB_ID, _JOB_TOKEN],
             "responses": {
                 "200": {"description": "Current state.", "content": _json(_ref("JobState"), {
@@ -435,7 +434,7 @@ def _paths(base: str) -> dict:
             "message (image count and device, never file names) to NOTIFY_URL. With PUBLIC_BASE_URL set the "
             "message links to the result. 409 when NOTIFY_URL is not configured.",
             "parameters": [_JOB_ID, _JOB_TOKEN],
-            "requestBody": {"required": True, "content": _json(_ref("NotifyRequest"), {"enabled": True, "language": "en"})},
+            "requestBody": {"required": True, "content": _json(_ref("NotifyRequest"))},
             "responses": {"204": {"description": "Saved."}, **_errors(404, 409)},
         }},
         "/jobs/{job_id}/claim": {"post": {
@@ -444,7 +443,7 @@ def _paths(base: str) -> dict:
             "description": "Trades the share token of a notification link (`/r/{job_id}/{share_token}`) for a job "
             "token of the calling device. The share token goes in the body, never in a URL.",
             "parameters": [_JOB_ID],
-            "requestBody": {"required": True, "content": _json(_ref("ClaimRequest"), {"share_token": "Zx8...k2"})},
+            "requestBody": {"required": True, "content": _json(_ref("ClaimRequest"))},
             "responses": {"200": {"description": "A job token for this device.", "content": _json(
                 _ref("JobClaim"), {"id": "q3J5Qm9yZ2VyX2lkXzE", "token": "9fT2...Lw"})}, **_errors(404)},
         }},
@@ -453,10 +452,10 @@ def _paths(base: str) -> dict:
             "summary": "Download one result file",
             "description": "`file_name` is one entry of `result.converted_files` (may contain `/` when folder "
             "structure was kept)." + _curl(
-                f'curl -fsS {base}/jobs/$JOB_ID/files/small.png \\\n{auth}  -H "X-Job-Token: $JOB_TOKEN" -o small.png'),
+                f'curl -fsS {base}/jobs/$JOB_ID/files/small.png{auth} \\\n  -H "X-Job-Token: $JOB_TOKEN" -o small.png'),
             "parameters": [_JOB_ID, {"name": "file_name", "in": "path", "required": True,
                                      "description": "Name from `result.converted_files`.",
-                                     "schema": {"type": "string"}, "example": "small.png"}, _JOB_TOKEN],
+                                     "schema": {"type": "string"}}, _JOB_TOKEN],
             "responses": {"200": _binary("The file."), **_errors(404)},
         }},
         "/jobs/{job_id}/zip": {"get": {
@@ -472,7 +471,7 @@ def _paths(base: str) -> dict:
             "description": "Decodes PSD, HEIC, RAW, SVG, EPS and the rest into a PNG, e.g. to show or crop it in an "
             "app. `X-Image-Width`/`X-Image-Height` give the original size. Formats in "
             "`preview_unsupported_formats` answer 415." + _curl(
-                f'curl -fsS {base}/preview \\\n{auth}  -F "file=@design.psd" -o design.png'),
+                f'curl -fsS {base}/preview{auth} \\\n  -F "file=@design.psd" -o design.png'),
             "requestBody": _form((), required=("file",), extra={"file": {
                 "type": "string", "format": "binary", "description": "The image to render."}}),
             "responses": {"200": _binary("PNG of the image.", ("image/png",), headers={
@@ -492,7 +491,7 @@ def _paths(base: str) -> dict:
             "POST /editor/assets and pass `fit_session` plus the asset ids. A one-off background can also be "
             f"sent directly as `fit_background`. Up to {MAX_IMAGE_LAYERS} picture layers.\n\n"
             "To get another format, send the PNG to POST /convert." + _curl(
-                f"# Instagram square with a blurred background and a caption\ncurl -fsS {base}/edit \\\n{auth}"
+                f"# Instagram square with a blurred background and a caption\ncurl -fsS {base}/edit{auth} \\\n"
                 '  -F "file=@photo.jpg" -F fit_width=1080 -F fit_height=1080 -F fit_mode=blur \\\n'
                 "  -F 'fit_text={\"text\":\"Summer\",\"size\":0.1,\"y\":0.88}' -F render=true -o square.png"),
             "requestBody": _form(options.EDITOR_OPTIONS, required=("file", "fit_width", "fit_height"), extra={
@@ -500,11 +499,9 @@ def _paths(base: str) -> dict:
                 "fit_background": {"type": "string", "format": "binary",
                                    "description": "Background picture for fit_mode=image, without a session."},
                 "render": {"type": "boolean",
-                           "description": "true or false. true: answer with the full-size PNG instead of JSON. "
-                           "Recommended: leave empty unless you want the PNG. If omitted: off (JSON), as in the web UI."},
+                           "description": "true: answer with the full-size PNG instead of JSON. If omitted: off (JSON)."},
                 "preview": {"type": "boolean",
-                            "description": "true or false. JSON answer only: include the preview image. "
-                            "Recommended: leave empty to keep the preview. If omitted: true, as in the web UI."},
+                            "description": "JSON answer only: include the preview image. If omitted: true."},
             }),
             "responses": {
                 "200": {"description": "PNG with `render=true`, else the selection and a preview.", "content": {
@@ -526,7 +523,7 @@ def _paths(base: str) -> dict:
             "expire with the other temporary files. 409: session full; 410: session expired, start a new one.",
             "requestBody": _form((), required=("file",), extra={
                 "file": {"type": "string", "format": "binary", "description": "The picture."},
-                "session": {"type": "string", "description": "Session from an earlier upload; empty starts a new one."},
+                "session": {"type": "string", "description": "Session from an earlier upload. If omitted: a new session."},
             }),
             "responses": {"200": {"description": "Stored.", "content": _json(_ref("EditorAsset"), {
                 "session": "pJ4n...Q", "asset": "a8Bd0Qx4sJvW2mNe", "width": 800, "height": 600})},
@@ -551,9 +548,9 @@ def _paths(base: str) -> dict:
             "summary": "Download one listed file", "description": "Only files of result folders can be served." + _STORAGE_NOTE,
             "parameters": [
                 {"name": "folder", "in": "query", "required": True, "schema": {"type": "string"},
-                 "description": "`folder_path` from GET /storage/files.", "example": "/tmp/converted_ab12"},
+                 "description": "`folder_path` from GET /storage/files."},
                 {"name": "file", "in": "query", "required": True, "schema": {"type": "string"},
-                 "description": "`filename` from GET /storage/files.", "example": "photo.webp"},
+                 "description": "`filename` from GET /storage/files."},
             ],
             "responses": {"200": _binary("The file."), **_errors(404)},
         }},
@@ -561,7 +558,7 @@ def _paths(base: str) -> dict:
             "tags": ["Storage"], "operationId": "storageDownloadFolder",
             "summary": "Download one result folder as ZIP", "description": "ZIP of one result folder." + _STORAGE_NOTE,
             "parameters": [{"name": "folder", "in": "query", "required": True, "schema": {"type": "string"},
-                            "description": "`folder_path` from GET /storage/files.", "example": "/tmp/converted_ab12"}],
+                            "description": "`folder_path` from GET /storage/files."}],
             "responses": {"200": _binary("ZIP.", ("application/zip",)), **_errors(400)},
         }},
         "/storage/cleanup": {"post": {
@@ -593,12 +590,13 @@ def _paths(base: str) -> dict:
         }},
         "/docs/{name}": {"get": {
             "tags": ["Docs"], "operationId": "docsAsset", "security": [],
-            "summary": "Swagger UI files", "description": "Script and style sheet of the Swagger UI page.",
-            "parameters": [{"name": "name", "in": "path", "required": True, "description": "File name.",
-                            "schema": {"type": "string", "enum": ["swagger-ui.css", "swagger-ui-bundle.js",
-                                                                  "swagger-ui-init.js"]},
-                            "example": "swagger-ui.css"}],
-            "responses": {"200": _binary("The file.", ("text/css", "text/javascript")), **_errors(404)},
+            "summary": "Swagger UI files", "description": "Scripts, style sheets and images of the Swagger UI page.",
+            # Values in the text, not as enum: Swagger UI preselects the first enum of a required parameter.
+            "parameters": [{"name": "name", "in": "path", "required": True,
+                            "description": "File name. Values: " + ", ".join(DOCS_ASSETS) + ".",
+                            "schema": {"type": "string"}}],
+            "responses": {"200": _binary("The file.", ("text/css", "text/javascript", "image/webp")),
+                          **_errors(404)},
         }},
     }
 
@@ -665,9 +663,10 @@ def _schemas() -> dict:
             "token": {"type": "string", "description": "Send as X-Job-Token. Shown only once."}}}]},
         "JobClaim": {"type": "object", "required": ["id", "token"], "properties": {"id": string, "token": string}},
         "NotifyRequest": {"type": "object", "required": ["enabled"], "properties": {
-            "enabled": {"type": "boolean"},
+            "enabled": {"type": "boolean", "description": "true turns the notification on, false off."},
             "language": {"type": "string", "description": "Message language, e.g. en or de; unknown = English."}}},
-        "ClaimRequest": {"type": "object", "required": ["share_token"], "properties": {"share_token": string}},
+        "ClaimRequest": {"type": "object", "required": ["share_token"], "properties": {"share_token": {
+            "type": "string", "description": "The last part of the notification link."}}},
         "EditorAsset": {"type": "object", "required": ["session", "asset", "width", "height"], "properties": {
             "session": {"type": "string", "description": "Pass as fit_session (and session for more uploads)."},
             "asset": {"type": "string", "description": "Use in fit_layers or fit_background_asset."},
@@ -691,95 +690,47 @@ def _schemas() -> dict:
 
 
 def _description(max_upload_mb: int, requires_key: bool, curl_base: str) -> str:
-    key_state = "**set on this container**" if requires_key else "**not set on this container**"
+    key_state = "**set**" if requires_key else "**not set**"
+    auth_line = '  -H "Authorization: Bearer $PUBLIC_API_KEY" \\\n' if requires_key else ""
     return f"""# ImgCompress, your self-hosted image toolbox. Compress every image format. Zero cloud.
 
-An easy web app for everyone, no IT skills needed. Make images smaller, convert 70+ formats, edit them, enlarge them with AI and remove backgrounds. The AI is already built in. Private, offline, free and open source.
+Compress, convert, edit and upscale images in 70+ formats, with AI background removal built in.
+Private, offline, free and open source. Own your data.
 
-Prefer a web UI? imgcompress ships one too — see the [website]({SITE_URL}) and the [GitHub repository]({GITHUB_URL}). Own your data.
+Prefer a web UI? It ships in the same container. [Website]({SITE_URL}) · [GitHub]({GITHUB_URL})
 
-This document is the REST API of your container. The web UI uses the same routes, so everything it can do, your app can do too.
+Created by [Karim Zouine]({AUTHOR_URL}) · License [{LICENSE_NAME}]({LICENSE_URL})
 
-Created by [Karim Zouine]({SITE_URL}).
-
-## Getting started
-
-The base URL is `PUBLIC_BASE_URL` plus `/api/v1` (trailing slash stripped; same env as the ntfy share links).
-Without `PUBLIC_BASE_URL`, this document's server is the relative path `/api/v1`, so Swagger uses the origin
-you opened these docs from.
+## Quick start
 
 ```bash
 curl -fsS {curl_base}/convert \\
-  -H "Authorization: Bearer $PUBLIC_API_KEY" \\
-  -F "files[]=@photo.jpg" -F format=webp -F quality=80 -o photo.webp
+{auth_line}  -F "files[]=@photo.jpg" -F format=webp -o photo.webp
 ```
 
-Leave out the `Authorization` line when PUBLIC_API_KEY is not set. `format` is required; every other
-option may be omitted and then follows the web UI's start state (features off, quality 85).
+Base URL: `PUBLIC_BASE_URL` + `{API_PREFIX}`. Only `format` is required. Every other option is off
+until you send it; allowed values and recommendations are in each field.
 
 ## Authentication
 
-`PUBLIC_API_KEY` is {key_state}. When set, callers other than the web UI (and health checks and these docs)
-must send `Authorization: Bearer <key>` or `{API_KEY_HEADER}: <key>`.
+`PUBLIC_API_KEY` is {key_state} on this container. With a key, send `Authorization: Bearer <key>`
+or `{API_KEY_HEADER}: <key>`. Health checks and these docs never need it.
 
-The web UI never sends the key. Same-origin browser requests are let through by a CSRF check
-(`Sec-Fetch-Site`, or `Origin` on older browsers): that is cross-site protection, not authentication.
-A script can send the same headers, so a key next to the web UI is not a security boundary.
-Anyone who can open the UI can do what it does.
+## Modes
 
-CORS (with the public API on): allowed request headers `{CORS_ALLOW_HEADERS}`,
-exposed response headers `{CORS_EXPOSE_HEADERS}`.
-
-## Deployment and security
-
-Three honest modes, the common self-hosted pattern (for example Stirling-PDF):
-
-| Mode | Settings | Effect |
+| Mode | Settings | Behaviour |
 |---|---|---|
-| Default | Web UI on, `ENABLE_PUBLIC_API` off | Scripts on your network work. A browser request from another website gets **403** (CSRF defense via `Origin` / `Sec-Fetch-Site`). These docs answer 404. No CORS. |
-| Web UI + public API | `ENABLE_PUBLIC_API=true`, optional `PUBLIC_API_KEY` | Other websites may call the API (CORS `Access-Control-Allow-Origin: *`, no cookies). These docs are served. If a key is set, callers that are not the web UI must send it. The key is **not** a security boundary while the web UI is served. For public hosting use API_ONLY or put proxy auth (Authelia, Authentik, Basic Auth) in front. |
-| API only | `API_ONLY=true` and a `PUBLIC_API_KEY` | The web UI is not served. The public API is on (CORS and these docs). Every `/api/v1` call except health checks needs the key. This is a real boundary. The container will not start without a key. |
+| Default | none | Web UI on. Scripts on your network can call the API; other websites get 403. No docs. |
+| Web UI + API | `ENABLE_PUBLIC_API=true`, optional `PUBLIC_API_KEY` | Docs and CORS on. The key does not protect the web UI; on the internet use API only or proxy auth (Authelia, Authentik, Basic Auth). |
+| API only | `API_ONLY=true` and `PUBLIC_API_KEY` | No web UI. Every call except health and docs needs the key. The container does not start without one. |
 
-## Convert vs jobs
+## Errors and limits
 
-- `POST /convert` is synchronous: it waits and answers with the file itself, or a ZIP for several files.
-  Use it for one image or a short batch.
-- `POST /jobs` is asynchronous: it answers **202** with `id` and `token`, then a worker runs in the
-  background. Poll `GET /jobs/{{id}}` with `X-Job-Token`, then download a file or the ZIP. Use it for
-  AI upscaling, large batches, or work that should survive a closed tab.
-
-## Errors
-
-Every error is JSON: `{{"error": "Bad Request", "message": "'quality' must be a whole number between 1 and 100."}}`.
-
-| Code | Meaning |
-|---|---|
-| 400 | Invalid options or form. `message` says which field and what is allowed. |
-| 401 | PUBLIC_API_KEY is set and the request is neither from the web UI nor carries the key. |
-| 403 | A request from another website while ENABLE_PUBLIC_API is off, or a storage route with DISABLE_STORAGE_MANAGEMENT. |
-| 404 | Unknown id, wrong token, or expired. These are not told apart on purpose. |
-| 409 | Conflicts with the current state (see `message`). |
-| 410 | The editor session expired; upload the pictures again. |
-| 413 | The request is larger than MAX_UPLOAD_SIZE_MB. Nothing was stored. |
-| 415 | A file type the container cannot read. |
-| 422 | The files were readable as a form but none could be converted. |
-| 500 | Unexpected failure inside the container; see the container log. |
-
-## Limits
-
-- Largest request: **{max_upload_mb} MB** (MAX_UPLOAD_SIZE_MB); bigger uploads get 413 before anything is stored.
-- Results of `/convert` are deleted once sent; job results are kept for the retention time in GET /info
-  after the last access, and only answer to their own `X-Job-Token`.
-- Every request gets its own temporary folders, so parallel users never see each other's files.
-- Storage and log routes answer 403 when `DISABLE_STORAGE_MANAGEMENT=true`. They can see every user's files, so leave that switch on unless you trust every visitor.
-
-## Versioning
-
-`{API_PREFIX}` only grows: new endpoints, new optional fields and new response fields may come in any
-release. Nothing is renamed, removed or made stricter within v1. A breaking change gets `/api/v2`,
-served next to v1 for at least one release. Deprecated routes (such as `GET /api/health/backend`) are
-marked `deprecated` in this document and will be removed in 2.0. `info.version` follows semver for the
-contract of v1.
+- Errors are JSON: `{{"error": "Bad Request", "message": "..."}}`.
+- Uploads up to **{max_upload_mb} MB** (`MAX_UPLOAD_SIZE_MB`), else 413.
+- `POST /convert` waits for the result. Use `POST /jobs` for AI upscaling and big batches.
+- Job results answer only to their `X-Job-Token`. Storage routes see every user's files; turn them off with `DISABLE_STORAGE_MANAGEMENT=true`.
+- `{API_PREFIX}` only grows. Breaking changes get `/api/v2`; deprecated routes go in 2.0. `info.version` is the version of the v1 contract.
 """
 
 
@@ -790,10 +741,8 @@ def _legacy_health_alias(server_root: str, curl_origin: str) -> dict:
         "tags": ["Health"], "operationId": "legacyHealthBackend", "security": [],
         "deprecated": True,
         "summary": "Legacy alias of GET /health",
-        "description": "Same answer as GET /api/v1/health. Kept so existing health checks and uptime "
-        "monitors keep working. Never needs the API key. Same access rules as /api/v1/health: "
-        "scripts and monitors always work; other websites follow ENABLE_PUBLIC_API. "
-        "Will be removed in 2.0; use GET /api/v1/health."
+        "description": "Same answer as GET /api/v1/health, kept for existing health checks. "
+        "Never needs the API key. Will be removed in 2.0; use GET /api/v1/health."
         + _curl(f"curl -fsS {curl_origin}/api/health/backend"),
         "responses": {"200": {"description": "The container answers.", "content": _json(
             _ref("Health"), {"status": "running", "api_version": "1", "utc_time": "2026-11-16T09:30:00+00:00"})}},
@@ -802,18 +751,19 @@ def _legacy_health_alias(server_root: str, curl_origin: str) -> dict:
 
 def build_spec(script_root: str = "") -> dict:
     config = settings.get()
+    keyed = config.public_api.requires_key
     server, curl_base, legacy_server, curl_origin = _spec_urls(script_root)
-    return {
+    spec = {
         "openapi": "3.1.0",
         "info": {
             "title": "imgcompress API",
             "version": SPEC_VERSION,
             "summary": "Offline image compression, conversion, editing and AI background removal / upscaling.",
             "description": _description(
-                config.uploads.max_file_size_mebibytes, config.public_api.requires_key, curl_base,
+                config.uploads.max_file_size_mebibytes, keyed, curl_base,
             ),
             "license": {"name": LICENSE_NAME, "url": LICENSE_URL},
-            "contact": {"name": "Karim Zouine", "url": SITE_URL},
+            "contact": {"name": "Karim Zouine", "url": AUTHOR_URL},
         },
         "externalDocs": {"description": "imgcompress docs", "url": DOCS_URL},
         "servers": [{"url": server, "description": "This container"}],
@@ -826,20 +776,24 @@ def build_spec(script_root: str = "") -> dict:
             {"name": "Storage", "description": "Temporary files of the container. Answer 403 when DISABLE_STORAGE_MANAGEMENT=true."},
             {"name": "Docs", "description": "This document and Swagger UI. Served only with ENABLE_PUBLIC_API or API_ONLY."},
         ],
-        # {} first: without PUBLIC_API_KEY nothing is needed.
-        "security": [{}, {"bearerAuth": []}, {"apiKeyHeader": []}],
-        "paths": _with_gate_errors({**_paths(curl_base), **_legacy_health_alias(legacy_server, curl_origin)}),
+        "paths": _with_gate_errors(
+            {**_paths(curl_base, keyed), **_legacy_health_alias(legacy_server, curl_origin)}, keyed,
+        ),
         "components": {
-            "securitySchemes": {
-                "bearerAuth": {"type": "http", "scheme": "bearer",
-                               "description": "PUBLIC_API_KEY of the container, as `Authorization: Bearer <key>`."},
-                "apiKeyHeader": {"type": "apiKey", "in": "header", "name": API_KEY_HEADER,
-                                 "description": f"PUBLIC_API_KEY of the container, as `{API_KEY_HEADER}: <key>`."},
-            },
             "schemas": _schemas(),
-            "responses": {f"E{status}": _error_response(status) for status in _ERROR_TEXT},
+            "responses": {f"E{status}": _error_response(status) for status in _ERROR_TEXT if keyed or status != 401},
         },
     }
+    if keyed:
+        # Only with a key (always the case in API_ONLY): locks and the Authorize button in Swagger UI.
+        spec["security"] = [{"bearerAuth": []}, {"apiKeyHeader": []}]
+        spec["components"]["securitySchemes"] = {
+            "bearerAuth": {"type": "http", "scheme": "bearer",
+                           "description": "PUBLIC_API_KEY of the container, as `Authorization: Bearer <key>`."},
+            "apiKeyHeader": {"type": "apiKey", "in": "header", "name": API_KEY_HEADER,
+                             "description": f"PUBLIC_API_KEY of the container, as `{API_KEY_HEADER}: <key>`."},
+        }
+    return spec
 
 
 def swagger_page(script_root: str) -> str:
@@ -877,8 +831,16 @@ def swagger_page(script_root: str) -> str:
   <meta name="twitter:description" content="{description}">
   <meta name="twitter:image" content="{image}">
   <link rel="stylesheet" href="{docs_path}/swagger-ui.css">
+  <link rel="stylesheet" href="{docs_path}/imgcompress-docs.css">
 </head>
 <body>
+  <header class="imgc-header">
+    <img class="imgc-logo" src="{docs_path}/logo.webp" alt="imgcompress logo" width="64" height="52">
+    <div class="imgc-brand">
+      <span class="imgc-name">imgcompress <span class="imgc-api">API</span></span>
+      <span class="imgc-tagline">REST API v1, served by your container</span>
+    </div>
+  </header>
   <div id="swagger-ui" data-spec-url="{root}{API_PREFIX}/openapi.json">
     <noscript>Swagger UI needs JavaScript. The spec is at {root}{API_PREFIX}/openapi.json.</noscript>
   </div>

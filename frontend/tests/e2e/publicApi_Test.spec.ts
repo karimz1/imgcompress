@@ -128,11 +128,28 @@ test('Swagger UI loads from the container and lists the API', async ({ page, req
   const operation = (path: string) => page.locator(`.opblock-summary-path[data-path="${path}"]`).first();
   await expect(operation('/convert')).toBeVisible();
   await expect(operation('/jobs')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Authorize/ })).toBeVisible();
+  await expect(page.locator('.imgc-header .imgc-logo')).toBeVisible();
+  // Locks and the Authorize button only when a key is configured.
+  if (mode.keyRequired) {
+    await expect(page.getByRole('button', { name: /Authorize/ })).toBeVisible();
+  } else {
+    await expect(page.getByRole('button', { name: /Authorize/ })).toHaveCount(0);
+    await expect(page.locator('.authorization__btn')).toHaveCount(0);
+  }
 
-  // Open one operation: its description and parameters are documented.
+  // Open one operation: its description is documented and Try it out starts empty.
   await operation('/convert').click();
-  await expect(page.locator('.opblock-description-wrapper').first()).toContainText('curl');
+  const convert = page.locator('.opblock-post').filter({ has: operation('/convert') }).first();
+  await expect(convert.locator('.opblock-description-wrapper')).toContainText('curl');
+  const fields = convert.locator(
+    '.opblock-section-request-body input:not([type=file]):not([type=checkbox]), '
+    + '.opblock-section-request-body select:not(.content-type), .opblock-section-request-body textarea',
+  );
+  await expect(fields.first()).toBeVisible();
+  const values = await fields.evaluateAll((els) => els.map((el) => (el as HTMLInputElement).value));
+  expect(values.length).toBeGreaterThan(10);
+  expect(values.filter((value) => value !== ''), 'no prefilled or preselected field').toEqual([]);
+  await expect(convert.getByText('Send empty value')).toHaveCount(0);
   expect(outside, 'Swagger UI must work offline').toEqual([]);
 
   const spec = await (await request.get('/api/v1/openapi.json')).json();

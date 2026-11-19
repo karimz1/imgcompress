@@ -5,7 +5,7 @@ where it comes from (Sec-Fetch-Site, else Origin); pages cannot fake these
 headers. That is CSRF / cross-site protection, not authentication: a script
 can send the same headers.
 
-Three modes (the common self-hosted pattern, e.g. Stirling-PDF):
+Three modes:
 
 Default (ENABLE_PUBLIC_API off)
     No CORS headers, Swagger UI and the spec answer 404, and every request a

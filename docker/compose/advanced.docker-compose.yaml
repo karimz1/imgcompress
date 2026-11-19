@@ -60,7 +60,7 @@ services:
       # - PUBLIC_BASE_URL=http://192.168.1.10:3001
       # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
       # - TZ=Europe/Berlin
-      # Three modes (same pattern as Stirling-PDF and similar self-hosted apps):
+      # Three modes:
       #   1) Default: web UI on, public API off. Cross-site browser calls get 403
       #      (CSRF defense). Docs are hidden.
       #   2) IMGCOMPRESS_ENABLE_PUBLIC_API=true, optional IMGCOMPRESS_PUBLIC_API_KEY:

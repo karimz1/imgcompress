@@ -184,7 +184,7 @@ services:
       # - PUBLIC_BASE_URL=https://${TRAEFIK_DOMAIN_NAME}
       # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
       # - TZ=Europe/Berlin
-      # This host is on the internet. Three modes (same pattern as Stirling-PDF):
+      # This host is on the internet. Three modes:
       #   1) Default: web UI on, public API off. Cross-site browser calls get 403 (CSRF).
       #   2) ENABLE_PUBLIC_API=true: docs and CORS on. A PUBLIC_API_KEY is not a
       #      security boundary while the web UI is served. Prefer proxy auth
