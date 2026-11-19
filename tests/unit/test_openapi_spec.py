@@ -472,3 +472,106 @@ def test_PublicText_Expect_NoEmOrEnDashes(spec, open_spec, client):
     page = client.get("/api/v1/docs").get_data(as_text=True)
     for text in (json.dumps(spec, ensure_ascii=False), json.dumps(open_spec, ensure_ascii=False), page):
         assert "\u2014" not in text and "\u2013" not in text, "no em or en dashes"
+
+
+# --- examples are never shortened ------------------------------------------------------
+
+_MODES = [
+    {},
+    {"ENABLE_PUBLIC_API": "true"},
+    {"ENABLE_PUBLIC_API": "true", "PUBLIC_API_KEY": KEY},
+    {"API_ONLY": "true", "PUBLIC_API_KEY": KEY},
+    {"ENABLE_PUBLIC_API": "true", "PUBLIC_BASE_URL": "https://img.example.com/"},
+]
+# Field name in an example -> the exact format the container produces.
+_EXAMPLE_FORMATS = {
+    "id": r"[A-Za-z0-9_-]{22}",  # secrets.token_urlsafe(16)
+    "token": r"[A-Za-z0-9_-]{43}",  # secrets.token_urlsafe(32)
+    "share_token": r"[A-Za-z0-9_-]{43}",
+    "session": r"[A-Za-z0-9_-]{32}",  # secrets.token_urlsafe(24)
+    "asset": r"[A-Za-z0-9_-]{22}",
+}
+
+
+def _walk_examples(node, found):
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == "example":
+                found.append(value)
+            elif key == "examples" and isinstance(value, dict):
+                found.extend(item.get("value") for item in value.values() if isinstance(item, dict))
+            _walk_examples(value, found)
+    elif isinstance(node, list):
+        for item in node:
+            _walk_examples(item, found)
+    return found
+
+
+def _strings(value, key=None):
+    if isinstance(value, dict):
+        for name, item in value.items():
+            yield from _strings(item, name)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _strings(item, key)
+    elif isinstance(value, str):
+        yield key, value
+
+
+@pytest.mark.parametrize("env", _MODES, ids=lambda env: ",".join(env) or "default")
+def test_ServedSpec_Expect_NoShortenedValueAnywhere(monkeypatch, env):
+    import json
+    served = _build(monkeypatch, **env)
+    text = json.dumps(served, ensure_ascii=False)
+    for marker in ("...", "\u2026"):
+        index = text.find(marker)
+        assert index == -1, f"shortened value: {text[max(0, index - 80):index + 20]!r}"
+    examples = _walk_examples(served, [])
+    assert examples, "the spec has examples"
+    model_ids = set(options.UPSCALE_MODEL.choices)
+    for example in examples:
+        for key, value in _strings(example):
+            if key == "id" and value in model_ids:
+                continue  # GET /models/upscale lists model names, not job ids
+            if key in _EXAMPLE_FORMATS:
+                assert re.fullmatch(_EXAMPLE_FORMATS[key], value), f"{key}={value!r} is not the real format"
+    # Every example also passes its own schema, patterns included.
+    for path, method, operation in _operations(served):
+        for code, response in operation["responses"].items():
+            if "$ref" in response:
+                response = served["components"]["responses"][response["$ref"].rsplit("/", 1)[1]]
+            media = response.get("content", {}).get("application/json")
+            if media and "example" in media:
+                errors = list(_validator(served, media["schema"]).iter_errors(media["example"]))
+                assert not errors, f"{method} {path} {code}: {errors[0].message}"
+
+
+def test_ExampleIdsAndTokens_Expect_TheirSchemaPatternsAndTheRealGenerators():
+    import secrets
+    for value, pattern in ((openapi.EXAMPLE_JOB_ID, openapi._JOB_ID_PATTERN),
+                           (openapi.EXAMPLE_JOB_TOKEN, openapi._TOKEN_PATTERN),
+                           (openapi.EXAMPLE_CLAIMED_TOKEN, openapi._TOKEN_PATTERN),
+                           (openapi.EXAMPLE_SESSION, openapi._SESSION_PATTERN),
+                           (openapi.EXAMPLE_ASSET, openapi._ASSET_PATTERN)):
+        assert re.fullmatch(pattern, value), value
+    # The patterns describe what the stores really generate.
+    assert re.fullmatch(openapi._JOB_ID_PATTERN, secrets.token_urlsafe(16))
+    assert re.fullmatch(openapi._TOKEN_PATTERN, secrets.token_urlsafe(32))
+    assert re.fullmatch(openapi._SESSION_PATTERN, secrets.token_urlsafe(24))
+    from backend.image_converter.infrastructure import conversion_job_store, editor_asset_store
+    assert conversion_job_store._ID_PATTERN.fullmatch(openapi.EXAMPLE_JOB_ID)
+    assert editor_asset_store._SESSION_TOKEN.fullmatch(openapi.EXAMPLE_SESSION)
+    assert editor_asset_store._ASSET_ID.fullmatch(openapi.EXAMPLE_ASSET)
+    import base64
+    head, data = openapi.EXAMPLE_PREVIEW.split(",", 1)
+    assert head == "data:image/png;base64"
+    assert Image.open(io.BytesIO(base64.b64decode(data))).format == "PNG"
+
+
+def test_RealAnswers_Expect_TheDocumentedPatterns(spec, client):
+    started = client.post("/api/v1/jobs", data={"files[]": (io.BytesIO(_png()), "a.png"), "format": "png"},
+                          content_type="multipart/form-data")
+    _check(spec, "/jobs", "post", started)
+    asset = client.post("/api/v1/editor/assets", data={"file": (io.BytesIO(_png()), "bg.png")},
+                        content_type="multipart/form-data")
+    _check(spec, "/editor/assets", "post", asset)

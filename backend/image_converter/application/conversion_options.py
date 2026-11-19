@@ -233,7 +233,7 @@ EDITOR_OPTIONS: Tuple[Option, ...] = (
     _editor(
         "fit_layers", STRING,
         f"Layers as a JSON list, bottom first: up to {MAX_TEXT_LAYERS} text layers "
-        '({"type":"text", ...same keys as fit_text}) and up to '
+        '({"type":"text"} plus the keys of fit_text) and up to '
         f'{MAX_IMAGE_LAYERS} picture layers ({{"type":"image","asset":"<id from /editor/assets>",'
         '"x","y","width","height","rotation","opacity"}). Picture layers need fit_session.',
         example='[{"type":"text","text":"Sale","y":0.1}]',

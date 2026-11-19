@@ -44,6 +44,23 @@ DOCS_META_DESCRIPTION = (
 # Typical values, named in the field description only (never prefilled).
 _RECOMMENDED = {"format": "webp", "quality": "80", "fit_width": "1080", "fit_height": "1080"}
 
+# Example values in the exact format the container produces (secrets.token_urlsafe),
+# never shortened: Swagger UI is a playground and people copy these.
+_JOB_ID_PATTERN = "^[A-Za-z0-9_-]{22}$"  # token_urlsafe(16), conversion_job_store
+_TOKEN_PATTERN = "^[A-Za-z0-9_-]{43}$"  # token_urlsafe(32): job, claim and share tokens
+_SESSION_PATTERN = "^[A-Za-z0-9_-]{32}$"  # token_urlsafe(24), editor_asset_store
+_ASSET_PATTERN = "^[A-Za-z0-9_-]{22}$"  # token_urlsafe(16), editor_asset_store
+EXAMPLE_JOB_ID = "g30-VsIgWqrDkMS4a-bFJg"
+EXAMPLE_JOB_TOKEN = "qs753DugZX5xOse40hTZUxJ0i58e-F5Zt7T6LzQnj9M"
+EXAMPLE_CLAIMED_TOKEN = "J3bPZLbX79-JUO917GDk8j4wemJ_bJTRQ7B2Hu-OXtU"
+EXAMPLE_SESSION = "r_z3VM0QmTufB9pGvuFJfOMr83mu8rv2"
+EXAMPLE_ASSET = "ZZn7mT-kj8Iozp-imxUl8A"
+# A complete 2x2 PNG, so the example is a data URL that really opens.
+EXAMPLE_PREVIEW = (
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR42mMUTT3AwMDAxMDAwMDAAAAONwE"
+    "+iByHdQAAAABJRU5ErkJggg=="
+)
+
 _ERROR_EXAMPLES = {
     400: "'quality' must be a whole number between 1 and 100.",
     401: f"Send the API key as 'Authorization: Bearer <key>' or '{API_KEY_HEADER}: <key>'.",
@@ -239,7 +256,7 @@ def _conversion_form(with_output: bool) -> dict:
 _JOB_ID = {
     "name": "job_id", "in": "path", "required": True,
     "description": "The `id` from POST /jobs.",
-    "schema": {"type": "string", "pattern": "^[A-Za-z0-9_-]{16,64}$"},
+    "schema": {"type": "string", "pattern": _JOB_ID_PATTERN},
 }
 _JOB_TOKEN = {
     "name": "X-Job-Token", "in": "header", "required": True,
@@ -385,7 +402,7 @@ def _paths(base: str, keyed: bool = True) -> dict:
             + _curl(
                 f"curl -fsS {base}/jobs{auth} \\\n"
                 '  -F "files[]=@small.png" -F format=png -F upscale=4x -F upscale_model=general\n'
-                '# -> {"id": "...", "token": "...", "status": "queued", ...}'
+                f'# -> {{"id": "{EXAMPLE_JOB_ID}", "token": "{EXAMPLE_JOB_TOKEN}", "status": "queued"}}'
             ),
             "requestBody": _conversion_form(with_output=False),
             "responses": {
@@ -393,7 +410,7 @@ def _paths(base: str, keyed: bool = True) -> dict:
                     "description": "Job accepted. Keep `token`: it is shown only here.",
                     "headers": {"Location": {"description": "URL of the job.", "schema": {"type": "string"}}},
                     "content": _json(_ref("JobStarted"), {
-                        "id": "q3J5Qm9yZ2VyX2lkXzE", "token": "4mWl9sQyZb2c...", "status": "queued",
+                        "id": EXAMPLE_JOB_ID, "token": EXAMPLE_JOB_TOKEN, "status": "queued",
                         "progress": {"files_done": 0, "files_total": 1}, "device": "Linux · curl",
                         "created_at": 1763285400.0, "updated_at": 1763285400.0, "server_time": 1763285400.1}),
                 },
@@ -410,7 +427,7 @@ def _paths(base: str, keyed: bool = True) -> dict:
             "parameters": [_JOB_ID, _JOB_TOKEN],
             "responses": {
                 "200": {"description": "Current state.", "content": _json(_ref("JobState"), {
-                    "id": "q3J5Qm9yZ2VyX2lkXzE", "status": "done",
+                    "id": EXAMPLE_JOB_ID, "status": "done",
                     "progress": {"files_done": 1, "files_total": 1, "tiles_done": 64, "tiles_total": 64},
                     "result": {"converted_files": ["small.png"],
                                "process_summary": {"processed_files": ["small.png"], "errors": []}},
@@ -445,7 +462,7 @@ def _paths(base: str, keyed: bool = True) -> dict:
             "parameters": [_JOB_ID],
             "requestBody": {"required": True, "content": _json(_ref("ClaimRequest"))},
             "responses": {"200": {"description": "A job token for this device.", "content": _json(
-                _ref("JobClaim"), {"id": "q3J5Qm9yZ2VyX2lkXzE", "token": "9fT2...Lw"})}, **_errors(404)},
+                _ref("JobClaim"), {"id": EXAMPLE_JOB_ID, "token": EXAMPLE_CLAIMED_TOKEN})}, **_errors(404)},
         }},
         "/jobs/{job_id}/files/{file_name}": {"get": {
             "tags": ["Jobs"], "operationId": "jobFile",
@@ -510,7 +527,7 @@ def _paths(base: str, keyed: bool = True) -> dict:
                         "x": 0, "y": 140, "width": 1080, "height": 1080, "originalWidth": 1080,
                         "originalHeight": 1350, "preset": "free",
                         "fit": {"width": 1080, "height": 1080, "mode": "crop"}},
-                        "preview": "data:image/png;base64,iVBORw0KGgo..."}),
+                        "preview": EXAMPLE_PREVIEW}),
                 }},
                 **_errors(400, 410, 413),
             },
@@ -526,7 +543,7 @@ def _paths(base: str, keyed: bool = True) -> dict:
                 "session": {"type": "string", "description": "Session from an earlier upload. If omitted: a new session."},
             }),
             "responses": {"200": {"description": "Stored.", "content": _json(_ref("EditorAsset"), {
-                "session": "pJ4n...Q", "asset": "a8Bd0Qx4sJvW2mNe", "width": 800, "height": 600})},
+                "session": EXAMPLE_SESSION, "asset": EXAMPLE_ASSET, "width": 800, "height": 600})},
                 **_errors(400, 409, 410, 413)},
         }},
         "/storage": {"get": {
@@ -648,7 +665,7 @@ def _schemas() -> dict:
             "waiting": {"type": "boolean", "description": "Waiting for another upscale to finish."}},
             "additionalProperties": True},
         "JobState": {"type": "object", "required": ["id", "status"], "properties": {
-            "id": string,
+            "id": {"type": "string", "pattern": _JOB_ID_PATTERN},
             "status": {"type": "string", "enum": ["queued", "running", "done", "failed", "canceled"]},
             "progress": _ref("JobProgress"),
             "result": {"type": "object", "description": "With status done.", "properties": {
@@ -660,16 +677,21 @@ def _schemas() -> dict:
             "notify": {"type": "boolean", "description": "Notification is on for this job."}},
             "additionalProperties": True},
         "JobStarted": {"allOf": [_ref("JobState"), {"type": "object", "required": ["token"], "properties": {
-            "token": {"type": "string", "description": "Send as X-Job-Token. Shown only once."}}}]},
-        "JobClaim": {"type": "object", "required": ["id", "token"], "properties": {"id": string, "token": string}},
+            "token": {"type": "string", "pattern": _TOKEN_PATTERN,
+                      "description": "Send as X-Job-Token. Shown only once."}}}]},
+        "JobClaim": {"type": "object", "required": ["id", "token"], "properties": {
+            "id": {"type": "string", "pattern": _JOB_ID_PATTERN},
+            "token": {"type": "string", "pattern": _TOKEN_PATTERN, "description": "Send as X-Job-Token."}}},
         "NotifyRequest": {"type": "object", "required": ["enabled"], "properties": {
             "enabled": {"type": "boolean", "description": "true turns the notification on, false off."},
             "language": {"type": "string", "description": "Message language, e.g. en or de; unknown = English."}}},
         "ClaimRequest": {"type": "object", "required": ["share_token"], "properties": {"share_token": {
             "type": "string", "description": "The last part of the notification link."}}},
         "EditorAsset": {"type": "object", "required": ["session", "asset", "width", "height"], "properties": {
-            "session": {"type": "string", "description": "Pass as fit_session (and session for more uploads)."},
-            "asset": {"type": "string", "description": "Use in fit_layers or fit_background_asset."},
+            "session": {"type": "string", "pattern": _SESSION_PATTERN,
+                        "description": "Pass as fit_session (and session for more uploads)."},
+            "asset": {"type": "string", "pattern": _ASSET_PATTERN,
+                      "description": "Use in fit_layers or fit_background_asset."},
             "width": {"type": "integer"}, "height": {"type": "integer"}}},
         "EditResult": {"type": "object", "required": ["crop"], "properties": {
             "crop": {"type": "object", "required": ["x", "y", "width", "height"], "properties": {
@@ -677,7 +699,7 @@ def _schemas() -> dict:
                 "width": {"type": "integer"}, "height": {"type": "integer"},
                 "originalWidth": {"type": "integer"}, "originalHeight": {"type": "integer"},
                 "fit": {"type": "object", "additionalProperties": True}}, "additionalProperties": True},
-            "preview": {"type": "string", "description": "data:image/png;base64,..."}}},
+            "preview": {"type": "string", "description": "PNG as a data URL (data:image/png;base64, then the image)."}}},
         "StorageSummary": {"type": "object", "required": ["used_storage_mb", "available_storage_mb"], "properties": {
             "used_storage_mb": number, "available_storage_mb": number}},
         "ContainerInventory": {"type": "object", "required": ["files", "total_size_mb", "total_count"], "properties": {
@@ -726,7 +748,7 @@ or `{API_KEY_HEADER}: <key>`. Health checks and these docs never need it.
 
 ## Errors and limits
 
-- Errors are JSON: `{{"error": "Bad Request", "message": "..."}}`.
+- Errors are JSON: `{{"error": "Bad Request", "message": "'quality' must be a whole number between 1 and 100."}}`.
 - Uploads up to **{max_upload_mb} MB** (`MAX_UPLOAD_SIZE_MB`), else 413.
 - `POST /convert` waits for the result. Use `POST /jobs` for AI upscaling and big batches.
 - Job results answer only to their `X-Job-Token`. Storage routes see every user's files; turn them off with `DISABLE_STORAGE_MANAGEMENT=true`.
