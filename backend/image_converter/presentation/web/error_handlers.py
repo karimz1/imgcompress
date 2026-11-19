@@ -58,9 +58,3 @@ def handle_http_exception(e):
     response.content_type = "application/json"
     return response, e.code
 
-
-def not_found(error):
-    return jsonify({
-        "error": "Not Found",
-        "message": "The requested resource was not found.",
-    }), 404

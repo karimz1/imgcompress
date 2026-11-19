@@ -14,10 +14,10 @@ from backend.image_converter.infrastructure.logger import Logger
 from backend.image_converter.presentation.web.error_handlers import (
     handle_http_exception,
     handle_request_entity_too_large,
-    not_found,
 )
 from backend.image_converter.presentation.web.api_access import API_PREFIX, startup_notices
 from backend.image_converter.presentation.web.routes import api_blueprint, legacy_blueprint
+from backend.image_converter.presentation.web.not_found_page import not_found_response
 from backend.image_converter.presentation.web.static_routes import (
     install_api_only_web_ui_gate,
     static_blueprint,
@@ -53,7 +53,7 @@ app.register_blueprint(static_blueprint, url_prefix="/")
 install_api_only_web_ui_gate(app)
 
 app.register_error_handler(413, handle_request_entity_too_large)
-app.register_error_handler(404, not_found)
+app.register_error_handler(404, not_found_response)
 app.register_error_handler(400, handle_http_exception)
 app.register_error_handler(401, handle_http_exception)
 app.register_error_handler(403, handle_http_exception)

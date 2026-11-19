@@ -156,3 +156,19 @@ test('Swagger UI loads from the container and lists the API', async ({ page, req
   expect(spec.openapi).toBe('3.1.0');
   await page.screenshot({ path: test.info().outputPath('swagger-ui.png'), fullPage: false });
 });
+
+test('unknown URLs show the 404 page in a browser and JSON to scripts', async ({ page, request }) => {
+  const mode = await readModeAsync(request);
+  for (const path of ['/this-page-does-not-exist', '/api/this-does-not-exist']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+    await expect(page.getByAltText('The imgcompress mascot')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Go to the start page' })).toHaveCount(mode.apiOnly ? 0 : 1);
+    await expect(page.getByRole('link', { name: 'Open the API docs' })).toHaveCount(mode.publicApi ? 1 : 0);
+
+    const script = await request.get(path, { headers: { Accept: 'application/json' } });
+    expect(script.status()).toBe(404);
+    expect((await script.json()).error).toBe('Not Found');
+  }
+});

@@ -20,7 +20,7 @@ from backend.image_converter.infrastructure.notifier import (
     PUBLIC_BASE_URL_ENV,
     clean_public_base_url,
 )
-from backend.image_converter.presentation.web.api_access import API_PREFIX
+from backend.image_converter.presentation.web.api_access import API_PREFIX, PAGE_ASSETS
 from backend.image_converter.presentation.web.api_auth import API_KEY_HEADER
 
 API_VERSION = "1"
@@ -34,7 +34,7 @@ LICENSE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
 # Files served under /api/v1/docs/<name>: swagger-ui-dist (copied at build) plus ours.
 DOCS_ASSETS = (
     "swagger-ui.css", "swagger-ui-bundle.js", "swagger-ui-init.js", "imgcompress-docs.css",
-    "logo.webp", "favicon.webp", "og-image.webp",
+    "logo.webp", "favicon.webp", "og-image.webp", "mascot.webp",
 )
 DOCS_TITLE = "imgcompress API docs, self-hosted image compression REST API"
 DOCS_META_DESCRIPTION = (
@@ -125,7 +125,7 @@ _WHEN = {
     "logs": "Admin: download the container log for a bug report.",
     "openapi": "Use to generate a client or import the API into a tool.",
     "docs": "This page.",
-    "docsAsset": "Files this page loads; you do not call this yourself.",
+    "docsAsset": "Files the docs page and the 404 page load; you do not call this yourself.",
 }
 
 
@@ -664,7 +664,9 @@ def _paths(base: str, keyed: bool = True) -> dict:
         }},
         "/docs/{name}": {"get": {
             "tags": ["Docs"], "operationId": "docsAsset", "security": [],
-            "summary": "Swagger UI files", "description": "Scripts, style sheets and images of the Swagger UI page.",
+            "summary": "Swagger UI files",
+            "description": "Scripts, style sheets and images of the Swagger UI page and the 404 page. "
+            + ", ".join(sorted(PAGE_ASSETS)) + " are served in every mode, so the 404 page works with the public API off.",
             # Values in the text, not as enum: Swagger UI preselects the first enum of a required parameter.
             "parameters": [{"name": "name", "in": "path", "required": True,
                             "description": "File name. Values: " + ", ".join(DOCS_ASSETS) + ".",

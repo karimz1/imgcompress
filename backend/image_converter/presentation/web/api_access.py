@@ -43,6 +43,8 @@ NO_BROWSER = "no-browser"
 _SAME_ORIGIN_FETCH_SITES = frozenset({"same-origin", "none"})
 # Docs and spec exist only with the public API on; they never need the key.
 DOC_ENDPOINTS = frozenset({"api_v1.swagger_ui", "api_v1.swagger_asset", "api_v1.openapi_spec"})
+# Files of the docs page that the 404 page uses too, so they are served in every mode.
+PAGE_ASSETS = frozenset({"imgcompress-docs.css", "logo.webp", "favicon.webp", "mascot.webp"})
 # Container health checks (healthcheck.py, uptime monitors) work without the key.
 OPEN_ENDPOINTS = DOC_ENDPOINTS | {"api_v1.health", "api_v1.health_internet", "api_legacy.health_backend"}
 
@@ -114,7 +116,8 @@ def _refuse(status: int, message: str, headers: Optional[dict] = None):
 def check_access():
     """``before_request`` of the API blueprint."""
     config = settings.get().public_api
-    if request.endpoint in DOC_ENDPOINTS and not config.is_enabled:
+    is_page_asset = request.endpoint == "api_v1.swagger_asset" and (request.view_args or {}).get("name") in PAGE_ASSETS
+    if request.endpoint in DOC_ENDPOINTS and not config.is_enabled and not is_page_asset:
         abort(404)
 
     kind = request_origin_kind()

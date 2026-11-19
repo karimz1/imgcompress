@@ -25,3 +25,27 @@ body { margin: 0; background: #fafafa; }
 }
 .imgc-tagline { font-size: 14px; color: #6b7280; }
 .swagger-ui .information-container .info { margin-top: 20px; }
+/* 404 page: same header, the mascot and the way back. */
+.imgc-404 {
+  max-width: 560px;
+  margin: 24px auto 48px;
+  padding: 0 20px;
+  text-align: center;
+  font-family: sans-serif;
+  color: #3b4151;
+}
+.imgc-mascot { width: 240px; max-width: 70%; height: auto; }
+.imgc-404 .imgc-code { margin: 8px 0 0; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #1565c0; }
+.imgc-404 h1 { margin: 4px 0 10px; font-size: 28px; }
+.imgc-404 p { font-size: 16px; line-height: 1.5; color: #6b7280; }
+.imgc-actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px; margin-top: 22px; }
+.imgc-button {
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #1565c0;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.imgc-button:hover { background: #0d47a1; }
+.imgc-link { color: #1565c0; font-weight: 700; }
