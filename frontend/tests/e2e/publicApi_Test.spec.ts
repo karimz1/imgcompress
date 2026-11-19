@@ -140,7 +140,7 @@ test('Swagger UI loads from the container and lists the API', async ({ page, req
   // Open one operation: its description is documented and Try it out starts empty.
   await operation('/convert').click();
   const convert = page.locator('.opblock-post').filter({ has: operation('/convert') }).first();
-  await expect(convert.locator('.opblock-description-wrapper')).toContainText('curl');
+  await expect(convert.locator('.opblock-description-wrapper').first()).toContainText('curl');
   const fields = convert.locator(
     '.opblock-section-request-body input:not([type=file]):not([type=checkbox]), '
     + '.opblock-section-request-body select:not(.content-type), .opblock-section-request-body textarea',
