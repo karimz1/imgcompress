@@ -148,6 +148,8 @@ jobs:
             echo "This PR was opened by the \`refresh-dockerfile-digests\` workflow. CI runs all the usual gates (lint, backend tests on amd64+arm64, E2E, feature-flags matrix). If everything is green, the auto-merge job in \`ci-auto-merge.yml\` will squash-merge and trigger the \`:nightly\` deploy."
             echo
             echo "To opt an image out, add \`# digest-refresh: skip\` on the line immediately above its \`FROM\` / \`COPY --from=\` directive in the Dockerfile."
+            echo
+            echo "Co-authored-by: karim.zouine <mails.karimzouine@gmail.com>"
           } > /tmp/pr-body.md
 
           if [ "$count" -eq 1 ]; then
@@ -178,7 +180,9 @@ jobs:
           git add Dockerfile
           git commit -m "chore(docker): ${SUMMARY}
 
-          Automated digest refresh for DHI base images. Full diff in the PR body."
+          Automated digest refresh for DHI base images. Full diff in the PR body.
+
+          Co-authored-by: karim.zouine <mails.karimzouine@gmail.com>"
 
           # Force-push so a re-run with newer digests cleanly updates the
           # existing PR (avoids two stale PRs pointing at the same branch).
