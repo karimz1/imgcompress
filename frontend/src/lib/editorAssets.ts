@@ -21,6 +21,8 @@ let queue: Promise<unknown> = Promise.resolve();
 async function errorText(response: Response): Promise<string> {
   try {
     const data = await response.json();
+    // API errors: {error: <status name>, message: <what went wrong>}.
+    if (typeof data?.message === "string") return data.message;
     if (typeof data?.error === "string") return data.error;
   } catch {
     // Not JSON: fall through to the status text.
@@ -32,7 +34,7 @@ async function upload(file: File, retry = true): Promise<Uploaded> {
   const form = new FormData();
   form.append("file", file, file.name);
   if (session) form.append("session", session);
-  const response = await fetch("/api/editor/assets", { method: "POST", body: form });
+  const response = await fetch("/api/v1/editor/assets", { method: "POST", body: form });
   if ((response.status === 410 || response.status === 409) && retry) {
     forgetEditorAssets();
     return upload(file, false);

@@ -6,7 +6,7 @@ user only ever gets their own pixels back, and that one user's actions never
 delete or expose another user's files.
 
 The tests in the second half reproduced real races and leaks (shared ZIP name,
-temp root served by /api/download, cleanup deleting running jobs, name
+temp root served by /api/v1/storage/files/download, cleanup deleting running jobs, name
 collisions in one batch) and guard their fixes.
 """
 
@@ -49,9 +49,44 @@ def _close(a, b, tolerance=12) -> bool:
     return all(abs(x - y) <= tolerance for x, y in zip(a, b))
 
 
+class _Finished:
+    """A finished job, shaped like the answer of a request: status_code and get_json()."""
+
+    def __init__(self, status_code, body):
+        self.status_code = status_code
+        self._body = body
+
+    def get_json(self):
+        return self._body
+
+
 def _compress(client, files, fmt="png"):
+    """Converts through /api/v1/jobs like the web UI, waiting for the job to end.
+
+    The body carries the job's result folder (from the job store; the API never
+    shows it) so the tests can look at the files on disk.
+    """
     data = {"format": fmt, "files[]": [(io.BytesIO(raw), name) for name, raw in files]}
-    return client.post("/api/compress", data=data, content_type="multipart/form-data")
+    started = client.post("/api/v1/jobs", data=data, content_type="multipart/form-data")
+    if started.status_code != 202:
+        return started
+    job = started.get_json()
+    headers = {"X-Job-Token": job["token"]}
+    deadline = time.monotonic() + 60
+    while True:
+        state = client.get(f"/api/v1/jobs/{job['id']}", headers=headers).get_json()
+        if state["status"] in ("done", "failed", "canceled"):
+            break
+        assert time.monotonic() < deadline, f"job did not finish: {state}"
+        time.sleep(0.02)
+    if state["status"] != "done":
+        return _Finished(500, state)
+    stored = routes.conversion_jobs.store.read(job["id"], job["token"])
+    return _Finished(200, {
+        "dest_folder": stored["dest_folder"],
+        "converted_files": state["result"]["converted_files"],
+        "job": job,
+    })
 
 
 def _run_parallel(fn, count=USERS):
@@ -95,7 +130,7 @@ def test_parallel_compress_with_same_filename_returns_each_users_own_image(clien
         forget_outputs.append(body["dest_folder"])
         assert body["converted_files"] == ["photo.png"]
         download = client.get(
-            "/api/download",
+            "/api/v1/storage/files/download",
             query_string={"folder": body["dest_folder"], "file": "photo.png"},
         )
         assert download.status_code == 200
@@ -118,7 +153,7 @@ def test_parallel_jpeg_compress_with_same_filename_returns_each_users_own_image(
         body = res.get_json()
         forget_outputs.append(body["dest_folder"])
         name = body["converted_files"][0]
-        download = client.get("/api/download", query_string={"folder": body["dest_folder"], "file": name})
+        download = client.get("/api/v1/storage/files/download", query_string={"folder": body["dest_folder"], "file": name})
         assert download.status_code == 200
         return download.data
 
@@ -130,7 +165,7 @@ def test_parallel_fit_previews_do_not_mix(client):
     def user(index):
         client = app.test_client()
         res = client.post(
-            "/api/crop/fit",
+            "/api/v1/edit",
             data={
                 "file": (io.BytesIO(_png(COLOURS[index], (100, 50))), "same.png"),
                 "fit_width": str(60 + index),
@@ -160,7 +195,7 @@ def test_parallel_fit_background_images_do_not_mix(client):
     def user(index):
         client = app.test_client()
         res = client.post(
-            "/api/crop/fit",
+            "/api/v1/edit",
             data={
                 "file": (io.BytesIO(_png(COLOURS[index], (40, 40))), "same.png"),
                 "fit_background": (io.BytesIO(_png(COLOURS[(index + 3) % USERS], (30, 20))), "background.png"),
@@ -189,7 +224,7 @@ def test_parallel_crop_bitmaps_with_same_filename_do_not_mix(client):
     def user(index):
         client = app.test_client()
         res = client.post(
-            "/api/crop/bitmap",
+            "/api/v1/preview",
             data={"file": (io.BytesIO(_png(COLOURS[index], (30 + index, 20))), "same.png")},
             content_type="multipart/form-data",
         )
@@ -212,7 +247,7 @@ def test_download_rejects_path_traversal(client, forget_outputs):
         {"folder": "../etc", "file": "passwd"},
         {"folder": folder + "/../..", "file": "etc/passwd"},
     ):
-        assert client.get("/api/download", query_string=params).status_code == 404, params
+        assert client.get("/api/v1/storage/files/download", query_string=params).status_code == 404, params
 
 
 # --------------------------------------------------------------------------
@@ -233,7 +268,7 @@ def test_parallel_download_all_returns_each_users_own_zip(client, forget_outputs
 
     def user(index):
         client = app.test_client()
-        res = client.get("/api/download_all", query_string={"folder": folders[index]})
+        res = client.get("/api/v1/storage/folders/download", query_string={"folder": folders[index]})
         assert res.status_code == 200
         assert res.mimetype == "application/zip"
         return res.data
@@ -258,7 +293,7 @@ def test_download_all_leaves_no_zip_in_the_temp_dir(client, forget_outputs):
     forget_outputs.append(folder)
     before = _temp_root_entries()
 
-    download = client.get("/api/download_all", query_string={"folder": folder})
+    download = client.get("/api/v1/storage/folders/download", query_string={"folder": folder})
 
     assert download.status_code == 200
     assert "compressed_images.zip" in download.headers["Content-Disposition"]
@@ -271,13 +306,13 @@ def test_other_user_cannot_fetch_zip_by_guessing_its_name(client, forget_outputs
     folder = res.get_json()["dest_folder"]
     forget_outputs.append(folder)
     before = int(time.time())
-    assert client.get("/api/download_all", query_string={"folder": folder}).status_code == 200
+    assert client.get("/api/v1/storage/folders/download", query_string={"folder": folder}).status_code == 200
 
     temp_root = routes.TEMP_DIR
     hits = [
         ts for ts in range(before - 1, int(time.time()) + 2)
         if client.get(
-            "/api/download", query_string={"folder": temp_root, "file": f"converted_{ts}.zip"}
+            "/api/v1/storage/files/download", query_string={"folder": temp_root, "file": f"converted_{ts}.zip"}
         ).status_code == 200
     ]
     assert not hits, f"guessed another user's ZIP: converted_{hits[0]}.zip"
@@ -289,7 +324,7 @@ def test_download_does_not_serve_arbitrary_files_from_temp_root(client):
         f.write("not yours")
     try:
         res = client.get(
-            "/api/download",
+            "/api/v1/storage/files/download",
             query_string={"folder": routes.TEMP_DIR, "file": os.path.basename(secret)},
         )
         assert res.status_code == 404
@@ -307,7 +342,7 @@ def test_download_does_not_serve_uploads_of_a_running_job(client, monkeypatch):
             assert sources
             for source in sources:
                 res = client.get(
-                    "/api/download",
+                    "/api/v1/storage/files/download",
                     query_string={"folder": os.path.join(routes.TEMP_DIR, source), "file": "upload.png"},
                 )
                 assert res.status_code == 404
@@ -351,7 +386,7 @@ def _run_blocked_batch(monkeypatch, while_blocked):
 
 def test_force_cleanup_keeps_a_running_job_and_it_completes_with_all_outputs(client, monkeypatch, forget_outputs):
     def force_cleanup():
-        res = client.post("/api/force_cleanup")
+        res = client.post("/api/v1/storage/cleanup")
         assert res.status_code == 200
         assert res.get_json()["status"] == "ok"
 
@@ -362,7 +397,7 @@ def test_force_cleanup_keeps_a_running_job_and_it_completes_with_all_outputs(cli
     forget_outputs.append(body["dest_folder"])
     assert sorted(body["converted_files"]) == ["a.png", "b.png", "c.png"]
     for name, colour in BATCH:
-        download = client.get("/api/download", query_string={"folder": body["dest_folder"], "file": name})
+        download = client.get("/api/v1/storage/files/download", query_string={"folder": body["dest_folder"], "file": name})
         assert download.status_code == 200
         assert _close(_centre_colour(download.data), colour)
 
@@ -371,15 +406,15 @@ def test_force_cleanup_still_deletes_finished_results(client, forget_outputs):
     res = _compress(client, [("done.png", _png(COLOURS[3]))])
     folder = res.get_json()["dest_folder"]
     forget_outputs.append(folder)
-    listed = client.get("/api/container_files").get_json()["files"]
+    listed = client.get("/api/v1/storage/files").get_json()["files"]
     assert any(f["filename"] == "done.png" and f["folder_path"] == folder for f in listed)
 
-    assert client.post("/api/force_cleanup").status_code == 200
+    assert client.post("/api/v1/storage/cleanup").status_code == 200
 
     assert not os.path.exists(folder)
-    download = client.get("/api/download", query_string={"folder": folder, "file": "done.png"})
+    download = client.get("/api/v1/storage/files/download", query_string={"folder": folder, "file": "done.png"})
     assert download.status_code == 404
-    listed = client.get("/api/container_files").get_json()["files"]
+    listed = client.get("/api/v1/storage/files").get_json()["files"]
     assert not any(f["folder_path"] == folder for f in listed)
 
 
@@ -389,7 +424,7 @@ def test_age_cleanup_skips_folders_of_running_conversions(client, monkeypatch, f
     def trigger_age_cleanup():
         time.sleep(1.5)  # the running job is now "older" than max_age
         # Any other user's request triggers the cleanup.
-        client.get("/api/download", query_string={"folder": "x", "file": "y"})
+        client.get("/api/v1/storage/files/download", query_string={"folder": "x", "file": "y"})
 
     res = _run_blocked_batch(monkeypatch, trigger_age_cleanup)
 
@@ -408,7 +443,7 @@ def test_age_cleanup_still_deletes_expired_finished_results(client, monkeypatch,
         os.utime(path, (old, old))
     monkeypatch.setattr(routes.temp_folder_service.cleanup_service, "expiration_time", 60)
 
-    client.get("/api/download", query_string={"folder": "x", "file": "y"})
+    client.get("/api/v1/storage/files/download", query_string={"folder": "x", "file": "y"})
 
     assert not os.path.exists(folder)
 
@@ -424,7 +459,7 @@ def test_download_counts_as_activity_for_age_cleanup(client, monkeypatch, forget
     routes.temp_folder_service.mark_activity(folder)
     monkeypatch.setattr(routes.temp_folder_service.cleanup_service, "expiration_time", 60)
 
-    client.get("/api/download", query_string={"folder": "x", "file": "y"})
+    client.get("/api/v1/storage/files/download", query_string={"folder": "x", "file": "y"})
 
     assert os.path.isdir(folder)
 
@@ -455,7 +490,7 @@ def test_job_lock_is_released_when_the_job_ends(client, monkeypatch, forget_outp
         folder = res.get_json()["dest_folder"]
         forget_outputs.append(folder)
         # Unlocked, so a forced cleanup can delete the finished result.
-        assert client.post("/api/force_cleanup").status_code == 200
+        assert client.post("/api/v1/storage/cleanup").status_code == 200
         assert not os.path.exists(folder)
     else:
         assert res.status_code == 500

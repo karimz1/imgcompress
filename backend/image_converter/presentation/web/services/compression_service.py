@@ -4,7 +4,7 @@ import tempfile
 import traceback
 import zipfile
 from dataclasses import dataclass
-from typing import IO, Optional
+from typing import IO, Callable, Optional
 
 from werkzeug.utils import secure_filename
 
@@ -13,6 +13,7 @@ from backend.image_converter.application.dtos import (
     CompressionFormData,
     CompressionResponse,
     CompressRequest,
+    CompressResult,
 )
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
@@ -45,6 +46,47 @@ class PreparedCompression:
     dest: JobFolder
     file_count: int
 
+
+@dataclass
+class ConvertedDownload:
+    """The result of a synchronous conversion, ready to send once."""
+
+    stream: IO[bytes]
+    download_name: str
+    mimetype: Optional[str]
+    summary: CompressResult
+
+
+class _RemovedOnClose:
+    """
+    The result file; closing it (which the WSGI file wrapper does once the
+    answer is sent) also removes its folder. Everything else, such as fileno
+    for sendfile, comes from the real file.
+    """
+
+    def __init__(self, stream: IO[bytes], on_close: Callable[[], None]):
+        self._stream = stream
+        self._on_close = on_close
+
+    def __getattr__(self, name):
+        return getattr(self._stream, name)
+
+    def close(self) -> None:
+        try:
+            self._stream.close()
+        finally:
+            self._on_close()
+
+
+@dataclass
+class DownloadOutcome:
+    download: Optional[ConvertedDownload] = None
+    error: Optional[str] = None
+    # True: the options were refused before anything ran (a client error).
+    invalid: bool = False
+
+
+ZIP_DOWNLOAD_NAME = "compressed_images.zip"
 
 # ZIPs up to this size stay in memory; larger ones spill to an unnamed temp
 # file that disappears when the download is closed.
@@ -88,6 +130,42 @@ class CompressionService:
         if not prepared.is_successful:
             return Result.failure(prepared.error)
         return self.run(prepared.value)
+
+    def convert_for_download(self, form_data: CompressionFormData, always_zip: bool = False) -> DownloadOutcome:
+        """
+        Converts in the calling thread and hands back the one result file, or a
+        ZIP when there are several (or ``always_zip``). The result folder is
+        removed when the returned stream is closed; nothing stays behind.
+        """
+        prepared = self.prepare(form_data)
+        if not prepared.is_successful:
+            return DownloadOutcome(error=prepared.error, invalid=True)
+        result = self.run(prepared.value)
+        if not result.is_successful:
+            return DownloadOutcome(error=result.error)
+
+        dest = result.value.dest_folder
+
+        def discard() -> None:
+            shutil.rmtree(dest, ignore_errors=True)
+
+        converted = result.value.converted_files
+        summary = result.value.process_summary
+        try:
+            if len(converted) == 1 and not always_zip:
+                path = os.path.join(dest, *converted[0].split("/"))
+                stream = _RemovedOnClose(open(path, "rb"), discard)
+                return DownloadOutcome(ConvertedDownload(stream, os.path.basename(path), None, summary))
+            archive = self.create_all_files_zip(dest)
+        except Exception:
+            discard()
+            raise
+        # The ZIP is spooled apart from the folder, so the folder can go now.
+        discard()
+        if not archive.is_successful:
+            return DownloadOutcome(error=archive.error)
+        return DownloadOutcome(ConvertedDownload(
+            archive.value, ZIP_DOWNLOAD_NAME, "application/zip", summary))
 
     def prepare(self, form_data: CompressionFormData) -> Result[PreparedCompression]:
         """

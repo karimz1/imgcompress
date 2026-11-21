@@ -8,7 +8,7 @@ file. Any worker can answer the poll (see ConversionJobStore).
 import threading
 import time
 import traceback
-from typing import Callable, Optional
+from typing import IO, Callable, Optional
 
 from backend.image_converter.application.dtos import CompressionFormData
 from backend.image_converter.core.internals.utilities import Result
@@ -23,7 +23,10 @@ from backend.image_converter.infrastructure.conversion_job_store import (
 )
 from backend.image_converter.infrastructure.job_progress import JobCanceled
 from backend.image_converter.infrastructure.notifier import Notifier, describe_device, resolve_language, share_link
-from backend.image_converter.presentation.web.services.temporary_folder_service import TemporaryFolderService
+from backend.image_converter.presentation.web.services.temporary_folder_service import (
+    DownloadTarget,
+    TemporaryFolderService,
+)
 from backend.image_converter.presentation.web.services.compression_service import (
     CompressionService,
     PreparedCompression,
@@ -124,6 +127,21 @@ class ConversionJobService:
             return None
         self.store.touch(job_id)
         return state.get("dest_folder")
+
+    def result_file(self, job_id: Optional[str], token: Optional[str], file_name: Optional[str]) -> Optional[DownloadTarget]:
+        """One file of the finished job, for its token only; a download restarts the retention clock."""
+        folder = self.result_folder(job_id, token)
+        folders = self.compression_service.temp_folder_service
+        target = folders.resolve_download_target(folder, file_name) if folder else None
+        if target is not None:
+            folders.mark_activity(target.folder_path)
+        return target
+
+    def result_zip(self, job_id: Optional[str], token: Optional[str]) -> Optional[IO[bytes]]:
+        """All files of the finished job as one ZIP, for its token only."""
+        folder = self.result_folder(job_id, token)
+        result = self.compression_service.create_all_files_zip(folder) if folder else None
+        return result.value if result is not None and result.is_successful else None
 
     def _run(self, job: RunningJob, prepared: PreparedCompression) -> None:
         progress = dict(job.state.get("progress") or {})

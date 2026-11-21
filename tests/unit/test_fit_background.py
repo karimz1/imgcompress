@@ -340,7 +340,7 @@ def test_When_SvgIsPlacedOnABackgroundImage_Expect_BothRendered():
 
     svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="#00c800"/></svg>'
     response = app.test_client().post(
-        "/api/crop/fit",
+        "/api/v1/edit",
         data={
             "fit_width": "100",
             "fit_height": "100",
@@ -379,7 +379,7 @@ def test_When_BackgroundImageIsRendered_Expect_NoFilesWritten(monkeypatch):
     assert set(os.listdir(tempfile.gettempdir())) - before == set()
 
 
-# --- Batch API (/api/compress) -----------------------------------------------
+# --- Batch API (/api/v1/convert) -----------------------------------------------
 
 
 def test_When_CompressionFormAsksForImageMode_Expect_RejectedBecauseItNeedsTheEditor(tmp_path):

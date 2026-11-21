@@ -9,6 +9,25 @@ import type { PdfQualityOption } from '../../../src/lib/pdfQuality';
 import type { UpscaleTarget } from '../../../src/lib/upscale';
 import type { FitMode, FitPreset } from '../../../src/lib/fitToSize';
 
+// Playwright's `request` sends no browser headers, so the container treats it like
+// a script: with PUBLIC_API_KEY set it needs the key. The browser (the web UI) never does.
+export function apiKeyHeaders(): Record<string, string> {
+  const key = process.env.E2E_API_KEY;
+  return key ? { 'X-API-Key': key } : {};
+}
+
+export async function isApiOnlyModeAsync(request: APIRequestContext): Promise<boolean> {
+  const root = await request.get('/');
+  const type = root.headers()['content-type'] ?? '';
+  if (!type.includes('application/json')) return false;
+  try {
+    const body = await root.json();
+    return typeof body?.message === 'string' && body.message.includes('API only');
+  } catch {
+    return false;
+  }
+}
+
 const selectors = {
   zipDownloadButton: '[data-testid="drawer-download-all-as-zip-btn"]',
   resizeWidthSwitch: '[data-testid="resize-width-switch"]',
@@ -43,7 +62,7 @@ const selectors = {
 };
 
 export async function clearStorageManagerAsync(request: APIRequestContext): Promise<void> {
-  const response = await request.post('/api/force_cleanup');
+  const response = await request.post('/api/v1/storage/cleanup', { headers: apiKeyHeaders() });
   expect(response.ok()).toBeTruthy();
 
   const payload = await response.json();
@@ -72,7 +91,7 @@ export async function assertStorageManagerFileCountAsync(
 }
 
 export async function getStorageManagerFileCountAsync(request: APIRequestContext): Promise<number> {
-  const storageState = await request.get('/api/container_files');
+  const storageState = await request.get('/api/v1/storage/files', { headers: apiKeyHeaders() });
   expect(storageState.ok()).toBeTruthy();
   const storagePayload = await storageState.json();
   return storagePayload.total_count;
@@ -487,13 +506,13 @@ export interface FinishedJob {
 }
 
 /**
- * Conversions run as background jobs: POST /api/jobs, then the page polls
- * GET /api/jobs/<id>. Resolves with the poll answer that reports "done".
+ * Conversions run as background jobs: POST /api/v1/jobs, then the page polls
+ * GET /api/v1/jobs/<id>. Resolves with the poll answer that reports "done".
  */
 export function waitForFinishedJobAsync(page: Page): Promise<FinishedJob> {
   return page
     .waitForResponse(async (response) => {
-      if (response.request().method() !== 'GET' || !/\/api\/jobs\/[^/]+$/.test(new URL(response.url()).pathname)) {
+      if (response.request().method() !== 'GET' || !/\/api\/v1\/jobs\/[^/]+$/.test(new URL(response.url()).pathname)) {
         return false;
       }
       if (!response.ok()) return false;

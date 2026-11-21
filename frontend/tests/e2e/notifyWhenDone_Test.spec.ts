@@ -4,6 +4,7 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 import sharp from 'sharp';
 import {
   clickConversionButtonAsync,
+  isApiOnlyModeAsync,
   setOutputFormatAsync,
   setUpscaleAsync,
   waitForSupportedFormatsCountAsync,
@@ -20,7 +21,7 @@ import {
 const PHOTO = path.resolve(__dirname, 'fixtures/sample-images', 'pexels-willianjusten-29944187.jpg');
 const CAPTURE_PORT = Number(process.env.NOTIFY_CAPTURE_PORT || 5199);
 const SWITCH = '[data-testid="notify-switch"]';
-const JOB_STATUS = /\/api\/jobs\/[^/]+$/;
+const JOB_STATUS = /\/api\/v1\/jobs\/[^/]+$/;
 
 type Message = { title?: string; message?: string };
 
@@ -34,6 +35,7 @@ function devicesLikePhone() {
 }
 
 async function notifyEnabledAsync(request: APIRequestContext): Promise<boolean> {
+  if (await isApiOnlyModeAsync(request)) return false;
   const response = await request.get('/config/runtime.json');
   expect(response.ok()).toBeTruthy();
   return (await response.json()).NOTIFY_ENABLED === 'true';
@@ -46,7 +48,7 @@ async function startJobAsync(page: Page, name: string, upscale: boolean) {
   await waitForSupportedFormatsCountAsync(page);
   await page.getByTestId('dropzone-input').setInputFiles([{ name, mimeType: 'image/jpeg', buffer: photo }]);
   if (upscale) await setUpscaleAsync(page, '4k');
-  const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/jobs'));
+  const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/v1/jobs'));
   await clickConversionButtonAsync(page);
   const response = await started;
   expect(response.status()).toBe(202);
@@ -56,13 +58,17 @@ async function startJobAsync(page: Page, name: string, upscale: boolean) {
 async function waitDoneAsync(request: APIRequestContext, job: { id: string; token: string }) {
   await expect
     .poll(
-      async () => (await (await request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } })).json()).status,
+      async () => (await (await request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } })).json()).status,
       { timeout: 240_000 }
     )
     .toBe('done');
 }
 
 test.describe('Notify me when done', () => {
+  test.beforeEach(async ({ request }) => {
+    test.skip(await isApiOnlyModeAsync(request), 'no web UI in API_ONLY');
+  });
+
   test('the switch is hidden when the server has no NOTIFY_URL', async ({ page, request }) => {
     test.skip(await notifyEnabledAsync(request), 'NOTIFY_URL is set in this run');
     // Hold the polls so the splash stays up long enough to look at it.
@@ -116,7 +122,7 @@ test.describe('Notify me when done', () => {
       await expect(toggle).toBeVisible();
       await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
-      const saved = page.waitForResponse((r) => r.url().endsWith(`/api/jobs/${mine.id}/notify`));
+      const saved = page.waitForResponse((r) => r.url().endsWith(`/api/v1/jobs/${mine.id}/notify`));
       await toggle.click();
       expect((await saved).status()).toBe(204);
       await expect(toggle).toHaveAttribute('aria-checked', 'true');
@@ -149,7 +155,7 @@ test.describe('Notify me when done', () => {
       await page.evaluate(() => localStorage.removeItem('imgcompress.activeJob'));
       const other = await startJobAsync(page, 'second.jpg', true);
       await expect(toggle).toHaveAttribute('aria-checked', 'true');
-      const turnedOff = page.waitForResponse((r) => r.url().endsWith(`/api/jobs/${other.id}/notify`));
+      const turnedOff = page.waitForResponse((r) => r.url().endsWith(`/api/v1/jobs/${other.id}/notify`));
       await toggle.click();
       expect((await turnedOff).status()).toBe(204);
       await expect(toggle).toHaveAttribute('aria-checked', 'false');
@@ -162,7 +168,7 @@ test.describe('Notify me when done', () => {
 
     test('failed notify POST shows toast and inline alert; both clear after retry', async ({ page }) => {
       test.setTimeout(180_000);
-      await page.route(/\/api\/jobs\/[^/]+\/notify$/, async (route) => {
+      await page.route(/\/api\/v1\/jobs\/[^/]+\/notify$/, async (route) => {
         await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
       });
       await startJobAsync(page, 'notify-fail.jpg', true);
@@ -181,7 +187,7 @@ test.describe('Notify me when done', () => {
       await expect.poll(() => page.evaluate(() => localStorage.getItem('imgcompress.notifyWhenDone'))).toBeNull();
 
       // Retry succeeds: inline alert and sticky toast both go away; switch stays on.
-      await page.unroute(/\/api\/jobs\/[^/]+\/notify$/);
+      await page.unroute(/\/api\/v1\/jobs\/[^/]+\/notify$/);
       const saved = page.waitForResponse((r) => r.url().includes('/notify') && r.request().method() === 'POST');
       await toggle.click();
       expect((await saved).status()).toBe(204);

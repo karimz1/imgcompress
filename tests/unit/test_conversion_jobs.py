@@ -1,4 +1,4 @@
-"""Background conversion jobs: POST /api/jobs, then poll GET /api/jobs/<id>.
+"""Background conversion jobs: POST /api/v1/jobs, then poll GET /api/v1/jobs/<id>.
 
 The browser may leave (iPhone app switch, reload, proxy timeout) while a job
 runs; it comes back with the job id and its secret token. Jobs of other users
@@ -101,7 +101,7 @@ def setup(tmp_path, monkeypatch):
     monkeypatch.setattr(routes, "conversion_jobs", jobs)
     monkeypatch.setattr(folders, "cleanup", lambda force=False: None)
     app = Flask(__name__)
-    app.register_blueprint(routes.api_blueprint, url_prefix="/api")
+    app.register_blueprint(routes.api_blueprint, url_prefix="/api/v1")
 
     class Setup:
         client = app.test_client()
@@ -115,7 +115,7 @@ def setup(tmp_path, monkeypatch):
 
         def start(self, name="photo.png", user_agent=None):
             response = self.client.post(
-                "/api/jobs",
+                "/api/v1/jobs",
                 data={"files[]": (BytesIO(_png()), name), "format": "jpeg"},
                 content_type="multipart/form-data",
                 headers={"User-Agent": user_agent} if user_agent else {},
@@ -124,7 +124,7 @@ def setup(tmp_path, monkeypatch):
 
         def status(self, job_id, token):
             headers = {"X-Job-Token": token} if token is not None else {}
-            return self.client.get(f"/api/jobs/{job_id}", headers=headers)
+            return self.client.get(f"/api/v1/jobs/{job_id}", headers=headers)
 
         def wait_done(self):
             for thread in threads:
@@ -147,7 +147,7 @@ def test_When_JobStarts_Expect_202WithIdAndTokenRightAway(setup):
     body = response.get_json()
     assert len(body["id"]) == 22 and len(body["token"]) >= 43
     assert body["status"] == "queued"
-    assert response.headers["Location"].endswith(f"/api/jobs/{body['id']}")
+    assert response.headers["Location"].endswith(f"/api/v1/jobs/{body['id']}")
     assert "token_sha256" not in body and "dest_folder" not in body
     setup.use_case.release.set()
     setup.wait_done()
@@ -174,9 +174,9 @@ def test_When_JobRuns_Expect_ProgressThenResultAndOwnDownloads(setup):
     assert done["result"]["converted_files"] == ["photo.jpg"]
     assert "dest_folder" not in done["result"]
 
-    file = setup.client.get(f"/api/jobs/{job_id}/files/photo.jpg", headers={"X-Job-Token": token})
+    file = setup.client.get(f"/api/v1/jobs/{job_id}/files/photo.jpg", headers={"X-Job-Token": token})
     assert file.status_code == 200 and file.data == b"converted photo.png"
-    archive = setup.client.get(f"/api/jobs/{job_id}/zip", headers={"X-Job-Token": token})
+    archive = setup.client.get(f"/api/v1/jobs/{job_id}/zip", headers={"X-Job-Token": token})
     assert archive.status_code == 200 and archive.mimetype == "application/zip"
 
 
@@ -232,7 +232,7 @@ def test_When_ConversionFails_Expect_FailedWithMessage(setup):
 
 def test_When_OptionsAreInvalid_Expect_400AndNoJob(setup):
     response = setup.client.post(
-        "/api/jobs",
+        "/api/v1/jobs",
         data={"files[]": (BytesIO(_png()), "a.png"), "format": "pdf", "upscale": "2x"},
         content_type="multipart/form-data",
     )
@@ -249,7 +249,7 @@ def test_When_IdIsUnknownOrMalformed_Expect_404(setup, job_id):
 def test_When_PathTraversalIsTriedAsId_Expect_NoFileOutsideTheJob(setup):
     _, token = _started(setup)
     setup.wait_done()
-    for path in ("/api/jobs/../download", "/api/jobs/..%2F..%2Fetc%2Fpasswd/zip", "/api/jobs/x/files/..%2F..%2Fstatus.json"):
+    for path in ("/api/v1/jobs/../download", "/api/v1/jobs/..%2F..%2Fetc%2Fpasswd/zip", "/api/v1/jobs/x/files/..%2F..%2Fstatus.json"):
         assert setup.client.get(path, headers={"X-Job-Token": token}).status_code in (400, 404)
 
 
@@ -268,11 +268,11 @@ def test_When_TokenIsMissingWrongOrFromAnotherJob_Expect_TheSame404(setup):
     for response in answers:
         assert response.status_code == 404
         assert response.get_json() == unknown.get_json()
-    for path in (f"/api/jobs/{job_a}/files/a.jpg", f"/api/jobs/{job_a}/zip"):
+    for path in (f"/api/v1/jobs/{job_a}/files/a.jpg", f"/api/v1/jobs/{job_a}/zip"):
         assert setup.client.get(path, headers={"X-Job-Token": token_b}).status_code == 404
         assert setup.client.get(path).status_code == 404
     # A token in the query string is ignored; it belongs in the header only.
-    assert setup.client.get(f"/api/jobs/{job_a}?token={token_a}").status_code == 404
+    assert setup.client.get(f"/api/v1/jobs/{job_a}?token={token_a}").status_code == 404
     assert setup.status(job_a, token_a).status_code == 200
 
 
@@ -398,7 +398,7 @@ IPHONE_UA = (
 
 def _opt_in(setup, job_id, token, enabled=True, extra=None):
     payload = {"enabled": enabled, **(extra or {})}
-    return setup.client.post(f"/api/jobs/{job_id}/notify", json=payload, headers={"X-Job-Token": token})
+    return setup.client.post(f"/api/v1/jobs/{job_id}/notify", json=payload, headers={"X-Job-Token": token})
 
 
 def test_When_UserOptsIn_Expect_OneNotificationWithCountDeviceAndNoFileNames(setup):
@@ -496,7 +496,7 @@ def test_When_RequestClaimsAnotherHost_Expect_TheMessageNeverUsesIt(setup, monke
     setup.use_case.release.clear()
     job_id, token = _started(setup, user_agent=IPHONE_UA)
     response = setup.client.post(
-        f"/api/jobs/{job_id}/notify",
+        f"/api/v1/jobs/{job_id}/notify",
         json={"enabled": True, "origin": "https://evil.example"},
         headers={"X-Job-Token": token, "Host": "evil.example", "X-Forwarded-Host": "evil.example", "Origin": "https://evil.example"},
     )
@@ -540,7 +540,7 @@ def _notified_link(setup, user_agent=IPHONE_UA):
 
 
 def _claim(setup, job_id, share):
-    return setup.client.post(f"/api/jobs/{job_id}/claim", json={"share_token": share})
+    return setup.client.post(f"/api/v1/jobs/{job_id}/claim", json={"share_token": share})
 
 
 def test_When_PhoneOpensTheShareLink_Expect_ItsOwnTokenThatDownloadsTheResult(setup):
@@ -553,8 +553,8 @@ def test_When_PhoneOpensTheShareLink_Expect_ItsOwnTokenThatDownloadsTheResult(se
     state = setup.status(job_id, body["token"]).get_json()
     assert state["status"] == "done"
     name = state["result"]["converted_files"][0]
-    assert setup.client.get(f"/api/jobs/{job_id}/files/{name}", headers=phone).status_code == 200
-    assert setup.client.get(f"/api/jobs/{job_id}/zip", headers=phone).status_code == 200
+    assert setup.client.get(f"/api/v1/jobs/{job_id}/files/{name}", headers=phone).status_code == 200
+    assert setup.client.get(f"/api/v1/jobs/{job_id}/zip", headers=phone).status_code == 200
     # The PC keeps working too.
     assert setup.status(job_id, pc_token).status_code == 200
 
@@ -562,14 +562,22 @@ def test_When_PhoneOpensTheShareLink_Expect_ItsOwnTokenThatDownloadsTheResult(se
 def test_When_ShareTokenIsWrongOrFromAnotherJob_Expect_TheSame404(setup):
     job_a, _, share_a = _notified_link(setup)
     job_b, token_b, share_b = _notified_link(setup)
-    expected = setup.client.get("/api/jobs/" + "x" * 22).get_json()
+    expected = {"error": "Not Found", "message": "Job not found. It may have expired, or the share token is wrong."}
     for job_id, share in [(job_a, share_b), (job_b, share_a), (job_a, "guess"), (job_a, ""), (job_a, None),
                           (job_a, token_b), ("x" * 22, share_a), ("bad id!", share_a)]:
-        response = setup.client.post(f"/api/jobs/{job_id}/claim", json={"share_token": share})
+        response = setup.client.post(f"/api/v1/jobs/{job_id}/claim", json={"share_token": share})
         assert response.status_code == 404
         assert response.get_json() == expected
     # The share token itself is not a job token.
     assert setup.status(job_a, share_a).status_code == 404
+
+
+def test_When_JobTokenIsSentAsShareToken_Expect_404ThatNamesTheShareToken(setup):
+    job_id, token, _ = _notified_link(setup)
+    response = setup.client.post(f"/api/v1/jobs/{job_id}/claim", json={"share_token": token})
+    assert response.status_code == 404
+    message = response.get_json()["message"]
+    assert "share token" in message and "X-Job-Token" not in message
 
 
 def test_When_JobNeverOptedIn_Expect_NoShareLinkCanOpenIt(setup):
@@ -599,7 +607,7 @@ def test_When_ShareLinkIsOpenedOnManyBrowsers_Expect_EachGetsAToken(setup):
     # Later claims still download; hashes were appended, not rewritten away.
     last = tokens[-1]
     assert setup.client.get(
-        f"/api/jobs/{job_id}/zip", headers={"X-Job-Token": last}
+        f"/api/v1/jobs/{job_id}/zip", headers={"X-Job-Token": last}
     ).status_code == 200
 
 
@@ -617,7 +625,7 @@ def test_When_PublicBaseUrlIsMissing_Expect_NoLinkAndNoShareToken(setup, monkeyp
 
 def _cancel(setup, job_id, token):
     headers = {"X-Job-Token": token} if token is not None else {}
-    return setup.client.post(f"/api/jobs/{job_id}/cancel", headers=headers)
+    return setup.client.post(f"/api/v1/jobs/{job_id}/cancel", headers=headers)
 
 
 def test_When_UserCancelsRunningJob_Expect_CanceledStatusNoResultNoNotify(setup):
@@ -631,8 +639,8 @@ def test_When_UserCancelsRunningJob_Expect_CanceledStatusNoResultNoNotify(setup)
     state = setup.status(job_id, token).get_json()
     assert state["status"] == "canceled"
     assert "result" not in state or state.get("result") in (None, {})
-    assert setup.client.get(f"/api/jobs/{job_id}/files/photo.jpg", headers={"X-Job-Token": token}).status_code == 404
-    assert setup.client.get(f"/api/jobs/{job_id}/zip", headers={"X-Job-Token": token}).status_code == 404
+    assert setup.client.get(f"/api/v1/jobs/{job_id}/files/photo.jpg", headers={"X-Job-Token": token}).status_code == 404
+    assert setup.client.get(f"/api/v1/jobs/{job_id}/zip", headers={"X-Job-Token": token}).status_code == 404
     assert setup.sent == []
     # Temp output for this job is gone; only the job folder with status remains.
     dest_dirs = [p for p in setup.tmp_path.iterdir() if p.is_dir() and not p.name.startswith("job_")]

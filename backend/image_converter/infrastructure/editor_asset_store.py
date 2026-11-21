@@ -66,6 +66,11 @@ class StoredAsset:
     height: int
 
 
+def error_status(error: Optional[str]) -> int:
+    """HTTP status for an editor picture error: 410 and 409 tell the editor to start a new session."""
+    return {EXPIRED_ERROR: 410, SESSION_FULL_ERROR: 409}.get(error, 400)
+
+
 def max_upload_bytes() -> int:
     """The configured upload limit (app.json or MAX_UPLOAD_SIZE_MB), the same for every upload."""
     return settings.get().uploads.max_file_size_bytes

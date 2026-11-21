@@ -13,7 +13,7 @@ REFUSED_BODY_READ_MAX_BYTES = 256 * BYTES_PER_MEBIBYTE
 REFUSED_BODY_READ_SECONDS = 30
 
 
-def _drop_refused_body() -> None:
+def drop_refused_body() -> None:
     length = request.content_length
     stream = request.environ.get("wsgi.input")
     if stream is None or not length or length > REFUSED_BODY_READ_MAX_BYTES:
@@ -28,7 +28,7 @@ def _drop_refused_body() -> None:
 
 def handle_request_entity_too_large(e):
     """The request is above MAX_UPLOAD_SIZE_MB; it is refused before anything is stored."""
-    _drop_refused_body()
+    drop_refused_body()
     limit_mb = settings.get().uploads.max_file_size_mebibytes
     return jsonify({
         "error": "Payload Too Large",
@@ -49,6 +49,7 @@ def handle_http_exception(e):
 
     data = {
         "error": e.name,
+        "message": e.description,
         "description": e.description,
         "code": e.code,
     }
@@ -57,9 +58,3 @@ def handle_http_exception(e):
     response.content_type = "application/json"
     return response, e.code
 
-
-def not_found(error):
-    return jsonify({
-        "error": "Not Found",
-        "message": "The requested resource was not found.",
-    }), 404
