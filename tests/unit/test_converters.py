@@ -82,6 +82,42 @@ def test_When_NormalizingExifRotationForJpeg_Expect_UprightPixelsAndNoOrientatio
         assert list(result.get_flattened_data()) == [blue, red, cyan, green, magenta, yellow]
         assert 0x0112 not in result.getexif()
 
+def _rotated_phone_jpeg() -> bytes:
+    """400x200 pixels stored with EXIF Orientation=6, displayed as 200x400."""
+    buf = BytesIO()
+    exif = Image.Exif()
+    exif[0x0112] = 6
+    Image.new("RGB", (400, 200), (255, 0, 0)).save(buf, format="JPEG", exif=exif)
+    return buf.getvalue()
+
+
+def test_When_JpegHasExifRotation_Expect_PngConverterOutputsUprightImage(mock_logger):
+    output = PngConverter(logger=mock_logger).encode_to_bytes(_rotated_phone_jpeg())
+    with Image.open(BytesIO(output)) as out_img:
+        assert out_img.size == (200, 400)
+
+
+def test_When_SourceIsCmykJpeg_Expect_PngConverterOutputsRgb(mock_logger):
+    buf = BytesIO()
+    Image.new("CMYK", (8, 8), (0, 255, 255, 0)).save(buf, format="JPEG")
+    output = PngConverter(logger=mock_logger).encode_to_bytes(buf.getvalue())
+    with Image.open(BytesIO(output)) as out_img:
+        assert out_img.mode == "RGB"
+        assert all(abs(a - b) <= 4 for a, b in zip(out_img.getpixel((4, 4)), (255, 0, 0)))
+
+
+def test_When_SourceIs16BitBigEndianTiff_Expect_PngConverterKeeps16BitValues(mock_logger):
+    buf = BytesIO()
+    source = Image.new("I;16B", (8, 8), 40000)
+    source.putpixel((0, 0), 1000)
+    source.save(buf, format="TIFF")
+    output = PngConverter(logger=mock_logger).encode_to_bytes(buf.getvalue())
+    with Image.open(BytesIO(output)) as out_img:
+        assert out_img.mode in ("I", "I;16", "I;16B")
+        assert out_img.getpixel((0, 0)) == 1000
+        assert out_img.getpixel((4, 4)) == 40000
+
+
 def test_When_ImageContainsTransparency_Expect_PngConverterPreservesAlpha(sample_rgba_png, tmp_path, mock_logger):
     """
     Ensure PngConverter preserves alpha channel.
