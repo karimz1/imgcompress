@@ -256,7 +256,7 @@ jobs:
             gh api --method POST "repos/${REPOSITORY}/merges" \
               -f "base=${HEAD_REF}" \
               -f "head=main" \
-              -f "commit_message=$(printf '%s\n\n%s' 'chore: merge main before repairing the frontend lockfile' 'Co-authored-by: karim.zouine <mails.karimzouine@gmail.com>')" 2>&1
+              -f "commit_message=chore: merge main before repairing the frontend lockfile" 2>&1
           )" || status=$?
 
           if [[ $status -ne 0 ]]; then
@@ -301,7 +301,7 @@ jobs:
           bot_login="${APP_SLUG}[bot]"
           bot_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq '.id')"
           bot_email="${bot_id}+${bot_login}@users.noreply.github.com"
-          message="$(printf 'chore: regenerate pnpm lockfile after dependabot merge\n\nRoot cause and recovery docs: %s\n\nCo-authored-by: karim.zouine <mails.karimzouine@gmail.com>' "$DOCS_URL")"
+          message="$(printf 'chore: regenerate pnpm lockfile after dependabot merge\n\nRoot cause and recovery docs: %s' "$DOCS_URL")"
 
           jq -n \
             --arg message "$message" \

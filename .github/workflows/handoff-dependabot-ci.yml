@@ -53,9 +53,7 @@ jobs:
           tree_sha="$(jq -r '.commit.tree.sha' <<< "$commit_json")"
           bot_id="$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq '.id')"
           bot_email="${bot_id}+${bot_login}@users.noreply.github.com"
-          message="ci: hand off Dependabot PR #${PR_NUMBER} to ${bot_login}
-
-          Co-authored-by: karim.zouine <mails.karimzouine@gmail.com>"
+          message="ci: hand off Dependabot PR #${PR_NUMBER} to ${bot_login}"
 
           new_commit_sha="$(
             jq -n \
