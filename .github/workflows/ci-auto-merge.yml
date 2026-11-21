@@ -611,9 +611,14 @@ jobs:
       - test-feature-flags-matrix
       - test-unverified-formats-api
     timeout-minutes: 10
+    # success() is required: a custom if: replaces the implicit needs-success
+    # check, and without it a failed CI run on main could still dispatch deploy.
     if: >
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy_nightly == true)
+      success() &&
+      (
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy_nightly == true)
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -649,10 +654,17 @@ jobs:
     # so fork PRs can't trigger an auto-merge with the chan App token.
     #
     # Also auto-merges PRs opened by the chan App itself when they carry the
-    # `automated-digest-refresh` label — that label is only applied by the
+    # `automated-digest-refresh` label. That label is only applied by the
     # refresh-dockerfile-digests workflow, so chan can't sneak arbitrary
     # PRs through this gate.
+    #
+    # success() must be in this if: a custom condition replaces GitHub's
+    # implicit needs-success check. Without it, this job can run even when
+    # ci-status failed. The merge step also re-checks the PR's check runs so
+    # a red lockfile repair or CodeQL run cannot sneak through, and major
+    # version bumps are left for a human.
     if: >
+      success() &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       (
@@ -672,8 +684,100 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
-      - name: Squash-merge Dependabot PR
+      - name: Read Dependabot metadata
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      - name: Leave major bumps for review
+        id: major
+        if: github.event.pull_request.user.login == 'dependabot[bot]' && steps.metadata.outputs.update-type == 'version-update:semver-major'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --squash --delete-branch "$PR_URL"
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          marker="not auto-merged because it is a major version bump"
+          comments="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" --jq '.[].body')"
+          if ! grep -qF "$marker" <<< "$comments"; then
+            gh pr comment "$PR_URL" --body "This one is not auto-merged because it is a major version bump. Please review and merge it by hand if it looks good."
+          fi
+          echo "Skipping auto-merge for a major version bump."
+
+      - name: Squash-merge when every check is green
+        if: steps.major.outcome == 'skipped'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          current_sha="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+          if [[ "$current_sha" != "$EVENT_SHA" ]]; then
+            echo "PR head moved from ${EVENT_SHA} to ${current_sha}; leaving the merge to the newer CI run."
+            exit 0
+          fi
+
+          # Wait for checks from other workflows (lockfile repair, CodeQL, handoff)
+          # that are not in this job's needs. This job itself is still in progress,
+          # so it is ignored. Timeout is well under the job's 10 minute limit.
+          deadline=$((SECONDS + 480))
+          checks_json=""
+          while true; do
+            # `gh pr checks` exits 8 while checks are pending and 1 when any
+            # have failed. We still need the JSON in both cases.
+            checks_json="$(gh pr checks "$PR_URL" --json name,state,bucket,workflow || true)"
+            if ! jq -e 'type == "array"' <<< "$checks_json" >/dev/null; then
+              echo "::error::Could not list checks for ${PR_URL}."
+              echo "$checks_json"
+              exit 1
+            fi
+            pending="$(jq --arg self "auto-merge-dependabot" '[.[] | select(.name != $self and .bucket == "pending")] | length' <<< "$checks_json")"
+            echo "Pending checks besides this job: ${pending}"
+            if [[ "$pending" -eq 0 ]]; then
+              break
+            fi
+            if [[ "$SECONDS" -ge "$deadline" ]]; then
+              echo "::error::Timed out waiting for other checks to finish; not merging."
+              jq -r '.[] | select(.bucket == "pending") | "- pending: \(.name) (\(.workflow // "unknown workflow"))"' <<< "$checks_json"
+              exit 1
+            fi
+            sleep 15
+          done
+
+          {
+            echo "### Checks"
+            echo
+            echo "| Check | Result |"
+            echo "|---|---|"
+            jq -r --arg self "auto-merge-dependabot" \
+              '.[] | select(.name != $self) | "| \(.name) | \(.bucket) |"' \
+              <<< "$checks_json"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if ! jq -e --arg self "auto-merge-dependabot" \
+              '[.[] | select(.name == "ci-status" and .bucket == "pass")] | length > 0' \
+              <<< "$checks_json" >/dev/null; then
+            echo "::error::ci-status is not green; not merging."
+            exit 1
+          fi
+
+          bad="$(jq -r --arg self "auto-merge-dependabot" \
+            '[.[] | select(.name != $self and (.bucket == "fail" or .bucket == "cancel")) | .name] | unique | join(", ")' \
+            <<< "$checks_json")"
+          if [[ -n "$bad" ]]; then
+            echo "::error::Not merging while these checks are red: $bad"
+            exit 1
+          fi
+
+          if ! gh pr merge --squash --delete-branch "$PR_URL"; then
+            echo "::error::Could not squash-merge ${PR_URL}. If the branch has conflicts, Dependabot will rebase on its next run; a major bump is left for a human."
+            exit 1
+          fi
