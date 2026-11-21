@@ -39,7 +39,7 @@ RUN BUILD_COMMIT="$BUILD_COMMIT" BUILD_DATE="$BUILD_DATE" BUILD_REF="$BUILD_REF"
 # Intent: Fallback to debian-base:trixie-debian13-dev because dhi.io/python:3.11-debian13 is 
 # currently affected by CVE-2026-6100 (CVSS 9.1) without an upstream patch.
 # Ref: https://scout.docker.com/vulnerabilities/id/CVE-2026-6100
-FROM dhi.io/debian-base:trixie-debian13-dev@sha256:ac54666cad73016059945e22a9d460cd0a60d869a8a92a8f5c367517eb778531 AS backend-build-stage
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:1aa0a2307eea88ae00d07c7b3c8e804187ee272ccc89cde7b51667b3b065fb1d AS backend-build-stage
 
 # Use 'uv' for high-performance Python package management instead of standard pip.
 # Ref: https://github.com/astral-sh/uv
@@ -202,7 +202,7 @@ RUN mkdir -p /container/backend/image_converter/presentation/web/static_site
 # torch.load(weights_only=True) and exported to ONNX (graph and weights, no code).
 # Only the .onnx files and their .sha256 files are copied into the final image; torch,
 # onnx and the .pth files stay here. See scripts/build_upscale_model.py.
-FROM dhi.io/debian-base:trixie-debian13-dev@sha256:ac54666cad73016059945e22a9d460cd0a60d869a8a92a8f5c367517eb778531 AS upscale-model-stage
+FROM dhi.io/debian-base:trixie-debian13-dev@sha256:1aa0a2307eea88ae00d07c7b3c8e804187ee272ccc89cde7b51667b3b065fb1d AS upscale-model-stage
 
 COPY --from=dhi.io/uv:0.11.31-debian13@sha256:a39297c8ffc840971da90952aec9123d991bd007a0402edb2fd814421506d622 /uv /uvx /bin/
 
@@ -257,7 +257,7 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/upscale-weights,uid=65532,gid
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
-FROM dhi.io/debian-base:trixie-debian13@sha256:aa05c07c3ee50351cfda6595ca8277d1cd07aa9a338f9efe9416188193af7a3f AS final-stage
+FROM dhi.io/debian-base:trixie-debian13@sha256:70bc646aa7f20ee881733c5ff335a5a78d41b9179625f6f00bf5ec1d1a9d5707 AS final-stage
 
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
