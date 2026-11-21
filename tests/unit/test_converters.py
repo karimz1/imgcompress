@@ -96,6 +96,18 @@ def test_When_SourceIsCmykJpeg_Expect_PngConverterOutputsRgb(mock_logger):
         assert all(abs(a - b) <= 4 for a, b in zip(out_img.getpixel((4, 4)), (255, 0, 0)))
 
 
+def test_When_SourceIs16BitBigEndianTiff_Expect_PngConverterKeeps16BitValues(mock_logger):
+    buf = BytesIO()
+    source = Image.new("I;16B", (8, 8), 40000)
+    source.putpixel((0, 0), 1000)
+    source.save(buf, format="TIFF")
+    output = PngConverter(logger=mock_logger).encode_to_bytes(buf.getvalue())
+    with Image.open(BytesIO(output)) as out_img:
+        assert out_img.mode in ("I", "I;16", "I;16B")
+        assert out_img.getpixel((0, 0)) == 1000
+        assert out_img.getpixel((4, 4)) == 40000
+
+
 def test_When_ImageContainsTransparency_Expect_PngConverterPreservesAlpha(sample_rgba_png, tmp_path, mock_logger):
     """
     Ensure PngConverter preserves alpha channel.
