@@ -61,6 +61,16 @@ def test_When_NormalizingTransparencyForJpeg_Expect_WhiteCompositeAtEveryAlpha(m
             assert list(result.get_flattened_data()) == expected
 
 
+def test_When_PaletteImageHasTransparency_Expect_JpegFlattensOntoWhite():
+    with Image.new("P", (2, 1)) as source:
+        source.putpalette([0, 0, 0, 0, 128, 0])
+        source.putdata([0, 1])
+        source.info["transparency"] = 0
+        with _normalize_for_jpeg(source) as result:
+            assert result.mode == "RGB"
+            assert list(result.get_flattened_data()) == [(255, 255, 255), (0, 128, 0)]
+
+
 def test_When_NormalizingExifRotationForJpeg_Expect_UprightPixelsAndNoOrientationTag():
     red, green, yellow = (255, 0, 0), (0, 255, 0), (255, 255, 0)
     blue, cyan, magenta = (0, 0, 255), (0, 255, 255), (255, 0, 255)
