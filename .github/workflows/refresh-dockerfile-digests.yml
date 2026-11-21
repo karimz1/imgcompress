@@ -50,6 +50,10 @@ jobs:
           # Need full history so the PR branch can be force-pushed cleanly
           # when a prior run's PR is still open.
           fetch-depth: 0
+          # Must match `gh pr create --base` below. Bump PRs currently target
+          # release/v1.1.0. After that release ships, point this (and the
+          # --base flag, and dependabot.yml target-branch) back at main.
+          ref: release/v1.1.0
 
       - name: Configure git as the chan App
         env:
@@ -125,7 +129,7 @@ jobs:
           count="$(wc -l < "$updates_file" | tr -d ' ')"
           if [ "$count" -eq 0 ]; then
             echo "no_updates=true" >> "$GITHUB_OUTPUT"
-            echo "All DHI base image digests are up to date — nothing to do."
+            echo "All DHI base image digests are up to date, nothing to do."
             exit 0
           fi
 
@@ -203,7 +207,7 @@ jobs:
             # A cosmetic label must never be able to block a security patch.
             pr_url="$(gh pr create \
               --repo "$REPOSITORY" \
-              --base main \
+              --base release/v1.1.0 \
               --head "$BRANCH" \
               --title "chore(docker): ${SUMMARY}" \
               --body-file /tmp/pr-body.md)"
