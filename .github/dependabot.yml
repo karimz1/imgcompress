@@ -1,31 +1,68 @@
 version: 2
+# Dependabot only reads this file from the repository's default branch (main).
+# Merging a copy onto release/v1.1.0 alone does not change bump behaviour.
+# After this lands on main, new bump PRs target release/v1.1.0. When 1.1.0
+# ships, drop every target-branch line (or point them at the next release
+# branch) and merge that change to main as well.
+#
+# Patch and minor version updates are grouped weekly so they arrive as one
+# PR per ecosystem and directory. Security updates and major versions stay
+# ungrouped. Only patch and minor bumps are auto-merged, and only when every
+# CI check is green (see ci-auto-merge.yml).
+
 updates:
   - package-ecosystem: "pip"
     directories:
       - "/"
       - "/.devcontainer"
+    target-branch: "release/v1.1.0"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 20
+    rebase-strategy: auto
+    open-pull-requests-limit: 10
     labels: ["dependencies", "backend-dependencies-update", "dependabot"]
+    groups:
+      python-minor-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "docker"
     directories:
       - "/"
       - "/.devcontainer"
-    schedule:
-      interval: "weekly"
-    labels: ["dependencies", "docker-dependencies-update", "dependabot"]
-  - package-ecosystem: "npm"
-    directory: "/frontend"
+    target-branch: "release/v1.1.0"
     schedule:
       interval: "weekly"
     rebase-strategy: auto
-    open-pull-requests-limit: 20
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "docker-dependencies-update", "dependabot"]
+    groups:
+      docker-minor-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    target-branch: "release/v1.1.0"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: auto
+    open-pull-requests-limit: 10
     labels: ["dependencies", "frontend-dependencies-update", "dependabot"]
+    groups:
+      frontend-minor-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "release/v1.1.0"
     schedule:
       interval: "weekly"
+    rebase-strategy: auto
+    open-pull-requests-limit: 10
     labels: ["dependencies", "github-actions-dependencies-update", "dependabot"]
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
