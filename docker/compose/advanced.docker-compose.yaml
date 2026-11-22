@@ -60,6 +60,19 @@ services:
       # - PUBLIC_BASE_URL=http://192.168.1.10:3001
       # Optional: container clock for "Link expires …" in notify messages (no app-specific time setting).
       # - TZ=Europe/Berlin
+      # Three modes:
+      #   1) Default: web UI on, public API off. Cross-site browser calls get 403
+      #      (CSRF defense). Docs are hidden.
+      #   2) IMGCOMPRESS_ENABLE_PUBLIC_API=true, optional IMGCOMPRESS_PUBLIC_API_KEY:
+      #      other websites may call /api/v1 (CORS) and docs are at /api/v1/docs.
+      #      A key is not a security boundary while the web UI is served. For
+      #      public hosting use API_ONLY or put proxy auth (Authelia, Authentik,
+      #      Basic Auth) in front.
+      #   3) IMGCOMPRESS_API_ONLY=true plus IMGCOMPRESS_PUBLIC_API_KEY: no web UI;
+      #      the key is a real boundary. The container will not start without a key.
+      - ENABLE_PUBLIC_API=${IMGCOMPRESS_ENABLE_PUBLIC_API:-false}
+      - PUBLIC_API_KEY=${IMGCOMPRESS_PUBLIC_API_KEY:-}
+      - API_ONLY=${IMGCOMPRESS_API_ONLY:-false}
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck

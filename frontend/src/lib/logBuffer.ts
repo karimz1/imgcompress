@@ -75,7 +75,7 @@ export async function downloadBackendLogs(): Promise<void> {
 export async function fetchBackendLogs(): Promise<string> {
   if (typeof window === "undefined") return "(browser unavailable)";
   try {
-    const res = await fetch("/api/logs/backend");
+    const res = await fetch("/api/v1/logs");
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       return buildBackendUnavailableLog(res.status, body);
@@ -150,7 +150,7 @@ function buildBackendUnavailableLog(status: number | null, detail: string): stri
     `detail: ${detail || "(no response body)"}`,
     "",
     "What this usually means:",
-    "- the backend process was not restarted after the branch added /api/logs/backend",
+    "- the backend process was not restarted after the branch added /api/v1/logs",
     "- the frontend is running without the Next.js /api rewrite",
     "- the backend is down or serving an older container image",
     "",

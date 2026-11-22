@@ -210,7 +210,7 @@ def test_When_FitApiRendersSvgPlacement_Expect_ColourAndPositionUsed():
 
     svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="10"><rect width="20" height="10" fill="#00c800"/></svg>'
     response = app.test_client().post(
-        "/api/crop/fit",
+        "/api/v1/edit",
         data={
             "fit_width": "100",
             "fit_height": "100",

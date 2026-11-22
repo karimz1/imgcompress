@@ -95,7 +95,7 @@ test("a manual adjustment updates the preview and survives export", async ({
   const automatic = await readPreview(page);
   const changed = page.waitForResponse(
     (response) =>
-      response.url().endsWith("/api/crop/fit") &&
+      response.url().endsWith("/api/v1/edit") &&
       response.request().method() === "POST",
   );
   await page.getByTestId("crop-fit-adjust-selection").click();
@@ -166,7 +166,7 @@ test("invalid dimensions and preview failures cannot save a new fit", async ({
   await page.getByTestId("fit-preset-custom").click();
   await page.getByTestId("fit-width-input").fill("8193");
   await expect(page.getByTestId("crop-save-btn")).toBeDisabled();
-  await page.route("**/api/crop/fit", (route) =>
+  await page.route("**/api/v1/edit", (route) =>
     route.fulfill({
       status: 500,
       contentType: "application/json",
@@ -222,7 +222,7 @@ test("a failed batch keeps every previously saved edit", async ({ page }) => {
   await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-auto-fit-all-btn")).toBeEnabled();
   let requests = 0;
-  await page.route("**/api/crop/fit", (route) => {
+  await page.route("**/api/v1/edit", (route) => {
     requests++;
     return requests === 2
       ? route.fulfill({
@@ -256,16 +256,16 @@ test("conversion can be cancelled while rendering the saved fit", async ({
   const hold = new Promise<void>((resolve) => {
     release = resolve;
   });
-  await page.route("**/api/crop/fit", async (route) => {
+  await page.route("**/api/v1/edit", async (route) => {
     await hold;
     await route.abort();
   });
   let compressionRequests = 0;
   page.on("request", (request) => {
-    if (request.url().endsWith("/api/jobs")) compressionRequests++;
+    if (request.url().endsWith("/api/v1/jobs")) compressionRequests++;
   });
   const rendering = page.waitForRequest((request) =>
-    request.url().endsWith("/api/crop/fit"),
+    request.url().endsWith("/api/v1/edit"),
   );
   await clickConversionButtonAsync(page);
   await rendering;
@@ -420,7 +420,7 @@ test("preview retry keeps an adjusted crop instead of automatically reframing it
   await page.getByTestId("crop-tab-fit").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
   await expect(page.getByTestId("crop-auto-fit-btn")).toHaveCount(0);
-  await page.route("**/api/crop/fit", (route) =>
+  await page.route("**/api/v1/edit", (route) =>
     route.fulfill({
       status: 500,
       contentType: "application/json",
@@ -432,7 +432,7 @@ test("preview retry keeps an adjusted crop instead of automatically reframing it
   await expect(page.getByTestId("crop-fit-error")).toContainText(
     "Temporary preview failure",
   );
-  await page.unroute("**/api/crop/fit");
+  await page.unroute("**/api/v1/edit");
   await page.getByTestId("crop-fit-retry-btn").click();
   await expect(page.getByTestId("crop-save-btn")).toBeEnabled();
   await expect(page.getByTestId("crop-width-input")).toHaveValue("1000");

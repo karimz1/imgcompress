@@ -2,6 +2,7 @@ from typing import Optional
 
 from flask import Request
 
+from backend.image_converter.application import conversion_options as options
 from backend.image_converter.application.dtos import CompressionFormData
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result, is_file_supported
@@ -9,60 +10,87 @@ from backend.image_converter.infrastructure.logger import Logger
 
 
 def extract_form_data(request: Request, logger: Logger) -> Result[CompressionFormData]:
-    uploaded_files = request.files.getlist("files[]")
-    allowed_files = [f for f in uploaded_files if is_file_supported(f.filename)]
-    unsupported_files = [f for f in uploaded_files if not is_file_supported(f.filename)]
+    return parse_compression_form(uploaded_files(request.files), request.form, logger)
 
-    if unsupported_files:
-        unsupported_names = ", ".join(f.filename for f in unsupported_files)
-        return Result.failure(f"Unsupported file types: {unsupported_names}")
 
-    relative_dirs = tuple(request.form.getlist("relative_dirs[]"))
+def uploaded_files(files) -> list:
+    """The uploads under 'files[]' and its alias 'file', without empty file inputs."""
+    found = []
+    for key in (options.FILES.name, *options.FILES.aliases):
+        found += [f for f in files.getlist(key) if f and (f.filename or "").strip()]
+    return found
+
+
+def unsupported_file_names(uploaded_files) -> list[str]:
+    return [f.filename for f in uploaded_files if not is_file_supported(f.filename)]
+
+
+def parse_compression_form(uploaded_files, form, logger: Logger) -> Result[CompressionFormData]:
+    """
+    The conversion options of one upload, shared by the web UI (/api) and the
+    public API (/api/v1). Names, defaults and limits come from
+    conversion_options; a bad plain value falls back to its default here, the
+    public API refuses it beforehand (conversion_options.strict_error).
+    """
+    unsupported = unsupported_file_names(uploaded_files)
+    if unsupported:
+        return Result.failure(f"Unsupported file types: {', '.join(unsupported)}")
+
+    relative_dirs = tuple(form.getlist(options.RELATIVE_DIRS.name))
     if relative_dirs and len(relative_dirs) != len(uploaded_files):
         return Result.failure("The folder of every uploaded file must be given, or none.")
 
-    raw_format = request.form.get("format", ImageFormat.JPEG.value).lower()
+    raw_format = (options.FORMAT.raw(form) or options.FORMAT.default).lower()
     format_result = ImageFormat.from_string_result(raw_format)
     if not format_result.is_successful:
         return Result.failure(format_result.error or "Unsupported image format")
 
+    def text(option: options.Option, default: str = "") -> str:
+        return _raw_or(option, form, default).strip()
+
     form_data = CompressionFormData(
-        uploaded_files=tuple(allowed_files),
-        quality=_parse_quality(request.form.get("quality", "85"), logger),
-        width=_parse_width(request.form.get("width", ""), logger),
+        uploaded_files=tuple(uploaded_files),
+        quality=_parse_quality(_raw_or(options.QUALITY, form, str(options.QUALITY.default)), logger),
+        width=_parse_width(options.WIDTH.raw(form) or "", logger),
         image_format=format_result.value,
-        target_size_kb=_parse_target_size_kb(request.form.get("target_size_kb", ""), logger),
-        use_rembg=_parse_bool(request.form.get("use_rembg")),
-        pdf_preset=request.form.get("pdf_preset", "").strip(),
-        pdf_scale=request.form.get("pdf_scale", "").strip(),
-        pdf_margin_mm=_parse_margin_mm(request.form.get("pdf_margin_mm", ""), logger),
-        pdf_paginate=_parse_bool(request.form.get("pdf_paginate")),
-        pdf_quality=request.form.get("pdf_quality", "high").strip(),
-        webp_lossless=_parse_bool(request.form.get("webp_lossless")),
-        upscale=request.form.get("upscale", "").strip(),
-        upscale_model=request.form.get("upscale_model", "general").strip(),
-        fit_width=request.form.get("fit_width", "").strip(),
-        fit_height=request.form.get("fit_height", "").strip(),
-        fit_mode=request.form.get("fit_mode", "").strip(),
-        fit_anchor=request.form.get("fit_anchor", "").strip(),
-        fit_color=request.form.get("fit_color", "").strip(),
-        fit_scale=request.form.get("fit_scale", "").strip(),
-        fit_x=request.form.get("fit_x", "").strip(),
-        fit_y=request.form.get("fit_y", "").strip(),
+        target_size_kb=_parse_target_size_kb(options.TARGET_SIZE_KB.raw(form) or "", logger),
+        use_rembg=_parse_bool(options.REMOVE_BACKGROUND.raw(form)),
+        pdf_preset=text(options.PDF_PRESET),
+        pdf_scale=text(options.PDF_SCALE),
+        pdf_margin_mm=_parse_margin_mm(options.PDF_MARGIN_MM.raw(form) or "", logger),
+        pdf_paginate=_parse_bool(options.PDF_PAGINATE.raw(form)),
+        pdf_quality=text(options.PDF_QUALITY, options.PDF_QUALITY.default),
+        webp_lossless=_parse_bool(options.WEBP_LOSSLESS.raw(form)),
+        upscale=text(options.UPSCALE),
+        upscale_model=text(options.UPSCALE_MODEL, options.UPSCALE_MODEL.default),
+        fit_width=text(options.FIT_WIDTH),
+        fit_height=text(options.FIT_HEIGHT),
+        fit_mode=text(options.FIT_MODE_CONVERT),
+        fit_anchor=text(options.FIT_ANCHOR),
+        fit_color=text(options.FIT_COLOR),
+        fit_scale=text(options.FIT_SCALE),
+        fit_x=text(options.FIT_X),
+        fit_y=text(options.FIT_Y),
         relative_dirs=relative_dirs,
     )
     return Result.success(form_data)
 
 
+def _raw_or(option: options.Option, form, default: str) -> str:
+    raw = option.raw(form)
+    return raw if raw is not None else default
+
+
 def _parse_quality(value: str, logger: Logger) -> int:
+    default = options.QUALITY.default
     try:
         q = int(value)
-        if not (1 <= q <= 100):
+        if not (options.QUALITY.minimum <= q <= options.QUALITY.maximum):
             raise ValueError
         return q
     except ValueError:
-        logger.log(f"Invalid quality '{value}'. Using default 85.", "warning")
-        return 85
+        logger.log(f"Invalid quality '{value}'. Using default {default}.", "warning")
+        return default
 
 
 def _parse_width(value: str, logger: Logger) -> Optional[int]:
@@ -70,7 +98,7 @@ def _parse_width(value: str, logger: Logger) -> Optional[int]:
         return None
     try:
         w = int(value)
-        if w <= 0:
+        if w < options.WIDTH.minimum:
             raise ValueError
         return w
     except ValueError:
@@ -86,7 +114,7 @@ def _parse_target_size_kb(value: str, logger: Logger) -> Optional[int]:
         return None
     try:
         kb = int(value)
-        if kb <= 0:
+        if kb < options.TARGET_SIZE_KB.minimum:
             raise ValueError
         return kb
     except ValueError:
@@ -97,22 +125,19 @@ def _parse_target_size_kb(value: str, logger: Logger) -> Optional[int]:
 def _parse_bool(value: Optional[str]) -> bool:
     if value is None:
         return False
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+    return value.strip().lower() in options.TRUE_VALUES
 
 
 def _parse_margin_mm(value: str, logger: Logger) -> float:
+    default = options.PDF_MARGIN_MM.default
     if value is None:
-        return 10.0
+        return default
     value = value.strip()
     if not value:
-        return 10.0
+        return default
     try:
         mm = float(value)
-        if mm < 0:
-            mm = 0.0
-        if mm > 30:
-            mm = 30.0
-        return mm
+        return min(float(options.PDF_MARGIN_MM.maximum), max(float(options.PDF_MARGIN_MM.minimum), mm))
     except ValueError:
         logger.log(f"Invalid pdf_margin_mm '{value}'. Using default 10.", "warning")
-        return 10.0
+        return default

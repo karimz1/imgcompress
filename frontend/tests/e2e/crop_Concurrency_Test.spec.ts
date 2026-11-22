@@ -25,7 +25,7 @@ test('crop bitmap rendering is non-blocking across simultaneous browser contexts
           const request = response.request();
           return (
             request.method() === 'POST' &&
-            response.url().includes('/api/crop/bitmap')
+            response.url().includes('/api/v1/preview')
           );
         });
 

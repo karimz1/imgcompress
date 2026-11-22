@@ -29,7 +29,7 @@ function recordFitRequests() {
   const original = window.fetch.bind(window);
   window.fetch = (input, init) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (url.endsWith("/api/crop/fit") && init?.body instanceof FormData) {
+    if (url.endsWith("/api/v1/edit") && init?.body instanceof FormData) {
       const fields: Record<string, string> = {};
       init.body.forEach((value, key) => {
         fields[key] = typeof value === "string" ? value : `${value.name}:${value.size}`;
@@ -144,7 +144,7 @@ const halfRedPng = () =>
 
 async function addPicture(page: Page, name = "sticker.png") {
   await showTab(page, "layers");
-  const uploaded = page.waitForResponse((r) => r.url().endsWith("/api/editor/assets"));
+  const uploaded = page.waitForResponse((r) => r.url().endsWith("/api/v1/editor/assets"));
   await page.getByTestId("fit-picture-input").setInputFiles({ name, mimeType: "image/png", buffer: await halfRedPng() });
   expect((await uploaded).status()).toBe(200);
   await expect(page.getByTestId("fit-picture-controls")).toBeVisible();

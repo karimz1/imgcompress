@@ -1,6 +1,5 @@
 import io
 import os
-import shutil
 
 import pytest
 from PIL import Image
@@ -26,7 +25,7 @@ def test_rembg_model_endpoint_uses_config_value(client, monkeypatch):
         ConfigurationService(rembg_model_name="custom-net"),
     )
 
-    response = client.get("/api/rembg_model")
+    response = client.get("/api/v1/models/remove-background")
     assert response.status_code == 200
     payload = response.get_json()
     assert payload["model_name"] == "custom-net"
@@ -66,25 +65,16 @@ def test_rembg_api_returns_png_with_transparency(client, monkeypatch):
     data = {
         "files[]": (io.BytesIO(image_data), "input.jpg"),
         "format": "png",
-        "use_rembg": "true",
+        "remove_background": "true",
     }
 
-    response = client.post("/api/compress", data=data, content_type="multipart/form-data")
-    assert response.status_code == 200
-    payload = response.get_json()
-    assert payload["status"] == "ok"
-    assert len(payload["converted_files"]) == 1
+    response = client.post("/api/v1/convert", data=data, content_type="multipart/form-data")
+    assert response.status_code == 200, response.get_json(silent=True)
+    assert response.headers["X-Converted-Count"] == "1"
     # Background-removed outputs are tagged with an _ai-bg-removed suffix so
     # downloads are identifiable, mirroring the frontend's _cropped suffix.
-    assert payload["converted_files"][0] == "input_ai-bg-removed.png"
-
-    dest_folder = payload["dest_folder"]
-    out_path = os.path.join(dest_folder, payload["converted_files"][0])
-    try:
-        assert os.path.exists(out_path)
-        with Image.open(out_path) as out_img:
-            assert out_img.format.upper() == "PNG"
-            assert "A" in out_img.mode
-            assert out_img.getpixel((0, 0))[3] == 0
-    finally:
-        shutil.rmtree(dest_folder, ignore_errors=True)
+    assert "input_ai-bg-removed.png" in response.headers["Content-Disposition"]
+    with Image.open(io.BytesIO(response.data)) as out_img:
+        assert out_img.format.upper() == "PNG"
+        assert "A" in out_img.mode
+        assert out_img.getpixel((0, 0))[3] == 0

@@ -14,7 +14,7 @@ import { clickConversionButtonAsync, setOutputFormatAsync, uploadBuffersToDropzo
  */
 
 const MARGIN = 8;
-const JOB_STATUS = /\/api\/jobs\/[^/]+$/;
+const JOB_STATUS = /\/api\/v1\/jobs\/[^/]+$/;
 const SCREENS = [
   { name: 'iPhone 15 Pro Max Safari', width: 430, height: 740 },
   { name: 'iPhone 15 Safari', width: 390, height: 664 },

@@ -1,8 +1,8 @@
 export const fileDownloadUrl = (folder: string, file: string) =>
-  `/api/download?folder=${encodeURIComponent(folder)}&file=${encodeURIComponent(file)}`;
+  `/api/v1/storage/files/download?folder=${encodeURIComponent(folder)}&file=${encodeURIComponent(file)}`;
 
 export const zipDownloadUrl = (folder: string) =>
-  `/api/download_all?folder=${encodeURIComponent(folder)}`;
+  `/api/v1/storage/folders/download?folder=${encodeURIComponent(folder)}`;
 
 /**
  * Fetches a file and saves it via the browser, returning `false` when the

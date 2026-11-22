@@ -25,7 +25,7 @@ function recordFitRequests() {
   const original = window.fetch.bind(window);
   window.fetch = (input, init) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (url.endsWith("/api/crop/fit") && init?.body instanceof FormData) {
+    if (url.endsWith("/api/v1/edit") && init?.body instanceof FormData) {
       const fields: Record<string, string> = {};
       init.body.forEach((value, key) => {
         // Files are recorded by name and size.
@@ -218,7 +218,7 @@ test("an older preview response never replaces a newer one", async ({ page }) =>
   const slowStarted = new Promise<void>((resolve) => {
     slowSeen = resolve;
   });
-  await page.route("**/api/crop/fit", async (route) => {
+  await page.route("**/api/v1/edit", async (route) => {
     if (delayNext) {
       delayNext = false;
       slowSeen();

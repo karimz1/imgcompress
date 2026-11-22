@@ -8,7 +8,7 @@ export function useInternetHealth() {
   const checkInternet = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/health/internet");
+      const res = await fetch("/api/v1/health/internet");
       if (!res.ok) throw new Error("Internet Backend Route unreachable");
 
       const data: InternetHealthResponse = await res.json();

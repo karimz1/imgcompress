@@ -13,7 +13,7 @@ export function useBackendHealth(
 
     const check = async () => {
       try {
-        const res = await fetch("/api/health/backend");
+        const res = await fetch("/api/v1/health");
         if (!res.ok) throw new Error("Backend unreachable");
 
         const data: BackendHealthResponse = await res.json();

@@ -13,6 +13,7 @@ e2e-test-results/
 
 test_transparent.png
 backend/image_converter/web_app/static_site/
+backend/image_converter/presentation/web/static_site/
 output/
 tests/sample-images/test_image.png
 reports/

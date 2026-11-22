@@ -362,6 +362,31 @@ jobs:
             public_base_url: "https://imgcompress.example"
             scenario: "logo SHOWN  | storage SHOWN | notify ON"
             label: "notify-on"
+          # REST API open to other websites (ENABLE_PUBLIC_API=true, no key):
+          # Swagger UI loads, a page on another origin may call /api/v1 (CORS).
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            enable_public_api: "true"
+            scenario: "logo SHOWN  | storage SHOWN | public API ON | notify OFF"
+            label: "public-api-on"
+          # REST API open with a key (ENABLE_PUBLIC_API=true, PUBLIC_API_KEY set). The key is a
+          # test value, not a secret. Proves callers need it and the web UI does not:
+          # the journey spec converts through the UI without ever sending it.
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            enable_public_api: "true"
+            api_key: "e2e-test-key-not-a-secret"
+            extra_specs: "tests/e2e/journeys_MultiImage_Test.spec.ts"
+            scenario: "logo SHOWN  | storage SHOWN | public API ON + key | notify OFF"
+            label: "public-api-key"
+          # API only + mandatory key: no web UI, the key is a real boundary.
+          # UI feature-flag specs skip themselves; publicApi_Test covers this mode.
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            api_only: "true"
+            api_key: "e2e-test-key-not-a-secret"
+            scenario: "API only + key | notify OFF"
+            label: "api-only-key"
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -395,6 +420,9 @@ jobs:
           echo "MAX_UPLOAD_SIZE_MB:          ${{ matrix.max_upload_size_mb || '(default 40960)' }}"
           echo "DISABLE_UPDATE_CHECK:        ${{ matrix.disable_update_check || '(default false)' }}"
           echo "NOTIFY_URL:                  ${{ matrix.notify_url && 'set (capture server) -> notify ON' || '(unset) -> notify OFF' }}"
+          echo "ENABLE_PUBLIC_API:           ${{ matrix.enable_public_api || '(default false)' }}"
+          echo "API_ONLY:                    ${{ matrix.api_only || '(default false)' }}"
+          echo "PUBLIC_API_KEY:              ${{ matrix.api_key && 'set (test value)' || '(unset)' }}"
           echo "::endgroup::"
           docker run -d \
             --platform linux/amd64 \
@@ -406,6 +434,9 @@ jobs:
             -e DISABLE_UPDATE_CHECK=${{ matrix.disable_update_check }} \
             -e NOTIFY_URL=${{ matrix.notify_url }} \
             -e PUBLIC_BASE_URL=${{ matrix.public_base_url }} \
+            -e ENABLE_PUBLIC_API=${{ matrix.enable_public_api }} \
+            -e PUBLIC_API_KEY=${{ matrix.api_key }} \
+            -e API_ONLY=${{ matrix.api_only }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for the app to be ready
@@ -437,8 +468,9 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
+            -e E2E_API_KEY=${{ matrix.api_key }} \
             --name devcontainer_flags \
-            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts tests/e2e/notifyWhenDone_Test.spec.ts"
+            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts tests/e2e/notifyWhenDone_Test.spec.ts tests/e2e/publicApi_Test.spec.ts ${{ matrix.extra_specs }}"
 
       - name: Collect app log and stop the app
         if: always()
@@ -467,7 +499,7 @@ jobs:
     # Reader test for the long tail of "Other possible formats" advertised
     # by the UI. Brings up the app container, then for each unverified
     # extension generates an input file with Pillow, POSTs it to
-    # /api/compress, downloads the resulting PNG, and asserts it is real
+    # /api/v1/convert, gets the resulting PNG back, and asserts it is real
     # and non-blank. Blocking — if a format the UI claims to support stops
     # working through the public HTTP API in the running image, deploys
     # are gated. Read-only formats (no Pillow writer) are skipped with a
@@ -513,10 +545,10 @@ jobs:
       - name: Wait for the app to be ready
         run: |
           for attempt in $(seq 1 120); do
-            curl -fsS "http://localhost:5000/api/health/backend" > /dev/null 2>&1 && { echo "App is up after ${attempt}s"; exit 0; }
+            curl -fsS "http://localhost:5000/api/v1/health" > /dev/null 2>&1 && { echo "App is up after ${attempt}s"; exit 0; }
             sleep 1
           done
-          echo "::error::App did not answer on :5000/api/health/backend within 120s"
+          echo "::error::App did not answer on :5000/api/v1/health within 120s"
           docker logs --tail 200 app || true
           exit 1
 

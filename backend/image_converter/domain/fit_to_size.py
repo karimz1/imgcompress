@@ -51,7 +51,7 @@ class FitMode(Enum):
     SOLID = "solid"
     TRANSPARENT = "transparent"
     # A background picture uploaded in the editor. Only the web editor can
-    # send one, so the CLI and /api/compress do not offer it.
+    # send one, so the CLI and /api/v1/convert do not offer it.
     IMAGE = "image"
 
     @classmethod

@@ -46,5 +46,8 @@
   "upscaling": {
     "threads": "auto",
     "max_output_megapixels": 144
+  },
+  "public_api": {
+    "is_enabled": false
   }
 }

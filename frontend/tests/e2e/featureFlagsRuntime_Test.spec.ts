@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { isApiOnlyModeAsync } from './utls/helpers';
 import { UpdateBannerTestData } from './utls/updateBannerTestData';
 import {
     mockLatestVersionResponseAsync,
@@ -11,6 +12,7 @@ const FALLBACK_TAGLINE = 'An Image Compression Tool';
 const STORAGE_BTN_SELECTOR = '[data-testid="storage-management-btn"]';
 
 test('feature flags served by the running container match the rendered UI', async ({ page, request }) => {
+    test.skip(await isApiOnlyModeAsync(request), 'no web UI in API_ONLY');
     const configResponse = await request.get('/config/runtime.json');
     expect(configResponse.ok()).toBeTruthy();
     const config = await configResponse.json();
