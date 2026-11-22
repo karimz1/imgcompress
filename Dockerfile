@@ -257,7 +257,7 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/upscale-weights,uid=65532,gid
 
 # Stage 3: FINAL RUNTIME
 # ------------------------------------------------------------------------------------------
-FROM dhi.io/debian-base:trixie-debian13@sha256:70bc646aa7f20ee881733c5ff335a5a78d41b9179625f6f00bf5ec1d1a9d5707 AS final-stage
+FROM dhi.io/debian-base:trixie-debian13@sha256:e76acf199956ca29142c68deda3eb4453c3922feb458fb4ff8f274537ab04f69 AS final-stage
 
 LABEL org.opencontainers.image.authors="Karim Zouine <mails.karimzouine@gmail.com>" \
       org.opencontainers.image.vendor="Karim Zouine" \
