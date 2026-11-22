@@ -90,3 +90,13 @@ def test_factory_returns_avif_converters(mock_logger):
         use_rembg=True
     )
     assert isinstance(converter_rembg, RembgAvifConverter)
+
+
+def test_When_JpegHasExifRotation_Expect_AvifConverterOutputsUprightImage(mock_logger):
+    buf = BytesIO()
+    exif = Image.Exif()
+    exif[0x0112] = 6
+    Image.new("RGB", (400, 200), (255, 0, 0)).save(buf, format="JPEG", exif=exif)
+    output = AvifConverter(quality=80, logger=mock_logger).encode_to_bytes(buf.getvalue())
+    with Image.open(BytesIO(output)) as out_img:
+        assert out_img.size == (200, 400)
