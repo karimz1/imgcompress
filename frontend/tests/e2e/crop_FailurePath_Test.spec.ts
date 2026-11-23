@@ -10,7 +10,7 @@ async function openCropFailureAsync(
   await mockCropShellApiAsync(page);
   await bootCropFailurePageAsync(page);
   await uploadPsdAsync(page);
-  await page.route('**/api/crop/bitmap', handler);
+  await page.route('**/api/v1/preview', handler);
 
   await page.getByTestId('dropzone-crop-file-btn').first().click();
   await expect(page.getByTestId('crop-dialog')).toBeVisible();
@@ -67,37 +67,24 @@ async function mockCropShellApiAsync(page: Page): Promise<void> {
       }),
     });
   });
-  await page.route('**/api/images_supported', async (route) => {
+  await page.route('**/api/v1/formats', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({
         supported_formats: ['.png', '.jpg', '.jpeg', '.psd', '.eps'],
-      }),
-    });
-  });
-  await page.route('**/api/images_verified', async (route) => {
-    await route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({
         verified_formats: ['.png', '.jpg', '.jpeg', '.psd', '.eps'],
+        preview_unsupported_formats: ['.pdf', '.svg', '.raw', '.cr2', '.nef', '.arw', '.dng'],
+        output_formats: ['jpeg', 'png', 'ico', 'avif', 'webp', 'pdf'],
       }),
     });
   });
-  await page.route('**/api/crop_unsupported_formats', async (route) => {
-    await route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({
-        unsupported_formats: ['.pdf', '.svg', '.raw', '.cr2', '.nef', '.arw', '.dng'],
-      }),
-    });
-  });
-  await page.route('**/api/rembg_model', async (route) => {
+  await page.route('**/api/v1/models/remove-background', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({ model_name: 'u2net' }),
     });
   });
-  await page.route('**/api/health/backend', async (route) => {
+  await page.route('**/api/v1/health', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({

@@ -23,6 +23,7 @@ from backend.image_converter.config.app_config import (
     FormatsConfig,
     LoggingConfig,
     PresetsConfig,
+    PublicApiConfig,
     RembgConfig,
     TemporaryStorageConfig,
     UploadsConfig,
@@ -74,6 +75,11 @@ _OVERRIDES = (
         env_var="DISABLE_CUSTOM_PRESETS",
         inverted=True,
     ),
+    _FeatureFlagOverride(
+        json_path=("public_api", "is_enabled"),
+        env_var="ENABLE_PUBLIC_API",
+        inverted=False,
+    ),
 )
 
 
@@ -81,6 +87,11 @@ _OVERRIDES = (
 MAX_UPLOAD_SIZE_ENV = "MAX_UPLOAD_SIZE_MB"
 # Same for the Granian worker count ("auto" or a whole number).
 WEB_WORKERS_ENV = "WEB_WORKERS"
+# Optional key for the public API (/api/v1). Env only, never in app.json, so it
+# is not baked into an image or a config file.
+PUBLIC_API_KEY_ENV = "PUBLIC_API_KEY"
+# API-only mode: no web UI, public API on, key required. Env only, off by default.
+API_ONLY_ENV = "API_ONLY"
 
 
 def load_from_file(path: Path) -> AppConfig:
@@ -157,6 +168,20 @@ def load_from_file(path: Path) -> AppConfig:
         file=reader.optional_str(("presets", "file"), default=DEFAULT_PRESETS_FILE),
     )
 
+    # Optional block: the public API is off unless switched on or API_ONLY is set.
+    api_only = _read_env_bool(API_ONLY_ENV, errors) is True
+    api_key = (os.environ.get(PUBLIC_API_KEY_ENV) or "").strip() or None
+    if api_only and api_key is None:
+        errors.append(
+            "API_ONLY=true requires PUBLIC_API_KEY. Set a long random key "
+            "(for example: openssl rand -hex 32), or turn API_ONLY off."
+        )
+    public_api = PublicApiConfig(
+        is_enabled=api_only or reader.optional_feature_flag(("public_api", "is_enabled"), default=False),
+        api_only=api_only,
+        api_key=api_key,
+    )
+
     if errors:
         raise ConfigError("invalid backend config:\n  - " + "\n  - ".join(errors))
 
@@ -171,6 +196,7 @@ def load_from_file(path: Path) -> AppConfig:
         rembg=rembg,
         upscaling=upscaling,
         presets=presets,
+        public_api=public_api,
     )
 
 

@@ -6,6 +6,7 @@ export const en = {
       unsupportedFormat: "Unsupported File Format: {{fileName}}",
       filesRejected: "Skipped {{count}} file(s). I can't open that file type.",
       fileTooLarge: "{{fileName}} is larger than {{size}} and was not added.",
+      filesTooLarge: "Skipped {{count}} file(s) over {{size}}.",
       batchTooLarge: "Together the files are larger than {{size}}. Please convert them in smaller groups.",
       noFilesError: "Please drop or select some files first.",
       noFormatError: "Please select an output format first.",
@@ -320,6 +321,12 @@ export const en = {
     error: {
       label: "Error:",
       detailsLabel: "Details:",
+      showDetails: "Show details",
+      hideDetails: "Hide details",
+      skippedListLabel: "Skipped files",
+      reasonUnsupported: "File type not supported",
+      reasonTooLarge: "Larger than {{size}}",
+      moreSkipped: "+{{count}} more",
     },
     buttons: {
       convert: "Start Converting",

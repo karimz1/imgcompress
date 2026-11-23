@@ -20,7 +20,7 @@ async function startSlowUpscaleAsync(page: Page): Promise<{ id: string; token: s
   await waitForSupportedFormatsCountAsync(page);
   await page.getByTestId('dropzone-input').setInputFiles([{ name: NAME, mimeType: 'image/jpeg', buffer: photo }]);
   await setUpscaleAsync(page, '4k');
-  const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/jobs'));
+  const started = page.waitForResponse((r) => r.request().method() === 'POST' && r.url().endsWith('/api/v1/jobs'));
   await clickConversionButtonAsync(page);
   const response = await started;
   expect(response.status()).toBe(202);
@@ -36,7 +36,7 @@ async function waitForStatusAsync(
   const deadline = Date.now() + timeoutMs;
   let last = '';
   while (Date.now() < deadline) {
-    const response = await request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
+    const response = await request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
     expect(response.status()).toBe(200);
     const body = await response.json();
     last = body.status;
@@ -60,7 +60,7 @@ test.describe('Cancel conversion job', () => {
     await expect(page.getByTestId('splash-cancel')).toBeVisible();
 
     const canceled = page.waitForResponse(
-      (r) => r.request().method() === 'POST' && r.url().endsWith(`/api/jobs/${job.id}/cancel`)
+      (r) => r.request().method() === 'POST' && r.url().endsWith(`/api/v1/jobs/${job.id}/cancel`)
     );
     await page.getByTestId('splash-cancel').click();
     const cancelResponse = await canceled;
@@ -73,16 +73,16 @@ test.describe('Cancel conversion job', () => {
     expect(state.status).toBe('canceled');
     expect(state.result?.converted_files ?? []).toEqual([]);
 
-    const zip = await request.get(`/api/jobs/${job.id}/zip`, { headers: { 'X-Job-Token': job.token } });
+    const zip = await request.get(`/api/v1/jobs/${job.id}/zip`, { headers: { 'X-Job-Token': job.token } });
     expect(zip.status()).toBe(404);
-    const file = await request.get(`/api/jobs/${job.id}/files/${NAME.replace('.jpg', '_ai-upscaled.jpg')}`, {
+    const file = await request.get(`/api/v1/jobs/${job.id}/files/${NAME.replace('.jpg', '_ai-upscaled.jpg')}`, {
       headers: { 'X-Job-Token': job.token },
     });
     expect(file.status()).toBe(404);
 
     // Stays canceled; never flips to done after a short wait.
     await page.waitForTimeout(2000);
-    const again = await request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
+    const again = await request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
     expect((await again.json()).status).toBe('canceled');
   });
 
@@ -90,18 +90,18 @@ test.describe('Cancel conversion job', () => {
     const job = await startSlowUpscaleAsync(page);
     await expect(page.getByTestId('job-progress')).toBeVisible();
 
-    const forbidden = await request.post(`/api/jobs/${job.id}/cancel`, {
+    const forbidden = await request.post(`/api/v1/jobs/${job.id}/cancel`, {
       headers: { 'X-Job-Token': 'guess' },
     });
     expect(forbidden.status()).toBe(404);
 
-    const own = await request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
+    const own = await request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
     expect(['queued', 'running']).toContain((await own.json()).status);
 
     // Owner cancels so the suite does not leave a long upscale running.
     expect(
       (
-        await request.post(`/api/jobs/${job.id}/cancel`, {
+        await request.post(`/api/v1/jobs/${job.id}/cancel`, {
           headers: { 'X-Job-Token': job.token },
         })
       ).status()

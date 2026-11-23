@@ -24,8 +24,20 @@ def test_serves_existing_file_from_static_folder(tmp_path):
     assert response.data == b"icon"
 
 
-def test_unknown_path_falls_back_to_index(tmp_path):
+def test_unknown_path_is_a_404_not_the_web_ui(tmp_path):
     response = _client(tmp_path).get("/settings")
+
+    assert response.status_code == 404
+    assert b"spa" not in response.data
+
+
+@pytest.mark.parametrize("path", [
+    "/r/g30-VsIgWqrDkMS4a-bFJg/8Wbr20zoy2_qWYc8fHCUfGWQ1sKAQxX0botu3Y0NwUM",
+    "/r/g30-VsIgWqrDkMS4a-bFJg/8Wbr20zoy2_qWYc8fHCUfGWQ1sKAQxX0botu3Y0NwUM/",
+    "/imgcompress/r/g30-VsIgWqrDkMS4a-bFJg/8Wbr20zoy2_qWYc8fHCUfGWQ1sKAQxX0botu3Y0NwUM",
+])
+def test_notification_link_opens_the_web_ui(tmp_path, path):
+    response = _client(tmp_path).get(path)
 
     assert response.status_code == 200
     assert b"spa" in response.data
@@ -34,17 +46,15 @@ def test_unknown_path_falls_back_to_index(tmp_path):
 def test_encoded_traversal_does_not_escape_static_folder(tmp_path):
     response = _client(tmp_path).get("/%2e%2e/secret.txt")
 
-    assert response.status_code == 200
+    assert response.status_code == 404
     assert b"do not serve me" not in response.data
-    assert b"spa" in response.data
 
 
 def test_absolute_path_does_not_escape_static_folder(tmp_path):
     response = _client(tmp_path).get(f"/{tmp_path}/secret.txt")
 
-    assert response.status_code == 200
+    assert response.status_code == 404
     assert b"do not serve me" not in response.data
-    assert b"spa" in response.data
 
 
 def test_api_paths_are_never_served_from_the_static_folder(tmp_path):

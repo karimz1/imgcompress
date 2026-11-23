@@ -1,6 +1,6 @@
 """Saved compression settings ("presets") and the rules they follow.
 
-A preset keeps the settings the conversion form sends to ``/api/jobs``, with
+A preset keeps the settings the conversion form sends to ``/api/v1/jobs``, with
 the same names and values, so applying one fills the form exactly as it was
 saved. This module only validates and normalizes; it knows nothing about
 files or HTTP.

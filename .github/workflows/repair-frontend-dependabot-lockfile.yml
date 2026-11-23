@@ -91,6 +91,7 @@ jobs:
           default_branch="$(jq -r '.base.repo.default_branch' <<< "$pr_json")"
 
           echo "head_ref=${head_ref}" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$(jq -r '.head.sha' <<< "$pr_json")" >> "$GITHUB_OUTPUT"
 
           # The publish job merges main into head_ref and commits to it with a
           # contents:write token. A PR head can be ANY same-repo branch, so
@@ -137,28 +138,41 @@ jobs:
 
       # pnpm resolves the lockfile from the manifests alone, so these two files are
       # all the PR content we need. They are written as data and never executed.
+      # Fetch the PR's manifests by head SHA. The Contents API does not accept
+      # refs/pull/<n>/merge, so the previous call always 404'd, the job failed,
+      # and frontend bump PRs showed a red lockfile check even when CI was green.
       - name: Fetch PR manifests
         if: steps.pr.outputs.is_fork != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          MERGE_REF: refs/pull/${{ steps.pr.outputs.number }}/merge
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
         run: |
           set -euo pipefail
 
           fetch_manifest() {
             local name="$1"
             local target="frontend/${name}"
-            if gh api "repos/${REPOSITORY}/contents/frontend/${name}" \
-                 -f "ref=${MERGE_REF}" \
-                 -H "Accept: application/vnd.github.raw" > "${target}.pr" 2>/dev/null; then
+            local err="${target}.err"
+            if gh api "repos/${REPOSITORY}/contents/frontend/${name}?ref=${HEAD_SHA}" \
+                 -H "Accept: application/vnd.github.raw" > "${target}.pr" 2>"$err"; then
               mv "${target}.pr" "$target"
-              echo "Took frontend/${name} from the PR."
+              rm -f "$err"
+              echo "Took frontend/${name} from the PR head ${HEAD_SHA}."
             else
+              status=$?
               rm -f "${target}.pr"
-              if [[ -e "$target" ]]; then
-                rm -f "$target"
-                echo "frontend/${name} is absent in the PR; removed the main copy."
+              # 404 means the file is not on this PR; anything else is a real failure.
+              if grep -q 'HTTP 404' "$err" || grep -qi 'not found' "$err"; then
+                rm -f "$err"
+                if [[ -e "$target" ]]; then
+                  rm -f "$target"
+                  echo "frontend/${name} is absent in the PR; removed the default-branch copy."
+                fi
+              else
+                echo "::error::Failed to fetch frontend/${name} at ${HEAD_SHA}."
+                cat "$err" >&2 || true
+                exit "$status"
               fi
             fi
           }

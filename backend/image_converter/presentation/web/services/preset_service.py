@@ -14,14 +14,14 @@ from backend.image_converter.infrastructure.preset_store import (
     PresetStore,
     is_valid_preset_id,
 )
+from backend.image_converter.presentation.web.api_errors import ERROR_NAMES
 
 _EDITABLE_FIELDS = frozenset({"name", "settings"})
 # Set by the server only; a client sending them gets told so instead of
 # having them silently ignored.
 _SERVER_FIELDS = frozenset({"id", "created_at", "updated_at"})
 
-# Every error answer has a readable "error" and a stable "code" the browser
-# turns into a message in the user's language.
+# Every error answer has the /api/v1 "error" and "message" plus a stable "code".
 INVALID = "invalid"
 DISABLED = "disabled"
 NOT_FOUND = "not_found"
@@ -131,4 +131,5 @@ def _parse_payload(payload: Any, *, require_all: bool) -> "tuple[Optional[str], 
 
 
 def _error(message: str, status_code: int, code: str) -> PresetResponse:
-    return PresetResponse({"error": message, "code": code}, status_code)
+    # The /api/v1 error shape, plus a stable "code" the browser turns into a message in the user's language.
+    return PresetResponse({"error": ERROR_NAMES.get(status_code, "Error"), "message": message, "code": code}, status_code)

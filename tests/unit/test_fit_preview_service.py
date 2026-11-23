@@ -108,13 +108,13 @@ def test_preview_and_render_api_use_the_same_saved_selection():
     fields = {"fit_width": "400", "fit_height": "200", "fit_mode": "blur"}
     client = app.test_client()
     preview = client.post(
-        "/api/crop/fit",
+        "/api/v1/edit",
         data={**fields, "file": (BytesIO(bitmap.getvalue()), "image.png")},
     )
     assert preview.status_code == 200
     crop = preview.json["crop"]
     rendered = client.post(
-        "/api/crop/fit",
+        "/api/v1/edit",
         data={
             **fields,
             "render": "true",
@@ -236,7 +236,7 @@ def test_selection_only_request_skips_the_preview():
     bitmap = BytesIO()
     Image.new("RGB", (600, 400), "white").save(bitmap, format="PNG")
     response = app.test_client().post(
-        "/api/crop/fit",
+        "/api/v1/edit",
         data={
             "fit_width": "400",
             "fit_height": "200",

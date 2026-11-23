@@ -5,7 +5,7 @@ if [ -f /venv/bin/activate ]; then
   . /venv/bin/activate
 fi
 
-# `test_unverified_formats_api.py` exercises /api/compress against a
+# `test_unverified_formats_api.py` exercises /api/v1/convert against a
 # running app container, so it cannot run in this job (which has no app
 # container up). It runs in its own CI job `test-unverified-formats-api`
 # that brings up the container first.

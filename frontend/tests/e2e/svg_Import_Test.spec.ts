@@ -103,7 +103,7 @@ test('crops an imported SVG and downloads the selected dimensions as PNG', async
   const cropButton = page.getByTestId('dropzone-crop-file-btn');
   await expect(cropButton).toBeEnabled();
   const bitmapResponse = page.waitForResponse(response =>
-    response.request().method() === 'POST' && response.url().includes('/api/crop/bitmap')
+    response.request().method() === 'POST' && response.url().includes('/api/v1/preview')
   );
   await cropButton.click();
   const response = await bitmapResponse;
@@ -161,7 +161,7 @@ test('keeps SVG vectors after cropping and resizing', async ({ page }) => {
 });
 
 test('scales an SVG without requiring an installed AI model', async ({ page }) => {
-  await page.route('**/api/upscale_model', route => route.fulfill({
+  await page.route('**/api/v1/models/upscale', route => route.fulfill({
     json: { models: [
       { id: 'general', model_name: 'realesr-general-x4v3', available: false },
       { id: 'anime', model_name: 'realesr-animevideov3', available: false },

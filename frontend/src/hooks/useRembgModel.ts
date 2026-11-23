@@ -16,7 +16,7 @@ export function useRembgModel(): UseRembgModelResult {
   useEffect(() => {
     const fetchModelName = async () => {
       try {
-        const res = await fetch("/api/rembg_model");
+        const res = await fetch("/api/v1/models/remove-background");
         if (!res.ok) {
           throw new Error("Failed to load rembg model name");
         }

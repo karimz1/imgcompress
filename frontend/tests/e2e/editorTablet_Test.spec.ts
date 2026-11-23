@@ -27,7 +27,7 @@ function recordFitRequests() {
   const original = window.fetch.bind(window);
   window.fetch = (input, init) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (url.endsWith("/api/crop/fit") && init?.body instanceof FormData) {
+    if (url.endsWith("/api/v1/edit") && init?.body instanceof FormData) {
       const fields: Fields = {};
       init.body.forEach((value, key) => {
         fields[key] = typeof value === "string" ? value : `${value.name}:${value.size}`;

@@ -14,7 +14,7 @@ def _get(url: str):
 
 
 def check_health():
-    backend_status, _, _ = _get(f"{BASE_URL}/api/health/backend")
+    backend_status, _, _ = _get(f"{BASE_URL}/api/v1/health")
     if backend_status != 200:
         raise RuntimeError(f"Backend health failed with status {backend_status}.")
 

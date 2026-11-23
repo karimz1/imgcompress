@@ -1,4 +1,4 @@
-"""Compression presets: validation, the shared JSON file and the /api/presets routes."""
+"""Compression presets: validation, the shared JSON file and the /api/v1/presets routes."""
 
 import json
 import multiprocessing
@@ -455,7 +455,7 @@ def api(tmp_path, monkeypatch):
         service = PresetService(PresetStore(str(path), logger), is_enabled=enabled)
         monkeypatch.setattr(routes, "preset_service", service)
         app = Flask(__name__)
-        app.register_blueprint(routes.api_blueprint, url_prefix="/api")
+        app.register_blueprint(routes.api_blueprint, url_prefix="/api/v1")
         return app.test_client()
 
     client.path = path
@@ -463,13 +463,13 @@ def api(tmp_path, monkeypatch):
 
 
 def _create(client, name="Web JPEG", **settings):
-    return client.post("/api/presets", json={"name": name, "settings": settings or {"format": "jpeg", "quality": 80}})
+    return client.post("/api/v1/presets", json={"name": name, "settings": settings or {"format": "jpeg", "quality": 80}})
 
 
 def test_api_crud_round_trip(api):
     client = api()
 
-    assert client.get("/api/presets").get_json() == {"presets": []}
+    assert client.get("/api/v1/presets").get_json() == {"presets": []}
 
     created = _create(client, width=1920, format="jpeg", quality=80)
     assert created.status_code == 201
@@ -477,24 +477,24 @@ def test_api_crud_round_trip(api):
     assert preset["settings"] == _settings(quality=80, width=1920)
     assert set(preset) == {"id", "name", "created_at", "updated_at", "settings"}
 
-    renamed = client.put(f"/api/presets/{preset['id']}", json={"name": "Blog JPEG"})
+    renamed = client.put(f"/api/v1/presets/{preset['id']}", json={"name": "Blog JPEG"})
     assert renamed.status_code == 200
     assert renamed.get_json()["name"] == "Blog JPEG"
 
     overwritten = client.put(
-        f"/api/presets/{preset['id']}", json={"settings": {"format": "pdf", "pdf_preset": "a4-auto"}}
+        f"/api/v1/presets/{preset['id']}", json={"settings": {"format": "pdf", "pdf_preset": "a4-auto"}}
     )
     assert overwritten.status_code == 200
     assert overwritten.get_json()["settings"]["pdf_preset"] == "a4-auto"
 
-    listed = client.get("/api/presets")
+    listed = client.get("/api/v1/presets")
     assert listed.headers["Cache-Control"] == "no-store"
     assert listed.get_json() == {"presets": [overwritten.get_json()]}
 
-    deleted = client.delete(f"/api/presets/{preset['id']}")
+    deleted = client.delete(f"/api/v1/presets/{preset['id']}")
     assert deleted.status_code == 204
     assert deleted.data == b""
-    assert client.get("/api/presets").get_json() == {"presets": []}
+    assert client.get("/api/v1/presets").get_json() == {"presets": []}
 
 
 def test_api_presets_are_shared_between_workers(api):
@@ -503,7 +503,7 @@ def test_api_presets_are_shared_between_workers(api):
 
     second_worker = api()
 
-    assert second_worker.get("/api/presets").get_json() == {"presets": [created]}
+    assert second_worker.get("/api/v1/presets").get_json() == {"presets": [created]}
 
 
 @pytest.mark.parametrize(
@@ -523,14 +523,14 @@ def test_api_presets_are_shared_between_workers(api):
 )
 def test_api_create_refuses_invalid_requests(api, body, message):
     client = api()
-    response = client.post("/api/presets", json=body) if body is not None else client.post(
-        "/api/presets", data="nope", content_type="text/plain"
+    response = client.post("/api/v1/presets", json=body) if body is not None else client.post(
+        "/api/v1/presets", data="nope", content_type="text/plain"
     )
 
     assert response.status_code == 400
-    assert message in response.get_json()["error"]
+    assert message in response.get_json()["message"]
     assert response.get_json()["code"] == "invalid"
-    assert client.get("/api/presets").get_json() == {"presets": []}
+    assert client.get("/api/v1/presets").get_json() == {"presets": []}
 
 
 @pytest.mark.parametrize(
@@ -545,11 +545,11 @@ def test_api_update_refuses_invalid_requests(api, body, message):
     client = api()
     preset = _create(client).get_json()
 
-    response = client.put(f"/api/presets/{preset['id']}", json=body)
+    response = client.put(f"/api/v1/presets/{preset['id']}", json=body)
 
     assert response.status_code == 400
-    assert message in response.get_json()["error"]
-    assert client.get("/api/presets").get_json() == {"presets": [preset]}
+    assert message in response.get_json()["message"]
+    assert client.get("/api/v1/presets").get_json() == {"presets": [preset]}
 
 
 @pytest.mark.parametrize("preset_id", ["0" * 32, "not-an-id", "A" * 32])
@@ -558,8 +558,8 @@ def test_api_unknown_preset_is_404(api, preset_id):
     _create(client)
 
     for response in (
-        client.put(f"/api/presets/{preset_id}", json={"name": "x"}),
-        client.delete(f"/api/presets/{preset_id}"),
+        client.put(f"/api/v1/presets/{preset_id}", json={"name": "x"}),
+        client.delete(f"/api/v1/presets/{preset_id}"),
     ):
         assert response.status_code == 404
         assert response.get_json()["code"] == "not_found"
@@ -571,14 +571,18 @@ def test_api_duplicate_name_and_limit_are_409(api, monkeypatch):
 
     duplicate = _create(client, name="WEB jpeg")
     assert duplicate.status_code == 409
-    assert duplicate.get_json() == {"error": "A preset with this name already exists.", "code": "name_taken"}
+    assert duplicate.get_json() == {
+        "error": "Conflict",
+        "message": "A preset with this name already exists.",
+        "code": "name_taken",
+    }
 
     from backend.image_converter.presentation.web import routes
 
     monkeypatch.setattr(routes.preset_service._store, "_max_presets", 1)
     full = _create(client, name="Another")
     assert full.status_code == 409
-    assert "at most" in full.get_json()["error"]
+    assert "at most" in full.get_json()["message"]
     assert full.get_json()["code"] == "limit_reached"
 
 
@@ -587,11 +591,11 @@ def test_api_corrupt_file_is_503_and_stays_untouched(api):
     api.path.write_text("{broken", encoding="utf-8")
     client = api()
 
-    listed = client.get("/api/presets")
+    listed = client.get("/api/v1/presets")
     assert listed.status_code == 503
     assert listed.get_json()["code"] == "unavailable"
     assert _create(client).status_code == 503
-    assert client.delete(f"/api/presets/{'a' * 32}").status_code == 503
+    assert client.delete(f"/api/v1/presets/{'a' * 32}").status_code == 503
     assert api.path.read_text(encoding="utf-8") == "{broken"
 
 
@@ -601,13 +605,13 @@ def test_api_disabled_returns_403_and_keeps_existing_presets(api):
     client = api(enabled=False)
 
     responses = [
-        client.get("/api/presets"),
+        client.get("/api/v1/presets"),
         _create(client, name="Other"),
-        client.put(f"/api/presets/{preset['id']}", json={"name": "x"}),
-        client.delete(f"/api/presets/{preset['id']}"),
+        client.put(f"/api/v1/presets/{preset['id']}", json={"name": "x"}),
+        client.delete(f"/api/v1/presets/{preset['id']}"),
     ]
 
     assert [response.status_code for response in responses] == [403, 403, 403, 403]
     assert {response.get_json()["code"] for response in responses} == {"disabled"}
     assert api.path.read_bytes() == before
-    assert api().get("/api/presets").get_json() == {"presets": [preset]}
+    assert api().get("/api/v1/presets").get_json() == {"presets": [preset]}

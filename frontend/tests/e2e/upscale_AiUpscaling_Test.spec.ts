@@ -251,7 +251,7 @@ test.describe('AI upscaling', () => {
   });
 
   test('is disabled when the server has no model', async ({ page }) => {
-    await page.route('**/api/upscale_model', (route) =>
+    await page.route('**/api/v1/models/upscale', (route) =>
       route.fulfill({ json: { models: [
         { id: 'general', model_name: 'realesr-general-x4v3', available: false },
         { id: 'anime', model_name: 'realesr-animevideov3', available: false },
@@ -304,7 +304,7 @@ test.describe('AI upscaling', () => {
     // A noisy photo crop: the presets differ in how much of the grain they smooth away.
     const source = await sharp(SKYLINE_PHOTO).resize(160, 90, { fit: 'cover' }).jpeg({ quality: 40 }).toBuffer();
     const sent: string[] = [];
-    await page.route('**/api/jobs', async (route) => {
+    await page.route('**/api/v1/jobs', async (route) => {
       const body = route.request().postDataBuffer()?.toString('latin1') ?? '';
       const match = /name="upscale_model"\r\n\r\n([^\r]+)/.exec(body);
       if (match) sent.push(match[1]);
@@ -346,7 +346,7 @@ test.describe('AI upscaling', () => {
 
   test('falls back to the released General model when the photo preset is not installed', async ({ page }) => {
     // A self-built container without the blended model files.
-    await page.route('**/api/upscale_model', (route) => route.fulfill({ json: {
+    await page.route('**/api/v1/models/upscale', (route) => route.fulfill({ json: {
       models: [
         { id: 'general', model_name: 'realesr-general-x4v3', available: true },
         { id: 'anime', model_name: 'realesr-animevideov3', available: true },
@@ -363,7 +363,7 @@ test.describe('AI upscaling', () => {
   });
 
   test('marks an uninstalled anime model unavailable', async ({ page }) => {
-    await page.route('**/api/upscale_model', (route) => route.fulfill({ json: {
+    await page.route('**/api/v1/models/upscale', (route) => route.fulfill({ json: {
       models: [
         { id: 'general', model_name: 'realesr-general-x4v3', available: true },
         { id: 'anime', model_name: 'realesr-animevideov3', available: false },

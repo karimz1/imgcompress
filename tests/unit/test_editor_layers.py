@@ -1,6 +1,6 @@
 """Editor layers, gradients and the per-session picture store.
 
-Covers what the editor sends to /api/crop/fit beyond the base image: picture
+Covers what the editor sends to /api/v1/edit beyond the base image: picture
 and text layers in order, gradient fills and tints that match CSS, and the
 session store that keeps each user's pictures apart.
 """
@@ -641,12 +641,12 @@ def client(store, monkeypatch):
     monkeypatch.setattr(routes, "editor_assets", store)
     monkeypatch.setattr(routes.temp_folder_service, "cleanup", lambda force=False: None)
     app = Flask(__name__)
-    app.register_blueprint(routes.api_blueprint, url_prefix="/api")
+    app.register_blueprint(routes.api_blueprint, url_prefix="/api/v1")
     return app.test_client()
 
 
 def test_When_PictureIsPosted_Expect_SessionAndIdBack(client):
-    response = client.post("/api/editor/assets", data={"file": (BytesIO(png_bytes(Image.new("RGB", (7, 5)))), "a.png")})
+    response = client.post("/api/v1/editor/assets", data={"file": (BytesIO(png_bytes(Image.new("RGB", (7, 5)))), "a.png")})
     assert response.status_code == 200
     body = response.get_json()
     assert len(body["session"]) == 32 and len(body["asset"]) == 22
@@ -655,7 +655,7 @@ def test_When_PictureIsPosted_Expect_SessionAndIdBack(client):
 
 
 def test_When_PostingToAnUnknownSession_Expect_Gone(client):
-    response = client.post("/api/editor/assets", data={
+    response = client.post("/api/v1/editor/assets", data={
         "session": "d" * 32, "file": (BytesIO(png_bytes(Image.new("RGB", (2, 2)))), "a.png")})
     assert response.status_code == 410
 
@@ -663,19 +663,19 @@ def test_When_PostingToAnUnknownSession_Expect_Gone(client):
 def test_When_SessionIsFull_Expect_ConflictSoTheEditorStartsANewOne(client, monkeypatch):
     from backend.image_converter.infrastructure import editor_asset_store
 
-    first = client.post("/api/editor/assets", data={"file": (BytesIO(png_bytes(Image.new("RGB", (2, 2)))), "a.png")})
+    first = client.post("/api/v1/editor/assets", data={"file": (BytesIO(png_bytes(Image.new("RGB", (2, 2)))), "a.png")})
     monkeypatch.setattr(editor_asset_store, "MAX_ASSETS_PER_SESSION", 1)
-    response = client.post("/api/editor/assets", data={
+    response = client.post("/api/v1/editor/assets", data={
         "session": first.get_json()["session"], "file": (BytesIO(png_bytes(Image.new("RGB", (2, 2)))), "a.png")})
     assert response.status_code == 409
 
 
 def test_When_PostingNoPicture_Expect_BadRequest(client):
-    assert client.post("/api/editor/assets", data={}).status_code == 400
+    assert client.post("/api/v1/editor/assets", data={}).status_code == 400
 
 
 def test_When_FitUsesAnExpiredSession_Expect_Gone(client):
-    response = client.post("/api/crop/fit", data={
+    response = client.post("/api/v1/edit", data={
         "file": (BytesIO(png_bytes(Image.new("RGB", (4, 4)))), "p.png"),
         "fit_width": "10", "fit_height": "10", "fit_mode": "solid", "fit_color": "#ffffff",
         "fit_session": "e" * 32, "fit_layers": layers(image_layer(ASSET)),

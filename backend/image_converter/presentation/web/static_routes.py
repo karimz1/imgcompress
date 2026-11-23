@@ -1,11 +1,37 @@
 import os
-from flask import Blueprint, jsonify, send_from_directory, abort, current_app
+import re
+
+from flask import Blueprint, jsonify, request, send_from_directory, abort, current_app
 from werkzeug.security import safe_join
 
 from backend.image_converter.config import settings
 from backend.image_converter.infrastructure.notifier import NOTIFY_URL_ENV
+from backend.image_converter.presentation.web.not_found_page import API_ONLY_MESSAGE, not_found_response
 
 static_blueprint = Blueprint("static_blueprint", __name__)
+
+_API_ONLY_MESSAGE = API_ONLY_MESSAGE
+# Notification links /r/<job_id>/<share_token> open the web UI, which reads the path
+# (frontend/src/lib/conversionJob.ts SHARE_PATH). Any other unknown path is a 404.
+_SHARE_LINK = re.compile(r"^(?:.*/)?r/[A-Za-z0-9_-]{22}/[A-Za-z0-9_-]{16,128}/?$")
+
+
+def install_api_only_web_ui_gate(app):
+    """Hide every non-API path when API_ONLY is on, including Flask's /static.
+
+    Flask serves `static_folder` at `/static` on the app itself, not on this
+    blueprint, so a blueprint hook would still leak the web UI there.
+    """
+
+    @app.before_request
+    def hide_web_ui_when_api_only():
+        if not settings.get().public_api.api_only:
+            return None
+        if request.path.startswith("/api/"):
+            return None
+        if request.path in ("/", ""):
+            return jsonify({"message": _API_ONLY_MESSAGE}), 200
+        return not_found_response()
 
 
 def _flag(value: bool) -> str:
@@ -46,11 +72,8 @@ def serve_static_file(filename: str):
 
 @static_blueprint.errorhandler(404)
 def not_found_handler(error):
-    """
-    If a route is not found (while in this blueprint), serve index.html.
-    This is typical for client-side routing in SPAs (React, Next.js, etc.).
-    """
-    return serve_static_file("index.html")
+    """Unknown paths get the 404 page (browsers) or JSON (scripts), never the web UI."""
+    return not_found_response(error)
 
 
 @static_blueprint.route("/")
@@ -76,9 +99,10 @@ def serve_next_static(path):
 def serve_out_files(path):
     """
     Catch-all route for non-API paths:
-      1) If it starts with 'api/', abort(404) so it can bubble up to your API blueprint.
+      1) If it starts with 'api/', abort(404): the 404 page or JSON, never the web UI.
       2) Else, serve the file if it exists.
-      3) If no file, serve index.html for SPA routing.
+      3) A notification link /r/<job_id>/<share_token> gets index.html; the web UI reads the path.
+      4) Anything else is a 404.
     """
     if path.startswith("api/"):
         abort(404)
@@ -87,4 +111,6 @@ def serve_out_files(path):
     if full_path is not None and os.path.isfile(full_path):
         return send_from_directory(current_app.static_folder, path)
 
-    return serve_static_file("index.html")
+    if _SHARE_LINK.match(path):
+        return serve_static_file("index.html")
+    abort(404)

@@ -1,8 +1,10 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import sharp from 'sharp';
 import {
+  apiKeyHeaders,
   assertDownloadLinksAsync,
   clickConversionButtonAsync,
+  isApiOnlyModeAsync,
   setOutputFormatAsync,
   setResizeWidthAsync,
   uploadGeneratedImageToDropzoneAsync,
@@ -24,10 +26,10 @@ async function presetsDisabledAsync(request: APIRequestContext): Promise<boolean
 }
 
 async function deleteTestPresetsAsync(request: APIRequestContext): Promise<void> {
-  const response = await request.get('/api/presets');
+  const response = await request.get('/api/v1/presets', { headers: apiKeyHeaders() });
   if (!response.ok()) return;
   for (const preset of (await response.json()).presets as { id: string; name: string }[]) {
-    if (preset.name.startsWith(NAME_PREFIX)) await request.delete(`/api/presets/${preset.id}`);
+    if (preset.name.startsWith(NAME_PREFIX)) await request.delete(`/api/v1/presets/${preset.id}`, { headers: apiKeyHeaders() });
   }
 }
 
@@ -36,13 +38,13 @@ async function createPresetAsync(
   name: string,
   settings: Partial<PresetSettings>
 ): Promise<{ id: string; settings: PresetSettings }> {
-  const response = await request.post('/api/presets', { data: { name, settings } });
+  const response = await request.post('/api/v1/presets', { data: { name, settings }, headers: apiKeyHeaders() });
   expect(response.status()).toBe(201);
   return response.json();
 }
 
 async function getPresetAsync(request: APIRequestContext, id: string): Promise<{ name: string; settings: PresetSettings }> {
-  const presets = (await (await request.get('/api/presets')).json()).presets as { id: string; name: string; settings: PresetSettings }[];
+  const presets = (await (await request.get('/api/v1/presets', { headers: apiKeyHeaders() })).json()).presets as { id: string; name: string; settings: PresetSettings }[];
   const preset = presets.find((candidate) => candidate.id === id);
   expect(preset, `preset ${id} exists`).toBeTruthy();
   return preset!;
@@ -73,6 +75,7 @@ const widthInput = (page: Page) => page.getByTestId('resize-width-input');
 
 test.describe('Compression presets', () => {
   test.beforeEach(async ({ request }) => {
+    test.skip(await isApiOnlyModeAsync(request), 'no web UI in API_ONLY');
     test.skip(await presetsDisabledAsync(request), 'DISABLE_CUSTOM_PRESETS=true in this run');
     await deleteTestPresetsAsync(request);
   });
@@ -181,7 +184,7 @@ test.describe('Compression presets', () => {
     await renamedRow.getByTestId('preset-delete-btn').click();
     await renamedRow.getByTestId('preset-confirm-btn').click();
     await expect(dialog.locator(`[data-preset-name="${renamed}"]`)).toHaveCount(0);
-    const remaining = (await (await request.get('/api/presets')).json()).presets as { id: string }[];
+    const remaining = (await (await request.get('/api/v1/presets', { headers: apiKeyHeaders() })).json()).presets as { id: string }[];
     expect(remaining.map((p) => p.id)).not.toContain(preset.id);
 
     await page.keyboard.press('Escape');
@@ -222,12 +225,13 @@ test.describe('Compression presets', () => {
 });
 
 test('DISABLE_CUSTOM_PRESETS=true hides the presets and the API refuses them', async ({ page, request }) => {
+  test.skip(await isApiOnlyModeAsync(request), 'no web UI in API_ONLY');
   test.skip(!(await presetsDisabledAsync(request)), 'presets are enabled in this run');
 
   await page.goto('/');
   await waitForSupportedFormatsCountAsync(page);
   await expect(page.getByTestId('compression-presets')).toHaveCount(0);
 
-  const response = await request.get('/api/presets');
+  const response = await request.get('/api/v1/presets', { headers: apiKeyHeaders() });
   expect(response.status()).toBe(403);
 });

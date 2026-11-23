@@ -1,6 +1,6 @@
 """Typed backend configuration models."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from backend.image_converter.domain.units import BYTES_PER_MEBIBYTE
@@ -71,6 +71,21 @@ class PresetsConfig:
 
 
 @dataclass(frozen=True)
+class PublicApiConfig:
+    # Off by default: other websites get 403 from /api/v1 (CSRF defense) and the docs answer 404.
+    # The web UI and scripts on the network use /api/v1 either way.
+    is_enabled: bool = False
+    # API_ONLY: web UI is not served; is_enabled is on; a key is required (fail closed).
+    api_only: bool = False
+    # None means open (no key). Kept out of repr so it never lands in a log.
+    api_key: Optional[str] = field(default=None, repr=False)
+
+    @property
+    def requires_key(self) -> bool:
+        return bool(self.api_key)
+
+
+@dataclass(frozen=True)
 class RembgConfig:
     model_name: str
 
@@ -103,3 +118,4 @@ class AppConfig:
     rembg: RembgConfig
     upscaling: UpscalingConfig
     presets: PresetsConfig
+    public_api: PublicApiConfig = PublicApiConfig()

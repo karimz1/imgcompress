@@ -368,6 +368,31 @@ jobs:
             public_base_url: "https://imgcompress.example"
             scenario: "logo SHOWN  | storage SHOWN | notify ON"
             label: "notify-on"
+          # REST API open to other websites (ENABLE_PUBLIC_API=true, no key):
+          # Swagger UI loads, a page on another origin may call /api/v1 (CORS).
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            enable_public_api: "true"
+            scenario: "logo SHOWN  | storage SHOWN | public API ON | notify OFF"
+            label: "public-api-on"
+          # REST API open with a key (ENABLE_PUBLIC_API=true, PUBLIC_API_KEY set). The key is a
+          # test value, not a secret. Proves callers need it and the web UI does not:
+          # the journey spec converts through the UI without ever sending it.
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            enable_public_api: "true"
+            api_key: "e2e-test-key-not-a-secret"
+            extra_specs: "tests/e2e/journeys_MultiImage_Test.spec.ts"
+            scenario: "logo SHOWN  | storage SHOWN | public API ON + key | notify OFF"
+            label: "public-api-key"
+          # API only + mandatory key: no web UI, the key is a real boundary.
+          # UI feature-flag specs skip themselves; publicApi_Test covers this mode.
+          - disable_logo: "false"
+            disable_storage_management: "false"
+            api_only: "true"
+            api_key: "e2e-test-key-not-a-secret"
+            scenario: "API only + key | notify OFF"
+            label: "api-only-key"
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -402,6 +427,9 @@ jobs:
           echo "DISABLE_UPDATE_CHECK:        ${{ matrix.disable_update_check || '(default false)' }}"
           echo "DISABLE_CUSTOM_PRESETS:      ${{ matrix.disable_custom_presets || '(default false)' }}"
           echo "NOTIFY_URL:                  ${{ matrix.notify_url && 'set (capture server) -> notify ON' || '(unset) -> notify OFF' }}"
+          echo "ENABLE_PUBLIC_API:           ${{ matrix.enable_public_api || '(default false)' }}"
+          echo "API_ONLY:                    ${{ matrix.api_only || '(default false)' }}"
+          echo "PUBLIC_API_KEY:              ${{ matrix.api_key && 'set (test value)' || '(unset)' }}"
           echo "::endgroup::"
           docker run -d \
             --platform linux/amd64 \
@@ -414,6 +442,9 @@ jobs:
             -e DISABLE_CUSTOM_PRESETS=${{ matrix.disable_custom_presets }} \
             -e NOTIFY_URL=${{ matrix.notify_url }} \
             -e PUBLIC_BASE_URL=${{ matrix.public_base_url }} \
+            -e ENABLE_PUBLIC_API=${{ matrix.enable_public_api }} \
+            -e PUBLIC_API_KEY=${{ matrix.api_key }} \
+            -e API_ONLY=${{ matrix.api_only }} \
             karimz1/imgcompress:local-test web
 
       - name: Wait for the app to be ready
@@ -445,8 +476,9 @@ jobs:
             -v "$(pwd):/app/" \
             -e IS_RUNNING_IN_GITHUB_ACTIONS=true \
             -e PLAYWRIGHT_BASE_URL=http://localhost:5000 \
+            -e E2E_API_KEY=${{ matrix.api_key }} \
             --name devcontainer_flags \
-            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts tests/e2e/notifyWhenDone_Test.spec.ts tests/e2e/compressionPresets_Test.spec.ts"
+            devcontainer:local-test -c "/app/scripts/run-e2e.sh tests/e2e/featureFlagsRuntime_Test.spec.ts tests/e2e/uploadLimitRuntime_Test.spec.ts tests/e2e/notifyWhenDone_Test.spec.ts tests/e2e/compressionPresets_Test.spec.ts tests/e2e/publicApi_Test.spec.ts ${{ matrix.extra_specs }}"
 
       - name: Collect app log and stop the app
         if: always()
@@ -475,7 +507,7 @@ jobs:
     # Reader test for the long tail of "Other possible formats" advertised
     # by the UI. Brings up the app container, then for each unverified
     # extension generates an input file with Pillow, POSTs it to
-    # /api/compress, downloads the resulting PNG, and asserts it is real
+    # /api/v1/convert, gets the resulting PNG back, and asserts it is real
     # and non-blank. Blocking — if a format the UI claims to support stops
     # working through the public HTTP API in the running image, deploys
     # are gated. Read-only formats (no Pillow writer) are skipped with a
@@ -521,10 +553,10 @@ jobs:
       - name: Wait for the app to be ready
         run: |
           for attempt in $(seq 1 120); do
-            curl -fsS "http://localhost:5000/api/health/backend" > /dev/null 2>&1 && { echo "App is up after ${attempt}s"; exit 0; }
+            curl -fsS "http://localhost:5000/api/v1/health" > /dev/null 2>&1 && { echo "App is up after ${attempt}s"; exit 0; }
             sleep 1
           done
-          echo "::error::App did not answer on :5000/api/health/backend within 120s"
+          echo "::error::App did not answer on :5000/api/v1/health within 120s"
           docker logs --tail 200 app || true
           exit 1
 
@@ -619,9 +651,14 @@ jobs:
       - test-feature-flags-matrix
       - test-unverified-formats-api
     timeout-minutes: 10
+    # success() is required: a custom if: replaces the implicit needs-success
+    # check, and without it a failed CI run on main could still dispatch deploy.
     if: >
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy_nightly == true)
+      success() &&
+      (
+        (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.deploy_nightly == true)
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -657,10 +694,17 @@ jobs:
     # so fork PRs can't trigger an auto-merge with the chan App token.
     #
     # Also auto-merges PRs opened by the chan App itself when they carry the
-    # `automated-digest-refresh` label — that label is only applied by the
+    # `automated-digest-refresh` label. That label is only applied by the
     # refresh-dockerfile-digests workflow, so chan can't sneak arbitrary
     # PRs through this gate.
+    #
+    # success() must be in this if: a custom condition replaces GitHub's
+    # implicit needs-success check. Without it, this job can run even when
+    # ci-status failed. The merge step also re-checks the PR's check runs so
+    # a red lockfile repair or CodeQL run cannot sneak through, and major
+    # version bumps are left for a human.
     if: >
+      success() &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       (
@@ -680,8 +724,100 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
-      - name: Squash-merge Dependabot PR
+      - name: Read Dependabot metadata
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      - name: Leave major bumps for review
+        id: major
+        if: github.event.pull_request.user.login == 'dependabot[bot]' && steps.metadata.outputs.update-type == 'version-update:semver-major'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --squash --delete-branch "$PR_URL"
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          marker="not auto-merged because it is a major version bump"
+          comments="$(gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments" --jq '.[].body')"
+          if ! grep -qF "$marker" <<< "$comments"; then
+            gh pr comment "$PR_URL" --body "This one is not auto-merged because it is a major version bump. Please review and merge it by hand if it looks good."
+          fi
+          echo "Skipping auto-merge for a major version bump."
+
+      - name: Squash-merge when every check is green
+        if: steps.major.outcome == 'skipped'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          current_sha="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+          if [[ "$current_sha" != "$EVENT_SHA" ]]; then
+            echo "PR head moved from ${EVENT_SHA} to ${current_sha}; leaving the merge to the newer CI run."
+            exit 0
+          fi
+
+          # Wait for checks from other workflows (lockfile repair, CodeQL, handoff)
+          # that are not in this job's needs. This job itself is still in progress,
+          # so it is ignored. Timeout is well under the job's 10 minute limit.
+          deadline=$((SECONDS + 480))
+          checks_json=""
+          while true; do
+            # `gh pr checks` exits 8 while checks are pending and 1 when any
+            # have failed. We still need the JSON in both cases.
+            checks_json="$(gh pr checks "$PR_URL" --json name,state,bucket,workflow || true)"
+            if ! jq -e 'type == "array"' <<< "$checks_json" >/dev/null; then
+              echo "::error::Could not list checks for ${PR_URL}."
+              echo "$checks_json"
+              exit 1
+            fi
+            pending="$(jq --arg self "auto-merge-dependabot" '[.[] | select(.name != $self and .bucket == "pending")] | length' <<< "$checks_json")"
+            echo "Pending checks besides this job: ${pending}"
+            if [[ "$pending" -eq 0 ]]; then
+              break
+            fi
+            if [[ "$SECONDS" -ge "$deadline" ]]; then
+              echo "::error::Timed out waiting for other checks to finish; not merging."
+              jq -r '.[] | select(.bucket == "pending") | "- pending: \(.name) (\(.workflow // "unknown workflow"))"' <<< "$checks_json"
+              exit 1
+            fi
+            sleep 15
+          done
+
+          {
+            echo "### Checks"
+            echo
+            echo "| Check | Result |"
+            echo "|---|---|"
+            jq -r --arg self "auto-merge-dependabot" \
+              '.[] | select(.name != $self) | "| \(.name) | \(.bucket) |"' \
+              <<< "$checks_json"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if ! jq -e --arg self "auto-merge-dependabot" \
+              '[.[] | select(.name == "ci-status" and .bucket == "pass")] | length > 0' \
+              <<< "$checks_json" >/dev/null; then
+            echo "::error::ci-status is not green; not merging."
+            exit 1
+          fi
+
+          bad="$(jq -r --arg self "auto-merge-dependabot" \
+            '[.[] | select(.name != $self and (.bucket == "fail" or .bucket == "cancel")) | .name] | unique | join(", ")' \
+            <<< "$checks_json")"
+          if [[ -n "$bad" ]]; then
+            echo "::error::Not merging while these checks are red: $bad"
+            exit 1
+          fi
+
+          if ! gh pr merge --squash --delete-branch "$PR_URL"; then
+            echo "::error::Could not squash-merge ${PR_URL}. If the branch has conflicts, Dependabot will rebase on its next run; a major bump is left for a human."
+            exit 1
+          fi

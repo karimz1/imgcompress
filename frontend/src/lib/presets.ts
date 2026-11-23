@@ -17,7 +17,7 @@ import {
   type UpscaleTarget,
 } from "@/lib/upscale";
 
-export const PRESETS_URL = "/api/presets";
+export const PRESETS_URL = "/api/v1/presets";
 // Same limits as the server.
 export const MAX_PRESETS = 100;
 export const MAX_PRESET_NAME_LENGTH = 80;
@@ -219,7 +219,7 @@ async function presetRequest<T>(url: string, init?: RequestInit): Promise<T> {
   if (response.status === 204) return undefined as T;
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new PresetRequestError(payload?.error || response.statusText, payload?.code ?? null);
+    throw new PresetRequestError(payload?.message || payload?.error || response.statusText, payload?.code ?? null);
   }
   return payload as T;
 }

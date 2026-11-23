@@ -68,6 +68,7 @@ import {
   saveKeepFoldersPreference,
 } from "@/lib/folderPath";
 import { formatUploadLimit, maxUploadBytes, setMaxUploadSizeMb } from "@/lib/uploadLimit";
+import type { SkippedFile } from "@/models/ErrorMessage";
 import { setMaxOutputMegapixels } from "@/lib/upscaleLimit";
 import { cn } from "@/lib/utils";
 import { DEFAULT_PDF_QUALITY, type PdfQualityOption } from "@/lib/pdfQuality";
@@ -382,6 +383,7 @@ function HomePageContent() {
       const supportedFiles: File[] = [];
       const unsupportedFiles: string[] = [];
       const tooLargeFiles: string[] = [];
+      const skippedFiles: SkippedFile[] = [];
 
       acceptedFiles.forEach((file) => {
         const ext = file.name.split(".").pop()?.toLowerCase();
@@ -389,29 +391,44 @@ function HomePageContent() {
           // The server refuses uploads above MAX_UPLOAD_SIZE_MB, so say it right away.
           if (file.size > maxUploadBytes()) {
             tooLargeFiles.push(file.name);
+            skippedFiles.push({ name: file.name, folder: relativeDirOf(file), reason: "tooLarge" });
             return;
           }
           supportedFiles.push(file);
         } else {
           unsupportedFiles.push(file.name);
+          skippedFiles.push({ name: file.name, folder: relativeDirOf(file), reason: "unsupported" });
         }
       });
 
-      unsupportedFiles.forEach((fileName) => {
-        toast.error(t("page.toast.unsupportedFormat", { fileName }));
-      });
+      // One toast per drop: a folder full of such files would stack dozens.
+      if (unsupportedFiles.length === 1) {
+        toast.error(t("page.toast.unsupportedFormat", { fileName: unsupportedFiles[0] }));
+      } else if (unsupportedFiles.length > 1) {
+        toast.error(t("page.toast.filesRejected", { count: unsupportedFiles.length }));
+      }
 
+      const errorLines: string[] = [];
       if (unsupportedFiles.length > 0) {
-        setError({
-          message: t("page.toast.filesRejected", { count: unsupportedFiles.length }),
-        });
+        errorLines.push(t("page.toast.filesRejected", { count: unsupportedFiles.length }));
       }
 
       if (tooLargeFiles.length > 0) {
         const size = formatUploadLimit(i18n.language);
-        const messages = tooLargeFiles.map((fileName) => t("page.toast.fileTooLarge", { fileName, size }));
-        messages.forEach((message) => toast.error(message));
-        setError({ message: messages.join("\n") });
+        const summary = t("page.toast.filesTooLarge", { count: tooLargeFiles.length, size });
+        // One toast per drop, like for unsupported files; one file keeps its name.
+        toast.error(
+          tooLargeFiles.length === 1
+            ? t("page.toast.fileTooLarge", { fileName: tooLargeFiles[0], size })
+            : summary
+        );
+        // Just the count here; the names are under "Show details".
+        errorLines.push(summary);
+      }
+
+      // One message for the whole drop; the files behind it sit under "Show details".
+      if (errorLines.length > 0) {
+        setError({ message: errorLines.join("\n"), skippedFiles });
       }
 
       setFiles((prev) => [...prev, ...supportedFiles]);
@@ -669,11 +686,11 @@ function HomePageContent() {
         formData.append("webp_lossless", "true");
       }
       if ((outputFormat === "png" || outputFormat === "avif" || outputFormat === "webp") && useRembg) {
-        formData.append("use_rembg", "true");
+        formData.append("remove_background", "true");
       }
 
       try {
-        const res = await fetch("/api/jobs", {
+        const res = await fetch("/api/v1/jobs", {
           method: "POST",
           body: formData,
           signal: controller.signal,
@@ -828,7 +845,7 @@ function HomePageContent() {
 
   const onForceCleanCallback = useCallback(async () => {
     try {
-      const res = await fetch("/api/force_cleanup", { method: "POST" });
+      const res = await fetch("/api/v1/storage/cleanup", { method: "POST" });
       const json = await res.json();
       if (json.status === "ok") {
         toast.success(t("page.toast.cleanupSuccess"));

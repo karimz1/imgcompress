@@ -50,5 +50,8 @@
   },
   "presets": {
     "file": "/data/presets.json"
+  },
+  "public_api": {
+    "is_enabled": false
   }
 }
