@@ -21,6 +21,9 @@ services:
       - DISABLE_STORAGE_MANAGEMENT=false
       # Set to true to turn off the update check: the browser then stops asking GitHub (api.github.com) for the latest release, and no update banner is shown
       - DISABLE_UPDATE_CHECK=false
+      # Set to true to hide the presets (saved settings everyone on this server shares) and turn off their API.
+      # Existing presets stay in /data/presets.json.
+      - DISABLE_CUSTOM_PRESETS=false
       # Optional: "Notify me when done" (opt-in per job). Apprise URL the container
       # sends a short message to when a job finishes: image count and device/browser,
       # never file names or images. Default: not set = feature off, switch hidden.
@@ -48,6 +51,11 @@ services:
       # - ENABLE_PUBLIC_API=true
       # - PUBLIC_API_KEY=paste-a-long-random-string-here
       # - API_ONLY=true
+    volumes:
+      # Keeps the saved presets when the container is recreated (e.g. on update).
+      # A bind mount such as ./imgcompress-data:/data works too, but the folder
+      # must be writable by UID 65532: chown 65532:65532 ./imgcompress-data
+      - imgcompress_data:/data
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       interval: 30s
@@ -74,3 +82,6 @@ services:
   #     # Address your phone uses to reach this ntfy server.
   #     - NTFY_BASE_URL=http://192.168.1.10:8080
   #     - NTFY_UPSTREAM_BASE_URL=https://ntfy.sh
+
+volumes:
+  imgcompress_data:

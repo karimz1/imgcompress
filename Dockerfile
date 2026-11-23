@@ -131,8 +131,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     ldconfig && cp --parents /etc/ld.so.cache /dpkg-export/
 
 # Setup runtime directory for nonroot user (pre-configured in DHI, UID/GID 65532).
-RUN mkdir -p /container && \
-    chown -R nonroot:nonroot /container
+# /data holds what must survive a container update (the presets). It is created
+# here because the runtime stage has no shell, and copied over with its owner.
+RUN mkdir -p /container /data && \
+    chown -R nonroot:nonroot /container /data
 
 USER nonroot
 
@@ -289,6 +291,7 @@ COPY --from=upscale-model-stage --chown=65532:65532 /build/models /container/.mo
 COPY --from=backend-build-stage --chown=65532:65532 /container/backend/ /container/backend
 COPY --from=backend-build-stage --chown=65532:65532 /container/entrypoint.py /container/entrypoint.py
 COPY --from=backend-build-stage --chown=65532:65532 /container/healthcheck.py /container/healthcheck.py
+COPY --from=backend-build-stage --chown=65532:65532 /data /data
 COPY --from=frontend-build-stage --chown=65532:65532 /app/swagger-ui/. \
     /container/backend/image_converter/presentation/web/swagger_ui/
 
@@ -300,6 +303,11 @@ COPY --from=frontend-build-stage --chown=65532:65532 /app/frontend/public \
     /container/backend/image_converter/presentation/web/static_site
 
 USER nonroot
+
+# Saved presets (/data/presets.json). A named volume starts with the ownership
+# above, so it works without any permission setup; a bind mount must be
+# writable by UID 65532.
+VOLUME ["/data"]
 
 EXPOSE 5000
 

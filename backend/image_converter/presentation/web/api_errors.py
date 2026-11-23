@@ -15,6 +15,7 @@ ERROR_NAMES = {
     415: "Unsupported Media Type",
     422: "Unprocessable Entity",
     500: "Internal Server Error",
+    503: "Service Unavailable",
 }
 
 

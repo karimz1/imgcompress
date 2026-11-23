@@ -21,6 +21,10 @@ networks:
   imgcompress-network:
     driver: bridge
 
+volumes:
+  # Named volume for the saved presets (/data in the container).
+  imgcompress-data: { driver: local }
+
 services:
   imgcompress:
     image: ${IMGCOMPRESS_IMAGE:-karimz1/imgcompress}:${IMGCOMPRESS_TAG:-latest}
@@ -46,6 +50,9 @@ services:
       - DISABLE_STORAGE_MANAGEMENT=${IMGCOMPRESS_DISABLE_STORAGE_MANAGEMENT:-false}
       # Set to true to turn off the update check: the browser then stops asking GitHub (api.github.com) for the latest release, and no update banner is shown
       - DISABLE_UPDATE_CHECK=${IMGCOMPRESS_DISABLE_UPDATE_CHECK:-false}
+      # Set to true to hide the presets (saved settings everyone on this server shares) and turn off their API.
+      # Existing presets stay in /data/presets.json.
+      - DISABLE_CUSTOM_PRESETS=${IMGCOMPRESS_DISABLE_CUSTOM_PRESETS:-false}
       # Optional: "Notify me when done" (opt-in per job). Apprise URL the container
       # sends a short message to when a job finishes: image count and device/browser,
       # never file names or images. Default: not set = feature off, switch hidden.
@@ -73,6 +80,11 @@ services:
       - ENABLE_PUBLIC_API=${IMGCOMPRESS_ENABLE_PUBLIC_API:-false}
       - PUBLIC_API_KEY=${IMGCOMPRESS_PUBLIC_API_KEY:-}
       - API_ONLY=${IMGCOMPRESS_API_ONLY:-false}
+    volumes:
+      # Keeps the saved presets when the container is recreated (e.g. on update).
+      # A bind mount such as ./imgcompress-data:/data works too, but the folder
+      # must be writable by UID 65532: chown 65532:65532 ./imgcompress-data
+      - imgcompress-data:/data
     healthcheck:
       test: ["CMD", "python", "/container/healthcheck.py"]
       <<: *default-healthcheck

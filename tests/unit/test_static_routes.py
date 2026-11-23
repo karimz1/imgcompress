@@ -83,3 +83,20 @@ def test_runtime_config_reports_whether_the_update_check_is_disabled(
         settings.reset_cache()
 
     assert body["DISABLE_UPDATE_CHECK"] == expected
+
+
+@pytest.mark.parametrize(("env_value", "expected"), [(None, "false"), ("true", "true"), ("0", "false")])
+def test_runtime_config_reports_whether_custom_presets_are_disabled(
+    tmp_path, monkeypatch, env_value, expected
+):
+    if env_value is None:
+        monkeypatch.delenv("DISABLE_CUSTOM_PRESETS", raising=False)
+    else:
+        monkeypatch.setenv("DISABLE_CUSTOM_PRESETS", env_value)
+    settings.reset_cache()
+    try:
+        body = _client(tmp_path).get("/config/runtime.json").get_json()
+    finally:
+        settings.reset_cache()
+
+    assert body["DISABLE_CUSTOM_PRESETS"] == expected

@@ -57,6 +57,17 @@ class FeaturesConfig:
     is_logo_enabled: bool
     is_dev_mode_enabled: bool
     is_update_check_enabled: bool
+    is_custom_presets_enabled: bool
+
+
+# Inside the container, /data is the volume for everything that should survive
+# a container update.
+DEFAULT_PRESETS_FILE = "/data/presets.json"
+
+
+@dataclass(frozen=True)
+class PresetsConfig:
+    file: str
 
 
 @dataclass(frozen=True)
@@ -106,4 +117,5 @@ class AppConfig:
     features: FeaturesConfig
     rembg: RembgConfig
     upscaling: UpscalingConfig
+    presets: PresetsConfig
     public_api: PublicApiConfig = PublicApiConfig()

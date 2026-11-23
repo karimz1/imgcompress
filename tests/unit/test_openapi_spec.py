@@ -250,7 +250,7 @@ def test_Description_Expect_ShortIntroAuthModesErrorsAndCurl(spec):
     assert "identifier" not in spec["info"]["license"]
     assert spec["externalDocs"] == {"description": "imgcompress docs", "url": openapi.DOCS_URL}
     tag_names = [tag["name"] for tag in spec["tags"]]
-    assert tag_names == ["Convert", "Jobs", "Editor", "Info", "Health", "Storage", "Docs"]
+    assert tag_names == ["Convert", "Jobs", "Editor", "Info", "Health", "Presets", "Storage", "Docs"]
     assert all(tag.get("description") for tag in spec["tags"])
 
 
@@ -537,6 +537,8 @@ def test_ServedSpec_Expect_NoShortenedValueAnywhere(monkeypatch, env):
         for key, value in _strings(example):
             if key == "id" and value in model_ids:
                 continue  # GET /models/upscale lists model names, not job ids
+            if key == "id" and re.fullmatch("[0-9a-f]{32}", value):
+                continue  # GET /presets lists presets, whose ids are uuid hex, not job ids
             if key in _EXAMPLE_FORMATS:
                 assert re.fullmatch(_EXAMPLE_FORMATS[key], value), f"{key}={value!r} is not the real format"
     # Every example also passes its own schema, patterns included.

@@ -73,12 +73,13 @@ _ERROR_EXAMPLES = {
     415: "Unsupported file types: notes.txt. GET /api/v1/formats lists the supported ones.",
     422: "Image processing failed: broken.jpg: cannot identify image file",
     500: "An unexpected error occurred. See the container logs for details.",
+    503: "Preset storage is unavailable. See the server log for details.",
 }
 _ERROR_TEXT = {
     400: "Invalid options or form. `message` says which field and what is allowed.",
     401: "PUBLIC_API_KEY is set and the request is neither from the web UI nor carries the key.",
     403: "A browser on another website sent this while ENABLE_PUBLIC_API is off, "
-    "or the feature is turned off on this container (storage management).",
+    "or the feature is turned off on this container (storage management, custom presets).",
     404: "Unknown id, wrong token, or expired. These are not told apart on purpose.",
     409: "Conflicts with the current state (see `message`).",
     410: "The editor session expired; upload the pictures again with a new session.",
@@ -86,6 +87,7 @@ _ERROR_TEXT = {
     415: "A file type the container cannot read. GET /formats lists `supported_formats`.",
     422: "The files were readable as a form but none could be converted.",
     500: "Unexpected failure inside the container; details are in the container log.",
+    503: "The preset file cannot be read or written; details are in the container log.",
 }
 
 
@@ -122,6 +124,10 @@ _WHEN = {
     "storageDownloadFile": "Admin: download one file; `folder` and `file` come from GET /storage/files.",
     "storageDownloadFolder": "Admin: download one result folder; `folder` comes from GET /storage/files.",
     "storageCleanup": "Admin: delete all finished results now. Running jobs are kept.",
+    "listPresets": "Call to show the saved presets, or to read the `settings` to send with POST /convert or POST /jobs.",
+    "createPreset": "Use to save the settings of a conversion under a name, for everyone on this container.",
+    "updatePreset": "Use to rename a preset or replace its settings; `preset_id` comes from GET /presets.",
+    "deletePreset": "Use to remove a preset; `preset_id` comes from GET /presets.",
     "logs": "Admin: download the container log for a bug report.",
     "openapi": "Use to generate a client or import the API into a tool.",
     "docs": "This page.",
@@ -311,6 +317,20 @@ _JOB_TOKEN = {
     "description": "The `token` from POST /jobs or POST /jobs/{job_id}/claim. A header, so it stays out of URLs and logs.",
     "schema": {"type": "string"},
 }
+_PRESET_ID = {
+    "name": "preset_id", "in": "path", "required": True,
+    "description": "`id` of a preset from GET /presets.",
+    "schema": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+}
+_PRESET_EXAMPLE = {
+    "id": "3f2a9c1e7b8d4a60b5e1c2d3f4a5b6c7", "name": "Web photos",
+    "created_at": 1767225600.0, "updated_at": 1767225600.0,
+    "settings": {"format": "webp", "quality": 80, "width": None, "target_size_kb": None, "use_rembg": False,
+                 "webp_lossless": False, "pdf_preset": None, "pdf_quality": None, "pdf_scale": None,
+                 "pdf_margin_mm": None, "pdf_paginate": None, "upscale": None, "upscale_model": None},
+}
+
+
 _STORAGE_NOTE = (
     "\n\nStorage management can see the files of **every** user of the container. "
     "Answers 403 when the container runs with DISABLE_STORAGE_MANAGEMENT=true."
@@ -642,6 +662,49 @@ def _paths(base: str, keyed: bool = True) -> dict:
             "responses": {"200": {"description": "Done.", "content": _json(
                 _ref("Status"), {"status": "ok", "message": "Forced cleanup completed."})}, **_errors(500)},
         }},
+        "/presets": {
+            "get": {
+                "tags": ["Presets"], "operationId": "listPresets",
+                "summary": "List the saved presets",
+                "description": "Presets are named compression settings shared by everyone who uses this container. "
+                "`settings` uses the field names of POST /convert, and fields that do not apply to the "
+                "format are null. 403 when DISABLE_CUSTOM_PRESETS=true." + _curl(f"curl -fsS {base}/presets{auth}"),
+                "responses": {"200": {"description": "The presets, oldest first.", "content": _json(
+                    {"type": "object", "required": ["presets"], "properties": {
+                        "presets": {"type": "array", "items": _ref("Preset")}}},
+                    {"presets": [_PRESET_EXAMPLE]})}, **_errors(403, 503)},
+            },
+            "post": {
+                "tags": ["Presets"], "operationId": "createPreset",
+                "summary": "Save a preset",
+                "description": "Saves settings under a name. Names are unique and at most 80 characters; a container "
+                "keeps at most 100 presets. 409: name taken or limit reached; `code` says which."
+                + _curl(f"curl -fsS {base}/presets{auth} \\\n  -H 'Content-Type: application/json' \\\n"
+                        "  -d '{\"name\":\"Web photos\",\"settings\":{\"format\":\"webp\",\"quality\":80}}'"),
+                "requestBody": {"required": True, "content": _json(_ref("PresetInput"))},
+                "responses": {"201": {"description": "Saved.", "content": _json(_ref("Preset"), _PRESET_EXAMPLE)},
+                              **_errors(400, 403, 409, 503)},
+            },
+        },
+        "/presets/{preset_id}": {
+            "put": {
+                "tags": ["Presets"], "operationId": "updatePreset",
+                "summary": "Change a preset",
+                "description": "Send `name`, `settings` or both; what you leave out stays as it is. `settings` "
+                "replaces the saved settings as a whole.",
+                "parameters": [_PRESET_ID],
+                "requestBody": {"required": True, "content": _json(_ref("PresetInput"))},
+                "responses": {"200": {"description": "Saved.", "content": _json(_ref("Preset"), _PRESET_EXAMPLE)},
+                              **_errors(400, 403, 404, 409, 503)},
+            },
+            "delete": {
+                "tags": ["Presets"], "operationId": "deletePreset",
+                "summary": "Delete a preset",
+                "description": "Removes the preset for everyone on this container.",
+                "parameters": [_PRESET_ID],
+                "responses": {"204": {"description": "Deleted."}, **_errors(403, 404, 503)},
+            },
+        },
         "/logs": {"get": {
             "tags": ["Storage"], "operationId": "logs",
             "summary": "Download the container log",
@@ -761,6 +824,25 @@ def _schemas() -> dict:
                 "originalWidth": {"type": "integer"}, "originalHeight": {"type": "integer"},
                 "fit": {"type": "object", "additionalProperties": True}}, "additionalProperties": True},
             "preview": {"type": "string", "description": "PNG as a data URL (data:image/png;base64, then the image)."}}},
+        "PresetSettings": {"type": "object", "required": ["format"], "additionalProperties": False, "properties": {
+            "format": {"type": "string", "enum": ["jpeg", "png", "ico", "avif", "webp", "pdf"]},
+            "quality": {"type": ["integer", "null"], "minimum": 1, "maximum": 100},
+            "width": {"type": ["integer", "null"], "description": "Resize width in pixels."},
+            "target_size_kb": {"type": ["integer", "null"], "description": "Aim for this file size."},
+            "use_rembg": {"type": ["boolean", "null"], "description": "Remove the background."},
+            "webp_lossless": {"type": ["boolean", "null"]},
+            "pdf_preset": {"type": ["string", "null"]}, "pdf_quality": {"type": ["string", "null"]},
+            "pdf_scale": {"type": ["string", "null"]}, "pdf_margin_mm": {"type": ["number", "null"]},
+            "pdf_paginate": {"type": ["boolean", "null"]},
+            "upscale": {"type": ["string", "null"]}, "upscale_model": {"type": ["string", "null"]},
+        }, "description": "Same names as the POST /convert form. Fields that do not apply to the format are null."},
+        "PresetInput": {"type": "object", "additionalProperties": False, "properties": {
+            "name": {"type": "string", "maxLength": 80, "description": "Unique, 1 to 80 characters."},
+            "settings": _ref("PresetSettings")},
+            "description": "POST needs `name` and `settings`; PUT needs at least one of them."},
+        "Preset": {"type": "object", "required": ["id", "name", "created_at", "updated_at", "settings"], "properties": {
+            "id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}, "name": string,
+            "created_at": timestamp, "updated_at": timestamp, "settings": _ref("PresetSettings")}},
         "StorageSummary": {"type": "object", "required": ["used_storage_mb", "available_storage_mb"], "properties": {
             "used_storage_mb": number, "available_storage_mb": number}},
         "ContainerInventory": {"type": "object", "required": ["files", "total_size_mb", "total_count"], "properties": {
@@ -882,6 +964,7 @@ def build_spec(script_root: str = "") -> dict:
             {"name": "Editor", "description": "Crop, fit, backgrounds, text and picture layers; render a preview of any format."},
             {"name": "Info", "description": "Supported formats, AI models, limits and versions of this container."},
             {"name": "Health", "description": "Liveness checks. Never need the API key."},
+            {"name": "Presets", "description": "Named compression settings shared by everyone on this container. Answer 403 when DISABLE_CUSTOM_PRESETS=true."},
             {"name": "Storage", "description": "Temporary files of the container. Answer 403 when DISABLE_STORAGE_MANAGEMENT=true."},
             {"name": "Docs", "description": "This document and Swagger UI. Served only with ENABLE_PUBLIC_API or API_ONLY."},
         ],

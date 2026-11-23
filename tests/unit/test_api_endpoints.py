@@ -17,6 +17,8 @@ from PIL import Image
 from backend.image_converter.config import settings
 from backend.image_converter.presentation.web import openapi, routes
 from backend.image_converter.presentation.web.server import app
+from backend.image_converter.infrastructure.preset_store import PresetStore
+from backend.image_converter.presentation.web.services.preset_service import PresetService
 from tests.unit import test_conversion_jobs
 
 KEY = "correct horse battery staple"
@@ -25,6 +27,7 @@ SAME_ORIGIN = {"Sec-Fetch-Site": "same-origin"}
 CROSS_SITE = {"Sec-Fetch-Site": "cross-site", "Origin": "https://blog.example"}
 LEGACY_HEALTH = "/api/health/backend"
 UNKNOWN_JOB = "a" * 22
+UNKNOWN_PRESET = "a" * 32
 _METHODS = {"get", "post", "put", "patch", "delete"}
 
 # Never need the key; the docs answer 404 instead of 403 while the public API is off.
@@ -54,7 +57,7 @@ def _url(path: str) -> str:
     if path == LEGACY_HEALTH:
         return path
     filled = (path.replace("{job_id}", UNKNOWN_JOB).replace("{file_name}", "photo.png")
-              .replace("{name}", "swagger-ui-init.js"))
+              .replace("{name}", "swagger-ui-init.js").replace("{preset_id}", UNKNOWN_PRESET))
     return f"/api/v1{filled}"
 
 
@@ -69,7 +72,11 @@ def _image(name="photo.png"):
 
 
 @pytest.fixture
-def configure(monkeypatch):
+def configure(monkeypatch, tmp_path):
+    # Presets live in a file of their own, never the container's /data.
+    logger = type("Quiet", (), {"log": lambda self, *args, **kwargs: None})()
+    monkeypatch.setattr(routes, "preset_service", PresetService(PresetStore(str(tmp_path / "presets.json"), logger), True))
+
     def apply(public=None, key=None, api_only=None):
         for name, value in (("ENABLE_PUBLIC_API", public), ("PUBLIC_API_KEY", key), ("API_ONLY", api_only),
                             ("PUBLIC_BASE_URL", None), ("DISABLE_STORAGE_MANAGEMENT", None)):
@@ -179,6 +186,24 @@ def _happy_asset(client):
     return response
 
 
+def _save_preset(client, name="Web photos"):
+    return client.post(_url("/presets"), json={"name": name, "settings": {"format": "webp", "quality": 80}}, headers=KEYED)
+
+
+def _happy_preset_update(client):
+    preset = _save_preset(client).get_json()
+    response = client.put(_url(f"/presets/{preset['id']}"), json={"name": "Blog photos"}, headers=KEYED)
+    assert response.get_json()["name"] == "Blog photos"
+    return response
+
+
+def _happy_preset_delete(client):
+    preset = _save_preset(client).get_json()
+    response = client.delete(_url(f"/presets/{preset['id']}"), headers=KEYED)
+    assert client.get(_url("/presets"), headers=KEYED).get_json() == {"presets": []}
+    return response
+
+
 def _get(path):
     return lambda client: client.get(_url(path), headers=KEYED)
 
@@ -200,6 +225,10 @@ HAPPY = {
     ("post", "/preview"): (_happy_render, 200),
     ("post", "/edit"): (_happy_edit, 200),
     ("post", "/editor/assets"): (_happy_asset, 200),
+    ("get", "/presets"): (_get("/presets"), 200),
+    ("post", "/presets"): (_save_preset, 201),
+    ("put", "/presets/{preset_id}"): (_happy_preset_update, 200),
+    ("delete", "/presets/{preset_id}"): (_happy_preset_delete, 204),
     ("get", "/storage"): (_get("/storage"), 200),
     ("get", "/storage/files"): (_get("/storage/files"), 200),
     ("get", "/storage/files/download"): (_happy_storage_file, 200),
@@ -272,6 +301,20 @@ VALIDATION = {
     ("post", "/editor/assets"): [
         (lambda c: _post(c, "/api/v1/editor/assets", {}), 400, ""),
         (lambda c: _post(c, "/api/v1/editor/assets", {"file": _image(), "session": "expired-session-id"}), 410, ""),
+    ],
+    ("post", "/presets"): [
+        (lambda c: c.post("/api/v1/presets", json={"name": "x"}, headers=KEYED), 400, "name and settings"),
+        (lambda c: c.post("/api/v1/presets", json={"name": "x", "settings": {"format": "gif"}}, headers=KEYED), 400,
+         "format"),
+        (lambda c: c.post("/api/v1/presets", json={"name": "", "settings": {"format": "png"}}, headers=KEYED), 400,
+         "name"),
+    ],
+    ("put", "/presets/{preset_id}"): [
+        (lambda c: c.put(f"/api/v1/presets/{UNKNOWN_PRESET}", json={"name": "x"}, headers=KEYED), 404, "not found"),
+        (lambda c: c.put(f"/api/v1/presets/{UNKNOWN_PRESET}", json={}, headers=KEYED), 400, "name, settings"),
+    ],
+    ("delete", "/presets/{preset_id}"): [
+        (lambda c: c.delete("/api/v1/presets/not-an-id", headers=KEYED), 404, "not found"),
     ],
     ("get", "/storage/files/download"): [
         (lambda c: c.get("/api/v1/storage/files/download", headers=KEYED,
@@ -380,11 +423,22 @@ def test_StorageManagementOff_Expect_StorageRoutes403(configure, monkeypatch):
         assert "DISABLE_STORAGE_MANAGEMENT" in response.get_json()["message"]
 
 
+def test_CustomPresetsOff_Expect_PresetRoutes403(configure, monkeypatch):
+    client = configure()
+    monkeypatch.setattr(routes.preset_service, "is_enabled", False)
+    presets = [(m, p) for m, p in OPERATIONS if p.startswith("/presets")]
+    assert len(presets) == 4
+    for method, path in presets:
+        response = client.open(_url(path), method=method.upper(), json={"name": "x", "settings": {"format": "png"}})
+        assert response.status_code == 403, path
+        assert response.get_json()["code"] == "disabled"
+
+
 # --- the coverage contract ---------------------------------------------------------------
 
 def test_EveryDocumentedOperation_Expect_TestsForItHere():
     documented = set(OPERATIONS)
-    assert len(documented) == 27
+    assert len(documented) == 31
     happy = set(HAPPY) | set(HAPPY_ELSEWHERE)
     assert documented - happy == set(), "operations without a happy-path test"
     assert happy - documented == set(), "tests for operations that are not documented"

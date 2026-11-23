@@ -38,7 +38,8 @@
     "is_storage_management_enabled": true,
     "is_logo_enabled": true,
     "is_dev_mode_enabled": false,
-    "is_update_check_enabled": true
+    "is_update_check_enabled": true,
+    "is_custom_presets_enabled": true
   },
   "rembg": {
     "model_name": "u2net"
@@ -46,6 +47,9 @@
   "upscaling": {
     "threads": "auto",
     "max_output_megapixels": 144
+  },
+  "presets": {
+    "file": "/data/presets.json"
   },
   "public_api": {
     "is_enabled": false

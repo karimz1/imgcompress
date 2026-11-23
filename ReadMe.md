@@ -83,6 +83,7 @@ ImgCompress is a **self-hosted image app in a single Docker container**, easy fo
 | **AI Upscaling** | Make small images bigger and sharper, up to 16K, offline ([guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)) |
 | **Image Editor** | Crop, exact sizes, backgrounds, text and logos before converting ([guide](https://imgcompress.karimzouine.com/docs/image-editor)) |
 | **Bulk Compression** | Make a whole folder of photos smaller in one go |
+| **Presets** | Save the settings you use often under a name and apply them with one click |
 | **Format Conversion** | HEIC to WebP, PSD to JPG, [SVG to PNG](https://imgcompress.karimzouine.com/docs/svg-to-png), image batches to paginated PDF, and more ([WebP guide](https://imgcompress.karimzouine.com/docs/convert-to-webp)) |
 | **Web App + CLI** | An easy web page for everyday use, plus a command line for automation |
 | **One Container** | Everything is included. Nothing else to install |
@@ -160,6 +161,8 @@ Each upload can be up to 40 GB. Cap it with `-e MAX_UPLOAD_SIZE_MB=1024` (1 GB i
 `WEB_WORKERS` defaults to `auto` (one per CPU). Lower it on small machines to save RAM, e.g. `-e WEB_WORKERS=2`. [Web workers](https://imgcompress.karimzouine.com/docs/configuration#web-workers-and-ram).
 
 Set `-e DISABLE_UPDATE_CHECK=true` to stop the browser checking GitHub for new releases (version stays in the footer). [Update check](https://imgcompress.karimzouine.com/docs/privacy#update-notifications).
+
+**Presets:** save the current settings under a name and apply them again with one click. Everyone using the server shares them. They are kept in `/data/presets.json`, so add `-v imgcompress_data:/data` to keep them when the container is recreated (the compose files already do). A bind mount such as `-v ./imgcompress-data:/data` must be writable by UID 65532: `chown 65532:65532 ./imgcompress-data`. Set `-e DISABLE_CUSTOM_PRESETS=true` to hide them; saved presets are kept.
 
 **Notify me when done (optional):** set `NOTIFY_URL` (e.g. `NOTIFY_URL=ntfy://notify.lan/<topic>`) plus optional `PUBLIC_BASE_URL` and `TZ`. A switch appears while a job runs; you get one message when it finishes, with a private result link if `PUBLIC_BASE_URL` is set. Full setup: [Notify me when done](https://imgcompress.karimzouine.com/docs/notifications). Ready-made compose: **[homelab-traefik-ntfy](docker/compose/homelab-traefik-ntfy/)**.
 

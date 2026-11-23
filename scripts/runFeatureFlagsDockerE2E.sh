@@ -5,7 +5,7 @@ set -euo pipefail
 # Build the Docker image once, then run the runtime feature-flags Playwright
 # specs against flag combinations to prove DISABLE_LOGO,
 # DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK,
-# ENABLE_PUBLIC_API, PUBLIC_API_KEY and API_ONLY propagate end-to-end
+# DISABLE_CUSTOM_PRESETS, ENABLE_PUBLIC_API, PUBLIC_API_KEY and API_ONLY propagate end-to-end
 # (env -> runtime.json -> UI and server). The upload limit spec skips itself
 # unless the limit is small. publicApi_Test.spec.ts reads the API mode from
 # the running container.
@@ -16,7 +16,7 @@ CONTAINER_NAME="${CONTAINER_NAME:-imgcompress-flags-tester}"
 PORT_HOST="${PORT_HOST:-8080}"
 PORT_CONTAINER=5000
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
-SPEC_PATHS=("tests/e2e/featureFlagsRuntime_Test.spec.ts" "tests/e2e/uploadLimitRuntime_Test.spec.ts" "tests/e2e/publicApi_Test.spec.ts")
+SPEC_PATHS=("tests/e2e/featureFlagsRuntime_Test.spec.ts" "tests/e2e/uploadLimitRuntime_Test.spec.ts" "tests/e2e/compressionPresets_Test.spec.ts" "tests/e2e/publicApi_Test.spec.ts")
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -50,17 +50,18 @@ docker buildx build \
     "$APP_ROOT"
 
 # (DISABLE_LOGO, DISABLE_STORAGE_MANAGEMENT, MAX_UPLOAD_SIZE_MB, DISABLE_UPDATE_CHECK,
-#  ENABLE_PUBLIC_API, PUBLIC_API_KEY, API_ONLY; "-" = default / unset)
+#  DISABLE_CUSTOM_PRESETS, ENABLE_PUBLIC_API, PUBLIC_API_KEY, API_ONLY; "-" = default / unset)
 COMBOS=(
-    "false false - - - - -"
-    "true  false - - - - -"
-    "false true  - - - - -"
-    "true  true  - - - - -"
-    "false false 5 - - - -"
-    "false false - true - - -"
-    "false false - - true - -"
-    "false false - - true e2e-test-key-not-a-secret -"
-    "false false - - - e2e-test-key-not-a-secret true"
+    "false false - - - - - -"
+    "true  false - - - - - -"
+    "false true  - - - - - -"
+    "true  true  - - - - - -"
+    "false false 5 - - - - -"
+    "false false - true - - - -"
+    "false false - - true - - -"
+    "false false - - - true - -"
+    "false false - - - true e2e-test-key-not-a-secret -"
+    "false false - - - - e2e-test-key-not-a-secret true"
 )
 
 FAILURES=()
@@ -72,15 +73,17 @@ for combo in "${COMBOS[@]}"; do
     DSM="$2"
     MAX_MB="$3"
     DUC="$4"
-    EPA="${5:--}"
-    PAK="${6:--}"
-    AO="${7:--}"
+    DCP="$5"
+    EPA="${6:--}"
+    PAK="${7:--}"
+    AO="${8:--}"
     [ "$MAX_MB" = "-" ] && MAX_MB=""
     [ "$DUC" = "-" ] && DUC=""
+    [ "$DCP" = "-" ] && DCP=""
     [ "$EPA" = "-" ] && EPA=""
     [ "$PAK" = "-" ] && PAK=""
     [ "$AO" = "-" ] && AO=""
-    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default} ENABLE_PUBLIC_API=${EPA:-default} PUBLIC_API_KEY=$([ -n "$PAK" ] && echo set || echo unset) API_ONLY=${AO:-default}"
+    COMBO="DISABLE_LOGO=$DL DISABLE_STORAGE_MANAGEMENT=$DSM MAX_UPLOAD_SIZE_MB=${MAX_MB:-default} DISABLE_UPDATE_CHECK=${DUC:-default} DISABLE_CUSTOM_PRESETS=${DCP:-default} ENABLE_PUBLIC_API=${EPA:-default} PUBLIC_API_KEY=$([ -n "$PAK" ] && echo set || echo unset) API_ONLY=${AO:-default}"
 
     echo
     echo "==========================================================="
@@ -96,6 +99,7 @@ for combo in "${COMBOS[@]}"; do
         -e DISABLE_STORAGE_MANAGEMENT="$DSM" \
         -e MAX_UPLOAD_SIZE_MB="$MAX_MB" \
         -e DISABLE_UPDATE_CHECK="$DUC" \
+        -e DISABLE_CUSTOM_PRESETS="$DCP" \
         -e ENABLE_PUBLIC_API="$EPA" \
         -e PUBLIC_API_KEY="$PAK" \
         -e API_ONLY="$AO" \
