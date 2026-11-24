@@ -75,6 +75,8 @@ class BaseImageConverter(IImageConverter):
         Ensures the image is in a compatible mode (RGB or RGBA).
         """
         with Image.open(BytesIO(image_data)) as img:
+            icc_profile = img.info.get("icc_profile")
+
             try:
                 img = ImageOps.exif_transpose(img)
             except Exception:
@@ -83,8 +85,12 @@ class BaseImageConverter(IImageConverter):
             if img.mode not in ("RGB", "RGBA"):
                 img = img.convert("RGBA")
 
+            # A CMYK or grayscale profile no longer matches once the pixels are RGB.
+            if not _is_rgb_icc_profile(icc_profile):
+                icc_profile = None
+
             buffer = BytesIO()
-            img.save(buffer, format="AVIF", quality=quality)
+            img.save(buffer, format="AVIF", quality=quality, icc_profile=icc_profile)
             return buffer.getvalue()
 
     def _encode_to_webp(self, image_data: bytes, quality: int, lossless: bool = False) -> bytes:

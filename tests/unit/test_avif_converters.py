@@ -1,6 +1,6 @@
 from io import BytesIO
 import pytest
-from PIL import Image
+from PIL import Image, ImageCms
 from unittest.mock import MagicMock
 import sys
 
@@ -100,3 +100,15 @@ def test_When_JpegHasExifRotation_Expect_AvifConverterOutputsUprightImage(mock_l
     output = AvifConverter(quality=80, logger=mock_logger).encode_to_bytes(buf.getvalue())
     with Image.open(BytesIO(output)) as out_img:
         assert out_img.size == (200, 400)
+
+
+def test_When_CmykSourceHasIccProfile_Expect_AvifProfileDroppedAfterRgbConversion(mock_logger):
+    profile = bytearray(ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes())
+    profile[16:20] = b"CMYK"  # colour space signature in the ICC header
+    buf = BytesIO()
+    Image.new("CMYK", (16, 16), (0, 255, 255, 0)).save(buf, format="JPEG", icc_profile=bytes(profile))
+
+    output = AvifConverter(quality=80, logger=mock_logger).encode_to_bytes(buf.getvalue())
+
+    with Image.open(BytesIO(output)) as out_img:
+        assert "icc_profile" not in out_img.info or not out_img.info["icc_profile"]
