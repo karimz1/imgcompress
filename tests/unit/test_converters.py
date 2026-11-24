@@ -6,6 +6,7 @@ from PIL import Image
 from backend.image_converter.application.dtos import ConversionDetails
 from backend.image_converter.core.factory.converter_factory import ImageConverterFactory
 from backend.image_converter.core.factory.jpeg_converter import JpegConverter, _normalize_for_jpeg
+from backend.image_converter.core.factory.pdf_converter import _normalize_for_pdf
 from backend.image_converter.core.factory.png_converter import PngConverter
 from backend.image_converter.core.factory.rembg_png_converter import RembgPngConverter
 from backend.image_converter.core.enums.image_format import ImageFormat
@@ -67,6 +68,16 @@ def test_When_PaletteImageHasTransparency_Expect_JpegFlattensOntoWhite():
         source.putdata([0, 1])
         source.info["transparency"] = 0
         with _normalize_for_jpeg(source) as result:
+            assert result.mode == "RGB"
+            assert list(result.get_flattened_data()) == [(255, 255, 255), (0, 128, 0)]
+
+
+def test_When_PaletteImageHasTransparency_Expect_PdfFlattensOntoWhite():
+    with Image.new("P", (2, 1)) as source:
+        source.putpalette([0, 0, 0, 0, 128, 0])
+        source.putdata([0, 1])
+        source.info["transparency"] = 0
+        with _normalize_for_pdf(source) as result:
             assert result.mode == "RGB"
             assert list(result.get_flattened_data()) == [(255, 255, 255), (0, 128, 0)]
 
