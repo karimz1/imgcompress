@@ -8,6 +8,7 @@ export const hi: TranslationSchema = {
       unsupportedFormat: "असमर्थित फ़ाइल फ़ॉर्मैट: {{fileName}}",
       filesRejected: "{{count}} फ़ाइल(ें) छोड़ दी गईं। यह फ़ाइल टाइप मैं नहीं खोल सकता।",
       fileTooLarge: "{{fileName}} {{size}} से बड़ी है, इसलिए जोड़ी नहीं गई।",
+      filesTooLarge: "{{size}} से बड़ी {{count}} फ़ाइल(ें) छोड़ दी गईं।",
       batchTooLarge: "सभी फ़ाइलें मिलाकर {{size}} से बड़ी हैं। कृपया इन्हें छोटे समूहों में बदलें।",
       noFilesError: "कृपया पहले कुछ फ़ाइलें डालें या चुनें।",
       noFormatError: "कृपया पहले आउटपुट फ़ॉर्मैट चुनें।",
@@ -142,6 +143,11 @@ export const hi: TranslationSchema = {
       label: "लॉसलेस WebP",
       tooltip:
         "हर पिक्सेल बिल्कुल मूल जैसा रखता है। फ़ाइलें बड़ी होती हैं, इसलिए गुणवत्ता और अधिकतम फ़ाइल आकार बंद रहते हैं।\nस्क्रीनशॉट, लोगो और टेक्स्ट वाली इमेज के लिए अच्छा।",
+    },
+    keepFolders: {
+      label: "फ़ोल्डर संरचना बनाए रखें",
+      tooltip:
+        "छोड़े गए फ़ोल्डर परिणामों और ZIP में वैसे ही रहते हैं, एक ही सूची में नहीं मिलाए जाते।\nयह केवल ड्रैग एंड ड्रॉप से काम करता है। एक जैसे नाम वाले फ़ोल्डर मिला दिए जाते हैं और दोहराए गए फ़ाइल नामों में एक संख्या जुड़ जाती है।",
     },
     compressionMode: {
       label: "{{format}} सेटिंग मोड",
@@ -318,6 +324,12 @@ export const hi: TranslationSchema = {
     error: {
       label: "त्रुटि मिली:",
       detailsLabel: "विवरण:",
+      showDetails: "विवरण दिखाएँ",
+      hideDetails: "विवरण छिपाएँ",
+      skippedListLabel: "छोड़ी गई फ़ाइलें",
+      reasonUnsupported: "यह फ़ाइल टाइप समर्थित नहीं है",
+      reasonTooLarge: "{{size}} से बड़ी",
+      moreSkipped: "+{{count}} और",
     },
     buttons: {
       convert: "कन्वर्ज़न शुरू करें",

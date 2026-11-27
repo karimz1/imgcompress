@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { PixelSize } from "@/lib/upscalePlan";
+import { fileKeyOf } from "@/lib/folderPath";
 
 /**
  * The pixel size of each selected file, read by the browser for the upscale
@@ -32,7 +33,7 @@ function measure(file: File): Promise<PixelSize | null> {
   });
 }
 
-/** Keyed by file name, like the crops. Measures only while `enabled`. */
+/** Keyed by fileKeyOf(), like the crops. Measures only while `enabled`. */
 export function useImagePixelSizes(files: File[], enabled: boolean): Record<string, PixelSize | null> {
   const [sizes, setSizes] = useState<Record<string, PixelSize | null>>({});
 
@@ -43,14 +44,14 @@ export function useImagePixelSizes(files: File[], enabled: boolean): Record<stri
     const pending: File[] = [];
     for (const file of files) {
       if (!isMeasurableFile(file)) continue;
-      if (cache.has(file)) known[file.name] = cache.get(file)!;
+      if (cache.has(file)) known[fileKeyOf(file)] = cache.get(file)!;
       else pending.push(file);
     }
     setSizes(known);
     pending.forEach((file) => {
       void measure(file).then((size) => {
         cache.set(file, size);
-        if (!cancelled) setSizes((prev) => ({ ...prev, [file.name]: size }));
+        if (!cancelled) setSizes((prev) => ({ ...prev, [fileKeyOf(file)]: size }));
       });
     });
     return () => {

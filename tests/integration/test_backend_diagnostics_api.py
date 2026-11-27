@@ -26,7 +26,7 @@ def test_backend_logs_endpoint_respects_storage_management_flag(client, monkeypa
         ),
     )
 
-    response = client.get("/api/logs/backend")
+    response = client.get("/api/v1/logs")
 
     assert response.status_code == 403
     settings.reset_cache()

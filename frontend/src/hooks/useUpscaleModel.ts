@@ -16,7 +16,7 @@ export function useUpscaleModel(): UseUpscaleModelResult {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch("/api/upscale_model");
+        const res = await fetch("/api/v1/models/upscale");
         if (!res.ok) {
           throw new Error("Failed to load upscaling model status");
         }

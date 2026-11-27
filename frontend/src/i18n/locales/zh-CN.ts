@@ -8,6 +8,7 @@ export const zhCN: TranslationSchema = {
       unsupportedFormat: "不支持的文件格式：{{fileName}}",
       filesRejected: "已跳过 {{count}} 个文件。我无法打开这种文件类型。",
       fileTooLarge: "{{fileName}} 超过 {{size}}，未添加。",
+      filesTooLarge: "已跳过 {{count}} 个大于 {{size}} 的文件。",
       batchTooLarge: "这些文件合计超过 {{size}}，请分批转换。",
       noFilesError: "请先拖入或选择一些文件。",
       noFormatError: "请先选择输出格式。",
@@ -142,6 +143,11 @@ export const zhCN: TranslationSchema = {
       label: "无损 WebP",
       tooltip:
         "每个像素都与原图完全一样。文件会更大，所以质量和最大文件大小会关闭。\n适合截图、标志和带文字的图片。",
+    },
+    keepFolders: {
+      label: "保留文件夹结构",
+      tooltip:
+        "在结果和 ZIP 中保留拖入的文件夹结构，而不是全部放在同一层。\n仅支持拖放。同名文件夹会合并，重名文件会自动加上编号。",
     },
     compressionMode: {
       label: "{{format}} 设置模式",
@@ -318,6 +324,12 @@ export const zhCN: TranslationSchema = {
     error: {
       label: "错误：",
       detailsLabel: "详情：",
+      showDetails: "显示详情",
+      hideDetails: "隐藏详情",
+      skippedListLabel: "已跳过的文件",
+      reasonUnsupported: "不支持此文件类型",
+      reasonTooLarge: "大于 {{size}}",
+      moreSkipped: "还有 {{count}} 个",
     },
     buttons: {
       convert: "开始转换",

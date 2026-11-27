@@ -8,6 +8,7 @@ export const ptBR: TranslationSchema = {
       unsupportedFormat: "Formato de arquivo sem suporte: {{fileName}}",
       filesRejected: "{{count}} arquivo(s) ignorado(s). Não consigo abrir esse tipo de arquivo.",
       fileTooLarge: "{{fileName}} tem mais de {{size}} e não foi adicionado.",
+      filesTooLarge: "{{count}} arquivo(s) acima de {{size}} ignorado(s).",
       batchTooLarge: "Juntos, os arquivos passam de {{size}}. Converta em grupos menores.",
       noFilesError: "Primeiro arraste ou selecione alguns arquivos.",
       noFormatError: "Primeiro selecione um formato de saída.",
@@ -142,6 +143,11 @@ export const ptBR: TranslationSchema = {
       label: "WebP sem perdas",
       tooltip:
         "Mantém cada pixel exatamente como no original. Os arquivos ficam maiores, por isso Qualidade e Tamanho máximo ficam desligados.\nBom para capturas de tela, logos e imagens com texto.",
+    },
+    keepFolders: {
+      label: "Manter estrutura de pastas",
+      tooltip:
+        "Mantém as pastas que você soltou nos resultados e no ZIP, em vez de uma lista única.\nSó funciona arrastando e soltando. Pastas com o mesmo nome são mescladas e nomes de arquivo repetidos ganham um número.",
     },
     compressionMode: {
       label: "Modo de configurações de {{format}}",
@@ -318,6 +324,12 @@ export const ptBR: TranslationSchema = {
     error: {
       label: "Erro encontrado:",
       detailsLabel: "Detalhes:",
+      showDetails: "Mostrar detalhes",
+      hideDetails: "Ocultar detalhes",
+      skippedListLabel: "Arquivos ignorados",
+      reasonUnsupported: "Tipo de arquivo não suportado",
+      reasonTooLarge: "Maior que {{size}}",
+      moreSkipped: "+{{count}} outro(s)",
     },
     buttons: {
       convert: "Iniciar conversão",

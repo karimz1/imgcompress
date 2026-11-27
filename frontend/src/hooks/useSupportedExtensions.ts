@@ -20,20 +20,14 @@ export function useSupportedExtensions(): UseSupportedExtensionsResult {
       setIsLoading(true);
       setError(null);
       try {
-        const [supportedRes, verifiedRes] = await Promise.all([
-          fetch("/api/images_supported"),
-          fetch("/api/images_verified"),
-        ]);
-
-        if (!supportedRes.ok || !verifiedRes.ok) {
+        const res = await fetch("/api/v1/formats");
+        if (!res.ok) {
           throw new Error("Failed to load supported or verified formats");
         }
 
-        const supportedData = await supportedRes.json();
-        const verifiedData = await verifiedRes.json();
-
-        setSupportedExtensions(supportedData.supported_formats || []);
-        setVerifiedExtensions(verifiedData.verified_formats || []);
+        const data = await res.json();
+        setSupportedExtensions(data.supported_formats || []);
+        setVerifiedExtensions(data.verified_formats || []);
       } catch (err) {
         console.error("Error fetching image extensions:", err);
         setError(err instanceof Error ? err : new Error("Unknown error"));

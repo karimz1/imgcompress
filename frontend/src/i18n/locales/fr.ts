@@ -8,6 +8,7 @@ export const fr: TranslationSchema = {
       unsupportedFormat: "Format de fichier non pris en charge : {{fileName}}",
       filesRejected: "{{count}} fichier(s) ignoré(s). Je ne peux pas ouvrir ce type de fichier.",
       fileTooLarge: "{{fileName}} dépasse {{size}} et n’a pas été ajouté.",
+      filesTooLarge: "{{count}} fichier(s) de plus de {{size}} ignoré(s).",
       batchTooLarge: "Ensemble, les fichiers dépassent {{size}}. Convertissez-les par petits groupes.",
       noFilesError: "Veuillez d'abord déposer ou sélectionner des fichiers.",
       noFormatError: "Veuillez d'abord choisir un format de sortie.",
@@ -142,6 +143,11 @@ export const fr: TranslationSchema = {
       label: "WebP sans perte",
       tooltip:
         "Garde chaque pixel exactement comme dans l'original. Les fichiers sont plus lourds, donc Qualité et Taille maximale sont désactivées.\nIdéal pour les captures d'écran, les logos et les images avec du texte.",
+    },
+    keepFolders: {
+      label: "Conserver la structure des dossiers",
+      tooltip:
+        "Conserve les dossiers déposés dans les résultats et le ZIP, au lieu d'une seule liste à plat.\nFonctionne uniquement par glisser-déposer. Les dossiers de même nom sont fusionnés et les noms de fichiers en double reçoivent un numéro.",
     },
     compressionMode: {
       label: "Mode de réglage {{format}}",
@@ -318,6 +324,12 @@ export const fr: TranslationSchema = {
     error: {
       label: "Erreur détectée :",
       detailsLabel: "Détails techniques :",
+      showDetails: "Afficher les détails",
+      hideDetails: "Masquer les détails",
+      skippedListLabel: "Fichiers ignorés",
+      reasonUnsupported: "Type de fichier non pris en charge",
+      reasonTooLarge: "Dépasse {{size}}",
+      moreSkipped: "+{{count}} autre(s)",
     },
     buttons: {
       convert: "Lancer la conversion",

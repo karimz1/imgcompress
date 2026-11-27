@@ -8,6 +8,7 @@ export const esMX: TranslationSchema = {
       unsupportedFormat: "Formato de archivo no compatible: {{fileName}}",
       filesRejected: "Se omitieron {{count}} archivo(s). No puedo abrir ese tipo de archivo.",
       fileTooLarge: "{{fileName}} pesa más de {{size}} y no se agregó.",
+      filesTooLarge: "Se omitieron {{count}} archivo(s) de más de {{size}}.",
       batchTooLarge: "Juntos, los archivos pesan más de {{size}}. Conviértelos en grupos más pequeños.",
       noFilesError: "Primero arrastra o selecciona algunos archivos.",
       noFormatError: "Primero selecciona un formato de salida.",
@@ -142,6 +143,11 @@ export const esMX: TranslationSchema = {
       label: "WebP sin pérdida",
       tooltip:
         "Conserva cada píxel exactamente como en el original. Los archivos son más grandes, por eso Calidad y Tamaño máximo se desactivan.\nIdeal para capturas de pantalla, logos e imágenes con texto.",
+    },
+    keepFolders: {
+      label: "Mantener estructura de carpetas",
+      tooltip:
+        "Mantiene las carpetas que arrastraste en los resultados y en el ZIP, en lugar de una sola lista.\nSolo funciona arrastrando y soltando. Las carpetas con el mismo nombre se combinan y los nombres de archivo repetidos reciben un número.",
     },
     compressionMode: {
       label: "Modo de ajustes de {{format}}",
@@ -318,6 +324,12 @@ export const esMX: TranslationSchema = {
     error: {
       label: "Error detectado:",
       detailsLabel: "Detalles:",
+      showDetails: "Mostrar detalles",
+      hideDetails: "Ocultar detalles",
+      skippedListLabel: "Archivos omitidos",
+      reasonUnsupported: "Tipo de archivo no compatible",
+      reasonTooLarge: "Pesa más de {{size}}",
+      moreSkipped: "+{{count}} más",
     },
     buttons: {
       convert: "Iniciar conversión",

@@ -8,6 +8,7 @@ export const ru: TranslationSchema = {
       unsupportedFormat: "Неподдерживаемый формат файла: {{fileName}}",
       filesRejected: "Пропущено файлов — {{count}}. Этот тип файлов я не открываю.",
       fileTooLarge: "Файл {{fileName}} больше {{size}} и не был добавлен.",
+      filesTooLarge: "Пропущено файлов больше {{size}} — {{count}}.",
       batchTooLarge: "Вместе файлы больше {{size}}. Конвертируйте их небольшими группами.",
       noFilesError: "Сначала перетащите или выберите файлы.",
       noFormatError: "Сначала выберите выходной формат.",
@@ -142,6 +143,11 @@ export const ru: TranslationSchema = {
       label: "WebP без потерь",
       tooltip:
         "Сохраняет каждый пиксель точно как в оригинале. Файлы получаются больше, поэтому Качество и Максимальный размер файла отключены.\nПодходит для скриншотов, логотипов и изображений с текстом.",
+    },
+    keepFolders: {
+      label: "Сохранять структуру папок",
+      tooltip:
+        "Сохраняет перетащенные папки в результатах и в ZIP вместо одного общего списка.\nРаботает только при перетаскивании. Папки с одинаковыми именами объединяются, а к повторяющимся именам файлов добавляется номер.",
     },
     compressionMode: {
       label: "Режим настроек {{format}}",
@@ -318,6 +324,12 @@ export const ru: TranslationSchema = {
     error: {
       label: "Обнаружена ошибка:",
       detailsLabel: "Подробности:",
+      showDetails: "Показать подробности",
+      hideDetails: "Скрыть подробности",
+      skippedListLabel: "Пропущенные файлы",
+      reasonUnsupported: "Тип файла не поддерживается",
+      reasonTooLarge: "Больше {{size}}",
+      moreSkipped: "Ещё {{count}}",
     },
     buttons: {
       convert: "Начать конвертацию",

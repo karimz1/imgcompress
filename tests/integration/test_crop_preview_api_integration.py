@@ -41,7 +41,7 @@ def test_crop_bitmap_endpoint_renders_backend_formats_as_png(
 
     with fixture_path.open("rb") as f:
         response = client.post(
-            "/api/crop/bitmap",
+            "/api/v1/preview",
             data={"file": (f, filename)},
             content_type="multipart/form-data",
         )
@@ -59,19 +59,19 @@ def test_crop_bitmap_endpoint_rejects_pdf_until_page_selection_exists(client):
 
     with fixture_path.open("rb") as f:
         response = client.post(
-            "/api/crop/bitmap",
+            "/api/v1/preview",
             data={"file": (f, fixture_path.name)},
             content_type="multipart/form-data",
         )
 
     assert response.status_code == 415
     payload = response.get_json()
-    assert "not compatible" in payload["error"]
+    assert "not compatible" in payload["message"]
 
 
-def test_crop_unsupported_formats_endpoint_includes_pdf(client):
-    response = client.get("/api/crop_unsupported_formats")
+def test_formats_endpoint_lists_pdf_as_not_previewable(client):
+    response = client.get("/api/v1/formats")
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert ".pdf" in payload["unsupported_formats"]
+    assert ".pdf" in payload["preview_unsupported_formats"]

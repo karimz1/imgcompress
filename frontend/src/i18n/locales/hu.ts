@@ -8,6 +8,7 @@ export const hu: TranslationSchema = {
       unsupportedFormat: "Nem támogatott fájlformátum: {{fileName}}",
       filesRejected: "{{count}} fájl kihagyva. Ezt a fájltípust nem tudom megnyitni.",
       fileTooLarge: "A(z) {{fileName}} nagyobb, mint {{size}}, ezért nem került be.",
+      filesTooLarge: "{{count}} fájl kihagyva, mert nagyobb, mint {{size}}.",
       batchTooLarge: "A fájlok együtt nagyobbak, mint {{size}}. Alakítsd át őket kisebb csoportokban.",
       noFilesError: "Kérlek, először adj hozzá fájlokat.",
       noFormatError: "Kérlek, először válassz kimeneti formátumot.",
@@ -142,6 +143,11 @@ export const hu: TranslationSchema = {
       label: "Veszteségmentes WebP",
       tooltip:
         "Minden pixelt pontosan úgy tart meg, mint az eredetiben. A fájlok nagyobbak lesznek, ezért a Minőség és a Cél fájlméret ki van kapcsolva.\nKépernyőképekhez, logókhoz és szöveges képekhez jó.",
+    },
+    keepFolders: {
+      label: "Mappaszerkezet megtartása",
+      tooltip:
+        "Az eredményekben és a ZIP-ben megmaradnak a behúzott mappák, egyetlen lapos lista helyett.\nCsak húzással és ejtéssel működik. Az azonos nevű mappák összevonódnak, az ismétlődő fájlnevek számot kapnak.",
     },
     compressionMode: {
       label: "{{format}} beállítási módja",
@@ -318,6 +324,12 @@ export const hu: TranslationSchema = {
     error: {
       label: "Hiba:",
       detailsLabel: "Részletek:",
+      showDetails: "Részletek megjelenítése",
+      hideDetails: "Részletek elrejtése",
+      skippedListLabel: "Kihagyott fájlok",
+      reasonUnsupported: "Nem támogatott fájltípus",
+      reasonTooLarge: "Nagyobb, mint {{size}}",
+      moreSkipped: "+{{count}} további",
     },
     buttons: {
       convert: "Átalakítás indítása",

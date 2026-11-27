@@ -16,12 +16,12 @@ export function useCropUnsupportedExtensions(): UseCropUnsupportedExtensionsResu
   useEffect(() => {
     const fetchUnsupportedExtensions = async () => {
       try {
-        const res = await fetch("/api/crop_unsupported_formats");
+        const res = await fetch("/api/v1/formats");
         if (!res.ok) {
           throw new Error("Failed to load unsupported crop formats");
         }
         const data = await res.json();
-        setUnsupportedExtensions(data.unsupported_formats || []);
+        setUnsupportedExtensions(data.preview_unsupported_formats || []);
       } catch (err) {
         console.error("Error fetching unsupported crop formats:", err);
         setError(err instanceof Error ? err : new Error("Unknown error"));

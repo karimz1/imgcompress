@@ -17,7 +17,7 @@ for (const sample of BACKEND_BITMAP_FILES) {
       const request = response.request();
       return (
         request.method() === 'POST' &&
-        response.url().includes('/api/crop/bitmap') &&
+        response.url().includes('/api/v1/preview') &&
         response.ok() &&
         (response.headers()['content-type'] ?? '').includes('image/png')
       );

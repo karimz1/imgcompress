@@ -58,7 +58,7 @@ export interface JobState {
  */
 export async function setJobNotify(job: JobRef, enabled: boolean, language?: string): Promise<boolean> {
   try {
-    const res = await fetch(`/api/jobs/${encodeURIComponent(job.id)}/notify`, {
+    const res = await fetch(`/api/v1/jobs/${encodeURIComponent(job.id)}/notify`, {
       method: "POST",
       headers: { ...jobHeaders(job), "Content-Type": "application/json" },
       // The message is written in this UI language (the server falls back to English).
@@ -73,7 +73,7 @@ export async function setJobNotify(job: JobRef, enabled: boolean, language?: str
 /** Asks the container to stop the job. Wrong token looks like "not found". */
 export async function cancelJob(job: JobRef): Promise<boolean> {
   try {
-    const res = await fetch(`/api/jobs/${encodeURIComponent(job.id)}/cancel`, {
+    const res = await fetch(`/api/v1/jobs/${encodeURIComponent(job.id)}/cancel`, {
       method: "POST",
       headers: jobHeaders(job),
     });
@@ -119,7 +119,7 @@ export function takeSharedJobLink(): SharedJobLink | null {
  */
 export async function claimSharedJob(link: SharedJobLink): Promise<JobRef | null> {
   try {
-    const res = await fetch(`/api/jobs/${encodeURIComponent(link.id)}/claim`, {
+    const res = await fetch(`/api/v1/jobs/${encodeURIComponent(link.id)}/claim`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ share_token: link.share }),
@@ -161,10 +161,11 @@ export class JobNotFoundError extends Error {
   }
 }
 
+// A file in a sub folder ("a/b/photo.avif") keeps its slashes: one path segment per folder.
 export const jobFileUrl = (job: JobRef, file: string) =>
-  `/api/jobs/${encodeURIComponent(job.id)}/files/${encodeURIComponent(file)}`;
+  `/api/v1/jobs/${encodeURIComponent(job.id)}/files/${file.split("/").map(encodeURIComponent).join("/")}`;
 
-export const jobZipUrl = (job: JobRef) => `/api/jobs/${encodeURIComponent(job.id)}/zip`;
+export const jobZipUrl = (job: JobRef) => `/api/v1/jobs/${encodeURIComponent(job.id)}/zip`;
 
 export const jobHeaders = (job: JobRef): Record<string, string> => ({ [JOB_TOKEN_HEADER]: job.token });
 
@@ -220,7 +221,7 @@ export function loadActiveJob(): JobRef | null {
 }
 
 async function fetchJobState(job: JobRef, signal: AbortSignal): Promise<JobState> {
-  const res = await fetch(`/api/jobs/${encodeURIComponent(job.id)}`, {
+  const res = await fetch(`/api/v1/jobs/${encodeURIComponent(job.id)}`, {
     headers: jobHeaders(job),
     cache: "no-store",
     signal,

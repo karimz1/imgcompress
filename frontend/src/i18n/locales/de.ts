@@ -8,6 +8,7 @@ export const de: TranslationSchema = {
       unsupportedFormat: "Nicht unterstütztes Dateiformat: {{fileName}}",
       filesRejected: "{{count}} Datei(en) übersprungen. Diesen Dateityp kann ich nicht öffnen.",
       fileTooLarge: "{{fileName}} ist größer als {{size}} und wurde nicht hinzugefügt.",
+      filesTooLarge: "{{count}} Datei(en) über {{size}} übersprungen.",
       batchTooLarge: "Die Dateien sind zusammen größer als {{size}}. Bitte in kleineren Gruppen umwandeln.",
       noFilesError: "Bitte lege oder wähle zuerst einige Dateien aus.",
       noFormatError: "Bitte wähle zuerst ein Ausgabeformat aus.",
@@ -142,6 +143,11 @@ export const de: TranslationSchema = {
       label: "Verlustfreies WebP",
       tooltip:
         "Behält jedes Pixel genau wie im Original. Die Dateien werden größer, deshalb sind Qualität und Max. Dateigröße ausgeschaltet.\nGut für Screenshots, Logos und Bilder mit Text.",
+    },
+    keepFolders: {
+      label: "Ordnerstruktur beibehalten",
+      tooltip:
+        "Behält die abgelegten Ordner in den Ergebnissen und im ZIP bei, statt alles in eine flache Liste zu legen.\nFunktioniert nur per Drag & Drop. Gleichnamige Ordner werden zusammengeführt, doppelte Dateinamen bekommen eine Nummer.",
     },
     compressionMode: {
       label: "{{format}}-Einstellungsmodus",
@@ -318,6 +324,12 @@ export const de: TranslationSchema = {
     error: {
       label: "Fehler:",
       detailsLabel: "Einzelheiten:",
+      showDetails: "Details anzeigen",
+      hideDetails: "Details ausblenden",
+      skippedListLabel: "Übersprungene Dateien",
+      reasonUnsupported: "Dateityp wird nicht unterstützt",
+      reasonTooLarge: "Größer als {{size}}",
+      moreSkipped: "+{{count}} weitere",
     },
     buttons: {
       convert: "Konvertierung starten",

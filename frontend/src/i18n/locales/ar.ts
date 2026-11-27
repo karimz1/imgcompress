@@ -8,6 +8,7 @@ export const ar: TranslationSchema = {
       unsupportedFormat: "تنسيق ملف غير مدعوم: {{fileName}}",
       filesRejected: "تم تخطي {{count}} ملف(ات). لا أستطيع فتح هذا النوع من الملفات.",
       fileTooLarge: "حجم {{fileName}} أكبر من {{size}} ولم تتم إضافته.",
+      filesTooLarge: "تم تخطي {{count}} ملف(ات) أكبر من {{size}}.",
       batchTooLarge: "حجم الملفات معًا أكبر من {{size}}. يُرجى تحويلها على دفعات أصغر.",
       noFilesError: "يرجى إسقاط أو تحديد بعض الملفات أولاً.",
       noFormatError: "يرجى تحديد تنسيق إخراج أولاً.",
@@ -142,6 +143,11 @@ export const ar: TranslationSchema = {
       label: "WebP بدون فقدان",
       tooltip:
         "يحافظ على كل بكسل تمامًا كما في الأصل. تصبح الملفات أكبر، لذلك يتم إيقاف الجودة وحجم الملف الأقصى.\nمناسب للقطات الشاشة والشعارات والصور التي فيها نص.",
+    },
+    keepFolders: {
+      label: "الحفاظ على بنية المجلدات",
+      tooltip:
+        "يحتفظ بالمجلدات التي أفلتّها في النتائج وفي ملف ZIP بدلًا من وضع كل شيء في قائمة واحدة.\nيعمل بالسحب والإفلات فقط. تُدمج المجلدات التي تحمل الاسم نفسه، وتحصل أسماء الملفات المكررة على رقم.",
     },
     compressionMode: {
       label: "وضع إعدادات {{format}}",
@@ -318,6 +324,12 @@ export const ar: TranslationSchema = {
     error: {
       label: "خطأ:",
       detailsLabel: "التفاصيل:",
+      showDetails: "عرض التفاصيل",
+      hideDetails: "إخفاء التفاصيل",
+      skippedListLabel: "الملفات التي تم تخطيها",
+      reasonUnsupported: "نوع الملف غير مدعوم",
+      reasonTooLarge: "أكبر من {{size}}",
+      moreSkipped: "و{{count}} أخرى",
     },
     buttons: {
       convert: "بدء التحويل",

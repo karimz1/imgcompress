@@ -8,6 +8,7 @@ export const ja: TranslationSchema = {
       unsupportedFormat: "未対応のファイル形式: {{fileName}}",
       filesRejected: "{{count}} 件のファイルをスキップしました。このファイル形式は開けません。",
       fileTooLarge: "{{fileName}} は {{size}} を超えているため追加されませんでした。",
+      filesTooLarge: "{{size}} を超える {{count}} 件のファイルをスキップしました。",
       batchTooLarge: "ファイルの合計が {{size}} を超えています。少しずつ分けて変換してください。",
       noFilesError: "先にファイルをドロップするか選択してください。",
       noFormatError: "先に出力形式を選択してください。",
@@ -142,6 +143,11 @@ export const ja: TranslationSchema = {
       label: "ロスレス WebP",
       tooltip:
         "すべてのピクセルを元の画像とまったく同じに保ちます。ファイルが大きくなるため、品質と最大ファイルサイズはオフになります。\nスクリーンショット、ロゴ、文字の入った画像に向いています。",
+    },
+    keepFolders: {
+      label: "フォルダ構成を保持",
+      tooltip:
+        "ドロップしたフォルダ構成を、結果とZIPにそのまま残します。すべてを1つの一覧にまとめません。\nドラッグ＆ドロップのみ対応です。同じ名前のフォルダはまとめられ、重複するファイル名には番号が付きます。",
     },
     compressionMode: {
       label: "{{format}} 設定モード",
@@ -318,6 +324,12 @@ export const ja: TranslationSchema = {
     error: {
       label: "エラー:",
       detailsLabel: "詳細:",
+      showDetails: "詳細を表示",
+      hideDetails: "詳細を隠す",
+      skippedListLabel: "スキップしたファイル",
+      reasonUnsupported: "対応していないファイル形式です",
+      reasonTooLarge: "{{size}} を超えています",
+      moreSkipped: "ほか {{count}} 件",
     },
     buttons: {
       convert: "変換を開始",

@@ -21,3 +21,19 @@ def direct_child(base_dir, name) -> Optional[str]:
     if resolved != joined or os.path.dirname(resolved) != base:
         return None
     return resolved
+
+
+def path_inside(base_dir, *parts) -> Optional[str]:
+    """``base_dir/part/...`` as a real path, or None if it would land outside ``base_dir``.
+
+    Used for nested paths built from uploaded folder names, as a last check
+    after the names themselves were cleaned. Links are resolved, so a link
+    pointing out of ``base_dir`` is refused too.
+    """
+    if any(not isinstance(p, str) or "\x00" in p or os.path.isabs(p) for p in parts):
+        return None
+    base = os.path.realpath(base_dir)
+    resolved = os.path.realpath(os.path.join(base, *parts))
+    if resolved != base and not resolved.startswith(base + os.sep):
+        return None
+    return resolved

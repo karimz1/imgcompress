@@ -99,18 +99,18 @@ test('crop runs first: AI background removal receives cropped pixels', async ({ 
   await setRembgEnabledAsync(page, true);
 
   const uploadSeen = page.waitForRequest((request) =>
-    request.method() === 'POST' && request.url().endsWith('/api/jobs')
+    request.method() === 'POST' && request.url().endsWith('/api/v1/jobs')
   );
 
   const jobId = 'crop-rembg-order-test1';
-  await page.route('**/api/jobs', async (route) => {
+  await page.route('**/api/v1/jobs', async (route) => {
     await route.fulfill({
       status: 202,
       contentType: 'application/json',
       body: JSON.stringify({ id: jobId, token: 'test-token', status: 'queued' }),
     });
   });
-  await page.route(`**/api/jobs/${jobId}`, async (route) => {
+  await page.route(`**/api/v1/jobs/${jobId}`, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -137,7 +137,7 @@ test('crop runs first: AI background removal receives cropped pixels', async ({ 
   const uploadedImage = parts.find((part) => part.name === 'files[]');
 
   expect(fields.get('format')).toBe('png');
-  expect(fields.get('use_rembg')).toBe('true');
+  expect(fields.get('remove_background')).toBe('true');
   expect(uploadedImage, 'cropped file uploaded to backend').toBeDefined();
   expect(uploadedImage!.filename).toContain('_cropped');
 

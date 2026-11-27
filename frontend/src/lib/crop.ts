@@ -75,7 +75,7 @@ export function applyRatio(
 }
 
 const CROP_BITMAP_MAX_ATTEMPTS = 3;
-const CROP_BITMAP_ENDPOINT = "/api/crop/bitmap";
+const CROP_BITMAP_ENDPOINT = "/api/v1/preview";
 
 interface LoadImageOptions {
   onFallbackToServer?: () => void;
@@ -121,7 +121,8 @@ async function readBitmapError(res: Response): Promise<string> {
     const text = await res.text();
     try {
       const parsed = JSON.parse(text);
-      return parsed.error || parsed.message || text;
+      // API errors: {error: <status name>, message: <what went wrong>}.
+      return parsed.message || parsed.error || text;
     } catch {
       return text;
     }
@@ -155,7 +156,7 @@ export async function isImageDecodable(src: string): Promise<boolean> {
 // Formats every browser can decode directly via <img>, so the crop UI can
 // preview them client-side without a server round-trip. This is intentionally
 // NOT the backend-supported format list (that comes from the backend at
-// runtime); anything outside this set falls back to /api/crop/bitmap.
+// runtime); anything outside this set falls back to /api/v1/preview.
 const BROWSER_NATIVE_EXTS = new Set(["png", "jpg", "jpeg"]);
 
 function fileExtensionLower(file: File): string {
@@ -279,7 +280,7 @@ export function buildCroppedFilename(name: string, outputMime: string): string {
 type CropBox = Pick<CropConfig, "x" | "y" | "width" | "height">;
 
 /**
- * The form for /api/crop/fit. Pictures are sent by id from the editor session
+ * The form for /api/v1/edit. Pictures are sent by id from the editor session
  * (uploaded once); ``withPictures`` false leaves them and the layers out, for
  * requests that only compute the selection.
  */
@@ -380,7 +381,7 @@ async function postFit(
   for (let attempt = 0; ; attempt++) {
     const form = await fitForm(bitmap, fit, options.crop, withPictures);
     for (const [key, value] of Object.entries(options.extra ?? {})) form.append(key, value);
-    const response = await fetch("/api/crop/fit", { method: "POST", body: form, signal });
+    const response = await fetch("/api/v1/edit", { method: "POST", body: form, signal });
     if (response.status === 410 && attempt === 0) {
       forgetEditorAssets();
       continue;

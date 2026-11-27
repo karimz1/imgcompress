@@ -4,7 +4,7 @@ import tempfile
 import traceback
 import zipfile
 from dataclasses import dataclass
-from typing import IO, Optional
+from typing import IO, Callable, Optional
 
 from werkzeug.utils import secure_filename
 
@@ -13,10 +13,17 @@ from backend.image_converter.application.dtos import (
     CompressionFormData,
     CompressionResponse,
     CompressRequest,
+    CompressResult,
 )
 from backend.image_converter.core.enums.image_format import ImageFormat
 from backend.image_converter.core.internals.utilities import Result
+from backend.image_converter.infrastructure.folder_files import list_files
 from backend.image_converter.infrastructure.job_progress import JobCanceled
+from backend.image_converter.infrastructure.upload_folders import (
+    FolderPathTooLong,
+    UploadTree,
+    folder_segments,
+)
 from backend.image_converter.domain.fit_to_size import FitMode, FitToSize
 from backend.image_converter.domain.pdf_presets import (
     normalize_pdf_preset,
@@ -39,6 +46,47 @@ class PreparedCompression:
     dest: JobFolder
     file_count: int
 
+
+@dataclass
+class ConvertedDownload:
+    """The result of a synchronous conversion, ready to send once."""
+
+    stream: IO[bytes]
+    download_name: str
+    mimetype: Optional[str]
+    summary: CompressResult
+
+
+class _RemovedOnClose:
+    """
+    The result file; closing it (which the WSGI file wrapper does once the
+    answer is sent) also removes its folder. Everything else, such as fileno
+    for sendfile, comes from the real file.
+    """
+
+    def __init__(self, stream: IO[bytes], on_close: Callable[[], None]):
+        self._stream = stream
+        self._on_close = on_close
+
+    def __getattr__(self, name):
+        return getattr(self._stream, name)
+
+    def close(self) -> None:
+        try:
+            self._stream.close()
+        finally:
+            self._on_close()
+
+
+@dataclass
+class DownloadOutcome:
+    download: Optional[ConvertedDownload] = None
+    error: Optional[str] = None
+    # True: the options were refused before anything ran (a client error).
+    invalid: bool = False
+
+
+ZIP_DOWNLOAD_NAME = "compressed_images.zip"
 
 # ZIPs up to this size stay in memory; larger ones spill to an unnamed temp
 # file that disappears when the download is closed.
@@ -67,10 +115,8 @@ class CompressionService:
         try:
             with self.temp_folder_service.use_folder(folder_path):
                 with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
-                    for name in sorted(os.listdir(folder_path)):
-                        path = os.path.join(folder_path, name)
-                        if os.path.isfile(path):
-                            zf.write(path, arcname=name)
+                    for name in list_files(folder_path):
+                        zf.write(os.path.join(folder_path, *name.split("/")), arcname=name)
             archive.seek(0)
             return Result.success(archive)
         except Exception:
@@ -84,6 +130,42 @@ class CompressionService:
         if not prepared.is_successful:
             return Result.failure(prepared.error)
         return self.run(prepared.value)
+
+    def convert_for_download(self, form_data: CompressionFormData, always_zip: bool = False) -> DownloadOutcome:
+        """
+        Converts in the calling thread and hands back the one result file, or a
+        ZIP when there are several (or ``always_zip``). The result folder is
+        removed when the returned stream is closed; nothing stays behind.
+        """
+        prepared = self.prepare(form_data)
+        if not prepared.is_successful:
+            return DownloadOutcome(error=prepared.error, invalid=True)
+        result = self.run(prepared.value)
+        if not result.is_successful:
+            return DownloadOutcome(error=result.error)
+
+        dest = result.value.dest_folder
+
+        def discard() -> None:
+            shutil.rmtree(dest, ignore_errors=True)
+
+        converted = result.value.converted_files
+        summary = result.value.process_summary
+        try:
+            if len(converted) == 1 and not always_zip:
+                path = os.path.join(dest, *converted[0].split("/"))
+                stream = _RemovedOnClose(open(path, "rb"), discard)
+                return DownloadOutcome(ConvertedDownload(stream, os.path.basename(path), None, summary))
+            archive = self.create_all_files_zip(dest)
+        except Exception:
+            discard()
+            raise
+        # The ZIP is spooled apart from the folder, so the folder can go now.
+        discard()
+        if not archive.is_successful:
+            return DownloadOutcome(error=archive.error)
+        return DownloadOutcome(ConvertedDownload(
+            archive.value, ZIP_DOWNLOAD_NAME, "application/zip", summary))
 
     def prepare(self, form_data: CompressionFormData) -> Result[PreparedCompression]:
         """
@@ -163,7 +245,9 @@ class CompressionService:
             src = self.temp_folder_service.create_job_dir(prefix="source_")
             dst = self.temp_folder_service.create_job_dir(prefix="converted_")
 
-            save_res = self._save_uploaded_files(form_data.uploaded_files, src.path)
+            save_res = self._save_uploaded_files(
+                form_data.uploaded_files, src.path, form_data.relative_dirs
+            )
             if not save_res.is_successful:
                 self._discard(src, dst)
                 return Result.failure(save_res.error)
@@ -214,7 +298,7 @@ class CompressionService:
             if not result.processed_files:
                 return Result.failure(f"Image processing failed: {'; '.join(result.errors)}")
 
-            converted = [f for f in os.listdir(dst.path) if os.path.isfile(os.path.join(dst.path, f))]
+            converted = list_files(dst.path)
             if not converted:
                 return Result.failure("No files were converted")
 
@@ -247,11 +331,14 @@ class CompressionService:
                 shutil.rmtree(folder.path, ignore_errors=True)
                 folder.release()
 
-    def _save_uploaded_files(self, files, folder: str) -> Result[None]:
+    def _save_uploaded_files(self, files, folder: str, relative_dirs=()) -> Result[None]:
+        """Saves each upload into ``folder``, or into its own sub folder when the browser sent one."""
         try:
             os.makedirs(folder, exist_ok=True)
+            tree = UploadTree(folder)
             for index, file in enumerate(files, start=1):
-                path = self._create_unique_file(folder, self._upload_name(file.filename, index))
+                target = tree.folder_for(relative_dirs[index - 1]) if relative_dirs else folder
+                path = self._create_unique_file(target, self._upload_name(file.filename, index))
                 with open(path, "wb") as f:
                     while True:
                         chunk = file.stream.read(8192)
@@ -260,9 +347,17 @@ class CompressionService:
                         f.write(chunk)
                 self.logger.log(f"Saved file: {path}", "info")
             return Result.success(None)
+        except FolderPathTooLong as error:
+            self.logger.log(f"Refused upload: {error}", "warning")
+            return Result.failure(str(error))
         except Exception:
             self.logger.log(f"Failed saving upload: {traceback.format_exc()}", "error")
             return Result.failure("Failed to save uploaded files.")
+
+    @staticmethod
+    def _folder_segments(relative_dir: Optional[str]) -> list[str]:
+        """The cleaned folder names of a path such as "holiday/day1" (see upload_folders)."""
+        return folder_segments(relative_dir)
 
     @staticmethod
     def _upload_name(filename: Optional[str], index: int) -> str:

@@ -37,14 +37,14 @@ async function startJobAsync(request: APIRequestContext, pictures: Picture[], ex
   for (const picture of pictures) {
     form.append('files[]', new Blob([new Uint8Array(await solidPng(picture))], { type: 'image/png' }), picture.name);
   }
-  const response = await request.post('/api/jobs', { multipart: form });
+  const response = await request.post('/api/v1/jobs', { multipart: form });
   expect(response.status(), await response.text()).toBe(202);
   const body = await response.json();
   return { id: body.id, token: body.token };
 }
 
 async function statusAsync(request: APIRequestContext, job: Job): Promise<JobState> {
-  const response = await request.get(`/api/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
+  const response = await request.get(`/api/v1/jobs/${job.id}`, { headers: { 'X-Job-Token': job.token } });
   expect(response.status()).toBe(200);
   return response.json();
 }
@@ -55,23 +55,26 @@ async function waitDoneAsync(request: APIRequestContext, job: Job): Promise<JobS
 }
 
 async function downloadAsync(request: APIRequestContext, job: Job, file: string): Promise<Buffer> {
-  const response = await request.get(`/api/jobs/${job.id}/files/${encodeURIComponent(file)}`, { headers: { 'X-Job-Token': job.token } });
+  const response = await request.get(`/api/v1/jobs/${job.id}/files/${encodeURIComponent(file)}`, { headers: { 'X-Job-Token': job.token } });
   expect(response.status()).toBe(200);
   return response.body();
 }
 
 async function zipAsync(request: APIRequestContext, job: Job): Promise<AdmZip> {
-  const response = await request.get(`/api/jobs/${job.id}/zip`, { headers: { 'X-Job-Token': job.token } });
+  const response = await request.get(`/api/v1/jobs/${job.id}/zip`, { headers: { 'X-Job-Token': job.token } });
   expect(response.status()).toBe(200);
   return new AdmZip(await response.body());
 }
 
 async function expectJobIsHiddenAsync(request: APIRequestContext, job: Job, token: string | undefined, file: string) {
   const headers = token === undefined ? undefined : { 'X-Job-Token': token };
-  for (const url of [`/api/jobs/${job.id}`, `/api/jobs/${job.id}/files/${file}`, `/api/jobs/${job.id}/zip`]) {
+  for (const url of [`/api/v1/jobs/${job.id}`, `/api/v1/jobs/${job.id}/files/${file}`, `/api/v1/jobs/${job.id}/zip`]) {
     const response = await request.get(url, { headers });
     expect(response.status(), url).toBe(404);
-    expect(await response.json()).toEqual({ error: 'Job not found. It may have expired.' });
+    expect(await response.json()).toEqual({
+      error: 'Not Found',
+      message: 'Job not found. It may have expired, or the X-Job-Token is wrong.',
+    });
   }
 }
 

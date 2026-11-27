@@ -1,2 +1,4 @@
 allowBuilds:
   sharp: true
+  # swagger-ui-dist pulls in Scarf, whose install script only sends usage telemetry.
+  '@scarf/scarf': false

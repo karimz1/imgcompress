@@ -5,9 +5,9 @@ tail of decoders Pillow's registry advertises but that no test has ever
 exercised), this file:
 
   1. Synthesizes an input file using Pillow as a sample-file factory.
-  2. POSTs it to /api/compress on the running app container — the same
-     endpoint the web UI hits when a user drags a file in.
-  3. Downloads the converted PNG via /api/download.
+  2. POSTs it to /api/v1/convert on the running app container, with the
+     same form fields the web UI sends to /api/v1/jobs.
+  3. Gets the converted PNG back in the answer.
   4. Asserts the PNG exists, is a real PNG, and is not blank.
 
 If Pillow has no writer for a given extension we cannot fabricate an
@@ -25,12 +25,10 @@ pytest.
 from __future__ import annotations
 
 import io
-import json
 import os
 import secrets
 import time
 import urllib.error
-import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Dict, Optional
@@ -134,8 +132,8 @@ def _try_save_in_modes(base: Image.Image, target: Path) -> bool:
 
 
 def _post_compress(file_path: Path, output_format: str = "png", quality: int = 80):
-    """POST a single file to /api/compress as multipart/form-data with the
-    same field shape the web UI uses. Returns (status_code, parsed_json)."""
+    """POST a single file to /api/v1/convert as multipart/form-data with the
+    same field shape the web UI uses. Returns (status_code, body bytes or error text)."""
     boundary = "----imgcompresstest" + secrets.token_hex(8)
     body = io.BytesIO()
 
@@ -158,25 +156,16 @@ def _post_compress(file_path: Path, output_format: str = "png", quality: int = 8
     body.write(f"--{boundary}--\r\n".encode())
 
     req = urllib.request.Request(
-        f"{API_BASE}/api/compress",
+        f"{API_BASE}/api/v1/convert",
         data=body.getvalue(),
         method="POST",
     )
     req.add_header("Content-Type", f"multipart/form-data; boundary={boundary}")
     try:
         with urllib.request.urlopen(req, timeout=API_TIMEOUT_SECONDS) as resp:
-            return resp.status, json.loads(resp.read().decode("utf-8"))
+            return resp.status, resp.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read().decode("utf-8", errors="replace")
-
-
-def _download_converted_file(dest_folder: str, file_name: str) -> bytes:
-    url = (
-        f"{API_BASE}/api/download?"
-        f"folder={urllib.parse.quote(dest_folder)}&file={urllib.parse.quote(file_name)}"
-    )
-    with urllib.request.urlopen(url, timeout=API_TIMEOUT_SECONDS) as resp:
-        return resp.read()
 
 
 def _wait_for_health(deadline_s: int) -> bool:
@@ -184,7 +173,7 @@ def _wait_for_health(deadline_s: int) -> bool:
     while time.monotonic() < end:
         try:
             with urllib.request.urlopen(
-                f"{API_BASE}/api/health/backend", timeout=3
+                f"{API_BASE}/api/v1/health", timeout=3
             ) as resp:
                 if resp.status == 200:
                     return True
@@ -195,33 +184,11 @@ def _wait_for_health(deadline_s: int) -> bool:
 
 
 def _assert_api_converts_to_visible_png(ext: str, file_path: Path) -> None:
-    status, payload = _post_compress(file_path, output_format="png", quality=80)
+    status, png_bytes = _post_compress(file_path, output_format="png", quality=80)
     if status != 200:
-        pytest.fail(
-            f"{ext} -> /api/compress returned HTTP {status}: "
-            f"{payload!r}"
-        )
+        pytest.fail(f"{ext} -> /api/v1/convert returned HTTP {status}: {png_bytes!r}")
 
-    assert isinstance(payload, dict), f"{ext} -> non-JSON response: {payload!r}"
-    assert payload.get("converted_files"), (
-        f"{ext} -> response had no converted_files: {payload!r}"
-    )
-    assert payload.get("dest_folder"), (
-        f"{ext} -> response had no dest_folder: {payload!r}"
-    )
-
-    converted_file = payload["converted_files"][0]
-    dest_folder = payload["dest_folder"]
-
-    try:
-        png_bytes = _download_converted_file(dest_folder, converted_file)
-    except urllib.error.HTTPError as e:
-        pytest.fail(
-            f"{ext} -> /api/download returned HTTP {e.code}: "
-            f"{e.read().decode('utf-8', errors='replace')}"
-        )
-
-    assert png_bytes, f"{ext} -> downloaded PNG was empty"
+    assert png_bytes, f"{ext} -> converted PNG was empty"
 
     with Image.open(io.BytesIO(png_bytes)) as out_img:
         assert out_img.format and out_img.format.upper() == "PNG", (
@@ -241,7 +208,7 @@ def _assert_api_converts_to_visible_png(ext: str, file_path: Path) -> None:
 
 @pytest.fixture(scope="module")
 def app_is_ready() -> None:
-    """Block until /api/health/backend returns 200. The CI job that runs
+    """Block until /api/v1/health returns 200. The CI job that runs
     this test brings up the app container before invoking pytest, but
     container start-up isn't instantaneous."""
     if not _wait_for_health(HEALTH_TIMEOUT_SECONDS):
@@ -286,7 +253,7 @@ def test_api_compress_accepts_unverified_format_and_returns_visible_png(
     app_is_ready, synthesized_inputs, ext
 ):
     """For each unverified input extension, the running container must
-    accept the file at /api/compress and return a non-blank PNG."""
+    accept the file at /api/v1/convert and return a non-blank PNG."""
     file_path = synthesized_inputs[ext]
     if file_path is None:
         pytest.skip(
