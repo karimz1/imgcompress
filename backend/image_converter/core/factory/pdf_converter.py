@@ -16,6 +16,9 @@ def _normalize_for_pdf(img: Image.Image) -> Image.Image:
     except Exception:
         pass
 
+    if img.mode == "PA" or (img.mode == "P" and "transparency" in img.info):
+        img = img.convert("RGBA")
+
     if img.mode in ("RGBA", "LA"):
         background = Image.new("RGB", img.size, (255, 255, 255))
         alpha = img.getchannel("A")
