@@ -40,6 +40,7 @@ from PIL import Image, ImageDraw, ImageStat
 # Single source of truth — pull both lists from the real backend modules so
 # this test stays in sync automatically when either list is extended.
 from backend.image_converter.core.internals.utilities import supported_extensions
+from backend.image_converter.infrastructure.raw_renderer import RAW_EXTENSIONS
 from backend.image_converter.presentation.web.services.configuration_service import (
     ConfigurationService,
 )
@@ -79,6 +80,8 @@ _EXPECTED_PILLOW_UNWRITABLE_FORMATS = frozenset(
         ".wmf",
         ".xpm",
     }
+    # Camera RAW only comes from cameras: Pillow has no writer for it.
+    | RAW_EXTENSIONS
 )
 _MIN_SYNTHESIZABLE_FORMATS = 38
 

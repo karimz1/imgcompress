@@ -19,19 +19,31 @@
   "crop_preview": {
     "max_retry_attempts": 3,
     "unsupported_input_extensions": [
-      ".pdf",
-      ".raw",
-      ".cr2",
-      ".nef",
-      ".arw",
-      ".dng"
+      ".pdf"
     ]
   },
   "formats": {
     "custom_pipeline_extensions": [
       ".pdf",
       ".psd",
-      ".svg"
+      ".svg",
+      ".3fr",
+      ".arw",
+      ".cr2",
+      ".cr3",
+      ".dng",
+      ".erf",
+      ".kdc",
+      ".mrw",
+      ".nef",
+      ".nrw",
+      ".orf",
+      ".pef",
+      ".raf",
+      ".rw2",
+      ".sr2",
+      ".srf",
+      ".srw"
     ]
   },
   "features": {

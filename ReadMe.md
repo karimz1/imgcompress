@@ -78,12 +78,12 @@ ImgCompress is a **self-hosted image app in a single Docker container**, easy fo
 
 | Feature | Details |
 |---|---|
-| **70+ Image Formats** | HEIC, HEIF, PSD, SVG, AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60 more ([which are tested](https://imgcompress.karimzouine.com/#formats)) |
+| **70+ Image Formats** | HEIC, HEIF, PSD, SVG, camera RAW (DNG, CR2, CR3, NEF, ARW, RAF and more), AVIF, EPS, PDF, WebP, TIFF, BMP, GIF, and 60 more ([which are tested](https://imgcompress.karimzouine.com/#formats)) |
 | **AI Background Removal** | Built in and ready to use. No account, no subscription, no upload |
 | **AI Upscaling** | Make small images bigger and sharper, up to 16K, offline ([guide](https://imgcompress.karimzouine.com/docs/ai-upscaling)) |
 | **Image Editor** | Crop, exact sizes, backgrounds, text and logos before converting ([guide](https://imgcompress.karimzouine.com/docs/image-editor)) |
 | **Bulk Compression** | Make a whole folder of photos smaller in one go |
-| **Format Conversion** | HEIC to WebP, PSD to JPG, [SVG to PNG](https://imgcompress.karimzouine.com/docs/svg-to-png), image batches to paginated PDF, and more ([WebP guide](https://imgcompress.karimzouine.com/docs/convert-to-webp)) |
+| **Format Conversion** | HEIC to WebP, PSD to JPG, camera RAW to JPG, [SVG to PNG](https://imgcompress.karimzouine.com/docs/svg-to-png), image batches to paginated PDF, and more ([WebP guide](https://imgcompress.karimzouine.com/docs/convert-to-webp)) |
 | **Web App + CLI** | An easy web page for everyday use, plus a command line for automation |
 | **One Container** | Everything is included. Nothing else to install |
 | **Works Offline** | After the first download, no internet is needed, ever |
@@ -291,7 +291,7 @@ Contributions are welcome: bug reports, format requests, or pull requests.
 - Report vulnerabilities privately via [SECURITY.md](SECURITY.md), not as a public issue
 - See the **[Architecture overview](docs/architecture.md)** for how jobs, storage and cleanup fit together
 - Browse [`good-first-issue`](https://github.com/karimz1/imgcompress/labels/good-first-issue) labels for a starting point
-- Every change runs a Playwright E2E suite; 49 of the 71 input formats pass automated conversion tests
+- Every change runs a Playwright E2E suite; 54 of the 88 input formats pass automated conversion tests
 - Maintainers: [release workflow](https://imgcompress.karimzouine.com/docs/release-workflow), [build details](https://imgcompress.karimzouine.com/docs/build-details) and [CI feature flags](https://imgcompress.karimzouine.com/docs/ci-feature-flags)
 
 > [!NOTE]

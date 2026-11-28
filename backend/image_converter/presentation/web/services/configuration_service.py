@@ -28,6 +28,11 @@ class ConfigurationService:
             ".svg",
             ".pdf",
             ".avif",
+            ".dng",
+            ".cr3",
+            ".nef",
+            ".arw",
+            ".raf",
         ]
 
     def get_rembg_model_name(self) -> str:
