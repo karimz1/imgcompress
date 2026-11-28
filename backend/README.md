@@ -30,6 +30,14 @@ The crop editor uses a PNG preview with a longest side of 2048 pixels while keep
 
 Docker and Dev Containers include the Cairo runtime. For a native installation, install Cairo as well as the Python requirements (for example, `libcairo2` on Debian/Ubuntu, `brew install cairo` on macOS, or a Cairo/GTK runtime on Windows). CairoSVG brings its XML and CSS dependencies automatically; no separate SVG package is needed.
 
+## Camera RAW import
+
+Camera RAW files (`.dng`, `.cr2`, `.cr3`, `.nef`, `.nrw`, `.arw`, `.srf`, `.sr2`, `.orf`, `.rw2`, `.raf`, `.pef`, `.srw`, `.3fr`, `.erf`, `.kdc`, `.mrw`) are decoded with [rawpy](https://github.com/letmaik/rawpy), which bundles LibRaw, into an 8-bit sRGB image before entering the Pillow conversion pipeline. Decoding uses the camera white balance and AHD demosaicing, and LibRaw applies the camera orientation. No metadata is carried over. Resizing, the crop editor, AI upscaling and background removal then work on RAW files like on any other photo.
+
+Sigma `.x3f` (LibRaw's imported X3F code has a CVE history) and the generic `.raw` extension are not accepted. A file that LibRaw cannot read, such as a JPEG renamed to `.nef`, fails with a generic error; the LibRaw message is only logged.
+
+RAW decoding follows two of the AI upscaling settings below: a sensor larger than `upscaling.max_output_megapixels` is refused before it is decoded, and LibRaw's OpenMP threads are capped at `upscaling.threads` unless `OMP_NUM_THREADS` is set. The rawpy wheel ships LibRaw inside it, so container scanners do not list it as an OS package; Dependabot tracks it through `requirements.txt`.
+
 ## AI upscaling
 
 Two Real-ESRGAN models ship in the Docker image: `realesr-general-x4v3` (General, the default) and `realesr-animevideov3` (Anime, for drawn images). General also comes in two noise-reduction presets, `realesr-general-x4v3-denoise-medium` and `-denoise-low` (`--upscale-model general-denoise-medium|general-denoise-low`). They blend General with the official `realesr-general-wdn-x4v3` weights (strength 0.5 and 0.25, like `--denoise_strength` in upstream `inference_realesrgan.py`), so they keep more fine detail and more noise at the same speed. All are built in the `upscale-model-stage` of the Dockerfile by `scripts/build_upscale_model.py` from the official `.pth` release files, which are SHA-256 checked before they are loaded. Only the `.onnx` files and their `.sha256` files end up in `IMGCOMPRESS_MODEL_HOME` (`/container/.models`). Nothing is downloaded at runtime; a missing or changed model file shows up as "not installed" in the UI.

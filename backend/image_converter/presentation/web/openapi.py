@@ -383,13 +383,13 @@ def _paths(base: str, keyed: bool = True) -> dict:
             "tags": ["Info"], "operationId": "formats",
             "summary": "Input and output formats",
             "description": "`supported_formats`: file extensions the container reads (70+, from Pillow plus the "
-            "PDF, PSD, SVG and HEIC pipelines). `verified_formats`: the ones tested in CI. "
+            "PDF, PSD, SVG, camera RAW and HEIC pipelines). `verified_formats`: the ones tested in CI. "
             "`preview_unsupported_formats`: inputs POST /preview cannot render (they still convert). "
             "`output_formats`: values for the `format` field." + _curl(f"curl -fsS {base}/formats{auth}"),
             "responses": {"200": {"description": "Format lists.", "content": _json(_ref("Formats"), {
                 "supported_formats": [".avif", ".heic", ".jpg", ".png", ".psd", ".webp"],
                 "verified_formats": [".heic", ".png", ".jpg"],
-                "preview_unsupported_formats": [".pdf", ".raw"],
+                "preview_unsupported_formats": [".pdf"],
                 "output_formats": list(options.FORMAT.choices)})}},
         }},
         "/models/remove-background": {"get": {

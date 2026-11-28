@@ -22,10 +22,42 @@ Sample images in this project come from Pexels and Vecteezy. They are used under
 
 6. **landscape-with-sunset-yixing.jpg**
    - **Source**: [Image by freepik - Landscape with sunset in yixing](https://www.freepik.com/free-photo/landscape-with-sunset-yixing_1287284.htm)
+
+7. **apple-iphone-xs.dng**
+   - **Source**: [raw.pixls.us - Apple - iPhone XS - 16bit (4:3).dng](https://raw.pixls.us/getfile.php/3372/nice/Apple%20-%20iPhone%20XS%20-%2016bit%20(4:3).dng)
+   - **Author**: raw.pixls.us contributor
+   - **License**: [CC0 1.0 Universal (public domain)](https://creativecommons.org/publicdomain/zero/1.0/)
+   - **SHA-256**: 50bc64ee8cfbbfb6c0531e29ab428ff985506a16fe2d1d2e74656f21b54505f6
+
+8. **canon-eos-r6.cr3**
+   - **Source**: [raw.pixls.us - Canon - EOS R6 - 3:2.CR3](https://raw.pixls.us/getfile.php/4659/nice/Canon%20-%20EOS%20R6%20-%203:2.CR3)
+   - **Author**: raw.pixls.us contributor
+   - **License**: [CC0 1.0 Universal (public domain)](https://creativecommons.org/publicdomain/zero/1.0/)
+   - **SHA-256**: 74abb0a113d075ad9887a058082f40dd2a938c4813a08474d82356f11a027778
+
+9. **nikon-d70s.nef**
+   - **Source**: [raw.pixls.us - Nikon - D70s - 12bit compressed (Lossy (type 1)) (3:2).NEF](https://raw.pixls.us/getfile.php/1117/nice/Nikon%20-%20D70s%20-%2012bit%2012bit%20compressed%20(Lossy%20(type%201))%20(3:2).NEF)
+   - **Author**: raw.pixls.us contributor
+   - **License**: [CC0 1.0 Universal (public domain)](https://creativecommons.org/publicdomain/zero/1.0/)
+   - **SHA-256**: 6c46f9854033e7623ebbb5de8c951df6762ca44f05d45035ccc5cb7e9f4e5692
+
+10. **sony-ilce-7s.arw**
+   - **Source**: [raw.pixls.us - Sony - ILCE-7S - 14bit compressed (3:2).ARW](https://raw.pixls.us/getfile.php/1582/nice/Sony%20-%20ILCE-7S%20-%2014bit%2014bit%20compressed%20(3:2).ARW)
+   - **Author**: raw.pixls.us contributor
+   - **License**: [CC0 1.0 Universal (public domain)](https://creativecommons.org/publicdomain/zero/1.0/)
+   - **SHA-256**: a35ebb2fbec929daa5beb20d1ce5c15a8aac7b1a7a231455387f3df8a7442e07
+
+11. **fujifilm-finepix-s5000.raf**
+   - **Source**: [raw.pixls.us - Fujifilm - FinePix S5000 - 4:3.RAF](https://raw.pixls.us/getfile.php/2726/nice/Fujifilm%20-%20FinePix%20S5000%20-%204:3.RAF)
+   - **Author**: raw.pixls.us contributor
+   - **License**: [CC0 1.0 Universal (public domain)](https://creativecommons.org/publicdomain/zero/1.0/)
+   - **SHA-256**: dabd5e74521a6980156be9fd4b88d0c37b0fe4d0e0e6f5c12db8cffff1b76297
 ---
 
 ### License
 
 These images are free to use under the [Pexels License](https://www.pexels.com/license/) 
 and [vecteezy License](https://www.vecteezy.com/licensing-agreement) and
-[freepik License](https://www.freepik.com/) .
+[freepik License](https://www.freepik.com/).
+The camera RAW samples come from [raw.pixls.us](https://raw.pixls.us/) and are released under
+[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain); they are credited anyway.

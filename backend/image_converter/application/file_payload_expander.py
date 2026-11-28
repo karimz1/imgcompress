@@ -6,6 +6,7 @@ from backend.image_converter.domain.fit_to_size import FitToSize
 from backend.image_converter.domain.upscaling import UpscaleTarget
 from backend.image_converter.infrastructure.pdf_page_extractor import PdfPageExtractor
 from backend.image_converter.infrastructure.psd_renderer import PsdRenderer
+from backend.image_converter.infrastructure.raw_renderer import RawRenderer, is_raw_file
 from backend.image_converter.infrastructure.svg_renderer import SvgRenderer
 
 
@@ -28,10 +29,12 @@ class FilePayloadExpander:
         pdf_extractor: PdfPageExtractor,
         psd_renderer: PsdRenderer,
         svg_renderer: SvgRenderer | None = None,
+        raw_renderer: RawRenderer | None = None,
     ):
         self.pdf_extractor = pdf_extractor
         self.psd_renderer = psd_renderer
         self.svg_renderer = svg_renderer or SvgRenderer()
+        self.raw_renderer = raw_renderer or RawRenderer()
 
     def expand(
         self,
@@ -47,6 +50,8 @@ class FilePayloadExpander:
             return self._expand_pdf_payloads(source_name, data)
         if self._is_psd(source_name):
             return self._expand_psd_payload(source_name, data)
+        if is_raw_file(source_name):
+            return self._expand_raw_payload(source_name, data)
         if source_name.lower().endswith(".svg"):
             rendered = self.svg_renderer.render_image(
                 source_name,
@@ -109,6 +114,16 @@ class FilePayloadExpander:
             label=source_name,
         )
         return Result.success([payload])
+
+    def _expand_raw_payload(
+        self, source_name: str, data: bytes
+    ) -> Result[Iterable[PagePayload]]:
+        rendered = self.raw_renderer.render(source_name, data)
+        if not rendered.is_successful:
+            return Result.failure(rendered.error)
+        return Result.success(
+            [PagePayload(data=rendered.value, page_index=None, label=source_name)]
+        )
 
     @staticmethod
     def _build_single_payload(source_name: str, data: bytes) -> PagePayload:
